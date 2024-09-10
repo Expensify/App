@@ -25,7 +25,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
-    const {containsHeader} = spreadsheet ?? {};
+    const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -111,6 +111,12 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         return;
     }
 
+    const closeImportPageAndModal = () => {
+        setIsImportingCategories(false);
+        closeImportPage();
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
+
     return (
         <ScreenWrapper
             testID={ImportedCategoriesPage.displayName}
@@ -135,11 +141,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={() => {
-                    setIsImportingCategories(false);
-                    closeImportPage();
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-                }}
+                onConfirm={closeImportPageAndModal}
+                onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />

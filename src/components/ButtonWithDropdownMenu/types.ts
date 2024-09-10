@@ -10,6 +10,8 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
+type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
 type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
@@ -107,6 +109,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 export type {
     PaymentType,
     WorkspaceMemberBulkActionType,
+    RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,
     ButtonWithDropdownMenuProps,
