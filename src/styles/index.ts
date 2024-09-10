@@ -5170,11 +5170,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        emptyStateFolderIconSize: {
-            width: 184,
-            height: 112,
-        },
-
         emptyStateFolderWithPaperIconSize: {
             width: 160,
             height: 100,

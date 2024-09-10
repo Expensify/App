@@ -363,7 +363,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                         headerMedia={LottieAnimations.GenericEmptyState}
                         headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />

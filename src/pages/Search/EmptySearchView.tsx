@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -38,7 +37,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 return {
                     headerMedia: LottieAnimations.GenericEmptyState,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w184, variables.h112),
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     buttonText: undefined,
@@ -53,7 +51,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
             headerMedia={content.headerMedia}
             headerStyles={content.headerStyles}
-            headerContentStyles={content.headerContentStyles}
             title={content.title}
             subtitle={content.subtitle}
             buttonText={content.buttonText}
