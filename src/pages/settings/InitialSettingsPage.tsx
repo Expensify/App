@@ -370,11 +370,11 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb3]}>
+        <View style={[styles.ph5, styles.pv5]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
@@ -428,7 +428,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pb0, styles.pt4]}
+            style={[styles.w100, styles.pb0]}
             includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
