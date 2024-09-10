@@ -695,19 +695,19 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
-        accountID: string;
+        bank: string;
         cardID: string;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
         policyID: string;
         cardID: string;
-        accountID: string;
+        bank: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
         policyID: string;
         cardID: string;
-        accountID: string;
+        bank: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;

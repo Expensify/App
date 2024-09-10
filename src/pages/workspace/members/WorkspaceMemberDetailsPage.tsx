@@ -45,25 +45,6 @@ type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
-// const allCards = {
-//     // eslint-disable-next-line @typescript-eslint/naming-convention
-//     cards_18175034_ExpensifyCard: [],
-//     // eslint-disable-next-line @typescript-eslint/naming-convention
-//     cards_18175034_cdfbmo: {
-//         // eslint-disable-next-line @typescript-eslint/naming-convention
-//         '1': {isLoadingLastUpdated: false, nameValuePairs: {cardTitle: 'jk'}},
-//         id1: {
-//             cardID: 885646,
-//             accountID: 11309072,
-//             nameValuePairs: {
-//                 cardTitle: 'Test 1',
-//             },
-//             cardNumber: '1234 56XX XXXX 1222',
-//         },
-//     },
-//     // eslint-disable-next-line @typescript-eslint/naming-convention
-//     'cards_18224126_Expensify Card': [],
-// } as never as Record<string, WorkspaceCardsList>;
 
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
@@ -160,10 +141,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     const navigateToCompanyCardDetails = useCallback(
-        (cardID: string) => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, route.params.accountID, Navigation.getActiveRoute()));
+        (cardID: string, bank: string) => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, Navigation.getActiveRoute()));
         },
-        [policyID, route.params.accountID],
+        [policyID],
     );
 
     const navigateToIssueNewCard = useCallback(() => {
@@ -317,6 +298,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 const companyCard = companyCards[companyCardKey];
                                                 return (
                                                     <MenuItem
+                                                        key={companyCardKey}
                                                         title={companyCard?.cardNumber ?? ''}
                                                         icon={CardUtils.getCardDetailsImage(companyCard?.bank ?? '')}
                                                         displayInDefaultIconColor
@@ -324,7 +306,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                         contentFit="contain"
                                                         iconWidth={variables.cardIconWidth}
                                                         iconHeight={variables.cardIconHeight}
-                                                        onPress={() => navigateToCompanyCardDetails(companyCardKey)}
+                                                        onPress={() => navigateToCompanyCardDetails(companyCardKey, companyCard?.bank)}
                                                         shouldShowRightIcon
                                                     />
                                                 );

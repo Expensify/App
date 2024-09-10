@@ -4678,7 +4678,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, {optimisticData, successData, failureData});
 }
 
-function updateCompanyCardName(workspaceAccountID: number, cardID: number, newCardTitle: string, bankName: string) {
+function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCardTitle: string, bankName: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -4697,14 +4697,14 @@ function updateCompanyCardName(workspaceAccountID: number, cardID: number, newCa
 
     const parameters: UpdateCompanyCardNameParams = {
         authToken,
-        cardID,
+        cardID: Number(cardID),
         cardName: newCardTitle,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData});
 }
 
-function setCompanyCardExportAccount(workspaceAccountID: number, cardID: number, accountKey: string, newAccount: string, bankName: string) {
+function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bankName: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -4725,7 +4725,7 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: number,
 
     const parameters: SetCompanyCardExportAccountParams = {
         authToken,
-        cardID,
+        cardID: Number(cardID),
         exportAccountDetails: {[accountKey]: newAccount},
     };
 

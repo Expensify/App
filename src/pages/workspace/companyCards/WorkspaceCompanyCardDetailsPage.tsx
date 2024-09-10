@@ -34,7 +34,7 @@ import {getExportMenuItem} from './utils';
 type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo, accountID} = route.params;
+    const {policyID, cardID, backTo, bank} = route.params;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
@@ -46,9 +46,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const companyCards = CardUtils.getMemberCards(policy, allCardsList, Number(accountID));
-    const card = companyCards?.[cardID];
+    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
+    const card = allBankCards?.[cardID];
 
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
@@ -56,12 +55,12 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, card?.bank);
+        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, card?.bank);
+        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
 
     return (
@@ -108,14 +107,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 description={translate('workspace.moreFeatures.companyCards.cardName')}
                                 title={card?.nameValuePairs?.cardTitle}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, accountID))}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
                             />
                             {exportMenuItem && (
                                 <MenuItemWithTopDescription
                                     description={exportMenuItem.description}
                                     title={exportMenuItem.title}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, accountID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
                                 />
                             )}
                             <MenuItemWithTopDescription

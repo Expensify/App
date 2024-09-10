@@ -212,7 +212,7 @@ function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<
     const cards: WorkspaceCardsList = {};
     const mockedCardsList = allCardsList ?? {};
     Object.keys(mockedCardsList)
-        .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
+        .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceId}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
         .forEach((key) => {
             const feedCards = mockedCardsList?.[key];
             if (feedCards && Object.keys(feedCards).length > 0) {
