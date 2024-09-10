@@ -34,6 +34,7 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
         !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
         !privatePersonalDetails?.phoneNumber ||
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0;
