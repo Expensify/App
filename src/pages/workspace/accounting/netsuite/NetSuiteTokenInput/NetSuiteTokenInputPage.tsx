@@ -1,3 +1,4 @@
+import {isEmpty} from 'lodash';
 import React, {useRef} from 'react';
 import type {ComponentType, ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -7,6 +8,7 @@ import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSu
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -51,6 +53,8 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         nextScreen();
     };
 
+    const shouldPageBeBlocked = !isEmpty(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+
     return (
         <ConnectionLayout
             displayName={NetSuiteTokenInputPage.displayName}
@@ -60,10 +64,10 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
-            shouldLoadForEmptyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
+            shouldBeBlocked={shouldPageBeBlocked}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
