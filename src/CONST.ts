@@ -2467,6 +2467,7 @@ const CONST = {
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
 
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+        DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
     },
 
     PRONOUNS: {

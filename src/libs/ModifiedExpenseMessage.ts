@@ -96,10 +96,9 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
 }
 
 function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
-    const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/;
     let changedField: 'distance' | 'rate' = 'distance';
 
-    if (distanceMerchantRegex.test(newMerchant) && distanceMerchantRegex.test(oldMerchant)) {
+    if (CONST.REGEX.DISTANCE_MERCHANT.test(newMerchant) && CONST.REGEX.DISTANCE_MERCHANT.test(oldMerchant)) {
         const oldValues = oldMerchant.split('@');
         const oldDistance = oldValues[0]?.trim() || '';
         const oldRate = oldValues[1]?.trim() || '';
