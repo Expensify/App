@@ -273,7 +273,7 @@ function AdvancedSearchFilters() {
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL));
+        const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery());
         if (!queryJSON) {
             return;
         }
