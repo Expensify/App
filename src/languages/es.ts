@@ -740,6 +740,7 @@ export default {
         share: 'Compartir',
         participants: 'Participantes',
         submitExpense: 'Presentar gasto',
+        createExpense: 'Crear gasto',
         paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
         trackExpense: 'Seguimiento de gastos',
         pay: 'Pagar',
