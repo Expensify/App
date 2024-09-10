@@ -261,20 +261,6 @@ function SecuritySettingsPage() {
                                     </Section>
                                 </View>
                             )}
-                            <MenuItem
-                                title={translate('delegate.addCopilot')}
-                                icon={Expensicons.UserPlus}
-                                iconFill={theme.iconSuccessFill}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
-                            />
-                            {hasDelegators && (
-                                <>
-                                    <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                                    <MenuItemList menuItems={delegatorMenuItems} />
-                                </>
-                            )}
                             <Popover
                                 isVisible={shouldShowDelegatePopoverMenu}
                                 anchorRef={delegateButtonRef as RefObject<View>}
