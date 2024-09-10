@@ -4109,11 +4109,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
-        taskCheckbox: {
-            height: 16,
-            width: 16,
-        },
-
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,

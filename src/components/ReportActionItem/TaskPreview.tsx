@@ -97,7 +97,6 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                     <View style={[styles.taskCheckboxWrapper]}>
                         <Checkbox
                             style={[styles.mr2]}
-                            containerStyle={[styles.taskCheckbox]}
                             isChecked={isTaskCompleted}
                             disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
