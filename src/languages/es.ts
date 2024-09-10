@@ -1649,7 +1649,7 @@ export default {
         enterLegalName: 'Enter legal name',
         enterDateOfBirth: 'Enter date of birth',
         enterAddress: 'Enter address',
-        addPhoneNumber: 'Add phone number',
+        enterPhoneNumber: 'Enter phone number',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         legalName: 'Nombre completo',
@@ -2917,11 +2917,11 @@ export default {
                 `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
-            addPersonalDetails: 'Añadir detalles personales',
+            addShippingDetails: 'Agregar detalles de envío',
             issuedCard: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta llegará en 2-3 días laborables.`,
-            issuedCardNoPersonalDetails: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta será enviada una vez que se hayan agregado los datos personales.`,
+            issuedCardNoShippingDetails: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se agreguen los detalles de envío.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
-            addedPersonalDetails: (assignee: string) => `${assignee} agregó los datos personales. Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            addedShippingDetails: (assignee: string) => `${assignee} agregó los detalles de envío. Tarjeta Expensify llegará en 2-3 días hábiles.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',

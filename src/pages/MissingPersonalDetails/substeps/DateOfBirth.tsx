@@ -18,7 +18,7 @@ function DateOfBirthStep({privatePersonalDetails}: CustomSubStepProps) {
 
     return (
         <>
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.enterDateOfBirth')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterDateOfBirth')}</Text>
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID={INPUT_IDS.DATE_OF_BIRTH}

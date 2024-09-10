@@ -180,7 +180,7 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
             testID={MissingPersonalDetails.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addPersonalDetails')}
+                title={translate('workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>

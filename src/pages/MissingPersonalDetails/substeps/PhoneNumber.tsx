@@ -14,7 +14,7 @@ function PhoneNumberStep({privatePersonalDetails}: CustomSubStepProps) {
 
     return (
         <>
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.addPhoneNumber')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.PHONE_NUMBER}
