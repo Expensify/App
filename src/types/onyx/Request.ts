@@ -56,9 +56,9 @@ type RequestData = {
 };
 
 /**
- * Model of a conflict request that has to be updated, in the request queue.
+ * Model of a conflict request that has to be replaced in the request queue.
  */
-type ConflictRequestUpdate = {
+type ConflictRequestReplace = {
     /**
      * The action to take in case of a conflict.
      */
@@ -71,9 +71,9 @@ type ConflictRequestUpdate = {
 };
 
 /**
- * Model of a conflict request that has to be saved at the end the request queue.
+ * Model of a conflict request that has to be enqueued at the end of request queue.
  */
-type ConflictRequestSave = {
+type ConflictRequestPush = {
     /**
      * The action to take in case of a conflict.
      */
@@ -81,7 +81,7 @@ type ConflictRequestSave = {
 };
 
 /**
- * Model of a conflict request that no need to be updated or saved, in the request queue.
+ * Model of a conflict request that does not need to be updated or saved in the request queue.
  */
 type ConflictRequestNoAction = {
     /**
@@ -97,7 +97,7 @@ type ConflictActionData = {
     /**
      * The action to take in case of a conflict.
      */
-    conflictAction: ConflictRequestUpdate | ConflictRequestSave | ConflictRequestNoAction;
+    conflictAction: ConflictRequestReplace | ConflictRequestPush | ConflictRequestNoAction;
 };
 
 /**

@@ -297,7 +297,7 @@ Onyx.connect({
         Object.entries(allReportActions).forEach((reportActions) => {
             const reportID = reportActions[0].split('_')[1];
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
+            let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true, reportID);
             allSortedReportActions[reportID] = sortedReportActions;
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications

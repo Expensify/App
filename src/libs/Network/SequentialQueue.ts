@@ -24,7 +24,7 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
-let currentRequest: OnyxRequest | null = null;
+// let currentRequest: OnyxRequest | null = null;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 
@@ -80,9 +80,9 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    const requestToProcess = persistedRequests[0];
-
-    currentRequest = requestToProcess;
+    const requestToProcess = PersistedRequests.processNextRequest(); // persistedRequests[0];
+    console.log('next process requestToProcess', {...requestToProcess});
+    // currentRequest = requestToProcess;
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = Request.processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -162,7 +162,7 @@ function flush() {
                 if (NetworkStore.isOffline() || PersistedRequests.getAll().length === 0) {
                     resolveIsReadyPromise?.();
                 }
-                currentRequest = null;
+                // currentRequest = null;
                 currentRequestPromise = null;
 
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
@@ -202,10 +202,11 @@ NetworkStore.onReconnection(flush);
 
 function push(newRequest: OnyxRequest) {
     // If a request is already being processed, ignore it when looking for potentially conflicting requests
-    const requests = PersistedRequests.getAll().filter((persistedRequest) => persistedRequest !== currentRequest);
+    const requests = PersistedRequests.getAll(); //.filter((persistedRequest) => persistedRequest !== currentRequest);
 
     const {checkAndFixConflictingRequest} = newRequest;
     if (checkAndFixConflictingRequest) {
+        console.log('ReconnectApp checkAndFixConflictingRequest', {...requests});
         const {conflictAction} = checkAndFixConflictingRequest(requests);
 
         if (conflictAction.type === 'push') {
@@ -218,6 +219,7 @@ function push(newRequest: OnyxRequest) {
         PersistedRequests.save(newRequest);
     }
 
+    const final = PersistedRequests.getAll();
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
         return;

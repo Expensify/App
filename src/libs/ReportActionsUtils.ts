@@ -49,6 +49,7 @@ type MemberChangeMessageRoomReferenceElement = {
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
 let allReportActions: OnyxCollection<ReportActions>;
+const cachedSortedReportActions = new Map<string, ReportAction[]>();
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -56,8 +57,22 @@ Onyx.connect({
         if (!actions) {
             return;
         }
-
+        // console.log('allReportActions', actions);
         allReportActions = actions;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+        // console.log('LOOKING FOR REPORT changed>', actions);
+        if (cachedSortedReportActions.has(actions.reportID)) {
+            // console.log('LOOKING FOR REPORT changed> DELETING', actions.reportID);
+            cachedSortedReportActions.delete(actions.reportID);
+        }
     },
 });
 
@@ -364,11 +379,16 @@ function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>)
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  */
-function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
+function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false, reportID: string | undefined = undefined): ReportAction[] {
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
+    // console.log('getSortedReportActions - INITIAL reportActions', reportActions);
+    if (reportID && cachedSortedReportActions.has(reportID)) {
+        // console.log('getSortedReportActions - CACHED sortedActions', cachedSortedReportActions.get(reportID));
+        return cachedSortedReportActions.get(reportID) ?? [];
+    }
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
     const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
@@ -391,7 +411,10 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
-
+    // console.log('getSortedReportActions - FINAL sortedActions', sortedActions);
+    if (reportID) {
+        cachedSortedReportActions.set(reportID, sortedActions);
+    }
     return sortedActions;
 }
 
@@ -441,7 +464,7 @@ function getCombinedReportActions(
         return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
-    return getSortedReportActions(filteredReportActions, true);
+    return getSortedReportActions(filteredReportActions, true, report?.reportID);
 }
 
 /**
@@ -731,7 +754,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
     const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
-    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
+    const sortedReportActions = getSortedReportActions(visibleReportActions, true, reportID);
     if (sortedReportActions.length === 0) {
         return undefined;
     }
@@ -784,7 +807,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false, reportID: string | undefined): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -799,7 +822,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(baseURLAdjustedReportActions, true, reportID);
 }
 
 /**
