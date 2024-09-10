@@ -684,7 +684,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
         employees: JSON.stringify([...members.map((member) => ({email: member.email, role: member.role}))]),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SREADSHEET, parameters, onyxData);
+    API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
 }
 
 /**
