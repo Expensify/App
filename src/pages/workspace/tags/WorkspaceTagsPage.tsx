@@ -100,7 +100,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 required: policyTagList.required,
                 rightElement: (
                     <ListItemRightCaretWithLabel
-                        labelText={policyTagList.required ? translate('common.required') : undefined}
+                        labelText={policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : undefined}
                         shouldShowCaret={false}
                     />
                 ),
@@ -287,7 +287,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             {isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>

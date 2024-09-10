@@ -303,9 +303,22 @@ function IOURequestStepConfirmation({
                 transaction.actionableWhisperReportActionID,
                 transaction.linkedTrackedExpenseReportAction,
                 transaction.linkedTrackedExpenseReportID,
+                customUnitRateID,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, action],
+        [
+            report,
+            transaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            transactionTaxCode,
+            transactionTaxAmount,
+            policy,
+            policyTags,
+            policyCategories,
+            action,
+            customUnitRateID,
+        ],
     );
 
     const createDistanceRequest = useCallback(
