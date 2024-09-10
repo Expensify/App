@@ -508,14 +508,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
-        const hasAtLeastOneNoneMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
-        const hasAtLeastOneNoneAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
+        const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
+        const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
 
-        if (hasAtLeastOneNoneMemberRole) {
+        if (hasAtLeastOneNonMemberRole) {
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNoneAdminRole) {
+        if (hasAtLeastOneNonAdminRole) {
             options.push(adminOption);
         }
 
