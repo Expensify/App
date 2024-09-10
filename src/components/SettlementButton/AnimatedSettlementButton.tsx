@@ -3,6 +3,7 @@ import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTimi
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import SettlementButton from '.';
 import type SettlementButtonProps from './types';
 
@@ -28,13 +29,11 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
         position: 'absolute',
         alignSelf: 'center',
     }));
-
     const containerStyles = useAnimatedStyle(() => ({
         height: height.value,
         justifyContent: 'center',
         overflow: 'hidden',
     }));
-
     const buttonDisabledStyle = shouldStartPaidAnimation
         ? {
               opacity: 1,
@@ -57,16 +56,17 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        buttonScale.value = withTiming(0, {duration: 200});
-        buttonOpacity.value = withTiming(0, {duration: 200});
-        paymentCompleteTextScale.value = withTiming(1, {duration: 200});
+        buttonScale.value = withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION});
+        buttonOpacity.value = withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION});
+        paymentCompleteTextScale.value = withTiming(1, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION});
 
         // Wait for the above animation + 1s delay before hiding the component
+        const totalDelay = CONST.ANIMATION_PAY_BUTTON_DURATION + CONST.ANIMATION_PAY_BUTTON_HIDE_DELAY;
         height.value = withDelay(
-            1200,
-            withTiming(0, {duration: 200}, () => runOnJS(onAnimationFinish)()),
+            totalDelay,
+            withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION}, () => runOnJS(onAnimationFinish)()),
         );
-        paymentCompleteTextOpacity.value = withDelay(1200, withTiming(0, {duration: 200}));
+        paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION}));
     }, [shouldStartPaidAnimation, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
 
     return (
