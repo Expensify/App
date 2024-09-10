@@ -1,13 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -25,8 +22,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID ?? '-1';
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
-    const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
@@ -55,14 +50,8 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
                 shouldShowOfflineIndicatorInWideScreen
+                isLoading={isLoading}
             >
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                        color={theme.spinner}
-                    />
-                )}
                 {!!paymentBankAccountID && !isLoading && (
                     <WorkspaceExpensifyCardListPage
                         cardsList={cardsList}
