@@ -57,5 +57,4 @@ function sleep(): Promise<void> {
     });
 }
 
-
-export {clear, getRequestWaitTime, sleep, getLastRequestWaitTime, sleepOld};
+export {clear, getRequestWaitTime, sleep, getLastRequestWaitTime};
