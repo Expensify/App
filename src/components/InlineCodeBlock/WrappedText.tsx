@@ -1,70 +1,90 @@
-import React, {useState} from 'react';
+import React, {Fragment} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, TextLayoutEventData, TextStyle, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import variables from '@styles/variables';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Style for each individual word (token) in the text */
+    /**
+     * Style for each individual word (token) in the text. Note that a token can also include whitespace characters between words.
+     */
     wordStyles?: StyleProp<ViewStyle>;
 };
 
-/** Validates if the text contains any emoji */
+/**
+ * Breaks the text into matrix
+ *
+ * @example
+ * const text = "My Name is Rajat";
+ * const resultMatrix = getTextMatrix(text);
+ * console.log(resultMatrix);
+ * // Output:
+ * // [
+ * //   ['My', ' ', 'Name', ' ', 'is', ' ', 'Rajat'],
+ * // ]
+ */
+function getTextMatrix(text: string): string[][] {
+    return text.split('\n').map((row) => row.split(CONST.REGEX.SPACE_OR_EMOJI).filter((value) => value !== ''));
+}
+
+/**
+ * Validates if the text contains any emoji
+ */
 function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJIS.test(text);
 }
 
+/**
+ * Splits long words into multiple strings
+ */
+function splitLongWord(word: string, maxLength: number): string[] {
+    if (word.length <= maxLength) {
+        return [word];
+    }
+
+    return word.match(new RegExp(`.{1,${maxLength}}`, 'g')) || [];
+}
+
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
-    const [lines, setLines] = useState<string[]>([]);
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
 
     if (typeof children !== 'string') {
         return null;
     }
 
-    type TextLayoutEvent = NativeSyntheticEvent<TextLayoutEventData>;
+    const charWidth = variables.fontSizeLabel * variables.fontSizeToWidthRatio;
+    const charsPerLine = Math.floor(windowWidth / charWidth);
 
-    const handleTextLayout = (event: TextLayoutEvent) => {
-        const {
-            nativeEvent: {lines: textLines},
-        } = event;
-        setLines(textLines.map((line: {text: string}) => line.text));
-    };
+    const textMatrix = getTextMatrix(children).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
 
-    if (!lines.length) {
-        return (
-            <View style={{position: 'absolute', opacity: 0, width: '100%'}}>
-                <Text
-                    style={[textStyles]}
-                    onTextLayout={handleTextLayout}
-                >
-                    {children}
-                </Text>
-            </View>
-        );
-    }
-
-    return (
-        <>
-            {lines.map((line, index) => (
+    return textMatrix.map((rowText, rowIndex) => (
+        <Fragment
+            // eslint-disable-next-line react/no-array-index-key
+            key={`${rowText[0]}-${rowIndex}`}
+        >
+            {rowText.map((colText, colIndex) => (
+                // Outer View is important to vertically center the Text
                 <View
                     // eslint-disable-next-line react/no-array-index-key
-                    key={index}
+                    key={`${colText}-${colIndex}`}
                     style={styles.codeWordWrapper}
                 >
-                    <View style={[wordStyles, index === 0 && styles.codeFirstWordStyle, index === lines.length - 1 && styles.codeLastWordStyle]}>
-                        <Text style={[textStyles, !containsEmoji(line) && styles.codePlainTextStyle]}>
-                            {Array.from(line).map((char, charIndex) =>
+                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
+                        <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>
+                            {Array.from(colText).map((char, charIndex) =>
                                 containsOnlyEmojis(char) ? (
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
-                                        key={`${index}-${charIndex}`}
+                                        key={`${colIndex}-${charIndex}`}
                                         style={[textStyles, styles.emojiDefaultStyles]}
                                     >
                                         {char}
@@ -77,8 +97,8 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                     </View>
                 </View>
             ))}
-        </>
-    );
+        </Fragment>
+    ));
 }
 
 WrappedText.displayName = 'WrappedText';
