@@ -53,9 +53,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
-    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
-    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
-
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: (reportID: string, reportActionID?: string) => {

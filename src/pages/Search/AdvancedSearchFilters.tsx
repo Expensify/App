@@ -97,20 +97,10 @@ const baseFilterConfig = {
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
     },
-    has: {
-        getTitle: getFilterHasDisplayTitle,
-        description: 'search.filters.has' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-    },
     in: {
         getTitle: getFilterInDisplayTitle,
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
-    },
-    is: {
-        getTitle: getFilterIsDisplayTitle,
-        description: 'search.filters.is' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
     },
 };
 
@@ -118,7 +108,7 @@ const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_F
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in', 'is'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'in'],
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
@@ -224,27 +214,6 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
 }
-
-function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS];
-    return filterValue
-        ? Object.values(CONST.SEARCH.CHAT_TYPES)
-              .filter((hasFilter) => filterValue.includes(hasFilter))
-              .map((hasFilter) => translate(SearchUtils.getChatFiltersTranslationKey(hasFilter)))
-              .join(', ')
-        : undefined;
-}
-
-function getFilterIsDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.IS];
-    return filterValue
-        ? Object.values(CONST.SEARCH.CHAT_STATUS)
-              .filter((chatStatus) => filterValue.includes(chatStatus))
-              .map((chatStatus) => translate(SearchUtils.getChatStatusTranslationKey(chatStatus)))
-              .join(', ')
-        : undefined;
-}
-
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -291,7 +260,7 @@ function AdvancedSearchFilters() {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);

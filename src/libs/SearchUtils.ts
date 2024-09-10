@@ -488,28 +488,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (has) {
-        case CONST.SEARCH.CHAT_TYPES.LINK:
-            return 'search.filters.link';
-        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
-            return 'common.attachment';
-    }
-}
-
-function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (chatStatus) {
-        case CONST.SEARCH.CHAT_STATUS.PINNED:
-            return 'search.filters.pinned';
-        case CONST.SEARCH.CHAT_STATUS.UNREAD:
-            return 'search.filters.unread';
-        case CONST.SEARCH.CHAT_STATUS.DRAFT:
-            return 'search.filters.draft';
-    }
-}
-
 /**
  * Given object with chosen search filters builds correct query string from them
  */
@@ -540,9 +518,7 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 filterKey === FILTER_KEYS.CURRENCY ||
                 filterKey === FILTER_KEYS.FROM ||
                 filterKey === FILTER_KEYS.TO ||
-                filterKey === FILTER_KEYS.IN ||
-                filterKey === FILTER_KEYS.HAS ||
-                filterKey === FILTER_KEYS.IS) &&
+                filterKey === FILTER_KEYS.IN) &&
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
@@ -635,8 +611,7 @@ function getFiltersFormValues(queryJSON: SearchQueryJSON) {
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN
         ) {
             filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString());
         }
@@ -751,6 +726,4 @@ export {
     buildCannedSearchQuery,
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
-    getChatFiltersTranslationKey,
-    getChatStatusTranslationKey,
 };
