@@ -38,6 +38,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 route={route}
                 icon={Illustrations.Rules}
                 shouldShowNotFoundPage={!canUseWorkspaceRules}
+                shouldShowLoading={false}
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
