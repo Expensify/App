@@ -140,6 +140,7 @@ function SecuritySettingsPage() {
             const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
                     showPopoverMenu(e, {email, role});
+                    return;
                 }
                 if (!role) {
                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
