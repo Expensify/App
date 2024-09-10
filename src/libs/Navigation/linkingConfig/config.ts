@@ -617,6 +617,36 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
+                        [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_APPROVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
@@ -913,14 +943,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_PARTICIPANTS.ROLE]: ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.ROOM_INVITE]: {
-                    screens: {
-                        [SCREENS.ROOM_INVITE_ROOT]: ROUTES.ROOM_INVITE.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: {
                     screens: {
-                        [SCREENS.ROOM_MEMBERS_ROOT]: ROUTES.ROOM_MEMBERS.route,
+                        [SCREENS.ROOM_MEMBERS.ROOT]: ROUTES.ROOM_MEMBERS.route,
+                        [SCREENS.ROOM_MEMBERS.INVITE]: ROUTES.ROOM_INVITE.route,
+                        [SCREENS.ROOM_MEMBERS.DETAILS]: ROUTES.ROOM_MEMBER_DETAILS.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {

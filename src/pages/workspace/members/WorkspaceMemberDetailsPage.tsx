@@ -251,7 +251,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         />
                                     ) : (
                                         <Button
-                                            text={translate('workspace.people.removeMemberButtonTitle')}
+                                            text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                             onPress={askForConfirmationToRemove}
                                             medium
                                             isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}

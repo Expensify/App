@@ -449,6 +449,7 @@ function MenuItem(
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
+            styles.flex1,
             styles.popoverMenuText,
             // eslint-disable-next-line no-nested-ternary
             shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},

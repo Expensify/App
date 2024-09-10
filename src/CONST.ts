@@ -461,7 +461,6 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
@@ -1018,6 +1017,9 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+        },
+        ROOM_MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
         },
     },
     NEXT_STEP: {
@@ -2338,6 +2340,15 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AGE: 90,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        REQUIRE_RECEIPTS_OVER_OPTIONS: {
+            DEFAULT: 'default',
+            NEVER: 'never',
+            ALWAYS: 'always',
+        },
+        EXPENSE_LIMIT_TYPES: {
+            EXPENSE: 'expense',
+            DAILY: 'daily',
+        },
     },
 
     CUSTOM_UNITS: {
@@ -4289,6 +4300,11 @@ const CONST = {
      * When paginate, it multiplies by page number.
      */
     MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+
+    /**
+     *  We only include the members search bar when we have 8 or more members
+     */
+    SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT: 8,
 
     /**
      * Bank account names
