@@ -10,7 +10,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +18,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -95,7 +94,7 @@ type SearchPageHeaderProps = {
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
-    data?: TransactionListItemType[] | ReportListItemType[];
+    data?: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[];
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -111,6 +110,8 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
             return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
@@ -124,7 +125,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -135,6 +136,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 .filter(
                     (item) =>
                         !SearchUtils.isTransactionListItemType(item) &&
+                        !SearchUtils.isReportActionListItemType(item) &&
                         item.reportID &&
                         item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
                 )
@@ -193,9 +195,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -215,10 +214,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    clearSelectedTransactions();
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
@@ -269,7 +264,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -280,7 +274,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        selectionMode?.isEnabled,
     ]);
 
     if (shouldUseNarrowLayout) {

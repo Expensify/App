@@ -57,8 +57,13 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
 
     SEARCH_REPORT: {
-        route: 'search/view/:reportID',
-        getRoute: (reportID: string) => `search/view/${reportID}` as const,
+        route: 'search/view/:reportID/:reportActionID?',
+        getRoute: (reportID: string, reportActionID?: string) => {
+            if (reportActionID) {
+                return `search/view/${reportID}/${reportActionID}` as const;
+            }
+            return `search/view/${reportID}` as const;
+        },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
@@ -129,6 +134,19 @@ const ROUTES = {
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
+    SETTINGS_DELEGATE_ROLE: {
+        route: 'settings/security/delegate/:login/role/:role',
+        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM: {
+        route: 'settings/security/delegate/:login/role/:role/confirm',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/magic-code` as const,
+    },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
@@ -350,6 +368,10 @@ const ROUTES = {
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
+    },
+    ROOM_MEMBER_DETAILS: {
+        route: 'r/:reportID/members/:accountID',
+        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/members/${accountID}` as const,
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
@@ -644,8 +666,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex?: number, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const, backTo),
+        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
@@ -780,6 +802,26 @@ const ROUTES = {
     WORKSPACE_CATEGORY_GL_CODE: {
         route: 'settings/workspaces/:policyID/categories/:categoryName/gl-code',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/gl-code` as const,
+    },
+    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/tax-rate',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/tax-rate` as const,
+    },
+    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/flag-amounts',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/flag-amounts` as const,
+    },
+    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/description-hint',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/description-hint` as const,
+    },
+    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/require-receipts-over',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORSKPACE_CATEGORY_APPROVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/approver',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/approver` as const,
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
@@ -1002,6 +1044,22 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+    },
+    RULES_CUSTOM_NAME: {
+        route: 'settings/workspaces/:policyID/rules/name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/name` as const,
+    },
+    RULES_AUTO_APPROVE_REPORTS_UNDER: {
+        route: 'settings/workspaces/:policyID/rules/auto-approve',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-approve` as const,
+    },
+    RULES_RANDOM_REPORT_AUDIT: {
+        route: 'settings/workspaces/:policyID/rules/audit',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/audit` as const,
+    },
+    RULES_AUTO_PAY_REPORTS_UNDER: {
+        route: 'settings/workspaces/:policyID/rules/auto-pay',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-pay` as const,
     },
     RULES_RECEIPT_REQUIRED_AMOUNT: {
         route: 'settings/workspaces/:policyID/rules/receipt-required-amount',
@@ -1403,7 +1461,9 @@ const ROUTES = {
  */
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
-    MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
+    MONEY_REQUEST_CREATE_TAB_SCAN: '/submit/new/scan',
+    MONEY_REQUEST_CREATE_TAB_MANUAL: '/submit/new/manual',
+    MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
 } as const;
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
