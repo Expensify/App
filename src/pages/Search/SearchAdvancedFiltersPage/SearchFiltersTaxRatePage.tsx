@@ -67,6 +67,6 @@ function SearchFiltersTaxRatePage() {
     );
 }
 
-SearchFiltersTaxRatePage.displayName = 'SearchFiltersCategoryPage';
+SearchFiltersTaxRatePage.displayName = 'SearchFiltersTaxRatePage';
 
 export default SearchFiltersTaxRatePage;
