@@ -128,7 +128,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     })
                 }
                 submitButtonText={translate('common.save')}
-                submitButtonStyles={styles.ph5}
+                submitButtonStyles={styles.ph3}
                 enabledWhenOffline
                 allowHTML
             >
@@ -211,7 +211,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 </View>
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
             </FormProvider>
-            <View style={styles.ph5}>
+            <View style={styles.ph3}>
                 <Button
                     danger
                     large

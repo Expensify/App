@@ -39,13 +39,14 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     return (
         <ScrollView
             style={styles.mt5}
-            contentContainerStyle={[styles.pb5, styles.gap5]}
+            contentContainerStyle={[styles.pb5, styles.ph3]}
         >
             <Button
                 success
+                large
                 text={translate('common.create')}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_CREATE.getRoute(reportID))}
-                style={styles.ph5}
+                style={styles.pb5}
             />
             <FlatList
                 data={sortedAllReportActions}
