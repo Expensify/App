@@ -12,6 +12,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
 function SavedSearchRenamePage({route}: {route: {params: {q: string; name: string}}}) {
     const {translate} = useLocalize();
@@ -29,7 +30,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(q || SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL));
+        const queryJSON = SearchUtils.buildSearchQueryJSON(q || SearchUtils.buildCannedSearchQuery());
         if (!queryJSON) {
             return;
         }
@@ -58,13 +59,13 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="name"
-                    name="name"
+                    inputID={INPUT_IDS.NAME}
                     defaultValue={name}
                     label={translate('search.searchName')}
                     accessibilityLabel={translate('search.searchName')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={(renamedName) => setNewName(renamedName)}
+                    shouldSaveDraft
                 />
             </FormProvider>
         </ScreenWrapper>
