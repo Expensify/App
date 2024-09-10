@@ -269,7 +269,7 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
-    const contextValue = useMemo(
+    const contextMenuContextValue = useMemo(
         () => ({
             anchor: null,
             report: undefined,
@@ -277,7 +277,6 @@ function MoneyRequestConfirmationListFooter({
             action: undefined,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
-            shouldOpenContextMenu: false,
         }),
         [],
     );
@@ -314,7 +313,7 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <ShowContextMenuContext.Provider value={contextValue}>
+                <ShowContextMenuContext.Provider value={contextMenuContextValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
                         <MenuItemWithTopDescription
                             key={translate('common.description')}
