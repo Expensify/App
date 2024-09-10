@@ -315,6 +315,8 @@ type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
+type AccountOwnerParams = {accountOwnerEmail: string};
+
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type IntegrationsMessageParams = {
@@ -358,6 +360,11 @@ type IssueVirtualCardParams = {
 type ApprovalWorkflowErrorParams = {
     name1: string;
     name2: string;
+};
+
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
 };
 
 export type {
@@ -474,6 +481,7 @@ export type {
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
+    AccountOwnerParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
@@ -484,4 +492,5 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
+    AssignCardParams,
 };

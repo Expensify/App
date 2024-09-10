@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -54,10 +54,16 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
     SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
+    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
 
     SEARCH_REPORT: {
-        route: 'search/view/:reportID',
-        getRoute: (reportID: string) => `search/view/${reportID}` as const,
+        route: 'search/view/:reportID/:reportActionID?',
+        getRoute: (reportID: string, reportActionID?: string) => {
+            if (reportActionID) {
+                return `search/view/${reportID}/${reportActionID}` as const;
+            }
+            return `search/view/${reportID}` as const;
+        },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
@@ -197,6 +203,7 @@ const ROUTES = {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
     },
+    SETINGS_CONTACT_METHOD_VALIDATE_ACTION: 'settings/profile/contact-methods/validate-action',
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
@@ -348,6 +355,10 @@ const ROUTES = {
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
+    },
+    ROOM_MEMBER_DETAILS: {
+        route: 'r/:reportID/members/:accountID',
+        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/members/${accountID}` as const,
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
@@ -546,7 +557,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/address` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
@@ -642,8 +653,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex?: number, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const, backTo),
+        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
@@ -703,7 +714,19 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+        getRoute: (policyID: string, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
+            let queryParams = '';
+            if (newConnectionName) {
+                queryParams += `?newConnectionName=${newConnectionName}`;
+                if (integrationToDisconnect) {
+                    queryParams += `&integrationToDisconnect=${integrationToDisconnect}`;
+                }
+                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
+                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
+            }
+            return `settings/workspaces/${policyID}/accounting${queryParams}` as const;
+        },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',
@@ -743,6 +766,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        route: 'settings/workspaces/:policyID/categories/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        route: 'settings/workspaces/:policyID/categories/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/imported` as const,
+    },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
@@ -758,6 +789,26 @@ const ROUTES = {
     WORKSPACE_CATEGORY_GL_CODE: {
         route: 'settings/workspaces/:policyID/categories/:categoryName/gl-code',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/gl-code` as const,
+    },
+    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/tax-rate',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/tax-rate` as const,
+    },
+    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/flag-amounts',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/flag-amounts` as const,
+    },
+    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/description-hint',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/description-hint` as const,
+    },
+    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/require-receipts-over',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORSKPACE_CATEGORY_APPROVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/approver',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/approver` as const,
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
@@ -901,6 +952,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
     },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
+        getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
@@ -976,6 +1031,22 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+    },
+    RULES_CUSTOM_NAME: {
+        route: 'settings/workspaces/:policyID/rules/name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/name` as const,
+    },
+    RULES_AUTO_APPROVE_REPORTS_UNDER: {
+        route: 'settings/workspaces/:policyID/rules/auto-approve',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-approve` as const,
+    },
+    RULES_RANDOM_REPORT_AUDIT: {
+        route: 'settings/workspaces/:policyID/rules/audit',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/audit` as const,
+    },
+    RULES_AUTO_PAY_REPORTS_UNDER: {
+        route: 'settings/workspaces/:policyID/rules/auto-pay',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-pay` as const,
     },
     RULES_RECEIPT_REQUIRED_AMOUNT: {
         route: 'settings/workspaces/:policyID/rules/receipt-required-amount',
