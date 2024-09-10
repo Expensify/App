@@ -46,7 +46,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const updateBankAccount = useCallback(
         ({value}: SelectorType) => {
             if (initiallyFocusedOptionKey !== value) {
-                Connections.updatePolicyXeroConnectionConfig(
+                Connections.updatePolicyConnectionConfig(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.EXPORT,

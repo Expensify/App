@@ -47,7 +47,7 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.export?.billDate) {
-                Connections.updatePolicyXeroConnectionConfig(
+                Connections.updatePolicyConnectionConfig(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.EXPORT,
