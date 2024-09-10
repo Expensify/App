@@ -145,6 +145,7 @@ const WRITE_COMMANDS = {
     IMPORT_TAGS_SREADSHEET: 'ImportTagsSpreadsheet',
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
+    EXPORT_TAGS_CSV: 'ExportTagsCSV',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
@@ -506,6 +507,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.IMPORT_TAGS_SREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_CATEGORIES_CSV]: Parameters.ExportCategoriesSpreadsheetParams;
+    [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;

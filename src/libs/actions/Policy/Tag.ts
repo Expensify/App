@@ -11,10 +11,13 @@ import type {
     UpdatePolicyTagGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
@@ -887,6 +890,20 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
+function downloadTagsCSV(policyID: string) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
+        policyID,
+    });
+    const fileName = 'Tags.csv';
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -903,6 +920,7 @@ export {
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
     importPolicyTags,
+    downloadTagsCSV,
 };
 
 export type {NewCustomUnit};

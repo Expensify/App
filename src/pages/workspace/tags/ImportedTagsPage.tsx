@@ -92,6 +92,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         const tagsEnabled = tagsEnabledColumn !== -1 ? spreadsheet?.data[tagsEnabledColumn].map((enabled) => enabled) : [];
         const tagsGLCode = tagsGLCodeColumn !== -1 ? spreadsheet?.data[tagsGLCodeColumn].map((glCode) => glCode) : [];
         const tags = tagsNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
+            // Right now we support only single-level tags, this check should be updated when we add multi-level support
             const tagAlreadyExists = policyTagLists[0]?.tags?.[name];
             const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {

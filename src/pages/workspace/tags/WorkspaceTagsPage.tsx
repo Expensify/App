@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Modal from '@userActions/Modal';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -296,10 +297,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
+                },
+            },
+            {
+                icon: Expensicons.Download,
+                text: translate('spreadsheet.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        Modal.close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Tag.downloadTagsCSV(policyID);
                 },
             },
         ];
