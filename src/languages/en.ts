@@ -389,7 +389,6 @@ export default {
         ignore: 'Ignore',
         enabled: 'Enabled',
         import: 'Import',
-        importSpreadsheet: 'Import spreadsheet',
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         chats: 'Chats',
@@ -661,6 +660,7 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
+        tooltip: 'Get started here!',
     },
     allSettingsScreen: {
         subscription: 'Subscription',
@@ -685,8 +685,11 @@ export default {
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
+        sizeNotMet: 'File size must be greater than 0 bytes',
         invalidFileMessage:
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
+        importSpreadsheet: 'Import spreadsheet',
+        downloadCSV: 'Download CSV',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -1760,7 +1763,7 @@ export default {
         connectManually: 'Connect manually',
         desktopConnection: 'Note: To connect with Chase, Wells Fargo, Capital One or Bank of America, please click here to complete this process in a browser.',
         yourDataIsSecure: 'Your data is secure',
-        toGetStarted: 'Add a bank account to reimburse expenses, issue corporate cards, collect invoice payments, and pay bills all from one place.',
+        toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         validateAccountError: {
@@ -2934,7 +2937,7 @@ export default {
             },
             expensifyCard: {
                 title: 'Expensify Card',
-                subtitle: 'Gain insights and control over spend',
+                subtitle: 'Gain insights and control over spend.',
                 disableCardTitle: 'Disable Expensify Card',
                 disableCardPrompt: 'You can’t disable the Expensify Card because it’s already in use. Reach out to Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
@@ -3851,7 +3854,8 @@ export default {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
     },
     roomMembersPage: {
-        memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
+        memberNotFound: 'Member not found.',
+        useInviteButton: 'To invite a new member to the chat, please use the invite button above.',
         notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
         error: {
