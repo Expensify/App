@@ -12709,15 +12709,26 @@ async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
-    const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
-    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
-    const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
-    const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
+    // Used in deployManualPRsCommenter.yml workflow
+    const manualDeployerLogin = core.getInput('DEPLOYER_LOGIN');
+    const manualDeployDate = core.getInput('DATE');
+    // Whether this was triggreed by deployManualPRsCommenter.yml workflow
+    const isManualDeployNotification = !!manualDeployerLogin && !!manualDeployDate;
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: !isManualDeployNotification }));
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: !isManualDeployNotification }));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: !isManualDeployNotification }));
+    const webResult = getDeployTableMessage(core.getInput('WEB', { required: !isManualDeployNotification }));
     function getDeployMessage(deployer, deployVerb, prTitle) {
+        const deployerLogin = isManualDeployNotification ? manualDeployerLogin : deployer;
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-        message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
-        message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
-        message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
+        message += ` by https://github.com/${deployerLogin} in version: ${version} 🚀`;
+        if (isManualDeployNotification) {
+            message += ` on ${manualDeployDate} 🗓️`;
+        }
+        else {
+            message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
+            message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
+        }
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
             message +=
