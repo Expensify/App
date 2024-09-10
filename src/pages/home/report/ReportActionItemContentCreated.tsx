@@ -74,7 +74,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule],
     );
 
-    const contextMenuValue = useMemo(() => ({...contextValue, canOpenContextMenu: false}), [contextValue]);
+    const contextMenuValue = useMemo(() => ({...contextValue, shouldOpenContextMenu: false}), [contextValue]);
 
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);

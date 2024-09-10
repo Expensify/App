@@ -277,7 +277,7 @@ function MoneyRequestConfirmationListFooter({
             action: undefined,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
-            canOpenContextMenu: false,
+            shouldOpenContextMenu: false,
         }),
         [],
     );

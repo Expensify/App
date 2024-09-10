@@ -56,7 +56,6 @@ function Confirmation() {
             checkIfContextMenuActive: () => {},
             reportNameValuePairs: undefined,
             anchor: null,
-            canOpenContextMenu: false,
         }),
         [report, reportAction],
     );
