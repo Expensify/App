@@ -72,6 +72,15 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
     );
 }
 
-ArchivedReportFooter.displayName = 'ArchivedReportFooter2';
+ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 
-export default ArchivedReportFooter;
+export default withOnyx<ArchivedReportFooterProps, ArchivedReportFooterOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    reportClosedAction: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        canEvict: false,
+        selector: ReportActionsUtils.getLastClosedReportAction,
+    },
+})(ArchivedReportFooter);
