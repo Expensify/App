@@ -43,18 +43,18 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && Object.keys(cardSettings).length === 1));
 
     return (
-        <WorkspacePageWithSections
-            shouldUseScrollView
-            icon={Illustrations.HandCard}
-            headerText={translate('workspace.common.expensifyCard')}
-            route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
-            shouldShowOfflineIndicatorInWideScreen
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <AccessOrNotFoundWrapper
-                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-                policyID={route.params.policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            <WorkspacePageWithSections
+                shouldUseScrollView
+                icon={Illustrations.HandCard}
+                headerText={translate('workspace.common.expensifyCard')}
+                route={route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
+                shouldShowOfflineIndicatorInWideScreen
             >
                 {isLoading && (
                     <ActivityIndicator
@@ -70,8 +70,8 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                     />
                 )}
                 {!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardPageEmptyState route={route} />}
-            </AccessOrNotFoundWrapper>
-        </WorkspacePageWithSections>
+            </WorkspacePageWithSections>
+        </AccessOrNotFoundWrapper>
     );
 }
 
