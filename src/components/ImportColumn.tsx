@@ -156,7 +156,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
         text: item.text,
         value: item.value,
         description: item.description ?? (item.isRequired ? translate('common.required') : undefined),
-        isSelected: spreadsheet?.columns[columnIndex] === item.value,
+        isSelected: spreadsheet?.columns?.[columnIndex] === item.value,
     }));
 
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');

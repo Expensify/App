@@ -194,9 +194,9 @@ function clearCardListErrors(cardID: number) {
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails> {
+function revealVirtualCardDetails(cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
-        const parameters: RevealExpensifyCardDetailsParams = {cardID};
+        const parameters: RevealExpensifyCardDetailsParams = {cardID, validateCode};
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters)
