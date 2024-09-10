@@ -22,12 +22,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
-import type BaseAttachmentPickerProps from './types';
-
-type AttachmentPickerProps = BaseAttachmentPickerProps & {
-    /** If this value is true, then we exclude Camera option. */
-    shouldHideCameraOption?: boolean;
-};
+import type AttachmentPickerProps from './types';
 
 type Item = {
     /** The icon associated with the item. */
@@ -112,7 +107,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  */
-function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false}: AttachmentPickerProps) {
+function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false, shouldHideGalleryOption = false}: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -123,7 +118,6 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     /**
      * A generic handling when we don't know the exact reason for an error
      */
@@ -219,16 +213,18 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Gallery,
-                textTranslationKey: 'attachmentPicker.chooseFromGallery',
-                pickAttachment: () => showImagePicker(launchImageLibrary),
-            },
-            {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
+        if (!shouldHideGalleryOption) {
+            data.unshift({
+                icon: Expensicons.Gallery,
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
+                pickAttachment: () => showImagePicker(launchImageLibrary),
+            });
+        }
         if (!shouldHideCameraOption) {
             data.unshift({
                 icon: Expensicons.Camera,

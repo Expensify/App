@@ -53,7 +53,7 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
     };
 
     return (
-        <AttachmentPicker>
+        <AttachmentPicker acceptedFileTypes={['text']}>
             {({openPicker}) => {
                 return (
                     <MenuItem

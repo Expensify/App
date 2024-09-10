@@ -105,7 +105,11 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
     };
 
     return (
-        <AttachmentPicker>
+        <AttachmentPicker
+            acceptedFileTypes={['text']}
+            shouldHideCameraOption
+            shouldHideGalleryOption
+        >
             {({openPicker}) => {
                 return (
                     <MenuItem
