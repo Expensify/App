@@ -37,7 +37,7 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const handleFinishStep = useCallback(() => {
         Navigation.goBack();
