@@ -19,7 +19,8 @@ function ProfileAvatarWithIndicator({isSelected = false}: ProfileAvatarWithIndic
 
     return (
         <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar}>
-            <View style={[isSelected && styles.selectedAvatarBorder]}>
+            <View style={[styles.pRelative]}>
+                <View style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]}/>
                 <AvatarWithIndicator
                     source={currentUserPersonalDetails.avatar}
                     accountID={currentUserPersonalDetails.accountID}

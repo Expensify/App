@@ -14,7 +14,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -25,7 +27,6 @@ import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +53,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
         return query;
     }
 
-    const policyID = activePolicyID ?? queryJSON.policyID;
+    const policyID = queryJSON.policyID ?? activePolicyID;
     const policy = PolicyUtils.getPolicy(policyID);
 
     // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
@@ -95,7 +96,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         }
 
         Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
+            onNotCompleted: () => {
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+                navigationRef.resetRoot(adaptedState);
+            },
         });
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -158,7 +162,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     </View>
                     <Text
                         textAlign="center"
-                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : {}]}
+                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : styles.textSupporting]}
                     >
                         {translate('common.inbox')}
                     </Text>
@@ -182,7 +186,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     </View>
                     <Text
                         textAlign="center"
-                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : {}]}
+                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : styles.textSupporting]}
                     >
                         {translate('common.search')}
                     </Text>
