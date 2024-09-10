@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {AttachmentContext} from '@components/AttachmentContext';
 import MultipleAvatars from '@components/MultipleAvatars';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -11,7 +12,6 @@ import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragmen
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
-import { ShowContextMenuContext } from '@components/ShowContextMenuContext';
 
 function ChatListItem<TItem extends ListItem>({
     item,
@@ -94,7 +94,12 @@ function ChatListItem<TItem extends ListItem>({
                                     <TextWithTooltip
                                         shouldShowTooltip={showTooltip}
                                         text={reportActionItem.formattedFrom}
-                                        style={[styles.chatItemMessageHeaderSender, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                                        style={[
+                                            styles.chatItemMessageHeaderSender,
+                                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                            styles.sidebarLinkTextBold,
+                                            styles.pre,
+                                        ]}
                                     />
                                 </View>
                                 <ReportActionItemDate created={reportActionItem.created ?? ''} />
