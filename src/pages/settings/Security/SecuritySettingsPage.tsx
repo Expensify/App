@@ -40,10 +40,6 @@ import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type DelegateWithAccountID = {
-    accountID: number;
-} & Delegate;
-
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -57,7 +53,7 @@ function SecuritySettingsPage() {
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
-    const [selectedDelegate, setSelectedDelegate] = useState<DelegateWithAccountID | undefined>();
+    const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
 
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
@@ -89,11 +85,11 @@ function SecuritySettingsPage() {
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
 
-    const showPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegateWithAccountID: DelegateWithAccountID) => {
+    const showPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegate: Delegate) => {
         delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
         setMenuPosition();
         setShouldShowDelegatePopoverMenu(true);
-        setSelectedDelegate(delegateWithAccountID);
+        setSelectedDelegate(delegate);
     };
 
     useLayoutEffect(() => {
@@ -141,10 +137,9 @@ function SecuritySettingsPage() {
 
             const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
-            const onPress = () => {
-                // onPress: (e: GestureResponderEvent | KeyboardEvent) => showPopoverMenu(e, {email, role, accountID: personalDetail?.accountID ?? -1}),
+            const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
-                    return;
+                    showPopoverMenu(e, {email, role});
                 }
                 if (!role) {
                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
@@ -294,7 +289,7 @@ function SecuritySettingsPage() {
                                         title={translate('delegate.changeAccessLevel')}
                                         icon={Expensicons.Pencil}
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(selectedDelegate?.accountID ?? -1, selectedDelegate?.role));
+                                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                                             setShouldShowDelegatePopoverMenu(false);
                                         }}
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
