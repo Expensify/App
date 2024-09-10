@@ -163,13 +163,15 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         }
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            canInviteUser: (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction]);
 
     /**
      * Returns the sections needed for the OptionsSelector

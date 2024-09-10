@@ -97,5 +97,5 @@ export default {
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
-    USE_REACT_STRICT_MODE_IN_DEV: true,
+    USE_REACT_STRICT_MODE_IN_DEV: false,
 } as const;
