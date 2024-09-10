@@ -104,6 +104,18 @@ function processNextRequest(): Request {
     return ongoingRequest;
 }
 
+function rollbackOngoingRequest() {
+    if (!ongoingRequest) {
+        return;
+    }
+
+    // Prepend ongoingRequest to persistedRequests
+    persistedRequests = [ongoingRequest, ...persistedRequests];
+
+    // Clear the ongoingRequest
+    ongoingRequest = null;
+}
+
 function getAll(): Request[] {
     console.log('getAll persistedRequests', {...persistedRequests});
     return persistedRequests;
@@ -113,4 +125,4 @@ function getOngoingRequest(): Request | null {
     return ongoingRequest;
 }
 
-export {clear, save, getAll, remove, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest};
+export {clear, save, getAll, remove, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest, rollbackOngoingRequest};

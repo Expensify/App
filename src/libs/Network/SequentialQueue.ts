@@ -63,6 +63,7 @@ function flushOnyxUpdatesQueue() {
  * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  */
 function process(): Promise<void> {
+    console.log('PROCESS');
     // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to process. Queue is paused.');
@@ -73,7 +74,7 @@ function process(): Promise<void> {
         Log.info('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
-
+    console.log('process -> checkking getAll');
     const persistedRequests = PersistedRequests.getAll();
     if (persistedRequests.length === 0) {
         Log.info('[SequentialQueue] Unable to process. No requests to process.');
@@ -99,14 +100,18 @@ function process(): Promise<void> {
         .catch((error: RequestError) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
+            console.log('CATCHING 1st error', error);
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
+                console.log('CATCHING 1st error inside 1st IF -> remove clear RETURN');
                 PersistedRequests.remove(requestToProcess);
                 RequestThrottle.clear();
                 return process();
             }
+            PersistedRequests.rollbackOngoingRequest();
             return RequestThrottle.sleep()
                 .then(process)
                 .catch(() => {
+                    console.log('CATCHING 2nd error', error);
                     Onyx.update(requestToProcess.failureData ?? []);
                     PersistedRequests.remove(requestToProcess);
                     RequestThrottle.clear();
@@ -140,7 +145,7 @@ function flush() {
         Log.info('[SequentialQueue] Unable to flush. Client is not the leader.');
         return;
     }
-
+    console.log('flushing -> isSequentialQueueRunning true');
     isSequentialQueueRunning = true;
 
     // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
@@ -219,7 +224,6 @@ function push(newRequest: OnyxRequest) {
         PersistedRequests.save(newRequest);
     }
 
-    const final = PersistedRequests.getAll();
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
         return;

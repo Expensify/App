@@ -182,21 +182,23 @@ describe('APITests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    expect(PersistedRequests.getAll().length).toEqual(0);
-                    expect(PersistedRequests.getOngoingRequest()).toEqual(expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}));
-
+                    // The ongoingRequest it is moving back to the persistedRequests queue
+                    expect(PersistedRequests.getAll().length).toEqual(1);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
                     return new Promise((resolve) => {
                         setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
                     }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
+                    // A new promise is created after the back off timer
                     // Finally, after it succeeds the queue should be empty
-                    xhrCalls[1].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+                    xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     expect(PersistedRequests.getAll().length).toEqual(0);
+                    expect(PersistedRequests.getOngoingRequest()).toBeNull();
                 })
         );
     });
@@ -367,7 +369,6 @@ describe('APITests', () => {
     test('several actions made while offline will get added in the order they are created when we need to reauthenticate', () => {
         // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
-        xhr.mockClear();
 
         return Onyx.multiSet({
             [ONYXKEYS.NETWORK]: {isOffline: true},
@@ -553,7 +554,6 @@ describe('APITests', () => {
                 // THEN the queue should be stopped and there should be no more requests to run
                 expect(SequentialQueue.isRunning()).toBe(false);
                 expect(PersistedRequests.getAll().length).toBe(0);
-                console.log('CALLS: ', xhr.mock.calls);
                 // And our Write request should run before our non persistable one in a blocking way
                 const firstRequest = xhr.mock.calls[0];
                 const [firstRequestCommandName] = firstRequest;
