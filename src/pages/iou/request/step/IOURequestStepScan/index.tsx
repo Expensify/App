@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import heic2any from 'heic2any';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
@@ -455,6 +456,44 @@ function IOURequestStepScan({
         });
     };
 
+    const convertReceipt = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        if (originalFile?.type?.startsWith('image')) {
+            if (!originalFile.uri) {
+                console.error('File URI is undefined');
+                return;
+            }
+            FileUtils.verifyFileFormat({fileUri: originalFile.uri, formatSignatures: CONST.HEIC_SIGNATURES})
+                .then((isHEIC) => {
+                    if (isHEIC && originalFile.uri) {
+                        setIsLoadingReceipt(true);
+
+                        fetch(originalFile.uri)
+                            .then((response) => response.blob())
+                            .then((blob) => heic2any({blob, toType: 'image/jpeg'}))
+                            .then((convertedBlob) => {
+                                const blobToUse = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+
+                                const fileName = originalFile.name ? originalFile.name.replace(/\.heic$/i, '.jpg') : 'converted-image.jpg';
+
+                                const jpegFile = new File([blobToUse], fileName, {type: 'image/jpeg'});
+
+                                setReceiptAndNavigate(jpegFile, isPdfValidated);
+                            })
+                            .catch((err) => {
+                                setIsLoadingReceipt(false);
+                            });
+                    } else {
+                        setReceiptAndNavigate(originalFile, isPdfValidated);
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error verifying file format:', err);
+                });
+        } else {
+            setReceiptAndNavigate(originalFile, isPdfValidated);
+        }
+    };
+
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
 
@@ -606,7 +645,7 @@ function IOURequestStepScan({
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: setReceiptAndNavigate,
+                                    onPicked: convertReceipt,
                                 });
                             }}
                         >
@@ -684,7 +723,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: setReceiptAndNavigate,
+                                onPicked: convertReceipt,
                             });
                         }}
                     />
@@ -710,7 +749,7 @@ function IOURequestStepScan({
                                 const file = e?.dataTransfer?.files[0];
                                 if (file) {
                                     file.uri = URL.createObjectURL(file);
-                                    setReceiptAndNavigate(file);
+                                    convertReceipt(file);
                                 }
                             }}
                             receiptImageTopPosition={receiptImageTopPosition}
