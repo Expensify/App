@@ -312,7 +312,7 @@ function Expensify({
     );
 }
 
-Expensify.displayName = 'Expensify';
+Expensify.displayName = 'Expensify2';
 
 export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     isCheckingPublicRoom: {
