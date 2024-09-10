@@ -461,7 +461,6 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
@@ -2341,6 +2340,15 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AGE: 90,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        REQUIRE_RECEIPTS_OVER_OPTIONS: {
+            DEFAULT: 'default',
+            NEVER: 'never',
+            ALWAYS: 'always',
+        },
+        EXPENSE_LIMIT_TYPES: {
+            EXPENSE: 'expense',
+            DAILY: 'daily',
+        },
     },
 
     CUSTOM_UNITS: {
