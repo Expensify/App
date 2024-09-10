@@ -28,6 +28,8 @@ Workspace admins can enable invoicing on a workspace to send invoices and receiv
 
 {% include end-option.html %}
 
+{% include end-selector.html %}
+
 # Send an invoice
 
 {% include info.html %}
@@ -43,6 +45,7 @@ Only workspace admins can send invoices. Invoices can be sent directly from Expe
 4. (Optional) Add additional invoice details, including a description, date, category, tag, and/or tax. 
 5. Click **Send**.
 {% include end-option.html %}
+
 
 {% include option.html value="mobile" %}
 1. Tap the + icon in the bottom left menu and select **Send Invoice**.
