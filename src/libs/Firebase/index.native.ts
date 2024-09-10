@@ -41,7 +41,7 @@ const stopTrace: StopTrace = (customEventName) => {
         return;
     }
 
-    const trace = traceMap[customEventName].trace;
+    const trace = traceMap[customEventName]?.trace;
     if (!trace) {
         return;
     }

@@ -20,6 +20,7 @@ import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
@@ -203,6 +204,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
+                if (ReportActionsUtils.isDeletedAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
                 reportActionItems.push({
                     ...reportAction,
                     from,
@@ -310,7 +315,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
 
 function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return data;
+        return getSortedReportActionData(data as ReportActionListItemType[]);
     }
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
@@ -347,6 +352,19 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 }
 
 function getSortedReportData(data: ReportListItemType[]) {
+    return data.sort((a, b) => {
+        const aValue = a?.created;
+        const bValue = b?.created;
+
+        if (aValue === undefined || bValue === undefined) {
+            return 0;
+        }
+
+        return bValue.toLowerCase().localeCompare(aValue);
+    });
+}
+
+function getSortedReportActionData(data: ReportActionListItemType[]) {
     return data.sort((a, b) => {
         const aValue = a?.created;
         const bValue = b?.created;
