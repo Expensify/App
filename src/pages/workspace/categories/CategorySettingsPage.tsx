@@ -22,6 +22,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -133,6 +134,8 @@ function CategorySettingsPage({
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
     return (
         <AccessOrNotFoundWrapper
@@ -265,10 +268,10 @@ function CategorySettingsPage({
                                                 Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                             }}
                                             shouldShowRightIcon
-                                            disabled={!policy?.areWorkflowsEnabled}
+                                            disabled={approverDisabled}
                                         />
                                     </OfflineWithFeedback>
-                                    {!policy?.areWorkflowsEnabled && (
+                                    {approverDisabled && (
                                         <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
                                             <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
                                             <TextLink
