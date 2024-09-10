@@ -15,7 +15,9 @@ import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Card from '@userActions/Card';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -39,8 +41,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const handleSelectBankAccount = (value?: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
-        const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
-        Card.updateSettlementAccount(workspaceAccountID, domainName, value);
+        Card.updateSettlementAccount(workspaceAccountID, policyID, value);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
@@ -54,7 +55,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            const bankAccountID = bankAccount.accountData?.bankAccountID;
+            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount?.methodID;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
@@ -75,26 +76,32 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceExpensifyCardBankAccounts.displayName}
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                title={translate('workspace.expensifyCard.chooseBankAccount')}
-            />
-            <View style={styles.flex1}>
-                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                {renderBankOptions()}
-                <MenuItem
-                    icon={Expensicons.Plus}
-                    title={translate('workspace.expensifyCard.addNewBankAccount')}
-                    onPress={handleAddBankAccount}
+            <ScreenWrapper
+                testID={WorkspaceExpensifyCardBankAccounts.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                    title={translate('workspace.expensifyCard.chooseBankAccount')}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={styles.flex1}>
+                    <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                    {renderBankOptions()}
+                    <MenuItem
+                        icon={Expensicons.Plus}
+                        title={translate('workspace.expensifyCard.addNewBankAccount')}
+                        onPress={handleAddBankAccount}
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

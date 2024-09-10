@@ -1,6 +1,7 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
+import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -22,6 +23,7 @@ import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
@@ -40,6 +42,7 @@ import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
+import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -93,6 +96,7 @@ import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -106,6 +110,7 @@ export type {
     TryNewDot,
     Account,
     AccountData,
+    AssignCard,
     BankAccount,
     BankAccountList,
     Beta,
@@ -130,6 +135,7 @@ export type {
     Locale,
     Login,
     LoginList,
+    PendingContactAction,
     MapboxAccessToken,
     Modal,
     Network,
@@ -222,4 +228,6 @@ export type {
     MobileSelectionMode,
     WorkspaceTooltip,
     CardFeeds,
+    ImportedSpreadsheet,
+    ValidateMagicCodeAction,
 };
