@@ -5502,7 +5502,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         false,
         policyName,
         undefined,
-        undefined,
+        CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
     const announceChatReportID = announceChatData.reportID;
@@ -5878,7 +5878,7 @@ function doesTransactionThreadHaveViolations(
     return (
         TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) ||
         TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations) ||
-        TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations)
+        (isPaidGroupPolicy(report) && TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations))
     );
 }
 
