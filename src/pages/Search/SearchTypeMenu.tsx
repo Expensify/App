@@ -29,6 +29,7 @@ import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 type SavedSearchMenuItem = MenuItemBaseProps & {
     key: string;
     hash: string;
+    query: string;
     styles: Array<ViewStyle | TextStyle>;
 };
 
@@ -85,7 +86,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     ];
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number) => SearchUtils.getOverflowMenu(itemName, itemHash, queryJSON?.inputQuery ?? '', showDeleteModal),
+        (itemName: string, itemHash: number, itemQuery: string) => SearchUtils.getOverflowMenu(itemName, itemHash, itemQuery, showDeleteModal),
         [queryJSON, showDeleteModal],
     );
 
@@ -95,6 +96,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 key: item.name,
                 title: item.name,
                 hash: key,
+                query: item.query,
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {
@@ -102,7 +104,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 },
                 rightComponent: (
                     <ThreeDotsMenu
-                        menuItems={getOverflowMenu(item.name, Number(key))}
+                        menuItems={getOverflowMenu(item.name, Number(key), item.query)}
                         anchorPosition={{horizontal: 0, vertical: 380}}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

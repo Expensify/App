@@ -26,6 +26,7 @@ import type {SearchTypeMenuItem} from './SearchTypeMenu';
 type SavedSearchMenuItem = MenuItemBaseProps & {
     key: string;
     hash: string;
+    query: string;
     styles: Array<ViewStyle | TextStyle>;
 };
 
@@ -97,7 +98,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearc
             shouldShowRightComponent: true,
             rightComponent: (
                 <ThreeDotsMenu
-                    menuItems={SearchUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), queryJSON.inputQuery ?? '', showDeleteModal, true, closeMenu)}
+                    menuItems={SearchUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), item.query ?? '', showDeleteModal, true, closeMenu)}
                     anchorPosition={{horizontal: 0, vertical: 380}}
                     anchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
