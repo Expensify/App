@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+// import useSubStep from '@hooks/useSubStep';
+// import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
@@ -41,8 +41,8 @@ type BankInfoProps = BankInfoOnyxProps & {
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
-const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual];
-const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid];
+// const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual];
+// const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
 function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken, onBackButtonPress, policyID}: BankInfoProps) {
@@ -92,8 +92,10 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         }
     }, [setupType, values, bankAccountID, policyID]);
 
-    const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    // const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
+    // const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+
+    const SubStep = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? Plaid : Manual;
 
     // Some services user connects to via Plaid return dummy account numbers and routing numbers e.g. Chase
     // In this case we need to redirect user to manual flow to enter real account number and routing number
@@ -102,33 +104,29 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         if (redirectedFromPlaidToManual) {
             return;
         }
-
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
-            moveTo(0);
+            // moveTo(0);
+            BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
         }
-    }, [moveTo, redirectedFromPlaidToManual, setupType, values]);
+    }, [redirectedFromPlaidToManual, setupType, values]);
 
     const handleBackButtonPress = () => {
-        if (screenIndex === 0) {
-            if (bankAccountID) {
-                onBackButtonPress();
-            } else {
-                const bankAccountData = {
-                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
-                    [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
-                };
-                ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
-                ReimbursementAccountUtils.hideBankAccountErrors();
-                BankAccounts.setBankAccountSubStep(null);
-            }
+        if (bankAccountID) {
+            onBackButtonPress();
         } else {
-            prevScreen();
+            const bankAccountData = {
+                [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
+                [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
+                [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
+                [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
+                [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
+                [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
+                [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
+            };
+            ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
+            ReimbursementAccountUtils.hideBankAccountErrors();
+            BankAccounts.setBankAccountSubStep(null);
         }
     };
 
@@ -150,9 +148,9 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 />
             </View>
             <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
+                isEditing={false}
+                onNext={submit}
+                onMove={() => {}}
             />
         </ScreenWrapper>
     );
