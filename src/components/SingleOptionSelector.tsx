@@ -4,14 +4,14 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
 type Item<TKey extends string> = {
     key: TKey;
-    label: TranslationPaths;
+    label: TranslationPath;
 };
 
 type SingleOptionSelectorProps<TKey extends string> = {

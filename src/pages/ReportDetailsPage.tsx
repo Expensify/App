@@ -41,7 +41,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ConfirmModal from '@src/components/ConfirmModal';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +55,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
-    translationKey: TranslationPaths;
+    translationKey: TranslationPath;
     icon: IconAsset;
     isAnonymousAction: boolean;
     action: () => void;

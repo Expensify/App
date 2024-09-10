@@ -2,7 +2,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as translations from '@src/languages/translations';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject, TranslationPath} from '@src/languages/types';
 import * as Localize from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
@@ -27,34 +27,34 @@ asMutable(translations).default = {
 
 describe('translate', () => {
     it('Test present key in full locale', () => {
-        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey1' as TranslationPaths)).toBe('Spanish ES');
+        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey1' as TranslationPath)).toBe('Spanish ES');
     });
 
     it('Test when key is not found in full locale, but present in language', () => {
-        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey2' as TranslationPaths)).toBe('Spanish Word 2');
-        expect(Localize.translate(CONST.LOCALES.ES, 'testKey2' as TranslationPaths)).toBe('Spanish Word 2');
+        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey2' as TranslationPath)).toBe('Spanish Word 2');
+        expect(Localize.translate(CONST.LOCALES.ES, 'testKey2' as TranslationPath)).toBe('Spanish Word 2');
     });
 
     it('Test when key is not found in full locale and language, but present in default', () => {
-        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey3' as TranslationPaths)).toBe('Test Word 3');
+        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey3' as TranslationPath)).toBe('Test Word 3');
     });
 
     test('Test when key is not found in default', () => {
-        expect(() => Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toThrow(Error);
+        expect(() => Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPath)).toThrow(Error);
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
         const ORIGINAL_IS_IN_PRODUCTION = CONFIG.IS_IN_PRODUCTION;
         asMutable(CONFIG).IS_IN_PRODUCTION = true;
-        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
+        expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPath)).toBe('testKey4');
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
     it('Test when translation value is a function', () => {
         const expectedValue = 'With variable Test Variable';
         const testVariable = 'Test Variable';
-        // @ts-expect-error - TranslationPaths doesn't include testKeyGroup.testFunction as a valid key
-        expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
+        // @ts-expect-error - TranslationPath doesn't include testKeyGroup.testFunction as a valid key
+        expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPath, {testVariable})).toBe(expectedValue);
     });
 });
 
@@ -62,7 +62,7 @@ describe('Translation Keys', () => {
     function traverseKeyPath(source: TranslationFlatObject, path?: string, keyPaths?: string[]): string[] {
         const pathArray = keyPaths ?? [];
         const keyPath = path ? `${path}.` : '';
-        (Object.keys(source) as Array<keyof TranslationFlatObject>).forEach((key) => {
+        (Object.keys(source) as TranslationPath[]).forEach((key) => {
             if (typeof source[key] === 'object' && typeof source[key] !== 'function') {
                 // @ts-expect-error - We are modifying the translations object for testing purposes
                 traverseKeyPath(source[key], keyPath + key, pathArray);
@@ -126,7 +126,6 @@ describe('flattenObject', () => {
                         none: 'No description',
                     },
                     content: func,
-                    messages: ['Hello', 'Hi', 'Sup!'],
                 },
             },
         };
@@ -141,7 +140,6 @@ describe('flattenObject', () => {
             'complex.report.title.task': 'Task',
             'complex.report.description.none': 'No description',
             'complex.report.content': func,
-            'complex.report.messages': ['Hello', 'Hi', 'Sup!'],
         });
     });
 });

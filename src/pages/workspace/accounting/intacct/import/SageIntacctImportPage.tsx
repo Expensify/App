@@ -13,11 +13,11 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
-function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
+function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPath | undefined {
     switch (displayType) {
         case CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT: {
             return 'workspace.intacct.employeeDefault';

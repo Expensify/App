@@ -9,7 +9,7 @@ import checkForUpdates from '@libs/checkForUpdates';
 import * as Localize from '@libs/Localize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
@@ -232,7 +232,7 @@ const localizeMenuItems = (submenu: MenuItemConstructorOptions[], updatedLocale:
     submenu.map((menu) => {
         const newMenu: MenuItemConstructorOptions = {...menu};
         if (menu.id) {
-            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPaths);
+            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPath);
             if (labelTranslation) {
                 newMenu.label = labelTranslation;
             }

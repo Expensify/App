@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -32,7 +32,7 @@ type SelectionScreenProps<T = string> = {
     displayName: string;
 
     /** Title of the selection component */
-    title?: TranslationPaths;
+    title?: TranslationPath;
 
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;

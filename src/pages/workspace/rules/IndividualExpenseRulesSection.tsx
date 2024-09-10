@@ -16,7 +16,7 @@ import type {ThemeStyles} from '@styles/index';
 import * as Link from '@userActions/Link';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -33,7 +33,7 @@ type IndividualExpenseRulesSectionSubtitleProps = {
 
 type IndividualExpenseRulesMenuItem = {
     title: string;
-    descriptionTranslationKey: TranslationPaths;
+    descriptionTranslationKey: TranslationPath;
     action: () => void;
     pendingAction?: PendingAction;
 };

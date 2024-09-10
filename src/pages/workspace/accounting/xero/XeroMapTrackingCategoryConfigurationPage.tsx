@@ -14,7 +14,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 type RouteParams = {
@@ -41,7 +41,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         () =>
             Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).map((option) => ({
                 value: option,
-                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
+                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPath),
                 keyForList: option,
                 isSelected: option === currentTrackingCategoryValue,
             })),

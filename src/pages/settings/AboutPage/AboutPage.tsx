@@ -23,7 +23,7 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
@@ -40,7 +40,7 @@ function getFlavor(): string {
 }
 
 type MenuItem = {
-    translationKey: TranslationPaths;
+    translationKey: TranslationPath;
     icon: IconAsset;
     iconRight?: IconAsset;
     action: () => Promise<void>;

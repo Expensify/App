@@ -29,7 +29,7 @@ import * as IOU from '@userActions/IOU';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -298,7 +298,7 @@ function MoneyRequestConfirmationList({
         : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
 
     const isFocused = useIsFocused();
-    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPath | ''>('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);

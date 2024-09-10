@@ -5,7 +5,7 @@ import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -494,7 +494,7 @@ function sanitizeString(str: string) {
     return safeStr;
 }
 
-function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPath {
     // eslint-disable-next-line default-case
     switch (expenseType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
@@ -506,7 +506,7 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPath {
     // eslint-disable-next-line default-case
     switch (has) {
         case CONST.SEARCH.CHAT_TYPES.LINK:
@@ -516,7 +516,7 @@ function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPE
     }
 }
 
-function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
+function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPath {
     // eslint-disable-next-line default-case
     switch (chatStatus) {
         case CONST.SEARCH.CHAT_STATUS.PINNED:

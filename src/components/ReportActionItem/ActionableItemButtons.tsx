@@ -3,13 +3,13 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 
 type ActionableItem = {
     isPrimary?: boolean;
     key: string;
     onPress: () => void;
-    text: TranslationPaths;
+    text: TranslationPath;
     isMediumSized?: boolean;
 };
 

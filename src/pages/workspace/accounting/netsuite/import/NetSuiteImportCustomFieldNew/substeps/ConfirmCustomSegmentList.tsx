@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 function ConfirmCustomListStep({onMove, customSegmentType}: CustomFieldSubStepWithPolicy) {
@@ -29,13 +29,13 @@ function ConfirmCustomListStep({onMove, customSegmentType}: CustomFieldSubStepWi
                             fieldName === INPUT_IDS.SCRIPT_ID && customSegmentType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD
                                 ? `${CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD}ScriptID`
                                 : `${fieldName}`
-                        }` as TranslationPaths,
+                        }` as TranslationPath,
                     )}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(index + 1);
                     }}
-                    valueRenderer={(value) => (fieldName === INPUT_IDS.MAPPING && value ? translate(`workspace.netsuite.import.importTypes.${value}.label` as TranslationPaths) : value)}
+                    valueRenderer={(value) => (fieldName === INPUT_IDS.MAPPING && value ? translate(`workspace.netsuite.import.importTypes.${value}.label` as TranslationPath) : value)}
                 />
             ))}
         </View>

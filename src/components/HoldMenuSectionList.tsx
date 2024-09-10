@@ -5,7 +5,7 @@ import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
@@ -15,10 +15,10 @@ type HoldMenuSection = {
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
     /** Translation key for the title */
-    titleTranslationKey: TranslationPaths;
+    titleTranslationKey: TranslationPath;
 
     /** Translation key for the description */
-    descriptionTranslationKey: TranslationPaths;
+    descriptionTranslationKey: TranslationPath;
 };
 
 function HoldMenuSectionList() {

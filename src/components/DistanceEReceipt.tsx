@@ -8,7 +8,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
@@ -72,7 +72,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
                         {Object.entries(sortedWaypoints).map(([key, waypoint]) => {
                             const index = TransactionUtils.getWaypointIndex(key);
-                            let descriptionKey: TranslationPaths = 'distance.waypointDescription.stop';
+                            let descriptionKey: TranslationPath = 'distance.waypointDescription.stop';
                             if (index === 0) {
                                 descriptionKey = 'distance.waypointDescription.start';
                             }

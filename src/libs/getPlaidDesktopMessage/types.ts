@@ -1,5 +1,5 @@
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 
-type GetPlaidDesktopMessage = () => TranslationPaths | undefined;
+type GetPlaidDesktopMessage = () => TranslationPath | undefined;
 
 export default GetPlaidDesktopMessage;

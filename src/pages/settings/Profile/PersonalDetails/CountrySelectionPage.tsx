@@ -12,7 +12,7 @@ import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -26,7 +26,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     const countries = useMemo(
         () =>
             Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+                const countryName = translate(`allCountries.${countryISO}` as TranslationPath);
                 return {
                     value: countryISO,
                     keyForList: countryISO,

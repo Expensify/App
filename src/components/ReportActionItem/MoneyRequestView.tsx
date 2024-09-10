@@ -38,7 +38,7 @@ import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -303,7 +303,7 @@ function MoneyRequestView({
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
-            const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
+            const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPath}>> = {
                 amount: {
                     isError: transactionAmount === 0,
                     translationPath: 'common.error.enterAmount',

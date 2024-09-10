@@ -35,7 +35,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
@@ -294,7 +294,7 @@ function ReportPreview({
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        let paymentVerb: TranslationPaths = 'iou.payerOwes';
+        let paymentVerb: TranslationPath = 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {

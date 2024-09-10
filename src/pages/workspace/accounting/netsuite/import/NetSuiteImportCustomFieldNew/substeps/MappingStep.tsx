@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 function MappingStep({importCustomField, customSegmentType}: CustomFieldSubStepWithPolicy) {
@@ -23,7 +23,7 @@ function MappingStep({importCustomField, customSegmentType}: CustomFieldSubStepW
 
     return (
         <>
-            <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPaths)}</Text>
+            <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPath)}</Text>
             <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
             <InputWrapper
                 InputComponent={NetSuiteCustomFieldMappingPicker}

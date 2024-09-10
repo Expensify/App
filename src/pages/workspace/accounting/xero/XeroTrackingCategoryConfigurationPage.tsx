@@ -15,7 +15,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 
@@ -30,9 +30,9 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         const trackingCategories = Xero.getTrackingCategories(policy);
         return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => ({
             id: category.id,
-            description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
+            description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPath,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
-            title: translate(`workspace.xero.trackingCategoriesOptions.${!StringUtils.isEmptyString(category.value) ? category.value.toLowerCase() : 'default'}` as TranslationPaths),
+            title: translate(`workspace.xero.trackingCategoriesOptions.${!StringUtils.isEmptyString(category.value) ? category.value.toLowerCase() : 'default'}` as TranslationPath),
         }));
     }, [translate, policy, policyID]);
 

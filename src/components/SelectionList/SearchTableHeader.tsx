@@ -7,13 +7,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import SortableHeaderText from './SortableHeaderText';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
-    translationKey: TranslationPaths;
+    translationKey: TranslationPath;
     isColumnSortable?: boolean;
     shouldShow: (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 };

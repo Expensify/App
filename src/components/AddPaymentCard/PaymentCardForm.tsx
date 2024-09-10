@@ -19,7 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -77,7 +77,7 @@ const CARD_TYPE_SECTIONS = {
 type CartTypesMap = (typeof CARD_TYPES)[keyof typeof CARD_TYPES];
 type CartTypeSectionsMap = (typeof CARD_TYPE_SECTIONS)[keyof typeof CARD_TYPE_SECTIONS];
 
-type CardLabels = Record<CartTypesMap, Record<CartTypeSectionsMap, Record<string, TranslationPaths>>>;
+type CardLabels = Record<CartTypesMap, Record<CartTypeSectionsMap, Record<string, TranslationPath>>>;
 
 const CARD_LABELS: CardLabels = {
     [CARD_TYPES.DEBIT_CARD]: {

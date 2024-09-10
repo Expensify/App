@@ -17,17 +17,17 @@ import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {SignInPageLayoutProps} from './types';
 
 type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
 
 type FooterColumnRow = (LinkProps | PressProps) & {
-    translationPath: TranslationPaths;
+    translationPath: TranslationPath;
 };
 
 type FooterColumnData = {
-    translationPath: TranslationPaths;
+    translationPath: TranslationPath;
     rows: FooterColumnRow[];
 };
 

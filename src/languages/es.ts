@@ -32,7 +32,6 @@ import type {
     DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
-    EnglishTranslation,
     EnterMagicCodeParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
@@ -123,7 +122,8 @@ import type {
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     ZipCodeExampleFormatParams,
-} from './types';
+} from './params';
+import type {DefaultTranslation} from './types';
 
 /* eslint-disable max-len */
 export default {
@@ -5184,4 +5184,4 @@ export default {
         notAllowedMessageHyperLinked: ' copiloto con acceso',
         notAllowedMessageEnd: ' limitado',
     },
-} satisfies EnglishTranslation;
+} satisfies DefaultTranslation;

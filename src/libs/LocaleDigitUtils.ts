@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import * as Localize from './Localize';
 import memoize from './memoize';
 import * as NumberFormatUtils from './NumberFormatUtils';
@@ -79,7 +79,7 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
  */
 function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false): string {
     // Defaults to "other" suffix or "th" in English
-    let suffixKey: TranslationPaths = 'workflowsPage.frequencies.ordinals.other';
+    let suffixKey: TranslationPath = 'workflowsPage.frequencies.ordinals.other';
 
     // Calculate last digit of the number to determine basic ordinality
     const lastDigit = number % 10;
@@ -88,7 +88,7 @@ function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false
     const lastTwoDigits = number % 100;
 
     if (writtenOrdinals && number >= 1 && number <= 10) {
-        return Localize.translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
+        return Localize.translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPath);
     }
 
     if (lastDigit === 1 && lastTwoDigits !== 11) {

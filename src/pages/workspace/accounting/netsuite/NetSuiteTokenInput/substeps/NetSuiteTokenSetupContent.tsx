@@ -9,7 +9,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 
 function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     const styles = useThemeStyles();
@@ -18,8 +18,8 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_KEYS;
     const currentStepKey = stepKeys[(screenIndex ?? 0) as keyof typeof stepKeys];
 
-    const titleKey = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.title` as TranslationPaths;
-    const description = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.description` as TranslationPaths;
+    const titleKey = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.title` as TranslationPath;
+    const description = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.description` as TranslationPath;
 
     return (
         <View style={styles.flex1}>

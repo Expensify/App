@@ -32,7 +32,7 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
 import type {Account} from '@src/types/onyx';
@@ -56,7 +56,7 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
-    const [formError, setFormError] = useState<TranslationPaths | undefined>();
+    const [formError, setFormError] = useState<TranslationPath | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();

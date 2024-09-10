@@ -6,7 +6,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 const providerData = {
@@ -22,7 +22,7 @@ const providerData = {
     ValueOf<typeof CONST.SIGN_IN_METHOD>,
     {
         icon: IconAsset;
-        accessibilityLabel: TranslationPaths;
+        accessibilityLabel: TranslationPath;
     }
 >;
 

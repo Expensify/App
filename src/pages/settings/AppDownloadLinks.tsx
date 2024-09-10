@@ -12,10 +12,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 
 type DownloadMenuItem = MenuItemProps & {
-    translationKey: TranslationPaths;
+    translationKey: TranslationPath;
     action: () => void;
     link: string;
 };

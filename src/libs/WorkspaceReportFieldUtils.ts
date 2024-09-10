@@ -1,6 +1,6 @@
 import type {FormInputErrors} from '@components/Form/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
@@ -11,8 +11,8 @@ import * as ValidationUtils from './ValidationUtils';
 /**
  * Gets the translation key for the report field type.
  */
-function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
-    const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
+function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPath {
+    const typeTranslationKeysStrategy: Record<string, TranslationPath> = {
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textType',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateType',
         [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownType',
@@ -24,8 +24,8 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
 /**
  * Gets the translation key for the alternative text for the report field.
  */
-function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
-    const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
+function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPath {
+    const typeTranslationKeysStrategy: Record<string, TranslationPath> = {
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textAlternateText',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateAlternateText',
         [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownAlternateText',

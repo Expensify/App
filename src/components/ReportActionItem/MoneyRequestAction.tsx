@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -112,7 +112,7 @@ function MoneyRequestAction({
     }
 
     if (isDeletedParentAction || isReversedTransaction) {
-        let message: TranslationPaths;
+        let message: TranslationPath;
         if (isReversedTransaction) {
             message = 'parentReportAction.reversedTransaction';
         } else {

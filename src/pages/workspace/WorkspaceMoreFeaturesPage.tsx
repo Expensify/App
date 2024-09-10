@@ -25,7 +25,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import * as Tag from '@userActions/Policy/Tag';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -41,8 +41,8 @@ type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & Stac
 
 type Item = {
     icon: IconAsset;
-    titleTranslationKey: TranslationPaths;
-    subtitleTranslationKey: TranslationPaths;
+    titleTranslationKey: TranslationPath;
+    subtitleTranslationKey: TranslationPath;
     isActive: boolean;
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
@@ -53,8 +53,8 @@ type Item = {
 };
 
 type SectionObject = {
-    titleTranslationKey: TranslationPaths;
-    subtitleTranslationKey: TranslationPaths;
+    titleTranslationKey: TranslationPath;
+    subtitleTranslationKey: TranslationPath;
     items: Item[];
 };
 

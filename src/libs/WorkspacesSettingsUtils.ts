@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
@@ -216,8 +216,8 @@ function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<st
  * @param unit Unit
  * @returns translation key for the unit
  */
-function getUnitTranslationKey(unit: Unit): TranslationPaths {
-    const unitTranslationKeysStrategy: Record<Unit, TranslationPaths> = {
+function getUnitTranslationKey(unit: Unit): TranslationPath {
+    const unitTranslationKeysStrategy: Record<Unit, TranslationPath> = {
         [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: 'common.kilometers',
         [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: 'common.miles',
     };
@@ -234,7 +234,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: <TKey extends TranslationPath>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
