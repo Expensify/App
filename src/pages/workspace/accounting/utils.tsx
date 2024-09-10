@@ -264,7 +264,7 @@ function getSynchronizationErrorMessage(
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <TextLink
                         style={[styles?.link, styles?.fontSizeLabel]}
-                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName]}
+                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
                     >
                         {translate('workspace.common.learnMore')}
                     </TextLink>
