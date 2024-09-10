@@ -18,6 +18,7 @@ type SelectDelegateRolePageProps = StackScreenProps<SettingsNavigatorParamList, 
 
 function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     const {translate} = useLocalize();
+    const login = route.params.login;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -54,7 +55,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                     </Text>
                 }
                 onSelectRow={(option) => {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(Number(route.params.accountID), option.value));
+                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                 }}
                 sections={[{data: roleOptions}]}
                 ListItem={RadioListItem}

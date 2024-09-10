@@ -634,15 +634,15 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
-        accountID: string;
+        login: string;
         role?: string;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
-        accountID: string;
+        login: string;
         role: string;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
-        accountID: string;
+        login: string;
         role: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {

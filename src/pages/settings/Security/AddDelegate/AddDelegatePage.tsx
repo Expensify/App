@@ -10,7 +10,6 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addOptimisticDelegate} from '@libs/actions/Delegate';
 import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -129,15 +128,9 @@ function AddDelegatePage() {
         }));
     }, [personalDetails, recentReports, translate, userToInvite]);
 
-    const onSelectRow = useCallback(
-        (option: Participant) => {
-            if (option.login === userToInvite?.login) {
-                addOptimisticDelegate(option.accountID ?? -1, option.login ?? '');
-            }
-            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1));
-        },
-        [userToInvite?.login],
-    );
+    const onSelectRow = useCallback((option: Participant) => {
+        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option?.login ?? ''));
+    }, []);
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);

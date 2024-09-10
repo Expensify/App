@@ -9,8 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,17 +21,9 @@ type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, t
 function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const accountID = Number(route.params.accountID);
+    const login = route.params.login;
+    console.log('[login]: ', login);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-
-    const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
-
-    const optimisticDelegateEmail = account?.delegatedAccess?.delegates?.find((delegate) => delegate.optimisticAccountID === accountID)?.email;
-    const optimisticDelegateData = OptionsListUtils.getUserToInviteOption({
-        searchValue: optimisticDelegateEmail ?? '',
-    });
-
-    const login = delegatePersonalDetails?.login ?? optimisticDelegateData?.login ?? '';
 
     const styles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -41,16 +31,16 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
 
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.pendingFields?.role || !!currentDelegate.errorFields?.addDelegate) {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.errorFields?.addDelegate) {
             return;
         }
 
         // Dismiss modal on successful magic code verification
         Navigation.dismissModal();
-    }, [accountID, currentDelegate, role]);
+    }, [login, currentDelegate, role]);
 
     const onBackButtonPress = () => {
-        Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(accountID, role));
+        Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role));
     };
 
     return (

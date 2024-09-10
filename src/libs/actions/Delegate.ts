@@ -326,20 +326,4 @@ function removePendingDelegate(email: string) {
     });
 }
 
-function addOptimisticDelegate(accountID: number, email: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {
-        delegatedAccess: {
-            delegates: [
-                ...(delegatedAccess?.delegates ?? []),
-                {
-                    email: addSMSDomainIfPhoneNumber(email),
-                    optimisticAccountID: accountID,
-                    pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            ],
-        },
-    });
-}
-
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate, addOptimisticDelegate};
+export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate};
