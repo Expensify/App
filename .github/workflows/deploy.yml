@@ -496,7 +496,7 @@ jobs:
           gh release create ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --target staging
           RETRIES=0
           MAX_RETRIES=10
-          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }}) --repo ${{ github.repository }} || $RETRIES -ge $MAX_RETRIES ]]; do
+          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
             echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
             sleep 1
           done
