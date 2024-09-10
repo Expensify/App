@@ -1,5 +1,4 @@
 /* eslint-disable no-case-declarations */
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useRef} from 'react';
 import type {ForwardedRef} from 'react';
@@ -17,12 +16,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import Address from './substeps/Address';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -30,19 +29,15 @@ import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CountryZipRegex, CustomSubStepProps} from './types';
 
-type MissingPersonalDetailsProps = StackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.MISSING_PERSONAL_DETAILS_ROOT>;
-
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber];
 
-function MissingPersonalDetails({
-    route: {
-        params: {policyID},
-    },
-}: MissingPersonalDetailsProps) {
+function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}${CONST.EXPENSIFY_CARD.BANK}`);
 
     const handleFinishStep = useCallback(() => {
         Navigation.goBack();
@@ -169,10 +164,10 @@ function MissingPersonalDetails({
     const updatePersonalDetails = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
             // TODO: Implement the updatePersonalDetails function
-            console.log('updatePersonalDetails', formValues, policyID);
+            console.log('updatePersonalDetails', formValues, cardsList);
             nextScreen();
         },
-        [nextScreen, policyID],
+        [nextScreen, cardsList],
     );
 
     return (
@@ -217,4 +212,4 @@ function MissingPersonalDetails({
 
 MissingPersonalDetails.displayName = 'MissingPersonalDetails';
 
-export default MissingPersonalDetails;
+export default withPolicyAndFullscreenLoading(MissingPersonalDetails);
