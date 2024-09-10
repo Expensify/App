@@ -891,7 +891,7 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 }
 
 function downloadTagsCSV(policyID: string) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
         policyID,
     });
     const fileName = 'Tags.csv';
