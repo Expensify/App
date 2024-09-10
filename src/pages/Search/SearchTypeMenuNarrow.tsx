@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
-import type {GestureResponderEvent, TextStyle, ViewStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {MenuItemBaseProps} from '@components/MenuItem';
@@ -33,19 +33,11 @@ type SearchTypeMenuNarrowProps = {
     typeMenuItems: SearchTypeMenuItem[];
     activeItemIndex: number;
     title?: string;
-    handleSavedSearches: () => {
-        savedSearchesMenuItems: SavedSearchMenuItem[];
-    };
+    savedSearchesMenuItems: SavedSearchMenuItem[];
     queryJSON: SearchQueryJSON;
 };
 
-type SavedSearchMenuItemProps = MenuItemBaseProps & {
-    text: string;
-    styles?: Array<ViewStyle | TextStyle>;
-    disabled?: boolean;
-};
-
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSavedSearches, queryJSON}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearchesMenuItems, queryJSON}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -58,8 +50,6 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
 
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
-
-    const {savedSearchesMenuItems} = handleSavedSearches();
 
     const popoverMenuItems = useMemo(() => {
         const items = typeMenuItems.map((item, index) => {
@@ -97,49 +87,37 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 
-    const getOverflowMenu = useCallback(
-        (itemName: string, hash: number) => {
-            const inputQuery = queryJSON.inputQuery ?? '';
-            return SearchUtils.getOverflowMenu(itemName, hash, inputQuery, showDeleteModal, true, closeMenu);
-        },
-        [queryJSON, showDeleteModal, closeMenu],
-    );
-
     const allMenuItems = useMemo(() => {
         const items = [...popoverMenuItems];
-        const newItems: SavedSearchMenuItemProps[] = [];
-        if (savedSearchesMenuItems && savedSearchesMenuItems.length > 0) {
+        const newItems = [];
+        const savedSearchItems = savedSearchesMenuItems.map((item: SavedSearchMenuItem) => ({
+            text: item.title ?? '',
+            styles: [styles.textSupporting],
+            onSelected: item.onPress,
+            shouldShowRightComponent: true,
+            rightComponent: (
+                <ThreeDotsMenu
+                    menuItems={SearchUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), queryJSON.inputQuery ?? '', showDeleteModal, true, closeMenu)}
+                    anchorPosition={{horizontal: 0, vertical: 380}}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                />
+            ),
+        }));
+
+        if (savedSearchesMenuItems.length > 0) {
             newItems.push({
                 text: translate('search.savedSearchesMenuItemTitle'),
                 styles: [styles.textSupporting],
                 disabled: true,
             });
-            newItems.push(
-                ...savedSearchesMenuItems.map((item: SavedSearchMenuItem) => ({
-                    text: item.title ?? '',
-                    styles: [styles.textSupporting],
-                    onSelected: (event: GestureResponderEvent | KeyboardEvent) => {
-                        if (!item.onPress) {
-                            return;
-                        }
-                        item.onPress(event);
-                    },
-                    shouldShowRightComponent: true,
-                    rightComponent: (
-                        <ThreeDotsMenu
-                            menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''))}
-                            anchorPosition={{horizontal: 0, vertical: 380}}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
-                        />
-                    ),
-                })),
-            );
+            newItems.push(...savedSearchItems);
         }
+
         return [...items, ...newItems];
-    }, [popoverMenuItems, savedSearchesMenuItems, translate, getOverflowMenu, styles.textSupporting]);
+    }, [popoverMenuItems, savedSearchesMenuItems, styles, queryJSON.inputQuery, showDeleteModal, closeMenu, translate]);
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>

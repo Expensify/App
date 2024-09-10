@@ -1,10 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -56,35 +57,32 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
     }, [savedSearches]);
 
-    const typeMenuItems: SearchTypeMenuItem[] = useMemo(
-        () => [
-            {
-                title: translate('common.expenses'),
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.Receipt,
-                route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
-            },
-            {
-                title: translate('common.chats'),
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-                icon: Expensicons.ChatBubbles,
-                route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
-            },
-            {
-                title: translate('workspace.common.invoices'),
-                type: CONST.SEARCH.DATA_TYPES.INVOICE,
-                icon: Expensicons.InvoiceGeneric,
-                route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.ALL)}),
-            },
-            {
-                title: translate('travel.trips'),
-                type: CONST.SEARCH.DATA_TYPES.TRIP,
-                icon: Expensicons.Suitcase,
-                route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
-            },
-        ],
-        [translate],
-    );
+    const typeMenuItems: SearchTypeMenuItem[] = [
+        {
+            title: translate('common.expenses'),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
+        },
+        {
+            title: translate('common.chats'),
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
+        },
+        {
+            title: translate('workspace.common.invoices'),
+            type: CONST.SEARCH.DATA_TYPES.INVOICE,
+            icon: Expensicons.InvoiceGeneric,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.ALL)}),
+        },
+        {
+            title: translate('travel.trips'),
+            type: CONST.SEARCH.DATA_TYPES.TRIP,
+            icon: Expensicons.Suitcase,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
+        },
+    ];
 
     const getOverflowMenu = useCallback(
         (itemName: string, itemHash: number) => SearchUtils.getOverflowMenu(itemName, itemHash, queryJSON?.inputQuery ?? '', showDeleteModal),
@@ -144,32 +142,29 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [hash, savedSearches, styles, getOverflowMenu, prevSavedSearchesLength, translate],
     );
 
-    const savedSearchesMenuItems = useMemo(() => {
+    const savedSearchesMenuItems = () => {
         if (!savedSearches) {
             return [];
         }
         return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout));
-    }, [savedSearches, createSavedSearchMenuItem, shouldUseNarrowLayout]);
+    };
 
-    const handleSavedSearches = useCallback(
-        () => ({
-            savedSearchesMenuItems,
-            renderSavedSearchesSection: () => (
-                <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                    <Text style={[styles.sectionTitle, styles.pb1]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
-                    <MenuItemList
-                        menuItems={savedSearchesMenuItems}
-                        wrapperStyle={styles.sectionMenuItem}
-                        icon={Expensicons.Star}
-                        iconWidth={variables.iconSizeNormal}
-                        iconHeight={variables.iconSizeNormal}
-                        shouldUseSingleExecution
-                        isPaneMenu
-                    />
-                </View>
-            ),
-        }),
-        [savedSearchesMenuItems, styles, translate],
+    const renderSavedSearchesSection = useCallback(
+        (menuItems: MenuItemWithLink[]) => (
+            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                <Text style={[styles.sectionTitle, styles.pb1]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+                <MenuItemList
+                    menuItems={menuItems}
+                    wrapperStyle={styles.sectionMenuItem}
+                    icon={Expensicons.Star}
+                    iconWidth={variables.iconSizeNormal}
+                    iconHeight={variables.iconSizeNormal}
+                    shouldUseSingleExecution
+                    isPaneMenu
+                />
+            </View>
+        ),
+        [styles, translate],
     );
 
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
@@ -183,7 +178,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 typeMenuItems={typeMenuItems}
                 activeItemIndex={activeItemIndex}
                 title={title}
-                handleSavedSearches={handleSavedSearches}
+                savedSearchesMenuItems={savedSearchesMenuItems()}
                 queryJSON={queryJSON}
             />
         );
@@ -213,7 +208,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     );
                 })}
             </View>
-            {savedSearches && handleSavedSearches().renderSavedSearchesSection()}
+            {savedSearches && renderSavedSearchesSection(savedSearchesMenuItems())}
             <DeleteConfirmModal />
         </>
     );
