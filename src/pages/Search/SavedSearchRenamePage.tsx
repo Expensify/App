@@ -60,7 +60,6 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
-                    defaultValue={name}
                     label={translate('search.searchName')}
                     accessibilityLabel={translate('search.searchName')}
                     role={CONST.ROLE.PRESENTATION}
