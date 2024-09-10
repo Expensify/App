@@ -7,7 +7,6 @@ import type {MenuItemBaseProps} from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -35,10 +34,9 @@ type SearchTypeMenuNarrowProps = {
     activeItemIndex: number;
     title?: string;
     savedSearchesMenuItems: SavedSearchMenuItem[];
-    queryJSON: SearchQueryJSON;
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearchesMenuItems, queryJSON}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearchesMenuItems}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
