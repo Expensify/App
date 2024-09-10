@@ -771,7 +771,6 @@ function calculateAmountForUpdatedWaypointOrRate(
 ) {
     const hasModifiedRouteWithPendingWaypoints = !isEmptyObject(transactionChanges.waypoints) && isEmptyObject(transactionChanges?.routes?.route0?.geometry);
     const hasModifiedRateWithPendingWaypoints = !!transactionChanges?.customUnitRateID && isFetchingWaypointsFromServer(transaction);
-    console.log('Ndebug hasModifiedRateWithPendingWaypoints', hasModifiedRateWithPendingWaypoints);
     if (hasModifiedRouteWithPendingWaypoints || hasModifiedRateWithPendingWaypoints) {
         return {
             amount: CONST.IOU.DEFAULT_AMOUNT,

@@ -6,11 +6,11 @@ import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
+import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
-import Log from './Log';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -118,7 +118,13 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     if (!oldMerchant.length) {
         return Localize.translateLocal('iou.setTheDistanceMerchant', {changedField: translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
     }
-    return Localize.translateLocal('iou.updatedTheDistanceMerchant', {changedField: translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay: newAmount, oldAmountToDisplay: oldAmount});
+    return Localize.translateLocal('iou.updatedTheDistanceMerchant', {
+        changedField: translatedChangedField,
+        newMerchant,
+        oldMerchant,
+        newAmountToDisplay: newAmount,
+        oldAmountToDisplay: oldAmount,
+    });
 }
 
 /**
