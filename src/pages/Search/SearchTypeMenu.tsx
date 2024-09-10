@@ -1,3 +1,4 @@
+import {relative} from 'path';
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
@@ -78,7 +79,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }
 
     return (
-        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+        <View style={[{position: 'relative'}, styles.pb4, styles.mh3, styles.mt3]}>
             {typeMenuItems.map((item, index) => {
                 const onPress = singleExecution(() => Navigation.navigate(item.route));
 

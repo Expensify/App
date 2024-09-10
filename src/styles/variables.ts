@@ -252,7 +252,7 @@ export default {
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
 
-    typeAndStatusBarHeight: 106,
+    minimalTopBarOffset: -26,
     searchHeaderHeight: 80,
 
     h20: 20,
