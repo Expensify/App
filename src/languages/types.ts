@@ -103,7 +103,6 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
-    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
@@ -316,6 +315,8 @@ type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
+type AccountOwnerParams = {accountOwnerEmail: string};
+
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type IntegrationsMessageParams = {
@@ -480,6 +481,7 @@ export type {
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
+    AccountOwnerParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,

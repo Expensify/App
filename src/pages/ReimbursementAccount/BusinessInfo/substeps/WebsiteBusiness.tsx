@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,6 +12,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -57,6 +58,10 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    useEffect(() => {
+        BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
+    }, [defaultCompanyWebsite]);
 
     return (
         <FormProvider
