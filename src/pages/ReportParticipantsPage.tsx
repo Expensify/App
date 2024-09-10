@@ -250,8 +250,8 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return header;
         }
 
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, isGroupChat ? styles.mt3 : styles.mt0]}>{header}</View>;
-    }, [styles, translate, isGroupChat, StyleUtils, canSelectMultiple]);
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, shouldShowTextInput ? styles.mt3 : styles.mt0]}>{header}</View>;
+    }, [styles, translate, isGroupChat, shouldShowTextInput, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
@@ -349,7 +349,11 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
-    const headerMessage = searchValue.trim() && !participants.length ? translate('roomMembersPage.memberNotFound') : '';
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const memberNotFoundMessage = isGroupChat
+        ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
+        : translate('roomMembersPage.memberNotFound');
+    const headerMessage = searchValue.trim() && !participants.length ? memberNotFoundMessage : '';
 
     return (
         <ScreenWrapper
