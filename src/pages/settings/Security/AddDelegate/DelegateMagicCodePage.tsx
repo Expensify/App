@@ -22,7 +22,6 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const login = route.params.login;
-    console.log('[login]: ', login);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
     const styles = useThemeStyles();

@@ -77,11 +77,7 @@ function SecuritySettingsPage() {
         .filter((d) => !d.optimisticAccountID)
         .map(({email, role, pendingAction, errorFields}) => {
             const personalDetail = getPersonalDetailByEmail(email);
-            const optimisticDelegateData = OptionsListUtils.getUserToInviteOption({
-                searchValue: email,
-            });
 
-            const accountID = personalDetail?.accountID ?? optimisticDelegateData?.accountID ?? -1;
             const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
             const onPress = () => {
@@ -89,10 +85,10 @@ function SecuritySettingsPage() {
                     return;
                 }
                 if (!role) {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID));
+                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
                     return;
                 }
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(accountID, role));
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));
             };
 
             const formattedEmail = formatPhoneNumber(email);
@@ -100,7 +96,7 @@ function SecuritySettingsPage() {
                 title: personalDetail?.displayName ?? formattedEmail,
                 description: personalDetail?.displayName ? formattedEmail : '',
                 badgeText: translate('delegate.role', role),
-                avatarID: accountID,
+                avatarID: personalDetail?.accountID ?? -1,
                 icon: personalDetail?.avatar ?? FallbackAvatar,
                 iconType: CONST.ICON_TYPE_AVATAR,
                 numberOfLinesDescription: 1,
