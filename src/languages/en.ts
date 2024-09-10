@@ -2227,6 +2227,8 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            authenticationError: (connectionName: string) => `Can’t connect to ${connectionName} due to an authentication error.`,
+            learnMore: 'Learn more.',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2454,8 +2456,6 @@ export default {
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Sage Intacct account below.',
             paymentAccount: 'Sage Intacct payment account',
-            authenticationError: 'Can’t connect to Sage Intacct due to an authentication error. ',
-            learnMore: 'Learn more.',
         },
         netsuite: {
             subsidiary: 'Subsidiary',

@@ -257,6 +257,23 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
+    
+    if (isAuthenticationError(policy, connectionName)) {
+        return (
+            <Text style={[styles?.formError]}>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
+                {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
+                    <TextLink
+                        style={[styles?.link, styles?.fontSizeLabel]}
+                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName]}
+                    >
+                        {translate('workspace.common.learnMore')}
+                    </TextLink>
+                )}
+            </Text>
+        );
+    }
+
     const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
@@ -274,19 +291,6 @@ function getSynchronizationErrorMessage(
         return;
     }
 
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)) {
-        return (
-            <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.sageIntacct.authenticationError')}</Text>
-                <TextLink
-                    style={[styles?.link, styles?.fontSizeLabel]}
-                    href={CONST.SAGE_INTACCT_HELP_LINK}
-                >
-                    {translate('workspace.sageIntacct.learnMore')}
-                </TextLink>
-            </Text>
-        );
-    }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
 }
 
