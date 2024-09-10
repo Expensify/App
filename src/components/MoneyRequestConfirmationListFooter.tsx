@@ -286,9 +286,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -311,9 +309,7 @@ function MoneyRequestConfirmationListFooter({
                         title={iouComment}
                         description={translate('common.description')}
                         onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
-                            );
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                         }}
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
@@ -388,7 +384,7 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -412,7 +408,7 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -431,9 +427,7 @@ function MoneyRequestConfirmationListFooter({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID))
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
@@ -456,9 +450,7 @@ function MoneyRequestConfirmationListFooter({
                         description={name}
                         numberOfLinesTitle={2}
                         onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
-                            )
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))
                         }
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
@@ -479,7 +471,7 @@ function MoneyRequestConfirmationListFooter({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
@@ -496,7 +488,7 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />

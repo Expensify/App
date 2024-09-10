@@ -320,7 +320,7 @@ function ReportDetailsPage({policies, report, session, personalDetails, route}: 
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', backTo));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', backTo));
                     }
@@ -360,7 +360,7 @@ function ReportDetailsPage({policies, report, session, personalDetails, route}: 
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => ReportUtils.navigateToPrivateNotes(report, session),
+                action: () => ReportUtils.navigateToPrivateNotes(report, session, backTo),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -635,7 +635,7 @@ function ReportDetailsPage({policies, report, session, personalDetails, route}: 
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
+                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                 />
             </View>
         </OfflineWithFeedback>
@@ -740,7 +740,7 @@ function ReportDetailsPage({policies, report, session, personalDetails, route}: 
                                 characterLimit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
                             />
                         </OfflineWithFeedback>
                     )}

@@ -43,6 +43,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
+    const backTo = route.params.backTo;
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber} = useLocalize();
@@ -191,8 +192,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      */
     const inviteUser = useCallback(() => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID));
-    }, [report]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo));
+    }, [report, backTo]);
 
     /**
      * Remove selected users from the workspace
@@ -330,12 +331,12 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (isGroupChat && isCurrentUserAdmin) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, backTo));
                 return;
             }
             Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
         },
-        [report, isCurrentUserAdmin, isGroupChat],
+        [report, isCurrentUserAdmin, isGroupChat, backTo],
     );
     const headerTitle = useMemo(() => {
         if (
@@ -373,7 +374,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
                         if (report) {
                             setSearchValue('');
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, route.params.backTo));
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}

@@ -1,4 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -54,6 +55,7 @@ type RoomMembersPageProps = WithReportOrNotFoundProps &
     StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
+    const route = useRoute<RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
@@ -63,6 +65,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
+    const backTo = route.params.backTo;
 
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
@@ -109,8 +112,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             return;
         }
         setSearchValue('');
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID));
-    }, [report]);
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, undefined, backTo));
+    }, [report, backTo]);
 
     /**
      * Remove selected users from the room
@@ -307,9 +310,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
         (item: ListItem) => {
-            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID ?? -1));
+            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID ?? -1, backTo));
         },
-        [report],
+        [report, backTo],
     );
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
@@ -341,7 +344,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                 }}
             >
                 <HeaderWithBackButton
@@ -355,7 +358,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         }
 
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>

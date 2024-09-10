@@ -802,16 +802,29 @@ type ReportSettingsNavigatorParamList = {
         reportID: string;
         backTo?: Routes;
     };
-    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NAME]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
 type ReportDescriptionNavigatorParamList = {
-    [SCREENS.REPORT_DESCRIPTION_ROOT]: {reportID: string};
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
 };
 
 type ParticipantsNavigatorParamList = {
@@ -819,26 +832,36 @@ type ParticipantsNavigatorParamList = {
         reportID: string;
         backTo?: Routes;
     };
-    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
 type RoomMembersNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS.ROOT]: {reportID: string};
+    [SCREENS.ROOM_MEMBERS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.ROOM_MEMBERS.INVITE]: {
         reportID: string;
         role?: 'accountant';
+        backTo?: Routes;
     };
     [SCREENS.ROOM_MEMBERS.DETAILS]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
@@ -1031,9 +1054,12 @@ type TeachersUniteNavigatorParamList = {
 };
 
 type TaskDetailsNavigatorParamList = {
-    [SCREENS.TASK.TITLE]: undefined;
+    [SCREENS.TASK.TITLE]: {
+        backTo?: Routes;
+    };
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
@@ -1045,6 +1071,7 @@ type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportID: string;
         reportActionID: string;
+        backTo?: Routes;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
         field: string;
@@ -1111,10 +1138,13 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
+    [SCREENS.PRIVATE_NOTES.LIST]: {
+        backTo?: Routes;
+    };
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 

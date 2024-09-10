@@ -290,15 +290,15 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS_INVITE: {
         route: 'r/:reportID/participants/invite',
-        getRoute: (reportID: string) => `r/${reportID}/participants/invite` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/invite` as const, backTo),
     },
     REPORT_PARTICIPANTS_DETAILS: {
         route: 'r/:reportID/participants/:accountID',
-        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}` as const,
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}` as const, backTo),
     },
     REPORT_PARTICIPANTS_ROLE_SELECTION: {
         route: 'r/:reportID/participants/:accountID/role',
-        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role` as const,
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role` as const, backTo),
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
@@ -314,55 +314,55 @@ const ROUTES = {
     },
     REPORT_SETTINGS_NAME: {
         route: 'r/:reportID/settings/name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/name` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
-        getRoute: (reportID: string) => `r/${reportID}/settings/notification-preferences` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         route: 'r/:reportID/settings/who-can-post',
-        getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
     },
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
-        getRoute: (reportID: string) => `r/${reportID}/settings/visibility` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
+        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo),
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
-        getRoute: (reportID: string) => `r/${reportID}/title` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/title` as const, backTo),
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string) => `r/${reportID}/description` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
-        getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo),
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
-        getRoute: (reportID: string) => `r/${reportID}/notes` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes` as const, backTo),
     },
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit` as const,
+        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
-        getRoute: (reportID: string) => `r/${reportID}/members` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members` as const, backTo),
     },
     ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/members/${accountID}` as const,
+        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role ?? ''}` as const,
+        getRoute: (reportID: string, role?: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/invite/${role ?? ''}` as const, backTo),
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',

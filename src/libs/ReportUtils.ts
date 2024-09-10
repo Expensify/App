@@ -3918,7 +3918,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0], backTo));
         return;
     }
 
@@ -3930,16 +3930,16 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0], backTo));
         return;
     }
 
-    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
 }
 
 function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
@@ -3962,7 +3962,7 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
 /**
  * Go back to the previous page from the edit private page of a given report
  */
-function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
+function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>, backTo?: string) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
@@ -3971,16 +3971,16 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
-            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
+            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0], backTo));
             return;
         }
 
         if (report?.reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
             return;
         }
     }
-    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
 /**
@@ -7121,16 +7121,16 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
-function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
+function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>, backTo?: string) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
     const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID, backTo));
         return;
     }
-    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
 /**
