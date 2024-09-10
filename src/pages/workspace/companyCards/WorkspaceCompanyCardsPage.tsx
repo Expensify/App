@@ -108,18 +108,18 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
     const selectedFeed = lastSelectedFeed ?? defaultFeed;
-
     const fetchCompanyCards = useCallback(() => {
         Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     useFocusEffect(fetchCompanyCards);
 
-    const companyCards = cardFeeds?.companyCards;
-    const companyCardsLength = Object.keys(companyCards ?? {}).length;
+    const companyCards = cardFeeds?.companyCards ?? {};
+    const selectedCompanyCards = Object.fromEntries(Object.entries(companyCards).filter(([key]) => key === selectedFeed));
+    const companyCardsLength = Object.keys(selectedCompanyCards).length;
     const isNoFeed = companyCardsLength === 0;
     const isFeedAdded = companyCardsLength > 0;
-    const isPending = companyCardsLength === 1 && Object.values(companyCards ?? {})[0].pending;
+    const isPending = companyCardsLength === 1 && Object.values(selectedCompanyCards)[0].pending;
     const isLoading = !cardFeeds || cardFeeds.isLoading;
 
     // TODO: use data form onyx instead of mocked one when API is implemented
