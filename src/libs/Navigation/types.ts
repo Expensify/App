@@ -214,6 +214,26 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -1178,7 +1198,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
-        approverIndex?: number;
+        approverIndex: number;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {

@@ -608,6 +608,36 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
+                        [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_APPROVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
