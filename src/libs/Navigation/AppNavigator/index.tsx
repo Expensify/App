@@ -1,6 +1,7 @@
 import React, {lazy, memo, Suspense, useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
+import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import lazyRetry from '@src/utils/lazyRetry';
@@ -25,6 +26,24 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
             Navigation.navigate(initialURL);
         });
     }, [initialURL]);
+
+    // When switching from authenticated to not authenticated, we want to reset the navigation state
+    const prevAuthenticated = usePrevious(authenticated);
+    useEffect(() => {
+        if (authenticated) {
+            return;
+        }
+        if (!prevAuthenticated) {
+            return;
+        }
+
+        return () => {
+            // We explicitly disabled react-navigation's own mechanism to reset state when switching navigators.
+            // When we sign-in we explicitly want to keep the navigation state (see #44600).
+            // This is run in the cleanup to execute this once the new navigator is definitely mounted (there will be an additional render).
+            Navigation.reset();
+        };
+    }, [authenticated, prevAuthenticated]);
 
     if (authenticated) {
         // These are the protected screens and only accessible when an authToken is present

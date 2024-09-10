@@ -406,6 +406,37 @@ function getTopMostCentralPaneRouteFromRootState() {
     return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
+/**
+ * Resets the navigation state to an initial, empty state.
+ */
+function reset() {
+    const navigation = navigationRef.current;
+    if (!navigation) {
+        Log.warn('Called Navigation.reset() before navigationRef was set');
+        return;
+    }
+
+    const routeState = navigation.getRootState();
+    const firstRoute = routeState.routes[0];
+
+    if (!firstRoute) {
+        Log.warn('Called Navigation.reset() but there are no routes to reset to');
+        return;
+    }
+
+    // We get the first route, which is identical for all our navigators…
+    const newFirstRoute = {
+        ...firstRoute,
+        // … and reset any nested state
+        state: undefined,
+    };
+
+    return navigationRef.current?.resetRoot({
+        index: 0,
+        routes: [newFirstRoute],
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -429,6 +460,7 @@ export default {
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
+    reset,
 };
 
 export {navigationRef};
