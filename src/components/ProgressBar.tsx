@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import Animated, {cancelAnimation, Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 function ProgressBar({shouldShow}: {shouldShow: boolean}) {
     const left = useSharedValue(0);
@@ -15,14 +16,14 @@ function ProgressBar({shouldShow}: {shouldShow: boolean}) {
             isVisible.value = true;
             left.value = 0;
             width.value = 0;
-            opacity.value = withTiming(1, {duration: 300});
+            opacity.value = withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION});
             left.value = withDelay(
-                300, // 0.3s delay
+                CONST.ANIMATED_PROGRESS_BAR_DELAY,
                 withRepeat(
                     withSequence(
                         withTiming(0, {duration: 0}),
-                        withTiming(0, {duration: 750, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        withTiming(100, {duration: 750, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
+                        withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
+                        withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
                     ),
                     -1,
                     false,
@@ -30,19 +31,19 @@ function ProgressBar({shouldShow}: {shouldShow: boolean}) {
             );
 
             width.value = withDelay(
-                300, // 0.3s delay
+                CONST.ANIMATED_PROGRESS_BAR_DELAY,
                 withRepeat(
                     withSequence(
                         withTiming(0, {duration: 0}),
-                        withTiming(100, {duration: 750, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        withTiming(0, {duration: 750, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
+                        withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
+                        withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
                     ),
                     -1,
                     false,
                 ),
             );
         } else if (isVisible.value) {
-            opacity.value = withTiming(0, {duration: 300}, () => {
+            opacity.value = withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}, () => {
                 runOnJS(() => {
                     isVisible.value = false;
                     cancelAnimation(left);

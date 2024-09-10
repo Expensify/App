@@ -5209,7 +5209,6 @@ const styles = (theme: ThemeColors) =>
         progressBar: {
             height: '100%',
             backgroundColor: theme.success,
-            borderRadius: 5,
             width: '100%',
         },
     } satisfies Styles);
