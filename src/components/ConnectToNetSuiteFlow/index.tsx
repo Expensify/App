@@ -24,7 +24,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {popoverAnchorRefs} = useAccountingContext();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const shouldGoToCredentials = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 
@@ -48,7 +48,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     ];
 
     useEffect(() => {
-        if (shouldGoToCredentials || !hasPoliciesConnectedToNetSuite) {
+        if (shouldGoToCredentialsPage || !hasPoliciesConnectedToNetSuite) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
             return;
         }
