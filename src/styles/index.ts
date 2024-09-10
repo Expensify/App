@@ -3,7 +3,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -3451,7 +3451,10 @@ const styles = (theme: ThemeColors) =>
                 opacity: 0.5,
             },
             default: {
-                opacity: 0.99,
+                // fixes a crash on iOS when we attempt to remove already unmounted children
+                // see https://github.com/Expensify/App/issues/48197 for more details
+                // it's a temporary solution while we are working on a permanent fix
+                opacity: Platform.OS === 'ios' ? 0.99 : undefined,
             },
             error: {
                 flexDirection: 'row',
