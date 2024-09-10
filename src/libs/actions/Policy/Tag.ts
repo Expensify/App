@@ -852,6 +852,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
+    const toBeUnselected = approverRuleToUpdate?.approver === approver;
 
     const updatedApproverRule = approverRuleToUpdate
         ? {...approverRuleToUpdate, approver}
@@ -867,6 +868,8 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
               id: '-1',
           };
 
+    const updatedApprovalRules = toBeUnselected ? filteredApprovalRules : [...filteredApprovalRules, updatedApproverRule];
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -874,7 +877,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        approvalRules: [...filteredApprovalRules, updatedApproverRule],
+                        approvalRules: updatedApprovalRules,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -887,7 +890,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        approvalRules: [...filteredApprovalRules, updatedApproverRule],
+                        approvalRules: updatedApprovalRules,
                     },
                     pendingAction: null,
                     pendingFields: {rules: null},
@@ -912,7 +915,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     const parameters: SetPolicyTagApproverParams = {
         policyID,
         tagName: tag,
-        approver,
+        approver: toBeUnselected ? null : approver,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
