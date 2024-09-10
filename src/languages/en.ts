@@ -2,7 +2,6 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AccountOwnerParams,
@@ -4654,7 +4653,12 @@ export default {
     },
     delegate: {
         switchAccount: 'Switch accounts:',
-        role: (role: DelegateRole): string => {
+        copilotDelegatedAccess: 'Copilot: Delegated access',
+        copilotDelegatedAccessDescription: 'Allow other members to access your account.',
+        addCopilot: 'Add copilot',
+        membersCanAccessYourAccount: 'These members can access your account:',
+        youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',
+        role: (role?: string): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Full';
@@ -4665,6 +4669,21 @@ export default {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
+        accessLevel: 'Access level',
+        confirmCopilot: 'Confirm your copilot below.',
+        accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
+        roleDescription: (role?: string): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Allow another member to take all actions in your account, on your behalf. Includes chat, submissions, approvals, payments, settings updates, and more.';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Allow another member to take most actions in your account, on your behalf. Excludes approvals, payments, rejections, and holds.';
+                default:
+                    return '';
+            }
+        },
+        makeSureItIsYou: "Let's make sure it's you",
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot.`,
         notAllowed: 'Not so fast...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',

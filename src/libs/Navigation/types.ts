@@ -652,6 +652,19 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
+    [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
+        login: string;
+        role?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
+        login: string;
+        role: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
+        login: string;
+        role: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;

@@ -715,6 +715,7 @@ const CONST = {
         "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
@@ -4084,8 +4085,8 @@ const CONST = {
         GETCODE: 'GETCODE',
     },
     DELEGATE_ROLE: {
-        SUBMITTER: 'submitter',
         ALL: 'all',
+        SUBMITTER: 'submitter',
     },
     DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
