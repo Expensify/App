@@ -199,14 +199,8 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && amountOwed !== 0;
 }
 
-/**
- * Determines whether the pre-trial billing banner should be shown.
- * @param [firstDay] - The start date of the free trial.
- * @param [lastDay] - The end date of the free trial.
- * @returns True if the pre-trial billing banner should be shown, false otherwise.
- */
-function shouldShowPreTrialBillingBanner(firstDay: OnyxEntry<string> = firstDayFreeTrial, lastDay: OnyxEntry<string> = lastDayFreeTrial): boolean {
-    return !isUserOnFreeTrial(firstDay, lastDay) && !hasUserFreeTrialEnded(lastDay);
+function shouldShowPreTrialBillingBanner(): boolean {
+    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded();
 }
 /**
  * @returns The card to be used for subscription billing.
@@ -365,17 +359,15 @@ function hasSubscriptionGreenDotInfo(): boolean {
 
 /**
  * Calculates the remaining number of days of the workspace owner's free trial before it ends.
- * @param [lastDay] - The end date of the free trial.
- * @returns The remaining number of free trial days.
  */
-function calculateRemainingFreeTrialDays(lastDay: OnyxEntry<string> = lastDayFreeTrial): number {
-    if (!lastDay) {
+function calculateRemainingFreeTrialDays(): number {
+    if (!lastDayFreeTrial) {
         return 0;
     }
 
     const currentDate = new Date();
-    const lastDayDate = new Date(`${lastDay}Z`);
-    const diffInSeconds = differenceInSeconds(lastDayDate, currentDate);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
+    const diffInSeconds = differenceInSeconds(lastDayFreeTrialDate, currentDate);
     const diffInDays = Math.ceil(diffInSeconds / 86400);
 
     return diffInDays < 0 ? 0 : diffInDays;
@@ -383,22 +375,21 @@ function calculateRemainingFreeTrialDays(lastDay: OnyxEntry<string> = lastDayFre
 
 /**
  * @param policies - The policies collection.
- * @param [firstDay] - The start date of the free trial.
- * @param [lastDay] - The end date of the free trial.
- * @returns The free trial badge text.
+ * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null, firstDay: OnyxEntry<string> = firstDayFreeTrial, lastDay: OnyxEntry<string> = lastDayFreeTrial): string | undefined {
+function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
     const ownedPaidPolicies = PolicyUtils.getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
-    if (shouldShowPreTrialBillingBanner(firstDay, lastDay)) {
+
+    if (shouldShowPreTrialBillingBanner()) {
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
-    if (isUserOnFreeTrial(firstDay, lastDay)) {
-        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDay)});
+    if (isUserOnFreeTrial()) {
+        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
-    if (hasUserFreeTrialEnded(lastDay)) {
+    if (hasUserFreeTrialEnded()) {
         return translateLocal('subscription.billingBanner.trialEnded.title');
     }
 
@@ -407,38 +398,33 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null, firstDay: Ony
 
 /**
  * Whether the workspace's owner is on its free trial period.
- * @param [firstDay] - The start date of the free trial.
- * @param [lastDay] - The end date of the free trial.
- * @returns True if the user is on a free trial, false otherwise.
  */
-function isUserOnFreeTrial(firstDay: OnyxEntry<string> = firstDayFreeTrial, lastDay: OnyxEntry<string> = lastDayFreeTrial): boolean {
-    if (!firstDay || !lastDay) {
+function isUserOnFreeTrial(): boolean {
+    if (!firstDayFreeTrial || !lastDayFreeTrial) {
         return false;
     }
 
     const currentDate = new Date();
 
     // Free Trials are stored in UTC so the below code will convert the provided UTC datetime to local time
-    const firstDayDate = new Date(`${firstDay}Z`);
-    const lastDayDate = new Date(`${lastDay}Z`);
+    const firstDayFreeTrialDate = new Date(`${firstDayFreeTrial}Z`);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
-    return isAfter(currentDate, firstDayDate) && isBefore(currentDate, lastDayDate);
+    return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
 }
 
 /**
  * Whether the workspace owner's free trial period has ended.
- * @param [lastDay] - The end date of the free trial.
- * @returns True if the free trial has ended, false otherwise.
  */
-function hasUserFreeTrialEnded(lastDay: OnyxEntry<string> = lastDayFreeTrial): boolean {
-    if (!lastDay) {
+function hasUserFreeTrialEnded(): boolean {
+    if (!lastDayFreeTrial) {
         return false;
     }
 
     const currentDate = new Date();
-    const lastDayDate = new Date(`${lastDay}Z`);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
-    return isAfter(currentDate, lastDayDate);
+    return isAfter(currentDate, lastDayFreeTrialDate);
 }
 
 /**
