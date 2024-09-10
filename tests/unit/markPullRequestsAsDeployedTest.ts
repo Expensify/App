@@ -3,6 +3,7 @@
 /**
  * @jest-environment node
  */
+import format from 'date-fns/format';
 import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
@@ -186,11 +187,12 @@ describe('markPullRequestsAsDeployed', () => {
         // Note: we import this in here so that it executes after all the mocks are set up
         run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
+        const date = format(new Date(), CONST.DATE_FORMAT_STRING);
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
-                body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
+                body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀 on ${date} 🗓️
 
 platform | result
 ---|---
@@ -217,10 +219,11 @@ platform | result
         run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 
         await run();
+        const date = format(new Date(), CONST.DATE_FORMAT_STRING);
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
-                body: `🚀 [Deployed](${workflowRunURL}) to production by https://github.com/thor in version: ${version} 🚀
+                body: `🚀 [Deployed](${workflowRunURL}) to production by https://github.com/thor in version: ${version} 🚀 on ${date} 🗓️
 
 platform | result
 ---|---
@@ -280,9 +283,10 @@ platform | result
         // Note: we import this in here so that it executes after all the mocks are set up
         run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
+        const date = format(new Date(), CONST.DATE_FORMAT_STRING);
         expect(mockCreateComment).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith({
-            body: `🚀 [Cherry-picked](${workflowRunURL}) to staging by https://github.com/freyja in version: 42.42.42-43 🚀
+            body: `🚀 [Cherry-picked](${workflowRunURL}) to staging by https://github.com/freyja in version: 42.42.42-43 🚀 on ${date} 🗓️
 
 platform | result
 ---|---
@@ -315,11 +319,12 @@ platform | result
         // Note: we import this in here so that it executes after all the mocks are set up
         run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
+        const date = format(new Date(), CONST.DATE_FORMAT_STRING);
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
-                body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
+                body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀 on ${date} 🗓️
 
 platform | result
 ---|---
