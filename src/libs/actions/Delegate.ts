@@ -7,7 +7,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';

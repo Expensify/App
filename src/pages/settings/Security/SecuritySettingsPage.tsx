@@ -24,7 +24,6 @@ import {clearAddDelegateErrors} from '@libs/actions/Delegate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
