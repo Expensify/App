@@ -1391,7 +1391,25 @@ type ApprovalRule = {
     applyWhen: ApplyRulesWhen[];
 
     /** An id of the rule */
-    id: string;
+    id?: string;
+};
+
+/** Expense rule data model */
+type ExpenseRule = {
+    /** Object containing information about the tax field id and its external identifier */
+    tax: {
+        /** Object wrapping the external tax id */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        field_id_TAX: {
+            /** The external id of the tax field. */
+            externalID: string;
+        };
+    };
+    /** Set of conditions under which the expense rule should be applied */
+    applyWhen: ApplyRulesWhen[];
+
+    /** An id of the rule */
+    id?: string;
 };
 
 /** Model of policy data */
@@ -1568,10 +1586,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         taxRates?: TaxRatesWithDefault;
 
         /** A set of rules related to the workpsace */
-        rules?: {
+        rules?: OnyxCommon.OnyxValueWithOfflineFeedback<{
             /** A set of rules related to the workpsace approvals */
             approvalRules?: ApprovalRule[];
-        };
+
+            /** A set of rules related to the workpsace expenses */
+            expenseRules?: ExpenseRule[];
+        }>;
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
@@ -1736,5 +1757,7 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     ACHAccount,
+    ApprovalRule,
+    ExpenseRule,
     NetSuiteConnectionConfig,
 };

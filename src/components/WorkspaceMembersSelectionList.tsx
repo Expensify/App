@@ -16,12 +16,6 @@ import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/InviteMemberListItem';
 import type {Section} from './SelectionList/types';
 
-type WorkspaceMembersSelectionListProps = {
-    policyID: string;
-    selectedApprover: string;
-    setApprover: (email: string) => void;
-};
-
 type SelectionListApprover = {
     text: string;
     alternateText: string;
@@ -32,6 +26,12 @@ type SelectionListApprover = {
     icons: Icon[];
 };
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
+
+type WorkspaceMembersSelectionListProps = {
+    policyID: string;
+    selectedApprover: string;
+    setApprover: (email: string) => void;
+};
 
 function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}: WorkspaceMembersSelectionListProps) {
     const {translate} = useLocalize();
@@ -84,7 +84,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         return [
             {
                 title: undefined,
-                data: filteredApprovers,
+                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
                 shouldShow: true,
             },
         ];
@@ -100,7 +100,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         <SelectionList
             sections={sections}
             ListItem={InviteMemberListItem}
-            textInputLabel={translate('selectionList.findMember')}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
             headerMessage={headerMessage}
