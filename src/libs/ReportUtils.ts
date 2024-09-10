@@ -327,6 +327,12 @@ type AnnounceRoomOnyxData = {
     onyxFailureData: OnyxUpdate[];
 };
 
+type OptimisticAnnounceChat = {
+    announceChatReportID: string;
+    announceChatReportActionID: string;
+    announceChatData: AnnounceRoomOnyxData;
+};
+
 type OptimisticWorkspaceChats = {
     adminsChatReportID: string;
     adminsChatData: OptimisticChatReport;
@@ -5494,7 +5500,7 @@ function buildOptimisticDismissedViolationReportAction(
     };
 }
 
-function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): AnnounceRoomOnyxData {
+function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const policy = getPolicy(policyID);
     const announceRoomOnyxData: AnnounceRoomOnyxData = {
@@ -5505,7 +5511,11 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): An
 
     // Do not create #announce room if the room already exists or if there are less than 3 participants in workspace
     if (accountIDs.length < 3 || announceReport) {
-        return announceRoomOnyxData;
+        return {
+            announceChatReportID: '',
+            announceChatReportActionID: '',
+            announceChatData: announceRoomOnyxData,
+        };
     }
 
     const announceChatData = buildOptimisticChatReport(
@@ -5589,7 +5599,11 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): An
             },
         },
     );
-    return announceRoomOnyxData;
+    return {
+        announceChatReportID: announceChatData.reportID,
+        announceChatReportActionID: announceCreatedAction.reportActionID,
+        announceChatData: announceRoomOnyxData,
+    };
 }
 
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
