@@ -638,12 +638,11 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
-            const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-            const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
+            const wasSubmittedViaHarvesting = ReportActionsUtils.getOriginalMessage(action)?.harvesting ?? false;
             if (wasSubmittedViaHarvesting) {
                 children = (
-                    <ReportActionItemBasicMessage message={""}>
-                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`}/>
+                    <ReportActionItemBasicMessage message="">
+                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {

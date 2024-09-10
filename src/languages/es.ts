@@ -802,7 +802,8 @@ export default {
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) => `Se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
+        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
+            `Se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
