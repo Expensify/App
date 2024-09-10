@@ -59,7 +59,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report, policy}: Anon
     );
 }
 
-AnonymousReportFooter.displayName = 'AnonymousReportFooter2';
+AnonymousReportFooter.displayName = 'AnonymousReportFooter';
 
 export default withOnyx<AnonymousReportFooterProps, AnonymousReportFooterPropsWithOnyx>({
     policy: {

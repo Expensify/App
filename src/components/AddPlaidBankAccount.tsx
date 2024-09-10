@@ -285,7 +285,7 @@ function AddPlaidBankAccount({
     );
 }
 
-AddPlaidBankAccount.displayName = 'AddPlaidBankAccount2';
+AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
 
 export default withOnyx<AddPlaidBankAccountProps, AddPlaidBankAccountOnyxProps>({
     plaidLinkToken: {

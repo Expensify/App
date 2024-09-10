@@ -138,7 +138,7 @@ function AddPaymentMethodMenu({
     );
 }
 
-AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu2';
+AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
 export default withOnyx<AddPaymentMethodMenuProps, AddPaymentMethodMenuOnyxProps>({
     session: {
