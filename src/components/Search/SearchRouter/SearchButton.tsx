@@ -10,7 +10,7 @@ import {useSearchRouterContext} from './SearchRouterContext';
 function SearchButton() {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {toggleSearchRouter} = useSearchRouterContext();
+    const {openSearchRouter} = useSearchRouterContext();
 
     if (!Permissions.canUseNewSearchRouter()) {
         return;
@@ -21,7 +21,7 @@ function SearchButton() {
             accessibilityLabel=""
             style={[styles.flexRow, styles.mr2, styles.touchableButtonImage]}
             onPress={() => {
-                toggleSearchRouter();
+                openSearchRouter();
             }}
         >
             <Icon

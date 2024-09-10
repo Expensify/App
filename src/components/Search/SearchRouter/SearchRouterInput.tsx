@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import TextInput from '@components/TextInput';
-import useTheme from '@hooks/useTheme';
+import BaseTextInput from '@components/TextInput/BaseTextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
@@ -11,7 +11,6 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({onSearch}: SearchRouterInputProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
 
     const [value, setValue] = useState('');
 
@@ -22,23 +21,12 @@ function SearchRouterInput({onSearch}: SearchRouterInputProps) {
 
     return (
         <View style={[]}>
-            <TextInput
+            <BaseTextInput
                 value={value}
                 onChangeText={onChangeText}
-                textInputContainerStyles={[{borderWidth: 0}]}
-                containerStyles={[]}
                 hideFocusedState
-                inputStyle={[
-                    styles.w80,
-                    styles.h13,
-                    styles.ph4,
-                    {
-                        width: 400,
-                        borderRadius: 8,
-                        borderWidth: 4,
-                        borderColor: theme.borderFocus,
-                    },
-                ]}
+                textInputContainerStyles={[{borderBottomWidth: 0, width: variables.popoverWidth}]}
+                inputStyle={[styles.searchInputStyle, styles.searchRouterInputStyle, styles.ph2]}
                 role={CONST.ROLE.PRESENTATION}
             />
         </View>
