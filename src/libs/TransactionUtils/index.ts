@@ -184,6 +184,11 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
+/** Check if the receipt has the source file */
+function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return !!transaction?.receipt?.source;
+}
+
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -1136,6 +1141,7 @@ export {
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
     getCardName,
+    hasReceiptSource,
 };
 
 export type {TransactionChanges};

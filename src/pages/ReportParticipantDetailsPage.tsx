@@ -102,7 +102,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     {isCurrentUserAdmin && (
                         <>
                             <Button
-                                text={translate('workspace.people.removeMemberGroupButtonTitle')}
+                                text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                                 medium
                                 isDisabled={isSelectedMemberCurrentUser}
@@ -112,7 +112,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                             />
                             <ConfirmModal
                                 danger
-                                title={translate('workspace.people.removeMemberGroupButtonTitle')}
+                                title={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}

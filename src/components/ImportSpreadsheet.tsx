@@ -167,7 +167,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
-                            title={translate('common.importSpreadsheet')}
+                            title={translate('spreadsheet.importSpreadsheet')}
                             onBackButtonPress={() => Navigation.navigate(backTo)}
                         />
 
