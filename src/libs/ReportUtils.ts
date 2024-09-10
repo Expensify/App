@@ -7088,16 +7088,22 @@ function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
  */
 function hasSmartscanError(reportActions: ReportAction[]) {
     return reportActions.some((action) => {
-        if (!ReportActionsUtils.isSplitBillAction(action) && !ReportActionsUtils.isReportPreviewAction(action)) {
+        const isReportPreview = ReportActionsUtils.isReportPreviewAction(action);
+        const isSplitReportAction = ReportActionsUtils.isSplitBillAction(action);
+        if (!isSplitReportAction && !isReportPreview) {
             return false;
         }
         const IOUReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && shouldShowRBRForMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
+        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
+        if (isReportPreviewError) {
+            return true;
+        }
+
         const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? '-1' : '-1';
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-        const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
+        const isSplitBillError = isSplitReportAction && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
 
-        return isReportPreviewError || isSplitBillError;
+        return isSplitBillError;
     });
 }
 
