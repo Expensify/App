@@ -608,8 +608,10 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
         return;
     }
 
+    const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
+    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, {...parameters, domainAccountID});
 }
 
 function openCardDetailsPage(cardID: number) {
