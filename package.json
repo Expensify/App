@@ -133,6 +133,7 @@
     "react-native": "0.75.2",
     "react-native-android-location-enabler": "^2.0.1",
     "react-native-blob-util": "0.19.4",
+    "react-native-bundle-splitter": "^3.0.1",
     "react-native-collapsible": "^1.6.2",
     "react-native-config": "1.5.0",
     "react-native-dev-menu": "^4.1.1",
