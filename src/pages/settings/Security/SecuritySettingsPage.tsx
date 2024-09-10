@@ -25,15 +25,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-<<<<<<< HEAD
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {removeDelegate} from '@libs/actions/Delegate';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-=======
-import {clearAddDelegateErrors} from '@libs/actions/Delegate';
+import {clearAddDelegateErrors, removeDelegate} from '@libs/actions/Delegate';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
->>>>>>> show-copilot
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
@@ -41,15 +37,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-<<<<<<< HEAD
 import type {Delegate} from '@src/types/onyx/Account';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DelegateWithAccountID = {
     accountID: number;
 } & Delegate;
-=======
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
->>>>>>> show-copilot
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -60,7 +53,6 @@ function SecuritySettingsPage() {
     const {canUseNewDotCopilot} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-<<<<<<< HEAD
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
@@ -89,9 +81,7 @@ function SecuritySettingsPage() {
             anchorPositionVertical: position.y,
         });
     }, [windowWidth]);
-=======
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
->>>>>>> show-copilot
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -144,26 +134,6 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-<<<<<<< HEAD
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
-
-        return {
-            title: personalDetail?.displayName ?? email,
-            description: personalDetail?.displayName ? email : '',
-            badgeText: translate('delegate.role', role),
-            avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            numberOfLinesDescription: 1,
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            iconRight: Expensicons.ThreeDots,
-            shouldShowRightIcon: true,
-            onPress: (e: GestureResponderEvent | KeyboardEvent) => showPopoverMenu(e, {email, role, accountID: personalDetail?.accountID ?? -1}),
-            pendingAction,
-        };
-    });
-=======
     const delegateMenuItems: MenuItemProps[] = delegates
         .filter((d) => !d.optimisticAccountID)
         .map(({email, role, pendingAction, errorFields}) => {
@@ -172,6 +142,7 @@ function SecuritySettingsPage() {
             const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
             const onPress = () => {
+                // onPress: (e: GestureResponderEvent | KeyboardEvent) => showPopoverMenu(e, {email, role, accountID: personalDetail?.accountID ?? -1}),
                 if (isEmptyObject(pendingAction)) {
                     return;
                 }
@@ -201,7 +172,6 @@ function SecuritySettingsPage() {
                 onPress,
             };
         });
->>>>>>> show-copilot
 
     const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
@@ -296,7 +266,6 @@ function SecuritySettingsPage() {
                                     </Section>
                                 </View>
                             )}
-<<<<<<< HEAD
                             <MenuItem
                                 title={translate('delegate.addCopilot')}
                                 icon={Expensicons.UserPlus}
@@ -355,16 +324,10 @@ function SecuritySettingsPage() {
                                 cancelText={translate('common.cancel')}
                                 shouldShowCancelButton
                             />
-                        </Section>
-                    )}
-                </View>
-            </ScrollView>
-=======
                         </View>
                     </ScrollView>
                 </>
             )}
->>>>>>> show-copilot
         </ScreenWrapper>
     );
 }
