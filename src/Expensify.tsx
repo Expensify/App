@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -312,6 +312,32 @@ function Expensify({
     );
 }
 
-Expensify.displayName = 'Expensify2';
+Expensify.displayName = 'Expensify';
 
-export default Expensify;
+export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
+    isCheckingPublicRoom: {
+        key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+        initWithStoredValues: false,
+    },
+    updateAvailable: {
+        key: ONYXKEYS.UPDATE_AVAILABLE,
+        initWithStoredValues: false,
+    },
+    updateRequired: {
+        key: ONYXKEYS.UPDATE_REQUIRED,
+        initWithStoredValues: false,
+    },
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+    screenShareRequest: {
+        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+    },
+    focusModeNotification: {
+        key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
+        initWithStoredValues: false,
+    },
+    lastVisitedPath: {
+        key: ONYXKEYS.LAST_VISITED_PATH,
+    },
+})(Expensify);
