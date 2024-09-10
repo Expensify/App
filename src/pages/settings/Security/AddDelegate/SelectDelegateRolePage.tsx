@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,12 +18,14 @@ type SelectDelegateRolePageProps = StackScreenProps<SettingsNavigatorParamList, 
 
 function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     const {translate} = useLocalize();
+    const login = route.params.login;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
         text: translate('delegate.role', role),
         keyForList: role,
+        alternateText: translate('delegate.roleDescription', role),
         isSelected: role === route.params.role,
     }));
 
@@ -36,9 +39,23 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_DELEGATE)}
             />
             <SelectionList
-                headerContent={<Text style={[styles.ph5, styles.pb5, styles.pt3]}>{translate('delegate.accessLevelDescription')}</Text>}
+                isAlternateTextMultilineSupported
+                alternateTextNumberOfLines={4}
+                headerContent={
+                    <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+                        <>
+                            {translate('delegate.accessLevelDescription')}{' '}
+                            <TextLink
+                                style={[styles.link]}
+                                href={CONST.COPILOT_HELP_URL}
+                            >
+                                {translate('common.learnMore')}
+                            </TextLink>
+                        </>
+                    </Text>
+                }
                 onSelectRow={(option) => {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(Number(route.params.accountID), option.value));
+                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                 }}
                 sections={[{data: roleOptions}]}
                 ListItem={RadioListItem}

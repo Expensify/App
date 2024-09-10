@@ -23,6 +23,8 @@ function useOptions() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const existingDelegates = useMemo(() => account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [], [account?.delegatedAccess?.delegates]);
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
@@ -31,7 +33,7 @@ function useOptions() {
             betas,
             '',
             [],
-            CONST.EXPENSIFY_EMAILS,
+            [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
             false,
             true,
             false,
@@ -62,11 +64,11 @@ function useOptions() {
             tagOptions: [],
             taxRatesOptions: [],
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -79,7 +81,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, existingDelegates]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -87,7 +89,7 @@ function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+    const {userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -104,6 +106,14 @@ function AddDelegatePage() {
             shouldShow: personalDetails?.length > 0,
         });
 
+        if (userToInvite) {
+            sectionsList.push({
+                title: undefined,
+                data: [userToInvite],
+                shouldShow: true,
+            });
+        }
+
         return sectionsList.map((section) => ({
             ...section,
             data: section.data.map((option) => ({
@@ -116,11 +126,10 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [personalDetails, recentReports, translate]);
+    }, [personalDetails, recentReports, translate, userToInvite]);
 
     const onSelectRow = useCallback((option: Participant) => {
-        // setDelegateEmail(option.login ?? '');
-        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1));
+        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option?.login ?? ''));
     }, []);
 
     useEffect(() => {

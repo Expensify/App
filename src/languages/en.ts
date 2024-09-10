@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {remove, startCase} from 'lodash';
+import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -4685,6 +4685,8 @@ export default {
         removeCopilot: 'Remove copilot',
         removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
         changeAccessLevel: 'Change access level',
+        makeSureItIsYou: "Let's make sure it's you",
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot.`,
         notAllowed: 'Not so fast...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',

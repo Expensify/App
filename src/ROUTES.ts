@@ -136,12 +136,16 @@ const ROUTES = {
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
-        route: 'settings/security/delegate/:accountID/role/:role',
-        getRoute: (accountID: number, role?: string) => `settings/security/delegate/${accountID}/role/${role}` as const,
+        route: 'settings/security/delegate/:login/role/:role',
+        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
     },
     SETTINGS_DELEGATE_CONFIRM: {
-        route: 'settings/security/delegate/:accountID/role/:role/confirm',
-        getRoute: (accountID: number, role: string) => `settings/security/delegate/${accountID}/role/${role}/confirm` as const,
+        route: 'settings/security/delegate/:login/role/:role/confirm',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/magic-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',

@@ -5186,15 +5186,15 @@ export default {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
-        accessLevel: 'Access level',
-        confirmCopilot: 'Confirm your copilot below.',
-        accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
+        accessLevel: 'Nivel de acceso',
+        confirmCopilot: 'Confirma tu copiloto a continuación.',
+        accessLevelDescription: 'Elige un nivel de acceso a continuación. Tanto el acceso Completo como el Limitado permiten a los copilotos ver todas las conversaciones y gastos.',
         roleDescription: (role?: string): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
-                    return 'Allow another member to take all actions in your account, on your behalf. Includes chat, submissions, approvals, payments, settings updates, and more.';
+                    return 'Permite a otro miembro realizar todas las acciones en tu cuenta, en tu nombre. Incluye chat, presentaciones, aprobaciones, pagos, actualizaciones de configuración y más.';
                 case CONST.DELEGATE_ROLE.SUBMITTER:
-                    return 'Allow another member to take most actions in your account, on your behalf. Excludes approvals, payments, rejections, and holds.';
+                    return 'Permite a otro miembro realizar la mayoría de las acciones en tu cuenta, en tu nombre. Excluye aprobaciones, pagos, rechazos y retenciones.';
                 default:
                     return '';
             }
@@ -5202,6 +5202,8 @@ export default {
         removeCopilot: 'Remove copilot',
         removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
         changeAccessLevel: 'Change access level',
+        makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
         notAllowed: 'No tan rápido...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
         notAllowedMessageHyperLinked: ' copiloto con acceso',
