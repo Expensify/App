@@ -42,6 +42,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -6926,6 +6927,8 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const currentUserApprovalIndex = approvalChain.indexOf(currentUserEmail);
+    const managerID = isLastApprover(approvalChain) || currentUserApprovalIndex === -1 ? expenseReport?.managerID : getAccountIDsByLogins([approvalChain[currentUserApprovalIndex + 1]])[0];
 
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = ReportUtils.getReportOrDraftReport(expenseReport?.chatReportID);
@@ -6949,6 +6952,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticApprovedReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            managerID,
             pendingFields: {
                 partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
