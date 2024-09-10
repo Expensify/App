@@ -1,10 +1,10 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openImportPage, setContainsHeader} from '@libs/actions/ImportSpreadsheet';
+import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Button from './Button';
@@ -48,12 +48,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const {containsHeader} = spreadsheet ?? {};
-
-    useEffect(() => {
-        openImportPage(containsHeader);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    const {containsHeader = true} = spreadsheet ?? {};
 
     return (
         <>
@@ -61,7 +56,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
                 <View style={styles.mh5}>
                     <Text>
                         {headerText}
-                        <TextLink href={learnMoreLink ?? ''}>{` [${translate('common.learnMore')}]`}</TextLink>
+                        <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
                     </Text>
 
                     <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -69,7 +64,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
 
                         <Switch
                             accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
-                            isOn={containsHeader === true}
+                            isOn={containsHeader}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onToggle={setContainsHeader}
                         />
@@ -80,7 +75,6 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
                             <ImportColumn
                                 key={columnNames[index]}
                                 column={column}
-                                containsHeader={containsHeader === true}
                                 columnName={columnNames[index]}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
@@ -109,5 +103,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
         </>
     );
 }
+
+ImportSpreeadsheetColumns.displayName = 'ImportSpreeadsheetColumns';
 
 export default ImportSpreeadsheetColumns;

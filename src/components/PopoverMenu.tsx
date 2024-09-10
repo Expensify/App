@@ -8,6 +8,8 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -35,6 +37,11 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
+
+    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+     */
+    shouldCallAfterModalHide?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -118,6 +125,7 @@ function PopoverMenu({
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
@@ -132,6 +140,11 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+            onItemSelected(selectedItem, index);
+            Modal.close(() => {
+                selectedItem.onSelected?.();
+            });
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -259,6 +272,7 @@ function PopoverMenu({
                             iconRight={item.iconRight}
                             shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                             label={item.label}
+                            style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                             isLabelHoverable={item.isLabelHoverable}
                             floatRightAvatars={item.floatRightAvatars}
                             floatRightAvatarSize={item.floatRightAvatarSize}

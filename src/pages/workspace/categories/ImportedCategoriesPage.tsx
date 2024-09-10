@@ -25,9 +25,10 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
-    const {containsHeader} = spreadsheet ?? {};
+    const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -54,30 +55,30 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let newErrors: Errors = {};
+        let errors: Errors = {};
 
         if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    newErrors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                newErrors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
-                newErrors = {};
+                errors = {};
             }
         }
-        return newErrors;
+        return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);
-        const currentErrors = validate();
-        if (Object.keys(currentErrors).length > 0) {
+        const errors = validate();
+        if (Object.keys(errors).length > 0) {
             return;
         }
 
@@ -88,23 +89,33 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         const categoriesNames = spreadsheet?.data[categoriesNamesColumn].map((name) => name);
         const categoriesEnabled = categoriesEnabledColumn !== -1 ? spreadsheet?.data[categoriesEnabledColumn].map((enabled) => enabled) : [];
         const categoriesGLCode = categoriesGLCodeColumn !== -1 ? spreadsheet?.data[categoriesGLCodeColumn].map((glCode) => glCode) : [];
-        const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => ({
-            name,
-            enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] : '',
-        }));
+        const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
+            const categoryAlreadyExists = policyCategories?.[name];
+            const existingGLCodeOrDefault = categoryAlreadyExists?.['GL Code'] ?? '';
+            return {
+                name,
+                enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
+            };
+        });
 
         if (categories) {
             setIsImportingCategories(true);
             importPolicyCategories(policyID, categories);
         }
-    }, [validate, spreadsheet, containsHeader, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
         return;
     }
+
+    const closeImportPageAndModal = () => {
+        setIsImportingCategories(false);
+        closeImportPage();
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
 
     return (
         <ScreenWrapper
@@ -130,11 +141,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={() => {
-                    setIsImportingCategories(false);
-                    closeImportPage();
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-                }}
+                onConfirm={closeImportPageAndModal}
+                onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
