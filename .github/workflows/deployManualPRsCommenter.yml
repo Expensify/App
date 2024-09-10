@@ -1,0 +1,51 @@
+name: Manual PRs Deployment Notifier
+
+on:
+  workflow_dispatch:
+    inputs:
+      Tag:
+        description: 'Deployment release tag'
+        required: true
+      Date:
+        description: 'Deployment date'
+        required: true
+      IS_PRODUCTION_DEPLOY:
+        description: 'Is production deployment'
+        type: boolean
+        required: true
+jobs:
+  comment-on-prs:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Get Release Pull Request List
+        id: getReleasePRList
+        uses: ./.github/actions/javascript/getDeployPullRequestList
+        with:
+          TAG: ${{ inputs.Tag }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          IS_PRODUCTION_DEPLOY: ${{ inputs.IS_PRODUCTION_DEPLOY }}
+
+      - name: Comment on issues
+        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
+        with:
+          DATE: ${{ inputs.Date }}
+          DEPLOYER_LOGIN: ${{ github.actor }}
+          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
+          IS_PRODUCTION_DEPLOY: ${{ inputs.IS_PRODUCTION_DEPLOY }}
+          DEPLOY_VERSION: ${{ inputs.Tag }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
