@@ -354,5 +354,26 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when the distance rate is changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0.67 / mi',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3776,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
+                const expectedResult = `changed the rate to 56.36 mi @ $0.99 / mi (previously 56.36 mi @ $0.67 / mi), which updated the amount to $55.80 (previously $37.76)`;
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
