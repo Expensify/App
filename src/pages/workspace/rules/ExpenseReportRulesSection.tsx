@@ -58,9 +58,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                             ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
                             : null
                     }
+                    key="customName"
                 >
                     <MenuItemWithTopDescription
-                        key="customName"
                         description={translate('workspace.rules.expenseReportRules.customNameTitle')}
                         title={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue}
                         shouldShowRightIcon
@@ -112,9 +112,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={!policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.limit ? policy?.autoApproval?.pendingFields?.limit : null}
+                    key="autoApproveReportsUnder"
                 >
                     <MenuItemWithTopDescription
-                        key="autoApproveReportsUnder"
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
                         title={CurrencyUtils.convertToDisplayString(
                             policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
@@ -129,9 +129,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     pendingAction={
                         !policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.auditRate ? policy?.autoApproval?.pendingFields?.auditRate : null
                     }
+                    key="randomReportAuditTitle"
                 >
                     <MenuItemWithTopDescription
-                        key="randomReportAuditTitle"
                         description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
                         title={`${policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE}%`}
                         shouldShowRightIcon
@@ -161,9 +161,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                             ? policy?.autoReimbursement?.pendingFields?.limit
                             : null
                     }
+                    key="autoPayReportsUnder"
                 >
                     <MenuItemWithTopDescription
-                        key="autoPayReportsUnder"
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
                         title={CurrencyUtils.convertToDisplayString(
                             policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
