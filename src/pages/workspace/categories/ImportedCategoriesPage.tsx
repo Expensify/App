@@ -111,6 +111,12 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         return;
     }
 
+    const closeImportPageAndModal = () => {
+        setIsImportingCategories(false);
+        closeImportPage();
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
+
     return (
         <ScreenWrapper
             testID={ImportedCategoriesPage.displayName}
@@ -135,11 +141,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={() => {
-                    setIsImportingCategories(false);
-                    closeImportPage();
-                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-                }}
+                onConfirm={closeImportPageAndModal}
+                onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
