@@ -41,7 +41,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -81,6 +80,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 
 type ReportActionItemOnyxProps = {
     /** IOU report for this action, if any */
@@ -199,7 +199,7 @@ function ReportActionItem({
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
-    const textInputRef = useRef<TextInput | HTMLTextAreaElement>();
+    const textInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
@@ -274,7 +274,7 @@ function ReportActionItem({
             return;
         }
 
-        focusTextInputAfterAnimation(textInputRef.current, 100);
+        focusComposerWithDelay(textInputRef.current)(true);
     }, [prevDraftMessage, draftMessage]);
 
     useEffect(() => {
