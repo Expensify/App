@@ -196,13 +196,13 @@ jobs:
       - name: Upload desktop sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
           path: ./desktop/dist/www/merged-source-map.js.map
 
       - name: Upload desktop build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
   iOS:
