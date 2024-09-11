@@ -294,6 +294,7 @@ export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceERecei
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
+export type {default as AddDelegateParams} from './AddDelegateParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';

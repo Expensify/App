@@ -2,7 +2,6 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AccountOwnerParams,
@@ -687,6 +686,7 @@ export default {
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
+        sizeNotMet: 'File size must be greater than 0 bytes',
         invalidFileMessage:
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
         importSpreadsheet: 'Import spreadsheet',
@@ -2795,6 +2795,43 @@ export default {
         companyCards: {
             addCompanyCards: 'Add company cards',
             selectCardFeed: 'Select card feed',
+            addCardFeed: 'Add card feed',
+            addNewCard: {
+                cardProviders: {
+                    amex: 'American Express Corporate Cards',
+                    mastercard: 'Mastercard Commercial Cards',
+                    visa: 'Visa Commercial Cards',
+                },
+                yourCardProvider: `Who's your card provider?`,
+                enableFeed: {
+                    title: (provider: string) => `Enable your ${provider} feed`,
+                    heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
+                    visa: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructionson how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    amex: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) to find out if American Express can enable a custom feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
+                    mastercard: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                },
+                whatBankIssuesCard: 'What bank issues these cards?',
+                enterNameOfBank: 'Enter name of bank',
+                feedDetails: {
+                    visa: {
+                        title: 'What are the Visa feed details?',
+                        processorLabel: 'Processor ID',
+                        bankLabel: 'Financial institution (bank) ID',
+                        companyLabel: 'Company ID',
+                    },
+                    amex: {
+                        title: `What's the Amex delivery file name`,
+                        fileNameLabel: 'Delivery file name',
+                    },
+                    mastercard: {
+                        title: `What's the Mastercard distribution ID`,
+                        distributionLabel: 'Distribution ID',
+                    },
+                },
+                error: {
+                    pleaseSelectProvider: 'Please select a card provider before continuing.',
+                },
+            },
             assignCard: 'Assign card',
             cardNumber: 'Card number',
             customFeed: 'Custom feed',
@@ -3855,6 +3892,19 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' and ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+            }
+            const workflowWord = Str.pluralize('workflow', 'workflows', submittersNames.length);
+            const chatWord = Str.pluralize('chat', 'chats', submittersNames.length);
+            return `removed you from ${joinedNames}'s approval ${workflowWord} and workspace ${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -4657,7 +4707,12 @@ export default {
     },
     delegate: {
         switchAccount: 'Switch accounts:',
-        role: (role: DelegateRole): string => {
+        copilotDelegatedAccess: 'Copilot: Delegated access',
+        copilotDelegatedAccessDescription: 'Allow other members to access your account.',
+        addCopilot: 'Add copilot',
+        membersCanAccessYourAccount: 'These members can access your account:',
+        youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',
+        role: (role?: string): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Full';
@@ -4668,6 +4723,21 @@ export default {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
+        accessLevel: 'Access level',
+        confirmCopilot: 'Confirm your copilot below.',
+        accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
+        roleDescription: (role?: string): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Allow another member to take all actions in your account, on your behalf. Includes chat, submissions, approvals, payments, settings updates, and more.';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Allow another member to take most actions in your account, on your behalf. Excludes approvals, payments, rejections, and holds.';
+                default:
+                    return '';
+            }
+        },
+        makeSureItIsYou: "Let's make sure it's you",
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot.`,
         notAllowed: 'Not so fast...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',
