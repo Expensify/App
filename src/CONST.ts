@@ -714,6 +714,7 @@ const CONST = {
     SAGE_INTACCT_HELP_LINK:
         "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
+    COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
@@ -826,6 +827,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REJECTED: 'REJECTED',
+                REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -945,6 +947,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            INVOICE_RECEIVER_POLICY_DELETED: 'invoiceReceiverPolicyDeleted',
             BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
@@ -2458,6 +2461,23 @@ const CONST = {
         },
         CARD_TITLE_INPUT_LIMIT: 255,
     },
+    COMPANY_CARDS: {
+        STEP: {
+            CARD_TYPE: 'CardType',
+            CARD_INSTRUCTIONS: 'CardInstructions',
+            CARD_NAME: 'CardName',
+            CARD_DETAILS: 'CardDetails',
+        },
+        CARD_TYPE: {
+            AMEX: 'amex',
+            VISA: 'visa',
+            MASTERCARD: 'mastercard',
+        },
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
@@ -2470,12 +2490,6 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
-        },
-    },
-    COMPANY_CARDS: {
-        DELETE_TRANSACTIONS: {
-            RESTRICT: 'corporate',
-            ALLOW: 'personal',
         },
     },
     REGEX: {
@@ -5414,11 +5428,6 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
         },
-        CHAT_STATUS: {
-            UNREAD: 'unread',
-            PINNED: 'pinned',
-            DRAFT: 'draft',
-        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             HOLD: 'hold',
@@ -5459,10 +5468,6 @@ const CONST = {
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
             },
-        },
-        CHAT_TYPES: {
-            LINK: 'link',
-            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5511,8 +5516,6 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
-            HAS: 'has',
-            IS: 'is',
         },
     },
 
