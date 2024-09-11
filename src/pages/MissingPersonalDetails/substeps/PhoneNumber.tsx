@@ -22,7 +22,6 @@ function PhoneNumberStep({privatePersonalDetails}: CustomSubStepProps) {
                 aria-label={translate('common.phoneNumber')}
                 role={CONST.ROLE.PRESENTATION}
                 inputMode={CONST.INPUT_MODE.TEL}
-                placeholder={translate('common.phoneNumberPlaceholder')}
                 defaultValue={privatePersonalDetails?.phoneNumber}
                 containerStyles={[styles.mt6]}
             />

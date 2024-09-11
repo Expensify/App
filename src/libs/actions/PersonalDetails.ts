@@ -17,6 +17,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -431,7 +432,7 @@ function updatePersonalDetailsAndShipExpensifyCard(values: FormOnyxValues<typeof
     const parameters: SetMissingPersonalDetailsAndShipExpensifyCardParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: values.phoneNumber?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? ''),
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',
