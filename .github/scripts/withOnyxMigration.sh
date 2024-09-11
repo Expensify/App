@@ -21,7 +21,7 @@ count_current=0
 
 echo -e "\nWe're gradually moving from 'withOnyx' to 'useOnyx'. 'useOnyx' hook simplifies the code, offers performance benefits and improves TypeScript compilation time."
 echo -e "For more details, see https://expensify.slack.com/archives/C01GTK53T8Q/p1725905735105989.\n"
-echo -e "${BOLD_WHITE}If you are blocked by this on something that is very urgent, you can always ignore this check and merge with it failing.\n"
+echo -e "${BOLD_WHITE}If this check is blocking you on something that is very urgent, you can always ignore it.\n"
 
 if [ -z "$modified_files" ]; then
   echo -e "${GREEN}No changes detected. Exiting."
