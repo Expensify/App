@@ -556,8 +556,8 @@ const SCREENS = {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
-        DEBUG_DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
-        DEBUG_DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
+        DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
     },
 } as const;
 

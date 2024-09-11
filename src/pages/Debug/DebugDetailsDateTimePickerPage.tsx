@@ -15,7 +15,7 @@ import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
 
-type DebugDetailsDateTimePickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DEBUG_DETAILS_DATE_TIME_PICKER_PAGE>;
+type DebugDetailsDateTimePickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE>;
 
 function DebugDetailsDateTimePickerPage({
     route: {

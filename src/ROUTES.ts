@@ -1519,11 +1519,11 @@ const ROUTES = {
         route: 'debug/report/:reportID/actions/:reportActionID/preview',
         getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
     },
-    DEBUG_DETAILS_CONSTANT_PICKER_PAGE: {
+    DETAILS_CONSTANT_PICKER_PAGE: {
         route: 'debug/details/constant/:fieldName',
         getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/constant/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },
-    DEBUG_DETAILS_DATE_TIME_PICKER_PAGE: {
+    DETAILS_DATE_TIME_PICKER_PAGE: {
         route: 'debug/details/datetime/:fieldName',
         getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },

@@ -1441,12 +1441,12 @@ type DebugParamList = {
     [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
         reportID: string;
     };
-    [SCREENS.DEBUG.DEBUG_DETAILS_CONSTANT_PICKER_PAGE]: {
+    [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
         fieldName: string;
         fieldValue?: string;
         backTo?: string;
     };
-    [SCREENS.DEBUG.DEBUG_DETAILS_DATE_TIME_PICKER_PAGE]: {
+    [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
         fieldName: string;
         fieldValue?: string;
         backTo?: string;

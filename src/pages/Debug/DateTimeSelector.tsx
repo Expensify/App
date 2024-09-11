@@ -12,7 +12,7 @@ type DateTimeSelectorProps = {
     /** Callback called when the constant changes. */
     onInputChange?: (value?: string) => void;
 
-    /** Current selected constant  */
+    /** Current selected constant */
     value?: string;
 
     name: string;
@@ -48,7 +48,7 @@ function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTime
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DEBUG_DETAILS_DATE_TIME_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
             }}
             shouldShowRightIcon
         />

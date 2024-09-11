@@ -48,7 +48,7 @@ function ConstantSelector({errorText = '', name, value, onInputChange}: Constant
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DEBUG_DETAILS_CONSTANT_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
             }}
             shouldShowRightIcon
         />

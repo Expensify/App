@@ -1208,12 +1208,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.DEBUG_REPORT_ACTION_CREATE.route,
                             exact: true,
                         },
-                        [SCREENS.DEBUG.DEBUG_DETAILS_CONSTANT_PICKER_PAGE]: {
-                            path: ROUTES.DEBUG_DETAILS_CONSTANT_PICKER_PAGE.route,
+                        [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+                            path: ROUTES.DETAILS_CONSTANT_PICKER_PAGE.route,
                             exact: true,
                         },
-                        [SCREENS.DEBUG.DEBUG_DETAILS_DATE_TIME_PICKER_PAGE]: {
-                            path: ROUTES.DEBUG_DETAILS_DATE_TIME_PICKER_PAGE.route,
+                        [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
+                            path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
                             exact: true,
                         },
                     },

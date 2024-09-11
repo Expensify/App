@@ -110,6 +110,18 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
         [data, onSave],
     );
 
+    const isSubmitDisabled = useMemo(
+        () =>
+            !Object.entries(formDraftData ?? {}).some(([key, value]) => {
+                const onyxData = data?.[key as keyof typeof data];
+                if (typeof value === 'string') {
+                    return !DebugUtils.compareStringWithOnyxData(value, onyxData);
+                }
+                return onyxData !== value;
+            }),
+        [formDraftData, data],
+    );
+
     return (
         <ScrollView style={styles.mv5}>
             <FormProvider
@@ -118,15 +130,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 validate={validator}
                 shouldValidateOnChange
                 onSubmit={handleSubmit}
-                isSubmitDisabled={
-                    !Object.entries(formDraftData ?? {}).some(([key, value]) => {
-                        const onyxData = data?.[key as keyof typeof data];
-                        if (typeof value === 'string') {
-                            return !DebugUtils.compareStringWithOnyxData(value, onyxData);
-                        }
-                        return onyxData !== value;
-                    })
-                }
+                isSubmitDisabled={isSubmitDisabled}
                 submitButtonText={translate('common.save')}
                 submitButtonStyles={styles.ph3}
                 enabledWhenOffline

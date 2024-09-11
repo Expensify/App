@@ -15,7 +15,7 @@ import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
 import {DETAILS_CONSTANT_OPTIONS, NONE_OPTION} from './const';
 
-type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DEBUG_DETAILS_CONSTANT_PICKER_PAGE>;
+type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
 function DebugDetailsConstantPickerPage({
     route: {
