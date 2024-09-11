@@ -6,6 +6,7 @@ import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
+import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -25,7 +26,6 @@ import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
-import ScrollView from '@components/ScrollView';
 
 type SavedSearchMenuItem = MenuItemBaseProps & {
     key: string;
@@ -57,7 +57,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     useEffect(() => {
         setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
-        console.log('savedSearches length', Object.keys(savedSearches ?? {}).length);
     }, [savedSearches]);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
@@ -102,7 +101,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
+                    // this is to make sure we get the correct query search params, for saved searches saved as "[savedSearchName]"
+                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query?.replace(/"/g, '') ?? ''}));
                 },
                 rightComponent: (
                     <ThreeDotsMenu
@@ -211,9 +211,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     );
                 })}
             </View>
-            <ScrollView>
-                {savedSearches && renderSavedSearchesSection(savedSearchesMenuItems())}
-            </ScrollView>
+            <ScrollView>{savedSearches && renderSavedSearchesSection(savedSearchesMenuItems())}</ScrollView>
             <DeleteConfirmModal />
         </>
     );
