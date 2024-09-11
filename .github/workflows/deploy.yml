@@ -450,11 +450,8 @@ jobs:
     needs: prep
     if: ${{ github.ref == 'refs/heads/staging' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: 'Deploy HybridApp'
-        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true -f build_version="$(npm run print-version --silent)"
+        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true -f build_version="${{ needs.prep.outputs.APP_VERSION }}"
         env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -496,10 +493,10 @@ jobs:
 
       - name: 🚀 Create prerelease 🚀
         run: |
-          gh release create ${{ needs.prep.outputs.APP_VERSION }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --target staging
+          gh release create ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --target staging
           RETRIES=0
           MAX_RETRIES=10
-          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }}) || $RETRIES -ge $MAX_RETRIES ]]; do
+          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
             echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
             sleep 1
           done
@@ -513,7 +510,7 @@ jobs:
 
       - name: Upload artifacts to GitHub Release
         run: |
-          gh release upload ${{ needs.prep.outputs.APP_VERSION }} \
+          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} \
             ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./android-build-artifact/app-production-release.aab \
             ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
@@ -559,7 +556,7 @@ jobs:
 
       - name: Upload artifacts to GitHub Release
         run: |
-          gh release upload ${{ needs.prep.outputs.APP_VERSION }} \
+          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} \
             ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./desktop-build-artifact/NewExpensify.dmg \
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
@@ -570,9 +567,9 @@ jobs:
 
       - name: 🚀 Edit the release to be no longer a prerelease 🚀
         run: |
-          LATEST_RELEASE="$(gh release list --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
+          LATEST_RELEASE="$(gh release list --repo ${{ github.repository }} --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
           gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.APP_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
-          gh release edit ${{ needs.prep.outputs.APP_VERSION }} --prerelease=false --latest --notes-file releaseNotes.md
+          gh release edit ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
