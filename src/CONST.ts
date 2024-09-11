@@ -2148,6 +2148,7 @@ const CONST = {
         },
         FIELDS: {
             TAG: 'tag',
+            CATEGORY: 'category',
             TITLE: 'text_title',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',

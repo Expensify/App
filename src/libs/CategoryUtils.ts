@@ -45,7 +45,10 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
 }
 
 function getCategoryApprover(approvalRules: ApprovalRule[], categoryName: string) {
-    return approvalRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.approver;
+    const approverRule = approvalRules?.find((rule) =>
+        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
+    );
+    return approverRule?.approver;
 }
 
 function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
