@@ -3,7 +3,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
 
-function QuickEmojiReactions({closeContextMenu, onEmojiSelected, ...rest}: QuickEmojiReactionsProps) {
+function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsProps) {
     const onPressOpenPicker = (openPicker?: OpenPickerCallback) => {
         // We first need to close the menu as it's a popover.
         // The picker is a popover as well and on mobile there can only

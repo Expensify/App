@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useContext} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +11,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {Actions, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollView';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
@@ -125,7 +124,6 @@ function ConfirmContent({
     titleContainerStyles,
     shouldReverseStackedButtons = false,
 }: ConfirmContentProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();

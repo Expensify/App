@@ -146,7 +146,6 @@ function ReportActionCompose({
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const navigation = useNavigation();
 
