@@ -20,10 +20,6 @@ function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | 
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;
 }
 
-function canUseWorkflowsAdvancedApproval(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKFLOWS_ADVANCED_APPROVAL) || canUseAllBetas(betas);
-}
-
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
@@ -65,7 +61,6 @@ export default {
     canUseLinkPreviews,
     canUseDupeDetection,
     canUseP2PDistanceRequests,
-    canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
     canUseWorkspaceFeeds,
     canUseCompanyCardFeeds,

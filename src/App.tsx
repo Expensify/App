@@ -30,7 +30,6 @@ import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeCont
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
-import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
@@ -79,7 +78,6 @@ function App({url}: AppProps) {
                                 SafeArea,
                                 LocaleContextProvider,
                                 HTMLEngineProvider,
-                                WindowDimensionsProvider,
                                 KeyboardStateProvider,
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
