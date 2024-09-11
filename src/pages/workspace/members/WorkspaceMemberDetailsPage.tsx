@@ -370,6 +370,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <WorkspaceMemberDetailsFeedSelectorModal
                                     isVisible={isFeedSelectorModalVisible}
                                     onClose={() => setIsFeedSelectorModalVisible(false)}
+                                    policyID={policyID}
                                 />
                             </View>
                         </ScrollView>

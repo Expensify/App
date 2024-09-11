@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -22,6 +23,8 @@ type CardFeedListItem = ListItem & {
 const cardFeeds = {
     companyCardNicknames: {
         cdfbmo: 'BMO MasterCard',
+        vcf: 'Visa Corporate Card',
+        gl1025: 'Corporate Amex',
     },
 };
 
@@ -31,6 +34,9 @@ type WorkspaceMemberDetailsFeedSelectorModalProps = {
 
     /** Callback for closing modal */
     onClose: () => void;
+
+    /** The policy ID */
+    policyID: string;
 };
 
 function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}: WorkspaceMemberDetailsFeedSelectorModalProps) {
@@ -56,7 +62,7 @@ function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}:
         setShouldShowError(false);
     };
 
-    const feeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
+    const companyCardFeeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
         value: key,
         text: value,
         keyForList: key,
@@ -70,6 +76,26 @@ function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}:
             />
         ),
     }));
+
+    const feeds = workspaceAccountID
+        ? [
+              ...companyCardFeeds,
+              {
+                  value: 'expensifyCard',
+                  text: translate('workspace.common.expensifyCard'),
+                  keyForList: 'expensifyCard',
+                  isSelected: selectedFeed === 'expensifyCard',
+                  leftElement: (
+                      <Icon
+                          src={ExpensifyCardImage}
+                          height={variables.iconSizeExtraLarge}
+                          width={variables.iconSizeExtraLarge}
+                          additionalStyles={styles.mr3}
+                      />
+                  ),
+              },
+          ]
+        : companyCardFeeds;
 
     return (
         <Modal
