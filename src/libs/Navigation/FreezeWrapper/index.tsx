@@ -1,8 +1,8 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
+import shouldSetScreenBlurred from '@libs/Navigation/shouldSetScreenBlurred';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import shouldSetScreenBlurred from '../shouldSetScreenBlurred';
 
 type FreezeWrapperProps = ChildrenProps & {
     /** Prop to disable freeze */
