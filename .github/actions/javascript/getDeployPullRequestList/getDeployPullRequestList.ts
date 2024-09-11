@@ -19,6 +19,7 @@ async function run() {
             {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 per_page: 100,
             },
             ({data}, done) => {
