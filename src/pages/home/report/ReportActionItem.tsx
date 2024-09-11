@@ -335,32 +335,6 @@ function ReportActionItem({
         });
     }, [actionSheetAwareScrollViewContext, action.reportActionID]);
 
-    const handlePressOpenPicker = useCallback(
-        (openPicker: OpenPickerCallback) => {
-            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
-                return;
-            }
-
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            popoverAnchorRef.current.measureInWindow((_fx, fy, _width, height) => {
-                actionSheetAwareScrollViewContext.transitionActionSheetState({
-                    type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER,
-                    payload: {
-                        fy,
-                        height,
-                    },
-                });
-
-                openPicker(undefined, undefined, () => {
-                    actionSheetAwareScrollViewContext.transitionActionSheetState({
-                        type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
-                    });
-                });
-            });
-        },
-        [actionSheetAwareScrollViewContext],
-    );
-
     const handleShowContextMenu = useCallback(
         (callback: () => void) => {
             if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
@@ -819,7 +793,6 @@ function ReportActionItem({
                 {!ReportActionsUtils.isMessageDeleted(action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
-                            onPressOpenPicker={handlePressOpenPicker}
                             reportAction={action}
                             emojiReactions={emojiReactions}
                             shouldBlockReactions={hasErrors}

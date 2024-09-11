@@ -238,7 +238,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage, transitionActionSheetState}) => {
+        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID ?? '-1';
@@ -255,10 +255,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             };
 
             if (closePopover) {
-                transitionActionSheetState({
-                    type: ActionSheetAwareScrollView.Actions.EDIT_REPORT,
-                });
-
                 // Hide popover, then call editAction
                 hideContextMenu(false, editAction);
                 return;
@@ -622,21 +618,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportActionsUtils.isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction, transitionActionSheetState}) => {
+        onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
-                transitionActionSheetState({
-                    type: ActionSheetAwareScrollView.Actions.SHOW_DELETE_CONFIRM_MODAL,
-                });
-
-                const onClose = () => {
-                    transitionActionSheetState({
-                        type: ActionSheetAwareScrollView.Actions.CLOSE_CONFIRM_MODAL,
-                    });
-                    clearActiveReportAction();
-                };
-
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, onClose, onClose));
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
                 return;
             }
 

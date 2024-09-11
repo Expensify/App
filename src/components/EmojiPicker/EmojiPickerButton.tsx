@@ -43,23 +43,9 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
             return;
         }
 
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER_STANDALONE,
-        });
-
-        const onHide = () => {
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER_STANDALONE,
-            });
-
-            if (onModalHide) {
-                onModalHide();
-            }
-        };
-
         if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
             EmojiPickerAction.showEmojiPicker(
-                onHide,
+                onModalHide,
                 onEmojiSelected,
                 emojiPopoverAnchor,
                 {

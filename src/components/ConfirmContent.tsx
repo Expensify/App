@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext} from 'react';
-import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import React, {useContext} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -132,20 +132,6 @@ function ConfirmContent({
     const {isOffline} = useNetwork();
     const StyleUtils = useStyleUtils();
 
-    const onLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const {height} = event.nativeEvent.layout;
-
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: Actions.MEASURE_CONFIRM_MODAL,
-                payload: {
-                    popoverHeight: height,
-                },
-            });
-        },
-        [actionSheetAwareScrollViewContext],
-    );
-
     const isCentered = shouldCenterContent;
 
     return (
@@ -162,10 +148,7 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View
-                onLayout={onLayout}
-                style={[styles.m5, contentStyles]}
-            >
+            <View style={[styles.m5, contentStyles]}>
                 {shouldShowDismissIcon && (
                     <View style={styles.alignItemsEnd}>
                         <Tooltip text={translate('common.close')}>

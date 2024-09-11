@@ -112,7 +112,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  */
-function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false, onLayout}: AttachmentPickerProps) {
+function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false}: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -382,7 +382,6 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     return (
         <>
             <Popover
-                onLayout={onLayout}
                 onClose={() => {
                     close();
                     onCanceled.current();
