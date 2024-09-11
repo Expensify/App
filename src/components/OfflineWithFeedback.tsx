@@ -142,7 +142,7 @@ function OfflineWithFeedback({
             )}
             {!hideChildren && (
                 <View
-                    style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
+                    style={[needsOpacity ? styles.offlineFeedback.pending : styles.offlineFeedback.default, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
                     <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
