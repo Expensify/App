@@ -1273,10 +1273,15 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>, shouldExcludeConciergeChat = false): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
         const shouldKeep = !isChatThread(report) || getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-        return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
+        return (
+            shouldKeep &&
+            !!report?.reportID &&
+            !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime) &&
+            (!shouldExcludeConciergeChat || !isConciergeChatReport(report))
+        );
     });
     return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
 }
@@ -1341,8 +1346,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         if (reportsValues.length === 1) {
             return reportsValues[0];
         }
-
-        return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
+        return adminReport ?? getMostRecentlyVisitedReport(reportsValues, allReportMetadata, true);
     }
 
     // If we only have two reports and one of them is the system chat, filter it out so we don't
