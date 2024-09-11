@@ -945,6 +945,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            INVOICE_RECEIVER_POLICY_DELETED: 'invoiceReceiverPolicyDeleted',
             BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
@@ -5425,11 +5426,6 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
         },
-        CHAT_STATUS: {
-            UNREAD: 'unread',
-            PINNED: 'pinned',
-            DRAFT: 'draft',
-        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             HOLD: 'hold',
@@ -5470,10 +5466,6 @@ const CONST = {
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
             },
-        },
-        CHAT_TYPES: {
-            LINK: 'link',
-            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5522,8 +5514,6 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
-            HAS: 'has',
-            IS: 'is',
         },
     },
 

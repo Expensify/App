@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${encodeURIComponent(query)}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -53,9 +53,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
-    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
-    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
-
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: (reportID: string, reportActionID?: string) => {
@@ -375,7 +372,10 @@ const ROUTES = {
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role ?? ''}` as const,
+        getRoute: (reportID: string, role?: string) => {
+            const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
+            return route;
+        },
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
