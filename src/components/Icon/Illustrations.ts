@@ -1,4 +1,5 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import AmexBlueCompanyCards from '@assets/images/companyCards/card-amex-blue.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
@@ -237,5 +238,6 @@ export {
     MasterCardCompanyCards,
     VisaCompanyCards,
     CompanyCardsPendingState,
+    AmexBlueCompanyCards,
     TurtleInShell,
 };

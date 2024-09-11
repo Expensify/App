@@ -18,6 +18,7 @@ function RadioListItem<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
+    alternateTextNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
 }: RadioListItemProps<TItem>) {
@@ -71,7 +72,7 @@ function RadioListItem<TItem extends ListItem>({
                                 isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
                                 isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
                             ]}
-                            numberOfLines={isAlternateTextMultilineSupported ? 2 : 1}
+                            numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />
                     )}
                 </View>
