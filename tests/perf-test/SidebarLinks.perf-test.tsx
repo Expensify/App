@@ -43,6 +43,8 @@ const getMockedReportsMap = (length = 100) => {
     return mockReports;
 };
 
+const TEST_USER_LOGIN = 'email1@test.com';
+const TEST_USER_ACCOUNT_ID = 1;
 const mockedResponseMap = getMockedReportsMap(5);
 
 describe('SidebarLinks', () => {
@@ -58,7 +60,7 @@ describe('SidebarLinks', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
 
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
         Onyx.clear().then(waitForBatchedUpdates);
     });
 
