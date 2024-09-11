@@ -46,7 +46,10 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
 
         return {
             text: item.title,
-            onSelected: singleExecution(() => Navigation.navigate(item.route)),
+            onSelected: singleExecution(() => {
+                SearchActions.clearAllFilters();
+                Navigation.navigate(item.route);
+            }),
             icon: item.icon,
             iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
             iconRight: Expensicons.Checkmark,
