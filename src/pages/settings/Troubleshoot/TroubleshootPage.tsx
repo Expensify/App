@@ -26,6 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
+import {setShouldForceOffline} from '@libs/actions/Network';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
@@ -44,11 +45,12 @@ type BaseMenuItem = {
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
     shouldMaskOnyxState: boolean;
+    isUsingImportedState: OnyxEntry<boolean>;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState, isUsingImportedState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -163,6 +165,10 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
                                     Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
+                                        // If using imported state, we should stop forcing offline mode so that the app can re-fetch the network
+                                        if (isUsingImportedState) {
+                                            setShouldForceOffline(false);
+                                        }
                                         App.openApp();
                                     });
                                 }}
@@ -188,5 +194,8 @@ export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldMaskOnyxState: {
         key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
         selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
+    },
+    isUsingImportedState: {
+        key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     },
 })(TroubleshootPage);

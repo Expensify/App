@@ -6,7 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {KEYS_TO_PRESERVE} from '@libs/actions/App';
+import {KEYS_TO_PRESERVE, setIsUsingImportedState} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
             Onyx.clear(KEYS_TO_PRESERVE).then(() => {
                 Onyx.multiSet(transformedState)
                     .then(() => {
+                        setIsUsingImportedState(true);
                         Navigation.navigate(ROUTES.HOME);
                     })
                     .finally(() => {

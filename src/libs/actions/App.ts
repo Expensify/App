@@ -501,6 +501,10 @@ function updateLastRoute(screen: string) {
     Onyx.set(ONYXKEYS.LAST_ROUTE, screen);
 }
 
+function setIsUsingImportedState(isUsingImportedState: boolean) {
+    Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, isUsingImportedState);
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -519,5 +523,6 @@ export {
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     updateLastRoute,
+    setIsUsingImportedState,
     KEYS_TO_PRESERVE,
 };
