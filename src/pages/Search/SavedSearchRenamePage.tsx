@@ -64,7 +64,6 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     accessibilityLabel={translate('search.searchName')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={(renamedName) => setNewName(renamedName)}
-                    shouldSaveDraft
                 />
             </FormProvider>
         </ScreenWrapper>
