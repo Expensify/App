@@ -37,16 +37,18 @@ function SearchPageBottomTab() {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue(80);
+    const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.value,
         left: 0,
         right: 0,
+        position: 'absolute',
+        zIndex: 9,
     }));
 
     const expandTopBar = () => {
         // eslint-disable-next-line react-compiler/react-compiler
-        topBarOffset.value = withTiming(80, {duration: ANIMATION_DURATION_IN_MS});
+        topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
     };
 
     const newHandleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -106,14 +108,14 @@ function SearchPageBottomTab() {
         >
             {!selectionMode?.isEnabled ? (
                 <View>
-                    <View style={[styles.appBG, {zIndex: 10}]}>
+                    <View style={[styles.searchTopBarStyle]}>
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
                     </View>
-                    <Animated.View style={[{position: 'absolute', zIndex: 9}, styles.appBG, topBarAnimatedStyle]}>
+                    <Animated.View style={[styles.appBG, topBarAnimatedStyle]}>
                         <SearchTypeMenu queryJSON={queryJSON} />
                         {shouldUseNarrowLayout && (
                             <SearchStatusBar
@@ -131,7 +133,7 @@ function SearchPageBottomTab() {
                 <Search
                     queryJSON={queryJSON}
                     onSearchListScroll={newHandleScroll}
-                    contentContainerStyle={!selectionMode?.isEnabled ? {marginTop: 118} : undefined}
+                    contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentMargin : undefined}
                 />
             )}
         </ScreenWrapper>
