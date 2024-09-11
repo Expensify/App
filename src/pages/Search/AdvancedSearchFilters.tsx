@@ -345,8 +345,8 @@ function AdvancedSearchFilters() {
             {queryString && (
                 <Button
                     text={translate('search.saveSearch')}
-                onPress={onSaveSearch}
-                style={[styles.mh4, styles.mt4]}
+                    onPress={onSaveSearch}
+                    style={[styles.mh4, styles.mt4]}
                     large
                 />
             )}
