@@ -68,7 +68,6 @@ jobs:
     secrets: inherit
 
   android:
-    # WARNING: getDeployPullRequestList depends on this job name. do not change job name without adjusting that action accordingly
     name: Build and deploy Android
     needs: prep
     runs-on: ubuntu-latest-xl
@@ -163,7 +162,6 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   desktop:
-    # WARNING: getDeployPullRequestList depends on this job name. do not change job name without adjusting that action accordingly
     name: Build and deploy Desktop
     needs: prep
     runs-on: macos-14-large
@@ -208,7 +206,6 @@ jobs:
           path: ./desktop-build/NewExpensify.dmg
 
   iOS:
-    # WARNING: getDeployPullRequestList depends on this job name. do not change job name without adjusting that action accordingly
     name: Build and deploy iOS
     needs: prep
     env:
@@ -334,7 +331,6 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   web:
-    # WARNING: getDeployPullRequestList depends on this job name. do not change job name without adjusting that action accordingly
     name: Build and deploy Web
     needs: prep
     runs-on: ubuntu-latest-xl
