@@ -1,6 +1,7 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
+import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -11,6 +12,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
+import type {AddNewCompanyCardFeed} from './CardFeeds';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -95,6 +97,7 @@ import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -108,6 +111,7 @@ export type {
     TryNewDot,
     Account,
     AccountData,
+    AssignCard,
     BankAccount,
     BankAccountList,
     Beta,
@@ -128,6 +132,7 @@ export type {
     IntroSelected,
     IOU,
     IssueNewCard,
+    AddNewCompanyCardFeed,
     LastExportMethod,
     Locale,
     Login,
@@ -226,4 +231,5 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     ImportedSpreadsheet,
+    ValidateMagicCodeAction,
 };
