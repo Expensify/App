@@ -140,7 +140,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             )}
             {!isLoading && (
                 <WorkspacePageWithSections
-                    shouldUseScrollView={!isFeedAdded}
+                    shouldUseScrollView={isFeedAdded}
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
@@ -149,7 +149,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
                 >
-                    {isFeedAdded && (
+                    {(isFeedAdded || isPending) && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}

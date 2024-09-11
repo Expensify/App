@@ -23,6 +23,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     return (
         <EmptyStateComponent
             SkeletonComponent={TableListItemSkeleton}
+            containerStyles={styles.mt4}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
             headerMedia={Illustrations.CompanyCardsPendingState}
             headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
