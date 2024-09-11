@@ -2155,7 +2155,7 @@ export default {
         common: {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
-            companyCards: 'Company Cards',
+            companyCards: 'Company cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2992,7 +2992,7 @@ export default {
                 },
             },
             companyCards: {
-                title: 'Company Cards',
+                title: 'Company cards',
                 subtitle: 'Import spend from existing company cards.',
                 feed: {
                     title: 'Import company cards',
@@ -3003,7 +3003,7 @@ export default {
                     },
                     ctaTitle: 'Add company cards',
                 },
-                disableCardTitle: 'Disable Company Cards',
+                disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
                 assignCard: 'Assign card',
@@ -3711,7 +3711,7 @@ export default {
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
             companyCards: {
-                title: 'Company Cards',
+                title: 'Company cards',
                 description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
