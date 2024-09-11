@@ -30,7 +30,7 @@ describe('Sidebar', () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        return TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One', '').then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
+        return TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate

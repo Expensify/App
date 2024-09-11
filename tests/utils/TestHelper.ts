@@ -47,15 +47,15 @@ function setupApp() {
     });
 }
 
-function buildPersonalDetails(login: string, accountID: number, firstName = 'Test', lastName = 'User'): PersonalDetails {
+function buildPersonalDetails(login: string, accountID: number, firstName = 'Test'): PersonalDetails {
     return {
         accountID,
         login,
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         avatarThumbnail: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
-        displayName: `${firstName}${lastName ? '' : ` ${lastName}`}`,
+        displayName: `${firstName} User`,
         firstName,
-        lastName,
+        lastName: 'User',
         pronouns: '',
         timezone: CONST.DEFAULT_TIME_ZONE,
         phoneNumber: '',
@@ -66,7 +66,7 @@ function buildPersonalDetails(login: string, accountID: number, firstName = 'Tes
  * Simulate signing in and make sure all API calls in this flow succeed. Every time we add
  * a mockImplementationOnce() we are altering what Network.post() will return.
  */
-function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test', lastName = 'User') {
+function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
@@ -90,7 +90,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [accountID]: buildPersonalDetails(login, accountID, firstName, lastName),
+                        [accountID]: buildPersonalDetails(login, accountID, firstName),
                     },
                 },
             ],
