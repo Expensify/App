@@ -898,13 +898,6 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    // Show field violations only for control policies
-    if (PolicyUtils.isControlPolicy(policy)) {
-        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-        optimisticData.push(...fieldViolationsOptimisticData);
-        failureData.push(...fieldViolationsFailureData);
-    }
-
     return [optimisticData, successData, failureData];
 }
 

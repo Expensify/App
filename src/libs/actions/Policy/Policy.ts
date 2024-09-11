@@ -226,11 +226,8 @@ function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: s
 }
 
 /** Check if the policy has invoicing company details */
-// eslint-disable-next-line react/no-unused-prop-types,@typescript-eslint/no-unused-vars
 function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
-    // TODO: uncomment when invoicing details inside a policy are supported.
-    // return !!policy.invoice.companyName && !!policy.invoice.companyWebsite;
-    return true;
+    return !!policy?.invoice?.companyName && !!policy?.invoice?.companyWebsite;
 }
 
 /**
@@ -1002,6 +999,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
  * Deletes the avatar image for the workspace
  */
 function deleteWorkspaceAvatar(policyID: string) {
+    const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1014,6 +1012,7 @@ function deleteWorkspaceAvatar(policyID: string) {
                     avatarURL: null,
                 },
                 avatarURL: '',
+                originalFileName: null,
             },
         },
     ];
@@ -1033,6 +1032,8 @@ function deleteWorkspaceAvatar(policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                avatarURL: policy?.avatarURL,
+                originalFileName: policy?.originalFileName,
                 errorFields: {
                     avatarURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('avatarWithImagePicker.deleteWorkspaceError'),
                 },
