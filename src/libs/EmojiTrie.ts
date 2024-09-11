@@ -14,8 +14,6 @@ type EmojiMetaData = {
     name?: string;
 };
 
-Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
-
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
 
 type SupportedLanguage = TupleToUnion<typeof supportedLanguages>;
@@ -123,6 +121,7 @@ const emojiTrie: EmojiTrie = supportedLanguages.reduce((acc, lang) => {
 }, {} as EmojiTrie);
 
 const buildEmojisTrie = (locale: Locale) => {
+    Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
     // Normalize the locale to lowercase and take the first part before any dash
     const normalizedLocale = locale.toLowerCase().split('-')[0];
     const localeToUse = supportedLanguages.includes(normalizedLocale as SupportedLanguage) ? (normalizedLocale as SupportedLanguage) : undefined;
@@ -131,9 +130,8 @@ const buildEmojisTrie = (locale: Locale) => {
         return; // Return early if the locale is not supported or the trie is already built
     }
     emojiTrie[localeToUse] = createTrie(localeToUse);
+    Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 };
-
-Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
 export {buildEmojisTrie};
