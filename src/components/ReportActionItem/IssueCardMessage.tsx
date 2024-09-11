@@ -29,8 +29,11 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const assignee = `<mention-user accountID=${(action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID}></mention-user>`;
+    const assigneeAccountID = (action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
+
+    const assignee = `<mention-user accountID=${assigneeAccountID}></mention-user>`;
     const link = `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('cardPage.expensifyCard')}</a>`;
 
     const missingDetails =
@@ -41,7 +44,9 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0;
 
-    const shouldShowDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails;
+    const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
+
+    const shouldShowDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
 
     const getTranslation = () => {
         switch (action?.actionName) {
