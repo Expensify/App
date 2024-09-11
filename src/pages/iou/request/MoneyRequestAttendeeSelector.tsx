@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -54,8 +53,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();
     const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session.accountID);
-    const currentUserOptionData = OptionsListUtils.getParticipantsOption(session, personalDetails) as OptionData;
-    const [additionalRecents, setAdditionalRecents] = useState<OptionData[] | []>(isCurrentUserAttendee ? [] : [currentUserOptionData]);
+    // const currentUserOptionData = OptionsListUtils.getParticipantsOption(session, personalDetails) as OptionData;
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -89,7 +87,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             action,
             isPaidGroupPolicy,
         );
-
+        if (optionList.currentUserOption && !isCurrentUserAttendee) {
+            optionList.recentReports = [optionList.currentUserOption, ...optionList.personalDetails];
+        }
         return optionList;
     }, [
         areOptionsInitialized,
@@ -103,6 +103,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         action,
         isCategorizeOrShareAction,
         isPaidGroupPolicy,
+        isCurrentUserAttendee,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -118,16 +119,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 taxRatesOptions: [],
             };
         }
-
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
-            selectedOptions: attendees,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, attendees, isPaidGroupPolicy]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, isPaidGroupPolicy]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -137,8 +136,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
-        const fiveRecents = [...additionalRecents, ...chatOptions.recentReports].slice(0, 5);
-        const restOfRecents = [...additionalRecents, ...chatOptions.recentReports].slice(5);
+        const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
+        const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -196,7 +195,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         personalDetails,
         translate,
         cleanSearchTerm,
-        additionalRecents,
     ]);
 
     const addAttendeeToSelection = useCallback(
@@ -212,23 +210,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             let newSelectedOptions: Attendee[];
 
             if (isOptionInList) {
-                if (session.accountID === option.accountID) {
-                    if (!additionalRecents.some((recent) => recent.accountID === option.accountID)) {
-                        setAdditionalRecents([
-                            {
-                                ...option,
-                                selected: false,
-                                isSelected: false,
-                            } as OptionData,
-                            ...additionalRecents,
-                        ]);
-                    }
-                }
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
-                if (session.accountID === option.accountID) {
-                    setAdditionalRecents(additionalRecents.filter((recent) => recent.accountID !== option.accountID));
-                }
                 newSelectedOptions = [
                     ...attendees,
                     {
@@ -245,7 +228,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
             onAttendeesAdded(newSelectedOptions);
         },
-        [additionalRecents, attendees, iouType, onAttendeesAdded, session.accountID],
+        [attendees, iouType, onAttendeesAdded],
     );
 
     const shouldShowErrorMessage = attendees.length < 1;
