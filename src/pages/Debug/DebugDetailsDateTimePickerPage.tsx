@@ -30,7 +30,7 @@ function DebugDetailsDateTimePickerPage({
             <HeaderWithBackButton title={fieldName} />
             <ScrollView contentContainerStyle={styles.gap8}>
                 <View style={styles.ph5}>
-                    <Text style={styles.textHeadlineH1}>Date</Text>
+                    <Text style={styles.headerText}>Date</Text>
                     <DatePicker
                         inputID=""
                         value={date}
@@ -38,7 +38,7 @@ function DebugDetailsDateTimePickerPage({
                     />
                 </View>
                 <View>
-                    <Text style={[styles.textHeadlineH1, styles.ph5]}>Time</Text>
+                    <Text style={[styles.headerText, styles.ph5]}>Time</Text>
                     <TimePicker
                         onSubmit={(time) => {
                             // Check the navigation state and "backTo" parameter to decide navigation behavior
