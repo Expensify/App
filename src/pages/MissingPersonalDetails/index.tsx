@@ -40,7 +40,7 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
 
-    const  firstUnissuedCard = useMemo(() => Object.values(cardsList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardsList]);
+    const firstUnissuedCard = useMemo(() => Object.values(cardsList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardsList]);
 
     const handleFinishStep = useCallback(() => {
         Navigation.goBack();
@@ -166,10 +166,10 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
 
     const updatePersonalDetails = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-            PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(formValues,  firstUnissuedCard?.cardID ?? 0);
+            PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(formValues, firstUnissuedCard?.cardID ?? 0);
             nextScreen();
         },
-        [nextScreen,  firstUnissuedCard],
+        [nextScreen, firstUnissuedCard],
     );
 
     return (
