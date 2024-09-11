@@ -37,9 +37,8 @@ const ReportIDsContext = createContext<ReportIDsContextValue>({
  * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
-const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector => {
-    console.log('reportActions', reportActions);
-    return (reportActions &&
+const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
+    (reportActions &&
         Object.values(reportActions)
             .filter(Boolean)
             .map((reportAction) => {
@@ -59,7 +58,6 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
                     originalMessage,
                 };
             })) as ReportActionsSelector;
-};
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {

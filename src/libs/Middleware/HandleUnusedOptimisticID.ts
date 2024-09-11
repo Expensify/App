@@ -37,8 +37,6 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
 
             if (isFromSequentialQueue) {
                 const ongoingRequest = PersistedRequests.getOngoingRequest();
-                console.log('ongoingRequest', ongoingRequest);
-                console.log('oldReportID', oldReportID, 'preexistingReportID', preexistingReportID);
                 if (ongoingRequest && ongoingRequest.data?.reportID === oldReportID) {
                     const ongoingRequestClone = _.clone(ongoingRequest);
                     ongoingRequestClone.data = deepReplaceKeysAndValues(ongoingRequest.data, oldReportID as string, preexistingReportID);

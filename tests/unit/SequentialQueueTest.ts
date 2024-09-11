@@ -150,7 +150,7 @@ describe('SequentialQueue', () => {
         expect(PersistedRequests.getLength()).toBe(2);
     });
 
-    it('should replace request request in queue while a similar one is ongoing and keep the same index', async () => {
+    it('should replace request request in queue while a similar one is ongoing and keep the same index', () => {
         SequentialQueue.push({command: 'OpenReport'});
         SequentialQueue.push(request);
 
