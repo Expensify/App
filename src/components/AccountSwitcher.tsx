@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,14 +10,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
@@ -47,16 +48,17 @@ function AccountSwitcher() {
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
     const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
+    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, errors?: Errors, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
+        const error = Object.values(errors ?? {})[0] ?? '';
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
-            description: personalDetails?.login,
+            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? -1,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
             numberOfLinesDescription: 1,
-            errorText: error ? translate(error) : '',
+            errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
             errorTextStyle: styles.mt2,
             ...additionalProps,
@@ -82,7 +84,7 @@ function AccountSwitcher() {
             }
 
             const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
-            const error = account?.delegatedAccess?.error;
+            const error = ErrorUtils.getLatestErrorField(account?.delegatedAccess, 'connect');
 
             return [
                 createBaseMenuItem(delegatePersonalDetails, error, {
@@ -101,7 +103,8 @@ function AccountSwitcher() {
 
         const delegatorMenuItems: MenuItemProps[] = delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role, error}, index) => {
+            .map(({email, role, errorFields}, index) => {
+                const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', role),
@@ -164,7 +167,7 @@ function AccountSwitcher() {
                             numberOfLines={1}
                             style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
-                            {currentUserPersonalDetails?.login}
+                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                         </Text>
                     </View>
                 </View>
@@ -180,7 +183,7 @@ function AccountSwitcher() {
                     anchorPosition={styles.accountSwitcherAnchorPosition}
                 >
                     <View style={styles.pb4}>
-                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
+                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb3, !shouldUseNarrowLayout && styles.pt4]}>{translate('delegate.switchAccount')}</Text>
                         <MenuItemList
                             menuItems={menuItems()}
                             shouldUseSingleExecution

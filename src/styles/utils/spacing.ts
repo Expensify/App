@@ -83,6 +83,10 @@ export default {
         marginVertical: 20,
     },
 
+    mv6: {
+        marginVertical: 24,
+    },
+
     mhv5: {
         marginVertical: -20,
     },
@@ -667,6 +671,10 @@ export default {
 
     gap5: {
         gap: 20,
+    },
+
+    gap6: {
+        gap: 24,
     },
 
     gap7: {
