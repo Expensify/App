@@ -55,7 +55,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
                 return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
             case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-                return translate(`workspace.expensifyCard.${shouldShowDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, assignee);
+                return translate(`workspace.expensifyCard.${!isAssigneeCurrentUser || shouldShowDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, assignee);
             default:
                 return '';
         }
