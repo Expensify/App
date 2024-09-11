@@ -63,7 +63,6 @@ function flushOnyxUpdatesQueue() {
  * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  */
 function process(): Promise<void> {
-    console.log('PROCESS');
     // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to process. Queue is paused.');
@@ -74,16 +73,15 @@ function process(): Promise<void> {
         Log.info('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
-    console.log('process -> checkking getAll');
+
     const persistedRequests = PersistedRequests.getAll();
     if (persistedRequests.length === 0) {
         Log.info('[SequentialQueue] Unable to process. No requests to process.');
         return Promise.resolve();
     }
 
-    const requestToProcess = PersistedRequests.processNextRequest(); // persistedRequests[0];
-    console.log('next process requestToProcess', {...requestToProcess});
-    // currentRequest = requestToProcess;
+    const requestToProcess = PersistedRequests.processNextRequest();
+
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = Request.processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -93,6 +91,7 @@ function process(): Promise<void> {
                 Log.info("[SequentialQueue] Handled 'shouldPauseQueue' in response. Pausing the queue.");
                 pause();
             }
+
             PersistedRequests.remove(requestToProcess);
             RequestThrottle.clear();
             return process();
@@ -100,9 +99,7 @@ function process(): Promise<void> {
         .catch((error: RequestError) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
-            console.log('CATCHING 1st error', error);
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
-                console.log('CATCHING 1st error inside 1st IF -> remove clear RETURN');
                 PersistedRequests.remove(requestToProcess);
                 RequestThrottle.clear();
                 return process();
@@ -111,7 +108,6 @@ function process(): Promise<void> {
             return RequestThrottle.sleep()
                 .then(process)
                 .catch(() => {
-                    console.log('CATCHING 2nd error', error);
                     Onyx.update(requestToProcess.failureData ?? []);
                     PersistedRequests.remove(requestToProcess);
                     RequestThrottle.clear();
@@ -145,7 +141,7 @@ function flush() {
         Log.info('[SequentialQueue] Unable to flush. Client is not the leader.');
         return;
     }
-    console.log('flushing -> isSequentialQueueRunning true');
+
     isSequentialQueueRunning = true;
 
     // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
@@ -207,11 +203,10 @@ NetworkStore.onReconnection(flush);
 
 function push(newRequest: OnyxRequest) {
     // If a request is already being processed, ignore it when looking for potentially conflicting requests
-    const requests = PersistedRequests.getAll(); //.filter((persistedRequest) => persistedRequest !== currentRequest);
+    const requests = PersistedRequests.getAll();
 
     const {checkAndFixConflictingRequest} = newRequest;
     if (checkAndFixConflictingRequest) {
-        console.log('ReconnectApp checkAndFixConflictingRequest', {...requests});
         const {conflictAction} = checkAndFixConflictingRequest(requests);
 
         if (conflictAction.type === 'push') {

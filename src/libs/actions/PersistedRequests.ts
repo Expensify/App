@@ -10,16 +10,14 @@ let ongoingRequest: Request | null = null;
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
-        console.log('ReconnectApp PERSISTED_REQUESTS val', {...val}, ongoingRequest);
         // it has the ongoingRequest in here?
         persistedRequests = val ?? [];
 
         if (ongoingRequest && persistedRequests.length > 0) {
-            const elem = {...persistedRequests}[0];
-            console.log('First persistedRequests', elem, ' are equals: ', isEqual(elem, ongoingRequest));
-            // here we try to remove the first element from the persistedRequests if it is the same as ongoingRequest
-            if (isEqual(elem, ongoingRequest)) {
-                console.log('First persistedRequests is equal to ongoingRequest');
+            const nextRequestToProcess = persistedRequests[0];
+            // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
+            // so we don't process it twice.
+            if (isEqual(nextRequestToProcess, ongoingRequest)) {
                 persistedRequests = persistedRequests.slice(1);
             }
         }
@@ -49,37 +47,29 @@ function save(requestToPersist: Request) {
 }
 
 function remove(requestToRemove: Request) {
-    console.log('remove requestToRemove - init>', {...requestToRemove});
-    if (isEqual(ongoingRequest, requestToRemove)) {
-        console.log('remove ongoingRequest', {...ongoingRequest});
-        ongoingRequest = null;
-    } else {
-        /**
-         * We only remove the first matching request because the order of requests matters.
-         * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
-         */
-        const requests = [...persistedRequests];
-        const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
-        console.log('current queue: ', requests, 'remove index', index);
-        if (index === -1) {
-            return;
-        }
-        requests.splice(index, 1);
-        persistedRequests = requests;
+    ongoingRequest = null;
+    /**
+     * We only remove the first matching request because the order of requests matters.
+     * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
+     */
+    const requests = [...persistedRequests];
+    const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
+
+    if (index === -1) {
+        return;
     }
+    requests.splice(index, 1);
+    persistedRequests = requests;
+
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
         Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`);
     });
 }
 
 function update(oldRequestIndex: number, newRequest: Request) {
-    console.log(`${newRequest.command} oldRequestIndex`, oldRequestIndex);
     const requests = [...persistedRequests];
-    console.log(`${newRequest.command} before requests`, {...requests});
     requests.splice(oldRequestIndex, 1, newRequest);
-    console.log(`${newRequest.command} after requests`, {...requests});
     persistedRequests = requests;
-    console.log(`${newRequest.command} persistedRequests`, {...persistedRequests});
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
@@ -117,7 +107,6 @@ function rollbackOngoingRequest() {
 }
 
 function getAll(): Request[] {
-    console.log('getAll persistedRequests', {...persistedRequests});
     return persistedRequests;
 }
 
