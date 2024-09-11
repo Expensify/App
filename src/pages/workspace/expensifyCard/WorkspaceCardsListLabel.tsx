@@ -59,6 +59,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isConnectedWithPlaid = useMemo(() => {
         const bankAccountData = bankAccountList?.[paymentBankAccountID ?? 0]?.accountData;
+
+        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
+        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
         return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
     }, [bankAccountList, paymentBankAccountID]);
 
