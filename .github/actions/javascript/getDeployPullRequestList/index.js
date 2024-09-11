@@ -11535,7 +11535,7 @@ async function run() {
                 return filteredData;
             }
             // If it's anywhere else in this page, the the prior release is the next item in the page
-            if (indexOfCurrentRelease > 0) {
+            if (indexOfCurrentRelease >= 0) {
                 priorTag = filteredData.at(indexOfCurrentRelease + 1)?.tag_name;
                 done();
             }
