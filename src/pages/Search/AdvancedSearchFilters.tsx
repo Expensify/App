@@ -342,12 +342,14 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            <Button
-                text={translate('search.saveSearch')}
+            {queryString && (
+                <Button
+                    text={translate('search.saveSearch')}
                 onPress={onSaveSearch}
                 style={[styles.mh4, styles.mt4]}
-                large
-            />
+                    large
+                />
+            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
