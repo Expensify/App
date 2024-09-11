@@ -184,7 +184,7 @@ import type {
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
-import {TranslationDeepObject} from './types';
+import type {TranslationDeepObject} from './types';
 
 type StateValue = {
     stateISO: string;
