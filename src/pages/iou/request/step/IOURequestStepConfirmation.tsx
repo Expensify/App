@@ -592,7 +592,6 @@ function IOURequestStepConfirmation({
             (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') && DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > 7);
 
         if (gpsRequired && shouldStartLocationPermissionFlow) {
-            IOU.updateLastLocationPermissionPrompt();
             setStartLocationPermissionFlow(true);
             return;
         }
@@ -628,8 +627,14 @@ function IOURequestStepConfirmation({
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                            onGrant={() => createTransaction(selectedParticipantList, true)}
-                            onDeny={() => createTransaction(selectedParticipantList, false)}
+                            onGrant={() => {
+                                IOU.updateLastLocationPermissionPrompt();
+                                createTransaction(selectedParticipantList, true);
+                            }}
+                            onDeny={() => {
+                                IOU.updateLastLocationPermissionPrompt();
+                                createTransaction(selectedParticipantList, false);
+                            }}
                         />
                     )}
                     <MoneyRequestConfirmationList
