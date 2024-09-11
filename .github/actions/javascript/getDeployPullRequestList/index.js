@@ -11513,6 +11513,7 @@ async function run() {
         await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.repos.listReleases, {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         }, ({ data }, done) => {
             // For production deploys, look only at other production deploys.
