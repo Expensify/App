@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
-import {DETAILS_CONSTANT_OPTIONS, NONE_OPTION} from './const';
+import {DETAILS_CONSTANT_OPTIONS} from './const';
 
 type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
@@ -28,13 +28,13 @@ function DebugDetailsConstantPickerPage({
     const [searchValue, setSearchValue] = useState('');
     const sections: ListItem[] = useMemo(
         () =>
-            Object.entries({none: NONE_OPTION, ...DETAILS_CONSTANT_OPTIONS[fieldName as keyof typeof DETAILS_CONSTANT_OPTIONS]})
+            Object.entries(DETAILS_CONSTANT_OPTIONS[fieldName as keyof typeof DETAILS_CONSTANT_OPTIONS])
                 .reduce((acc: Array<[string, string]>, [key, value]) => {
                     if (isObject(value)) {
                         acc.push(...Object.entries(value));
                         return acc;
                     }
-                    acc.push([key, value]);
+                    acc.push([key, value as string]);
                     return acc;
                 }, [])
                 .map(
@@ -49,7 +49,7 @@ function DebugDetailsConstantPickerPage({
         [fieldName, fieldValue],
     );
     const onSubmit = (item: ListItem) => {
-        const value = item.text === NONE_OPTION ? '' : item.text ?? '';
+        const value = item.text === fieldValue ? '' : item.text ?? '';
         // Check the navigation state and "backTo" parameter to decide navigation behavior
         if (navigation.getState().routes.length === 1 && !backTo) {
             // If there is only one route and "backTo" is empty, go back in navigation

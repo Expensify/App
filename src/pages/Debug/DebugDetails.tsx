@@ -132,14 +132,14 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 onSubmit={handleSubmit}
                 isSubmitDisabled={isSubmitDisabled}
                 submitButtonText={translate('common.save')}
-                submitButtonStyles={styles.ph3}
+                submitButtonStyles={[styles.ph5, styles.mt0]}
                 enabledWhenOffline
                 allowHTML
             >
-                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Text fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Text fields</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {textFields.map(([key, value]) => {
-                        const numberOfLines = DebugUtils.getNumberOfLinesFromString(value);
+                        const numberOfLines = DebugUtils.getNumberOfLinesFromString((formDraftData?.[key] as string) ?? value);
                         return (
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -154,9 +154,9 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             />
                         );
                     })}
-                    {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                    {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Number fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Number fields</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {numberFields.map(([key, value]) => (
                         <InputWrapper
@@ -169,9 +169,9 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             defaultValue={String(value)}
                         />
                     ))}
-                    {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                    {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Constant fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Constant fields</Text>
                 <View style={styles.mb5}>
                     {constantFields.map(([key, value]) => (
                         <InputWrapper
@@ -183,9 +183,9 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             defaultValue={String(value)}
                         />
                     ))}
-                    {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                    {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Datetime fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Datetime fields</Text>
                 <View style={styles.mb5}>
                     {dateTimeFields.map(([key, value]) => (
                         <InputWrapper
@@ -197,9 +197,9 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             defaultValue={String(value)}
                         />
                     ))}
-                    {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                    {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Boolean fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Boolean fields</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {booleanFields.map(([key, value]) => (
                         <InputWrapper
@@ -211,21 +211,21 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             defaultValue={value}
                         />
                     ))}
-                    {booleanFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                    {booleanFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
+                <View style={[styles.ph5, styles.mb3, styles.mt5]}>
+                    <Button
+                        danger
+                        large
+                        text={translate('common.delete')}
+                        onPress={() => {
+                            onDelete();
+                            Navigation.goBack();
+                        }}
+                    />
+                </View>
             </FormProvider>
-            <View style={styles.ph3}>
-                <Button
-                    danger
-                    large
-                    text={translate('common.delete')}
-                    onPress={() => {
-                        onDelete();
-                        Navigation.goBack();
-                    }}
-                />
-            </View>
         </ScrollView>
     );
 }
