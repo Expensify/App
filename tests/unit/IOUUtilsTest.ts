@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
@@ -136,13 +137,12 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        expect(IOUUtils.temporary_isValidMoneyRequestType('submit')).toBe(true);
-        expect(IOUUtils.temporary_isValidMoneyRequestType('split')).toBe(true);
-        expect(IOUUtils.temporary_isValidMoneyRequestType('pay')).toBe(true);
-        expect(IOUUtils.temporary_isValidMoneyRequestType('track')).toBe(true);
+        Object.values(CONST.IOU.TYPE).forEach((iouType) => {
+            expect(IOUUtils.isValidMoneyRequestType(iouType)).toBe(true);
+        });
     });
 
     test('Return false for invalid iou type', () => {
-        expect(IOUUtils.temporary_isValidMoneyRequestType('money')).toBe(false);
+        expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
     });
 });
