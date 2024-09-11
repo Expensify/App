@@ -169,9 +169,7 @@ function BankAccountStep({
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         >
-                            <TextLink href="https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/">
-                                {translate('bankAccount.yourDataIsSecure')}
-                            </TextLink>
+                            <TextLink href="https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/">{translate('bankAccount.yourDataIsSecure')}</TextLink>
                             <View style={styles.ml1}>
                                 <Icon
                                     src={Expensicons.Lock}
