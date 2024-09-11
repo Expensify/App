@@ -8083,8 +8083,8 @@ function resolveDuplicates(params: TransactionMergeParams) {
         };
     });
 
-    const iouActionList = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})
-        ?.filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+    const iouActionList = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.filter(
+        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 return false;
             }
@@ -8093,8 +8093,9 @@ function resolveDuplicates(params: TransactionMergeParams) {
                 return false;
             }
             return params.transactionIDList.includes(message.IOUTransactionID);
-        });
-    
+        },
+    );
+
     const reportIDList = iouActionList.map((action) => action?.childReportID);
     const orderedTransactionIDList = iouActionList.map((action) => {
         const message = ReportActionsUtils.getOriginalMessage(action);
