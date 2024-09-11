@@ -885,6 +885,7 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
 
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
+
 function downloadMembersCSV(policyID: string) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MEMBERS_CSV, {
         policyID,
