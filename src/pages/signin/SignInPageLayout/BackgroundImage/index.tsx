@@ -4,7 +4,7 @@ import * as Animatable from 'react-native-animatable';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
-import isLastRouteRHP from '@libs/Navigation/isLastRouteRHP';
+import {isAnonymousUser} from '@libs/actions/Session';
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
@@ -19,10 +19,10 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     };
 
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isLastRouteInRHP = isLastRouteRHP();
+    const isAnonymous = isAnonymousUser();
 
     useEffect(() => {
-        if (!isLastRouteInRHP) {
+        if (!isAnonymous) {
             return;
         }
 
@@ -36,7 +36,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    if (!isInteractionComplete && isLastRouteInRHP && isSmallScreen) {
+    if (!isInteractionComplete && isAnonymous) {
         return;
     }
 
