@@ -57,7 +57,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const isNarrowLayout = getIsNarrowLayout();
 
-    const isWorkspaceScreenOnTop = lastRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR;
+    const isWorkspaceScreenOnTop = lastRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     // policyID on SCREENS.SEARCH.CENTRAL_PANE can be present only as part of SearchQuery, while on other pages it's stored in the url in the format: /w/:policyID/
     if (policyID && !isWorkspaceScreenOnTop && !policyIDFromState) {
@@ -127,7 +127,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to ModalNavigator or WorkspaceNavigator and the last route on the root navigator is not already opened Navigator then push
-        } else if ((action.payload.name === NAVIGATORS.WORKSPACE_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
+        } else if ((action.payload.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
             if (isSideModalNavigator(topRouteName)) {
                 dismissModal(navigation);
             }
@@ -142,7 +142,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 }
             }
             // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
-            if (action.payload.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            if (action.payload.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 return;
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;

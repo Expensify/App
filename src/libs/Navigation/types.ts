@@ -21,6 +21,7 @@ import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type LHN_TO_SPLIT_NAVIGATOR_NAME from './linkingConfig/LHN_TO_SPLIT_NAVIGATOR_MAPPING';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -50,6 +51,16 @@ type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
+
+type SplitNavigatorLHNScreen = keyof typeof LHN_TO_SPLIT_NAVIGATOR_NAME;
+
+type SplitNavigatorParamListType = {
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
+};
+
+type SplitNavigatorByLHN<T extends SplitNavigatorLHNScreen> = (typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T];
 
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
@@ -1559,7 +1570,7 @@ type CentralPaneName = keyof CentralPaneScreensParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
-type SplitNavigatorScreenName = keyof WorkspaceSplitNavigatorParamList & keyof SettingsSplitNavigatorParamList & keyof ReportsSplitNavigatorParamList;
+type SplitNavigatorScreenName = keyof (WorkspaceSplitNavigatorParamList & SettingsSplitNavigatorParamList & ReportsSplitNavigatorParamList);
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -1636,4 +1647,7 @@ export type {
     MissingPersonalDetailsParamList,
     DebugParamList,
     SplitNavigatorScreenName,
+    SplitNavigatorLHNScreen,
+    SplitNavigatorParamListType,
+    SplitNavigatorByLHN,
 };

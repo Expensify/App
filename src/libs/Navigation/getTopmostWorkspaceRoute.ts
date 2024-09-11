@@ -7,7 +7,7 @@ function getTopmostWorkspaceRoute(state: State<RootStackParamList>): NavigationP
         return;
     }
 
-    const topmostWorkspaceRoute = state.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR).at(-1);
+    const topmostWorkspaceRoute = state.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR).at(-1);
 
     if (!topmostWorkspaceRoute) {
         return;

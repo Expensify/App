@@ -9,7 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 type GetPartialStateDiffReturnType = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]?: NavigationPartialRoute;
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]?: NavigationPartialRoute;
-    [NAVIGATORS.WORKSPACE_NAVIGATOR]?: NavigationPartialRoute;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]?: NavigationPartialRoute;
 };
 
 /**
@@ -65,7 +65,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
     if (metainfo.isWorkspaceNavigatorMandatory) {
         const stateTopmostWorkspaceRoute = getTopmostWorkspaceRoute(state);
         const templateStateTopmostWorkspaceRoute = getTopmostWorkspaceRoute(templateState);
-        const workspaceNavDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR).at(-1) as NavigationPartialRoute;
+        const workspaceNavDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR).at(-1) as NavigationPartialRoute;
 
         if (
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -78,7 +78,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
                         templateStateTopmostWorkspaceRoute.params as Record<string, unknown> | undefined,
                     )))
         ) {
-            diff[NAVIGATORS.WORKSPACE_NAVIGATOR] = workspaceNavDiff;
+            diff[NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR] = workspaceNavDiff;
         }
     }
 

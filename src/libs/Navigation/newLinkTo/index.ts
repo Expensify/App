@@ -74,7 +74,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // const isNarrowLayout = getIsNarrowLayout();
 
-    // const isWorkspaceScreenOnTop = lastRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR;
+    // const isWorkspaceScreenOnTop = lastRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     // // policyIDs is present only on SCREENS.SEARCH.CENTRAL_PANE and it's displayed in the url as a query param, on the other pages this parameter is called policyID and it's shown in the url in the format: /w/:policyID
     // if (policyID && !isWorkspaceScreenOnTop && !policyIDs) {
@@ -143,7 +143,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     //         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
     //         // If this action is navigating to ModalNavigator or WorkspaceNavigator and the last route on the root navigator is not already opened Navigator then push
-    //     } else if ((action.payload.name === NAVIGATORS.WORKSPACE_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
+    //     } else if ((action.payload.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
     //         if (isSideModalNavigator(topRouteName)) {
     //             dismissModal(navigation);
     //         }
@@ -158,7 +158,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     //             }
     //         }
     //         // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
-    //         if (action.payload.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+    //         if (action.payload.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
     //             return;
     //         }
     //         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;

@@ -11,7 +11,7 @@ import type {NavigationPartialRoute, RootStackParamList, State} from './types';
  *  - on Search related screens as policyID filter inside `q` (SearchQuery) param (only for SEARCH_CENTRAL_PANE)
  */
 const getPolicyIDFromState = (state: State<RootStackParamList>): string | undefined => {
-    const lastPolicyRoute = state.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE);
+    const lastPolicyRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE);
     if (lastPolicyRoute?.params && 'policyID' in lastPolicyRoute.params) {
         return lastPolicyRoute?.params?.policyID;
     }

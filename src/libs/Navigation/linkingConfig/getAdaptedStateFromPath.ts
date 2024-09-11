@@ -4,8 +4,7 @@ import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {BottomTabName, CentralPaneName, NavigationPartialRoute, RootStackParamList, SplitNavigatorScreenName} from '@libs/Navigation/types';
-import {isCentralPaneName} from '@libs/NavigationUtils';
+import type {NavigationPartialRoute, RootStackParamList, SplitNavigatorScreenName} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
@@ -16,8 +15,9 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config, {normalizedConfigs} from './config';
-import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
+import createSplitNavigator from './createSplitNavigator';
 import replacePathInNestedState from './replacePathInNestedState';
+import SEARCH_RHP_SCREENS from './SEARCH_RHP_SCREENS';
 import {CENTRAL_PANE_TO_TAB_MAPPING} from './TAB_TO_CENTRAL_PANE_MAPPING';
 
 const RHP_SCREENS_OPENED_FROM_LHN = [
@@ -60,54 +60,6 @@ type SplitNavigator = (typeof mapLhnToSplitNavigatorName)[SplitNavigatorLHNScree
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-const addPolicyIDToRoute = (route: NavigationPartialRoute, policyID?: string) => {
-    const routeWithPolicyID = {...route};
-    if (!routeWithPolicyID.params) {
-        routeWithPolicyID.params = {policyID};
-        return routeWithPolicyID;
-    }
-
-    if ('policyID' in routeWithPolicyID.params && !!routeWithPolicyID.params.policyID) {
-        return routeWithPolicyID;
-    }
-
-    routeWithPolicyID.params = {...routeWithPolicyID.params, policyID};
-
-    return routeWithPolicyID;
-};
-
-function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
-    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [];
-    routesForBottomTabNavigator.push(addPolicyIDToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
-
-    return {
-        name: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
-        state: getRoutesWithIndex(routesForBottomTabNavigator),
-    };
-}
-
-// function createWorkspaceNavigator(route?: NavigationPartialRoute<WorkspaceScreenName>): NavigationPartialRoute<typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR> {
-//     const routes = [];
-
-//     const policyID = route?.params && 'policyID' in route.params ? route.params.policyID : undefined;
-
-//     // Both routes in WorkspaceNavigator should store a policyID in params, so here this param is also passed to the screen displayed in LHN in WorkspaceNavigator
-//     routes.push({
-//         name: SCREENS.WORKSPACE.INITIAL,
-//         params: {
-//             policyID,
-//         },
-//     });
-
-//     if (route) {
-//         routes.push(route);
-//     }
-//     return {
-//         name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-//         state: getRoutesWithIndex(routes),
-//     };
-// }
-
 function getParamsFromRoute(screenName: string): string[] {
     const routeConfig = normalizedConfigs[screenName as Screen];
 
@@ -116,30 +68,8 @@ function getParamsFromRoute(screenName: string): string[] {
     return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
 }
 
-function createSplitNavigator(splitNavigatorLHNScreen: SplitNavigatorLHNScreen, route?: NavigationPartialRoute<SplitNavigatorScreenName>): NavigationPartialRoute<SplitNavigator> {
-    const routes = [];
-
-    const policyID = route?.params && 'policyID' in route.params ? route.params.policyID : undefined;
-
-    // Both routes in WorkspaceNavigator should store a policyID in params, so here this param is also passed to the screen displayed in LHN in WorkspaceNavigator
-    routes.push({
-        name: splitNavigatorLHNScreen,
-        params: {
-            policyID,
-        },
-    });
-
-    if (route) {
-        routes.push(route);
-    }
-    return {
-        name: mapLhnToSplitNavigatorName[splitNavigatorLHNScreen],
-        state: getRoutesWithIndex(routes),
-    };
-}
-
 // This function will return CentralPaneNavigator route or WorkspaceNavigator route.
-function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<SplitNavigator> | undefined {
+function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<SplitNavigator> | NavigationPartialRoute<'Search_Central_Pane'> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
@@ -172,27 +102,30 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     for (const [centralPaneName, RHPNames] of Object.entries(CENTRAL_PANE_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
             const paramsFromRoute = getParamsFromRoute(centralPaneName);
-            return createSplitNavigator(CENTRAL_PANE_TO_TAB_MAPPING[centralPaneName] as SplitNavigatorLHNScreen, {
-                name: centralPaneName as SplitNavigatorScreenName,
-                params: pick(route.params, paramsFromRoute),
-            });
+            return createSplitNavigator(
+                {name: CENTRAL_PANE_TO_TAB_MAPPING[centralPaneName as SplitNavigatorScreenName] as SplitNavigatorLHNScreen, params: pick(route.params, paramsFromRoute)},
+                {
+                    name: centralPaneName,
+                    params: pick(route.params, paramsFromRoute),
+                },
+            );
         }
     }
 
-    // Check for WorkspaceNavigator
-    // for (const [workspaceScreenName, RHPNames] of Object.entries(WORKSPACE_SCREEN_TO_RHP_MAPPING)) {
-    //     if (RHPNames.includes(route.name)) {
-    //         const paramsFromRoute = getParamsFromRoute(workspaceScreenName);
+    if (SEARCH_RHP_SCREENS.includes(route.name)) {
+        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.CENTRAL_PANE);
 
-    //         return createWorkspaceNavigator({name: workspaceScreenName as WorkspaceScreenName, params: pick(route.params, paramsFromRoute)});
-    //     }
-    // }
+        return {
+            name: SCREENS.SEARCH.CENTRAL_PANE,
+            params: pick(route.params, paramsFromRoute),
+        };
+    }
 
     // check for valid reportID in the route params
     // if the reportID is valid, we should navigate back to screen report in CPN
     const reportID = (route.params as Record<string, string | undefined>)?.reportID;
     if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-        return {name: SCREENS.REPORT, params: {reportID}};
+        return createSplitNavigator({name: SCREENS.HOME}, {name: SCREENS.REPORT, params: {reportID}});
     }
 }
 
@@ -230,13 +163,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 // metainfo.isCentralPaneAndBottomTabMandatory = false;
                 // metainfo.isWorkspaceNavigatorMandatory = false;
                 // If matchingRootRoute is undefined and it's a narrow layout, don't add a report screen under the RHP.
-                matchingRootRoute = matchingRootRoute ?? (!isNarrowLayout ? {name: SCREENS.REPORT} : undefined);
+                matchingRootRoute = matchingRootRoute ?? (!isNarrowLayout ? createSplitNavigator({name: SCREENS.HOME}, {name: SCREENS.REPORT}) : createSplitNavigator({name: SCREENS.HOME}));
             }
 
             // When we open a screen in RHP from WorkspaceNavigator, we need to add the appropriate screen in CentralPane.
             // Then, when we close WorkspaceNavigator, we will be redirected to the correct page in CentralPane.
             if (matchingRootRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                routes.push(createSplitNavigator(SCREENS.SETTINGS.ROOT, {name: SCREENS.SETTINGS.WORKSPACES}));
+                routes.push(createSplitNavigator({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES}));
             }
 
             if (matchingRootRoute && (!isNarrowLayout || !isRHPScreenOpenedFromLHN)) {
@@ -267,7 +200,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
               }
             : undefined;
 
-        routes.push(createSplitNavigator(SCREENS.HOME, splitNavigatorMainScreen));
+        routes.push(createSplitNavigator({name: SCREENS.HOME}, splitNavigatorMainScreen));
 
         // Separate ifs are necessary for typescript to see that we are not pushing undefined to the array.
         if (lhpNavigator) {
@@ -288,7 +221,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         return {
             adaptedState: getRoutesWithIndex(routes),
-            // metainfo,
         };
     }
     if (WorkspaceNavigator) {
@@ -299,35 +231,24 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         const routes = [];
         routes.push(
-            createSplitNavigator(SCREENS.SETTINGS.ROOT, {
-                name: SCREENS.SETTINGS.WORKSPACES,
-                params: {
-                    policyID,
+            createSplitNavigator(
+                {name: SCREENS.SETTINGS.ROOT},
+                {
+                    name: SCREENS.SETTINGS.WORKSPACES,
+                    params: {
+                        policyID,
+                    },
                 },
-            }),
+            ),
         );
 
         routes.push(WorkspaceNavigator);
 
         return {
             adaptedState: getRoutesWithIndex(routes),
-            // metainfo,
         };
     }
-    // if (centralPaneNavigator) {
-    //     // Routes
-    //     // - matching bottom tab
-    //     // - found central pane
-    //     const routes = [];
-    //     const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
-    //     routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
-    //     routes.push(centralPaneNavigator);
 
-    //     return {
-    //         adaptedState: getRoutesWithIndex(routes),
-    //         // metainfo,
-    //     };
-    // }
     if (attachmentsScreen) {
         // Routes
         // - matching bottom tab
@@ -337,25 +258,25 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         const reportAttachments = attachmentsScreen as Route<'Attachments', RootStackParamList['Attachments']>;
 
         if (reportAttachments.params?.type === CONST.ATTACHMENT_TYPE.REPORT) {
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
-            routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
-            if (!isNarrowLayout) {
-                routes.push({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? '-1'}});
-            }
+            const splitNavigatorMainScreen = !isNarrowLayout
+                ? {
+                      name: SCREENS.REPORT,
+                      params: {reportID: reportAttachments.params?.reportID ?? '-1'},
+                  }
+                : undefined;
+
+            routes.push(createSplitNavigator({name: SCREENS.HOME}, splitNavigatorMainScreen));
             routes.push(reportAttachments);
 
             return {
                 adaptedState: getRoutesWithIndex(routes),
-                // metainfo,
             };
         }
     }
 
     // We need to make sure that this if only handles states where we deeplink to the bottom tab directly
-
     return {
         adaptedState: state,
-        // metainfo,
     };
 }
 

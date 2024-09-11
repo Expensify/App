@@ -90,7 +90,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 
     if (
         'name' in stateOrRoute &&
-        (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
+        (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)
     ) {
         return 0;
     }
@@ -198,6 +198,28 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
     linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
+function newGoBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
+    if (!canNavigate('goBack')) {
+        return;
+    }
+
+    if (!navigationRef.current?.canGoBack()) {
+        Log.hmmm('[Navigation] Unable to go back');
+        return;
+    }
+    navigationRef.current.goBack();
+
+    if (fallbackRoute) {
+        /**
+         * Cases to handle:
+         * 1. RHP
+         * 2. fallbackRoute is in the current navigator
+         * 3. fallbackRoute is in the different navigator
+         * 4. fallbackRoute isn't present in the current state
+         */
+    }
+}
+
 /**
  * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param shouldEnforceFallback - Enforces navigation to fallback route
@@ -233,7 +255,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     }
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+        navigate(fallbackRoute, 'REPLACE');
         return;
     }
 
@@ -243,7 +265,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     if (isCentralPaneFocused && fallbackRoute) {
         // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
         if (distanceFromPathInRootNavigator === -1) {
-            navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+            navigate(fallbackRoute, 'REPLACE');
             return;
         }
 

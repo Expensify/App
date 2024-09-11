@@ -1,12 +1,13 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, getPathFromState, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as Localize from '@libs/Localize';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import createSplitNavigator from '@libs/Navigation/linkingConfig/createSplitNavigator';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Welcome from '@userActions/Welcome';
@@ -108,14 +109,25 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     }
 
                     newParams = {...currentParams, q: SearchUtils.buildSearchQueryString(queryJSON)};
-                    const newRoutes = [...state.routes, {...lastRoute, key: lastRoute.key + 'key', params: newParams}];
+                    const newRoutes = [...state.routes, {...lastRoute, params: newParams}];
                     return {...state, routes: newRoutes, index: newRoutes.length - 1};
                 }
                 if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                     // TODO: handle change policy id of reports navigator.
-                    const newRoute = createSplitNavigator('Home', {name: SCREENS.REPORT, params: {reportID: ''}}, action.payload.policyID, lastRoute.key + 'key');
+
+                    const splitNavigatorMainScreen = getIsNarrowLayout() ? undefined : {name: SCREENS.REPORT, params: {reportID: ''}};
+
+                    const newRoute = createSplitNavigator(
+                        {
+                            name: SCREENS.HOME,
+                        },
+                        splitNavigatorMainScreen,
+                        {
+                            policyID: action.payload.policyID,
+                        },
+                    );
                     const newRoutes = [...state.routes, newRoute];
-                    return {...state, routes: newRoutes, index: newRoutes.length - 1};
+                    return {...state, stale: true, routes: newRoutes, index: newRoutes.length - 1};
                 }
                 // In other cases, do nothing.
                 return null;
@@ -127,19 +139,25 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             }
 
             if (action.type === 'PUSH' && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                const policyID = getPolicyIDFromState(state);
+                const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
                 const currentParams = {...action.payload.params};
                 action.payload.params = {...currentParams, policyID};
             }
 
             if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
-                const policyID = getPolicyIDFromState(state);
-                const params = policyID ? {policyID} : {};
-                action.payload.params = {q: SearchUtils.buildSearchQueryString(params), isCustomQuery: false};
-            }
+                const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+                const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+                const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
+                if (!queryJSON) {
+                    return;
+                }
+                if (policyID) {
+                    queryJSON.policyID = policyID;
+                } else {
+                    delete queryJSON.policyID;
+                }
 
-            if (action.type === 'RESET') {
-                const policyID = getPolicyIDFromState(action.payload);
+                action.payload.params = {q: SearchUtils.buildSearchQueryString(queryJSON), isCustomQuery: false};
             }
 
             // TODO: I don't remember if the code below makes sense Wojtek :D but it's possible.

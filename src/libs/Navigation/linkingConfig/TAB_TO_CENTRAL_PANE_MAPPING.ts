@@ -1,7 +1,7 @@
-import type {BottomTabName, CentralPaneName, SplitNavigatorScreenName} from '@navigation/types';
+import type {SplitNavigatorLHNScreen, SplitNavigatorScreenName} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const TAB_TO_CENTRAL_PANE_MAPPING: Record<SplitNavigatorScreenName, SplitNavigatorScreenName[]> = {
+const TAB_TO_CENTRAL_PANE_MAPPING: Record<SplitNavigatorLHNScreen, SplitNavigatorScreenName[]> = {
     [SCREENS.HOME]: [SCREENS.REPORT],
     [SCREENS.SETTINGS.ROOT]: [
         SCREENS.SETTINGS.PROFILE.ROOT,

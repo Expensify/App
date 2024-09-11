@@ -13,7 +13,7 @@ function getActionsFromPartialDiff(diff: GetPartialStateDiffReturnType): Navigat
 
     const bottomTabDiff = diff[NAVIGATORS.BOTTOM_TAB_NAVIGATOR];
     const centralPaneDiff = diff[NAVIGATORS.CENTRAL_PANE_NAVIGATOR];
-    const fullScreenDiff = diff[NAVIGATORS.WORKSPACE_NAVIGATOR];
+    const fullScreenDiff = diff[NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR];
 
     // There is only one bottom tab navigator so we can just push this route.
     if (bottomTabDiff) {

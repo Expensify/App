@@ -99,6 +99,7 @@ function shouldOpenOnAdminRoom() {
 }
 
 // @TODO: Add these params to SearchPage and ReportScreen
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
@@ -439,6 +440,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.SEARCH.CENTRAL_PANE}
                         options={screenOptions.fullScreen}
                         component={SearchPage}
+                        initialParams={{q: buildSearchQueryString()}}
                     />
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
