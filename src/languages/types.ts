@@ -105,6 +105,10 @@ type ReportPolicyNameParams = {
     policyName: string;
 };
 
+type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
+    policyName: string;
+};
+
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
@@ -291,7 +295,7 @@ type TranslationBaseValue<T> = T extends string
       (arg: ArgumentType<T, any> extends Primitive ? Record<string, unknown> : ArgumentType<T, any>, ...unnecessaryArguments: unknown[]) => string | PluralizeValue;
 type TranslationBase<T = unknown> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [K in keyof T]: T[K] extends string | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : T[K] extends Record<string, any> ? TranslationBase<T[K]> : string;
+    [K in keyof T]: T[K] extends boolean | number | any[] ? string : T[K] extends string | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
 };
 
 /* Flat Translation Object types */
@@ -556,7 +560,17 @@ type AutoPayApprovedReportsLimitErrorParams = {
     currency?: string;
 };
 
+type DefaultAmountParams = {
+    defaultAmount: string;
+};
+
+type RemovedFromApprovalWorkflowParams = {
+    submittersNames: string[];
+};
+
 export type {
+    RemovedFromApprovalWorkflowParams,
+    DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
     SpreadSheetColumnParams,
@@ -666,6 +680,7 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,

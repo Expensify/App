@@ -164,7 +164,6 @@ describe('flattenObject', () => {
                         none: 'No description',
                     },
                     content: func,
-                    messages: ['Hello', 'Hi', 'Sup!'],
                 },
             },
         };
@@ -179,7 +178,6 @@ describe('flattenObject', () => {
             'complex.report.title.task': 'Task',
             'complex.report.description.none': 'No description',
             'complex.report.content': func,
-            'complex.report.messages': ['Hello', 'Hi', 'Sup!'],
         });
     });
 });
