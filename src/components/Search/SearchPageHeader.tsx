@@ -10,7 +10,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +18,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -93,10 +92,9 @@ type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
-    isCustomQuery: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
-    data?: TransactionListItemType[] | ReportListItemType[];
+    data?: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[];
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -112,20 +110,22 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
             return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
     }
 }
 
-function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -136,6 +136,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 .filter(
                     (item) =>
                         !SearchUtils.isTransactionListItemType(item) &&
+                        !SearchUtils.isReportActionListItemType(item) &&
                         item.reportID &&
                         item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
                 )
@@ -143,11 +144,14 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         [data, selectedTransactions],
     );
     const {status, type} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
-    const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
 
-    const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
+    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+
+    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON);
+    const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
+    const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
+
+    const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -191,9 +195,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -213,10 +214,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    clearSelectedTransactions();
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
@@ -267,7 +264,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -278,10 +274,9 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        selectionMode?.isEnabled,
     ]);
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         if (selectionMode?.isEnabled) {
             return (
                 <SearchSelectedNarrow
