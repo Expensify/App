@@ -2,7 +2,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as translations from '@src/languages/translations';
-import type {TranslationBase, TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {FlatTranslationsObject, TranslationDeepObject, TranslationPaths} from '@src/languages/types';
 import * as Localize from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
@@ -97,10 +97,10 @@ describe('translate', () => {
 });
 
 describe('Translation Keys', () => {
-    function traverseKeyPath(source: TranslationFlatObject, path?: string, keyPaths?: string[]): string[] {
+    function traverseKeyPath(source: FlatTranslationsObject, path?: string, keyPaths?: string[]): string[] {
         const pathArray = keyPaths ?? [];
         const keyPath = path ? `${path}.` : '';
-        (Object.keys(source) as Array<keyof TranslationFlatObject>).forEach((key) => {
+        (Object.keys(source) as TranslationPaths[]).forEach((key) => {
             if (typeof source[key] === 'object' && typeof source[key] !== 'function') {
                 // @ts-expect-error - We are modifying the translations object for testing purposes
                 traverseKeyPath(source[key], keyPath + key, pathArray);
@@ -168,7 +168,7 @@ describe('flattenObject', () => {
             },
         };
 
-        const result = translations.flattenObject(simpleObject as TranslationBase<typeof simpleObject>);
+        const result = translations.flattenObject(simpleObject as TranslationDeepObject<typeof simpleObject>);
         expect(result).toStrictEqual({
             'common.yes': 'Yes',
             'common.no': 'No',

@@ -1,7 +1,7 @@
 import en from './en';
 import es from './es';
 import esES from './es-ES';
-import type {TranslationBase, TranslationFlatObject} from './types';
+import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
  * Converts an object to it's flattened version.
@@ -12,10 +12,10 @@ import type {TranslationBase, TranslationFlatObject} from './types';
  */
 // Necessary to export so that it is accessible to the unit tests
 // eslint-disable-next-line rulesdir/no-inline-named-export
-export function flattenObject<T = typeof en>(obj: TranslationBase<T>): TranslationFlatObject {
+export function flattenObject<T = typeof en>(obj: TranslationDeepObject<T>): FlatTranslationsObject {
     const result: Record<string, unknown> = {};
 
-    const recursive = (data: TranslationBase<T>, key: string): void => {
+    const recursive = (data: TranslationDeepObject<T>, key: string): void => {
         // If the data is a function or not a object (eg. a string or array),
         // it's the final value for the key being built and there is no need
         // for more recursion
@@ -28,7 +28,7 @@ export function flattenObject<T = typeof en>(obj: TranslationBase<T>): Translati
             Object.keys(data).forEach((k) => {
                 isEmpty = false;
                 // @ts-expect-error - The key is a string since forEach is always iterating over the keys like strings
-                recursive(data[k] as TranslationBase<T>, key ? `${key}.${k}` : k);
+                recursive(data[k] as TranslationDeepObject<T>, key ? `${key}.${k}` : k);
             });
 
             // Check for when the object is empty but a key exists, so that
@@ -40,7 +40,7 @@ export function flattenObject<T = typeof en>(obj: TranslationBase<T>): Translati
     };
 
     recursive(obj, '');
-    return result as TranslationFlatObject;
+    return result as FlatTranslationsObject;
 }
 
 export default {

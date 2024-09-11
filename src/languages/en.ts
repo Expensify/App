@@ -149,7 +149,6 @@ import type {
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
-    TranslationBase,
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
@@ -184,7 +183,8 @@ import type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
-} from './types';
+} from './params';
+import {TranslationDeepObject} from './types';
 
 type StateValue = {
     stateISO: string;
@@ -4805,4 +4805,4 @@ const translations = {
     },
 };
 
-export default translations satisfies TranslationBase<typeof translations>;
+export default translations satisfies TranslationDeepObject<typeof translations>;

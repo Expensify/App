@@ -6,7 +6,7 @@ import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement'
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 import LocaleListener from './LocaleListener';
@@ -44,9 +44,6 @@ function init() {
         return memo;
     }, {});
 }
-
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
  * Map to store translated values for each locale.
@@ -86,31 +83,26 @@ function isPlainObject(value: string): boolean {
  * available in the given locale. If it is, it translates the
  * phrase and stores the translated value in the cache and returns
  * the translated value.
- *
- * @param language
- * @param phraseKey
- * @param fallbackLanguage
- * @param phraseParameters
  */
-function getTranslatedPhrase<TKey extends TranslationPaths>(
+function getTranslatedPhrase<TPath extends TranslationPaths>(
     language: 'en' | 'es' | 'es-ES',
-    phraseKey: TKey,
-    fallbackLanguage: 'en' | 'es' | null = null,
-    ...phraseParameters: PhraseParameters<Phrase<TKey>>
+    path: TPath,
+    fallbackLanguage: 'en' | 'es' | null,
+    ...parameters: TranslationParameters<TPath>
 ): string | null {
     // Get the cache for the above locale
     const cacheForLocale = translationCache.get(language);
 
     // Directly access and assign the translated value from the cache, instead of
     // going through map.has() and map.get() to avoid multiple lookups.
-    const valueFromCache = cacheForLocale?.get(phraseKey);
+    const valueFromCache = cacheForLocale?.get(path);
 
     // If the phrase is already translated, return the translated value
     if (valueFromCache) {
         return valueFromCache;
     }
 
-    const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
+    const translatedPhrase = translations?.[language]?.[path];
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
@@ -119,22 +111,23 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
              * is Plain object is for checking if the phraseTranslated output
              * is an object then further check if it include the count param or not
              * OR before checking the plain object output, we can check if we have the count
-             * param in phraseParameters
+             * param in parameters
              *
              */
 
-            if (isPlainObject(translatedPhrase(...phraseParameters))) {
-                const phraseObject = {...(phraseParameters[0] as Record<string, unknown>)};
+            const phraseTranslated = translatedPhrase(...parameters);
+
+            if (isPlainObject(phraseTranslated)) {
+                const phraseObject = {...(parameters[0] as Record<string, unknown>)};
 
                 if ('count' in phraseObject && typeof phraseObject.count === 'number') {
                     const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
-                    const phraseTranslated = translatedPhrase(...phraseParameters);
 
                     if (phraseTranslated && typeof phraseTranslated === 'object' && pluralRule in phraseTranslated) {
                         return phraseTranslated[pluralRule];
                     }
 
-                    Log.alert(`Plural form ${pluralRule} is not found for ${phraseKey}, using 'other' form`);
+                    Log.alert(`Plural form ${pluralRule} is not found for ${path}, using 'other' form`);
                     // NOTEME fix ts error and lint error
 
                     /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -143,11 +136,11 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                 }
             }
 
-            return translatedPhrase(...phraseParameters);
+            return phraseTranslated;
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
-        cacheForLocale?.set(phraseKey, translatedPhrase);
+        cacheForLocale?.set(path, translatedPhrase);
         return translatedPhrase;
     }
 
@@ -156,33 +149,33 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbacktranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
+    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, path, null, ...parameters);
 
-    if (fallbacktranslatedPhrase) {
-        return fallbacktranslatedPhrase;
+    if (fallbackTranslatedPhrase) {
+        return fallbackTranslatedPhrase;
     }
 
     if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
+        Log.alert(`${path} was not found in the ${fallbackLanguage} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
+    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, path, null, ...parameters);
 }
 
 /**
  * Return translated string for given locale and phrase
  *
  * @param [desiredLanguage] eg 'en', 'es-ES'
- * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
+ * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
-    const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
+    const translatedPhrase = getTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
@@ -190,21 +183,21 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
     // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
-        const phraseString: string = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
+        const phraseString: string = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the en locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
         }
         return phraseString;
     }
-    throw new Error(`${phraseKey} was not found in the default language`);
+    throw new Error(`${path} was not found in the default language`);
 }
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
+function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...parameters);
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
@@ -259,4 +252,3 @@ function getDevicePreferredLocale(): Locale {
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
-export type {PhraseParameters, Phrase};
