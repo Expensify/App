@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
