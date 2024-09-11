@@ -1,9 +1,11 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {LoginList} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -14,6 +16,14 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
 type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+let currentUserLogin: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserLogin = value?.email;
+    },
+});
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -46,7 +56,8 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * has an unvalidated contact method.
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
-    return !Object.values(loginList ?? {}).every((field) => field.validatedDate);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return !Object.values(loginList ?? {}).every((field) => field.validatedDate || currentUserLogin === field.partnerUserID);
 }
 
 /**

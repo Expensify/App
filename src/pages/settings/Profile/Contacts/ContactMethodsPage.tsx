@@ -43,9 +43,9 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginNames = loginNames.sort((loginName) => (loginList?.[loginName].partnerUserID === session?.email ? -1 : 1));
-
     const loginMenuItems = sortedLoginNames.map((loginName) => {
         const login = loginList?.[loginName];
+        const isDefaultContactMethod = session?.email === login?.partnerUserID;
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
         if (!login?.partnerUserID && !pendingAction) {
             return null;
@@ -62,7 +62,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         let indicator;
         if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        } else if (!login?.validatedDate) {
+        } else if (!login?.validatedDate && !isDefaultContactMethod && sortedLoginNames.length === 1) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
