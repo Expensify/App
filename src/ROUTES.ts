@@ -134,6 +134,19 @@ const ROUTES = {
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
+    SETTINGS_DELEGATE_ROLE: {
+        route: 'settings/security/delegate/:login/role/:role',
+        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM: {
+        route: 'settings/security/delegate/:login/role/:role/confirm',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/magic-code` as const,
+    },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
@@ -948,6 +961,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
         getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
+    WORKSPACE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ADD_NEW: {
+        route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
+    },
     WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
@@ -955,10 +976,6 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
-    },
-    WORKSPACE_COMPANY_CARDS: {
-        route: 'settings/workspaces/:policyID/company-cards',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
