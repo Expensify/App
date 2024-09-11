@@ -694,8 +694,10 @@ function getSearchHeaderTitle(
     reports: OnyxCollection<OnyxTypes.Report>,
     TaxRates: Record<string, string[]>,
 ) {
+    const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters ?? {};
-    let title = '';
+
+    let title = `type:${type} status:${status}`;
 
     Object.keys(filters).forEach((key) => {
         const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
