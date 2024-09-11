@@ -1,8 +1,7 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
-import useDebouncedState from '@hooks/useDebouncedState';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -14,21 +13,25 @@ function FreeTrialBadge({badgeStyles}: FreeTrialBadgeProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [freeTrialText, debouncedFreeTrialText, setFreeTrialText] = useDebouncedState<string | undefined>(undefined);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+
+    const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
 
     useEffect(() => {
+        if (!privateSubscription) {
+            return;
+        }
         setFreeTrialText(SubscriptionUtils.getFreeTrialText(policies));
-    }, [policies, firstDayFreeTrial, lastDayFreeTrial, setFreeTrialText]);
+    }, [privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial]);
 
-    if (!debouncedFreeTrialText) {
+    if (!freeTrialText) {
         return null;
     }
 
     return (
         <Badge
             success
-            text={debouncedFreeTrialText}
+            text={freeTrialText}
             badgeStyles={badgeStyles}
         />
     );
