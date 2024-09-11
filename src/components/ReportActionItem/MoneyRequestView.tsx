@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -22,6 +22,7 @@ import type {ViolationField} from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -136,6 +137,34 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
+
+    useEffect(() => {
+        // Log out data related to transaction details - scream if not present
+        switch (true) {
+            case !report:
+                Log.warn('[Expense report] missing data: report');
+                break;
+            case !report?.parentReportActionID:
+                Log.warn('[Expense report] missing data: parentReportActionID', report);
+                break;
+            case !parentReportAction:
+                Log.warn('[Expense report] missing data: parentReportAction', parentReportAction);
+                break;
+            case !linkedTransactionID || linkedTransactionID === '-1':
+                Log.warn('[Expense report] missing data: linkedTransactionID', linkedTransactionID);
+                break;
+            case !transaction:
+                Log.warn('[Expense report] missing data: transaction', transaction);
+                break;
+            case !transactionAmount:
+                Log.warn('[Expense report] missing data: transactionAmount', transactionAmount);
+                break;
+            default:
+                break;
+        }
+        Log.hmmm('[Expense report] required data: ', {report, parentReportAction, linkedTransactionID, transaction, transactionAmount});
+    }, [report, parentReportAction, linkedTransactionID, transaction, transactionAmount]);
+
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
