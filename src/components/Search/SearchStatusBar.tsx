@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
