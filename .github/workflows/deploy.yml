@@ -511,7 +511,7 @@ jobs:
 
       - name: Upload artifacts to GitHub Release
         run: |
-          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} \
+          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./android-build-artifact/app-production-release.aab \
             ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
@@ -557,7 +557,7 @@ jobs:
 
       - name: Upload artifacts to GitHub Release
         run: |
-          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} \
+          gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./desktop-build-artifact/NewExpensify.dmg \
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
