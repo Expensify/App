@@ -126,7 +126,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
     return newOptimisticPolicyRecentlyUsedTags;
 }
 
-function updateImportSpreadsheetData(tagsLength: number) {
+function updateImportSpreadsheetData(tagsLength: number): OnyxData {
     const onyxData: OnyxData = {
         successData: [
             {
@@ -225,7 +225,7 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
     const parameters = {
         policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        tags: JSON.stringify([...tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))]),
+        tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SREADSHEET, parameters, onyxData);

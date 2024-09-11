@@ -22,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ImportedTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
+
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -117,7 +118,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingTags(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     };
 
     return (
