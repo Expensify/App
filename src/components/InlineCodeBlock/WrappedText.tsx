@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
@@ -53,6 +53,21 @@ function splitLongWord(word: string, maxLength: number): string[] {
     return word.match(new RegExp(`.{1,${maxLength}}`, 'g')) ?? [];
 }
 
+function getFontSizeFromStyles(textStyles: StyleProp<TextStyle>): number {
+    if (Array.isArray(textStyles)) {
+        for (let style of textStyles) {
+            if (style && 'fontSize' in style && style.fontSize) {
+                return style.fontSize;
+            }
+        }
+    } else if (textStyles && 'fontSize' in textStyles && textStyles.fontSize) {
+        return textStyles.fontSize;
+    }
+
+    // if we cannot infer fontSize from styles, a default value is returned
+    return variables.fontSizeLabel;
+}
+
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -61,10 +76,12 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
         return null;
     }
 
-    const charWidth = variables.fontSizeLabel * variables.fontSizeToWidthRatio;
-    const charsPerLine = Math.floor(windowWidth / charWidth);
+    const textMatrix = useMemo(() => {
+        const fontSize = getFontSizeFromStyles(textStyles);
+        const charsPerLine = Math.floor(windowWidth / (fontSize * variables.fontSizeToWidthRatio));
 
-    const textMatrix = getTextMatrix(children).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
+        return getTextMatrix(children).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
+    }, [textStyles]);
 
     return textMatrix.map((rowText, rowIndex) => (
         <Fragment
