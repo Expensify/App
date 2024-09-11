@@ -2684,7 +2684,7 @@ function getUpdateMoneyRequestParams(
         }
     }
 
-    // Update recently used currencies if the category is changed
+    // Update recently used currencies if the currency is changed
     if ('currency' in transactionChanges) {
         const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
         if (optimisticRecentlyUsedCurrencies.length) {
@@ -5349,7 +5349,7 @@ function editRegularMoneyRequest(
         }
     }
 
-    // Update recently used currencies if the category is changed
+    // Update recently used currencies if the currency is changed
     if ('currency' in transactionChanges) {
         const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
         if (optimisticRecentlyUsedCurrencies.length) {

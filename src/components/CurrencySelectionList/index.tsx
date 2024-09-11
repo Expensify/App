@@ -38,7 +38,7 @@ function CurrencySelectionList({
             return acc;
         }, [] as CurrencyListItem[]);
 
-        const policyRecentlyUsedCurrencyOptions: CurrencyListItem[] = Array.isArray(recentlyUsedCurrencies)
+        const recentlyUsedCurrencyOptions: CurrencyListItem[] = Array.isArray(recentlyUsedCurrencies)
             ? recentlyUsedCurrencies?.map((currencyCode) => {
                   const currencyInfo = currencyList?.[currencyCode];
                   const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
@@ -55,7 +55,7 @@ function CurrencySelectionList({
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
-        const shouldDisplayRecentlyOptions = !isEmptyObject(policyRecentlyUsedCurrencyOptions) && !searchValue;
+        const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
         const selectedOptions = filteredCurrencies.filter((option) => option.isSelected);
         const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0;
         const unselectedOptions = getUnselectedOptions(filteredCurrencies);
@@ -70,12 +70,12 @@ function CurrencySelectionList({
         }
 
         if (shouldDisplayRecentlyOptions) {
-            const cutPolicyRecentlyUsedCurrencyOptions = policyRecentlyUsedCurrencyOptions.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
+            const cutRecentlyUsedCurrencyOptions = recentlyUsedCurrencyOptions.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
             if (!isEmpty) {
                 result.push(
                     {
                         title: translate('common.recents'),
-                        data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(cutPolicyRecentlyUsedCurrencyOptions) : cutPolicyRecentlyUsedCurrencyOptions,
+                        data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(cutRecentlyUsedCurrencyOptions) : cutRecentlyUsedCurrencyOptions,
                         shouldShow: shouldDisplayRecentlyOptions,
                     },
                     {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies},
