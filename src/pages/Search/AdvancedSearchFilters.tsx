@@ -320,6 +320,7 @@ function AdvancedSearchFilters() {
                             <MenuItemWithTopDescription
                                 key={filter.description}
                                 title={filter.title}
+                                titleStyle={styles.flex1}
                                 description={filter.description}
                                 shouldShowRightIcon
                                 onPress={filter.onPress}
