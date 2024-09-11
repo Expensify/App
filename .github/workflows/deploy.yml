@@ -198,13 +198,13 @@ jobs:
       - name: Upload desktop sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-sourcemaps-artifact
+          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
           path: ./desktop/dist/www/merged-source-map.js.map
 
       - name: Upload desktop build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-build-artifact
+          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
   iOS:
@@ -411,7 +411,7 @@ jobs:
       - name: Upload web sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-sourcemaps-artifact
+          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'web' || 'web-staging' }}-sourcemaps-artifact
           path: ./dist/merged-source-map.js.map
 
       - name: Compress web build .tar.gz and .zip
@@ -422,13 +422,13 @@ jobs:
       - name: Upload .tar.gz web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-build-tar-gz-artifact
+          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'web' || 'web-staging' }}-build-tar-gz-artifact
           path: ./webBuild.tar.gz
 
       - name: Upload .zip web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-build-zip-artifact
+          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'web' || 'web-staging' }}-build-zip-artifact
           path: ./webBuild.zip
 
   postSlackMessageOnFailure:
@@ -506,21 +506,21 @@ jobs:
 
       - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
         run: |
-          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
-          mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
+          mv ./desktop-staging-sourcemaps-artifact/merged-source-map.js.map ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map
+          mv ./web-staging-sourcemaps-artifact/merged-source-map.js.map ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map
 
       - name: Upload artifacts to GitHub Release
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./android-build-artifact/app-production-release.aab \
-            ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./desktop-build-artifact/NewExpensify.dmg \
+            ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
             ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./ios-build-artifact/New\ Expensify.ipa \
-            ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./web-build-tar-gz-artifact/webBuild.tar.gz \
-            ./web-build-zip-artifact/webBuild.zip
+            ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
+            ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
