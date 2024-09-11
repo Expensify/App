@@ -112,6 +112,13 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
+        if (currency === moneyRequestAmountInput?.current?.getCurrency() || !currentTransaction?.currencyUpdatedTime) {
+            return;
+        }
+        moneyRequestAmountInput?.current?.setNewCurrency(currency);
+    }, [currentTransaction?.currencyUpdatedTime, currency]);
+
+    useEffect(() => {
         if (!isEditing) {
             return;
         }
@@ -134,9 +141,6 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        if (moneyRequestAmountInput?.current?.getCurrency() !== currency && moneyRequestAmountInput?.current?.getCurrency()) {
-            IOU.setMoneyRequestCurrency(transactionID, moneyRequestAmountInput?.current?.getCurrency(), action === CONST.IOU.ACTION.EDIT);
-        }
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
                 action,

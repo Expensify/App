@@ -451,6 +451,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
+
+        /** Whether the currency is selected in the currency step */
+        currencyUpdatedTime?: number;
     },
     keyof Comment | keyof TransactionCustomUnit
 >;

@@ -406,7 +406,7 @@ function setMoneyRequestCreated(transactionID: string, created: string, isDraft:
 
 function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
     const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency, currencyUpdatedTime: new Date().getTime()});
 }
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {

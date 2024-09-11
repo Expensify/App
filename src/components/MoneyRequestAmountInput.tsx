@@ -24,6 +24,7 @@ type MoneyRequestAmountInputRef = {
     getCurrency: () => string;
     focus: () => void;
     isFocused: () => boolean;
+    setNewCurrency: (newCurrency: string) => void;
 };
 
 type MoneyRequestAmountInputProps = {
@@ -216,6 +217,9 @@ function MoneyRequestAmountInput(
         },
         changeAmount(newAmount: string) {
             setAmount(newAmount);
+        },
+        setNewCurrency(newCurrency: string) {
+            setCurrency(newCurrency);
         },
         getAmount() {
             return amount;
