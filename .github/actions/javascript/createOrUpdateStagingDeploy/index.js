@@ -14469,13 +14469,16 @@ function tagExists(tag) {
 function getPreviousExistingTag(tag, level) {
     let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
     let tagExistsForPreviousVersion = false;
-    while (!tagExistsForPreviousVersion) {
+    let retryCount = 0;
+    const maxRetries = 10;
+    while (!tagExistsForPreviousVersion && retryCount < maxRetries) {
         if (tagExists(previousVersion)) {
             tagExistsForPreviousVersion = true;
             break;
         }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
         previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+        retryCount++;
     }
     return previousVersion;
 }
