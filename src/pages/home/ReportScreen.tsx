@@ -720,6 +720,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Report.readNewestAction(report.reportID);
     }, [report]);
     const firstReportAction = reportActions[0];
+    const shouldRenderFirstReportAction = !!firstReportAction &&
+        !ReportActionsUtils.isActionOfType(firstReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
+        !ReportActionsUtils.isDeletedAction(firstReportAction);
+
+
+    console.log('[wildebug] firstReportAction', firstReportAction)
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
@@ -801,7 +807,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        {!!firstReportAction && (
+                                        {shouldRenderFirstReportAction && (
                                             <ReportActionsListItemRenderer
                                                 reportAction={firstReportAction}
                                                 reportActions={reportActions}
