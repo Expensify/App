@@ -524,7 +524,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Warn deployers if staging deploy failed
+      - name: Warn deployers if staging GH prerelease failed
         if: ${{ failure() }}
         uses: 8398a7/action-slack@v3
         with:
@@ -575,7 +575,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Warn deployers if production deploy failed
+      - name: Warn deployers if production GH release failed
         if: ${{ failure() }}
         uses: 8398a7/action-slack@v3
         with:
