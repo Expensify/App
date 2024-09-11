@@ -12,6 +12,7 @@ import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type ImportOnyxStateProps from './types';
 import {cleanAndTransformState} from './utils';
 
 const CHUNK_SIZE = 100;
@@ -69,7 +70,7 @@ function applyStateInChunks(state: OnyxValues) {
     return promise;
 }
 
-export default function OnyxStateImport({setIsLoading, isLoading}: {setIsLoading: (isLoading: boolean) => void; isLoading: boolean}) {
+export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

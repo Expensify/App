@@ -9,9 +9,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
-import OnyxStateImport from '@components/OnyxStateImport';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -149,7 +149,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState, isUsingImported
                                     />
                                 </TestToolRow>
                             </View>
-                            <OnyxStateImport
+                            <ImportOnyxState
                                 setIsLoading={setIsLoading}
                                 isLoading={isLoading}
                             />

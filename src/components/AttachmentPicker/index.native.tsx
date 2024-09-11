@@ -118,6 +118,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     /**
      * A generic handling when we don't know the exact reason for an error
      */
