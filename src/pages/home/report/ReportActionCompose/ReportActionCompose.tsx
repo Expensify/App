@@ -179,7 +179,7 @@ function ReportActionCompose({
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
-        return !draftComment || !!draftComment.match(/^(\s)*$/);
+        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -213,25 +213,13 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
-    // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
-    const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
-
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (includesConcierge) {
-            if (userBlockedFromConcierge) {
-                return translate('reportActionCompose.blockedFromConcierge');
-            }
-
-            return translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
+        if (includesConcierge && userBlockedFromConcierge) {
+            return translate('reportActionCompose.blockedFromConcierge');
         }
-
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge]);
 
     const focus = () => {
         if (composerRef.current === null) {

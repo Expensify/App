@@ -1,4 +1,5 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import AmexBlueCompanyCards from '@assets/images/companyCards/card-amex-blue.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
@@ -9,6 +10,7 @@ import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
 import BankUserGreen from '@assets/images/product-illustrations/bank-user--green.svg';
+import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import ConciergeBlue from '@assets/images/product-illustrations/concierge--blue.svg';
 import ConciergeExclamation from '@assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
@@ -55,6 +57,7 @@ import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustra
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
+import CommentBubblesBlue from '@assets/images/simple-illustrations/simple-illustration__commentbubbles_blue.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
@@ -121,6 +124,7 @@ export {
     BankMouseGreen,
     BankUserGreen,
     BigRocket,
+    BrokenMagnifyingGlass,
     ChatBubbles,
     CoffeeMug,
     ConciergeBlue,
@@ -180,6 +184,7 @@ export {
     SmartScan,
     Hourglass,
     CommentBubbles,
+    CommentBubblesBlue,
     TrashCan,
     TeleScope,
     Profile,
@@ -231,5 +236,6 @@ export {
     AmexCompanyCards,
     MasterCardCompanyCards,
     VisaCompanyCards,
+    AmexBlueCompanyCards,
     TurtleInShell,
 };
