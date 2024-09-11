@@ -1,7 +1,6 @@
 import React from 'react';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import type {UnknownRecord} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,7 +12,7 @@ import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {keysToOmit, transformNumericKeysToArray} from './utils';
+import {cleanAndTransformState} from './utils';
 
 const CHUNK_SIZE = 100;
 
@@ -82,20 +81,10 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
         setIsLoading(true);
         readFileInChunks(file.uri)
             .then((fileContent) => {
-                const importedState = JSON.parse(fileContent) as UnknownRecord;
-                const transformedState = transformNumericKeysToArray(importedState) as OnyxValues;
-
-                Object.keys(transformedState).forEach((key) => {
-                    const shouldOmit = keysToOmit.some((onyxKey) => key.startsWith(onyxKey));
-
-                    if (shouldOmit) {
-                        delete transformedState[key as keyof OnyxValues];
-                    }
-                });
+                const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
                 setShouldForceOffline(true);
                 Onyx.clear(KEYS_TO_PRESERVE).then(() => {
                     applyStateInChunks(transformedState).then(() => {
-                        setIsLoading(false);
                         Navigation.navigate(ROUTES.HOME);
                     });
                 });

@@ -11,13 +11,13 @@ import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {keysToOmit, transformNumericKeysToArray} from './utils';
+import {cleanAndTransformState} from './utils';
 
 export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const onExportFilePicked = (file: FileObject) => {
+    const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
             return;
         }
@@ -28,20 +28,10 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
         response.text().then((text) => {
             setIsLoading(true);
             const fileContent = text;
-            const importedState = JSON.parse(fileContent) as Record<string, unknown>;
-            const parsedState = {...importedState};
-
-            Object.keys(parsedState).forEach((key) => {
-                const shouldOmit = keysToOmit.some((onyxKey) => key.startsWith(onyxKey));
-
-                if (shouldOmit) {
-                    delete parsedState[key];
-                }
-            });
-            const cleanState = transformNumericKeysToArray(parsedState) as OnyxValues;
+            const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
             setShouldForceOffline(true);
             Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-                Onyx.multiSet(cleanState)
+                Onyx.multiSet(transformedState)
                     .then(() => {
                         Navigation.navigate(ROUTES.HOME);
                     })
@@ -62,7 +52,7 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={() => {
                             openPicker({
-                                onPicked: onExportFilePicked,
+                                onPicked: handleFileRead,
                             });
                         }}
                     />
