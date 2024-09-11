@@ -291,20 +291,22 @@ function MoneyRequestPreviewContent({
         const report2 = ReportUtils.getReport(transaction?.reportID ?? '');
         const policy = PolicyUtils.getPolicy(report2?.policyID);
         const hasValidTaxes = comparisonResult.change.taxCode?.filter((taxID) => PolicyUtils.getTaxByID(policy, taxID ?? '')?.name).length;
-        // if ('merchant' in comparisonResult.change) {
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
-        // } else if ('category' in comparisonResult.change) {
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
-        // } else if ('tag' in comparisonResult.change) {
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
-        // } else if ('description' in comparisonResult.change) {
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
-        // }
+
+        if (!hasValidTaxes) {
+            Transaction.setReviewDuplicatesKey({taxCode: transaction?.taxCode});
+            return;
+        }
+
+        if ('merchant' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('category' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('tag' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('description' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
+        }
         if ('taxCode' in comparisonResult.change && hasValidTaxes) {
-            if (!hasValidTaxes) {
-                Transaction.setReviewDuplicatesKey({taxCode: transaction?.taxCode});
-                return;
-            }
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID));
         } else if ('billable' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID));
