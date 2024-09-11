@@ -859,8 +859,8 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
         : {
               applyWhen: [
                   {
-                      condition: 'matches',
-                      field: 'tag',
+                      condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                      field: CONST.POLICY.FIELDS.TAG,
                       value: tag,
                   },
               ],

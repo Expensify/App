@@ -1158,7 +1158,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
             approver,
             applyWhen: [
                 {
-                    condition: 'matches',
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
                     field: 'category',
                     value: categoryName,
                 },
@@ -1241,7 +1241,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
             },
             applyWhen: [
                 {
-                    condition: 'matches',
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
                     field: 'category',
                     value: categoryName,
                 },
