@@ -101,8 +101,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {
-                    // this is to make sure we get the correct query search params, for saved searches saved as "[savedSearchName]"
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query?.replace(/"/g, '') ?? ''}));
+                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
                 },
                 rightComponent: (
                     <ThreeDotsMenu
