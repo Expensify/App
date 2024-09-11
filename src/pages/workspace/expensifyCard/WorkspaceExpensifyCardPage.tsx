@@ -50,6 +50,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
                 shouldShowOfflineIndicatorInWideScreen
+                showLoadingAsFirstRender={false}
                 isLoading={isLoading}
             >
                 {!!paymentBankAccountID && !isLoading && (
