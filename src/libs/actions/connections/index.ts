@@ -74,7 +74,7 @@ function createErrorFields<TConnectionName extends ConnectionNameExceptNetSuite,
     }, {});
 }
 
-function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
@@ -143,89 +143,6 @@ function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionName
     };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
-
-function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    policyID: string,
-    connectionName: TConnectionName,
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const parameters: UpdatePolicyConnectionConfigParams = {
-        policyID,
-        connectionName,
-        settingName: String(settingName),
-        settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(settingName),
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
-}
-
 /**
  * This method returns read command and stage in progres for a given accounting integration.
  *
@@ -465,7 +382,6 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
 export {
     removePolicyConnection,
     updatePolicyConnectionConfig,
-    updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
     isAuthenticationError,
     syncConnection,

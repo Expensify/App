@@ -107,8 +107,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
+            // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
-            initialRouteName: SCREENS.ONBOARDING.PURPOSE,
             screens: {
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
@@ -278,6 +279,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
                             path: ROUTES.SETTINGS_2FA.route,
                             exact: true,
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
+                            path: ROUTES.SETTINGS_ADD_DELEGATE,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
+                            path: ROUTES.SETTINGS_DELEGATE_ROLE.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
+                            path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
                             path: ROUTES.SETTINGS_STATUS,
@@ -517,6 +540,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
@@ -603,6 +629,36 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_GL_CODE.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_APPROVER.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
+                            path: ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
                             parse: {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
@@ -762,6 +818,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 taxID: (taxID: string) => decodeURIComponent(taxID),
                             },
                         },
+                        [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+                            path: ROUTES.RULES_CUSTOM_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
+                            path: ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: {
+                            path: ROUTES.RULES_RANDOM_REPORT_AUDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER]: {
+                            path: ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
                             path: ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.route,
                         },
@@ -891,14 +959,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_PARTICIPANTS.ROLE]: ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.ROOM_INVITE]: {
-                    screens: {
-                        [SCREENS.ROOM_INVITE_ROOT]: ROUTES.ROOM_INVITE.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: {
                     screens: {
-                        [SCREENS.ROOM_MEMBERS_ROOT]: ROUTES.ROOM_MEMBERS.route,
+                        [SCREENS.ROOM_MEMBERS.ROOT]: ROUTES.ROOM_MEMBERS.route,
+                        [SCREENS.ROOM_MEMBERS.INVITE]: ROUTES.ROOM_INVITE.route,
+                        [SCREENS.ROOM_MEMBERS.DETAILS]: ROUTES.ROOM_MEMBER_DETAILS.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
@@ -1069,7 +1134,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {

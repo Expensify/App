@@ -231,7 +231,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     >
                         <MenuItem
                             title={translate('contacts.setAsDefault')}
-                            icon={Expensicons.Profile}
+                            icon={Expensicons.Star}
                             onPress={setAsDefault}
                         />
                     </OfflineWithFeedback>
