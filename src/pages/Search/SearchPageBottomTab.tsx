@@ -27,17 +27,19 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {queryJSON, policyID} = useMemo(() => {
+    const EXPENSE_FILTERS_TYPE = 'expense';
+
+    const {queryJSON, policyID, isExpenseFilterPage} = useMemo(() => {
         if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyID: undefined};
+            return {queryJSON: undefined, policyID: undefined, isExpenseFilterPage: undefined};
         }
 
         const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
         const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-
         return {
             queryJSON: parsedQuery,
             policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
+            isExpenseFilterPage: parsedQuery?.type === EXPENSE_FILTERS_TYPE,
         };
     }, [activeCentralPaneRoute]);
 
@@ -60,7 +62,7 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
-                            isCustomSearchQuery={queryJSON.inputQuery !== SearchUtils.buildCannedSearchQuery()}
+                            isCustomSearchQuery={shouldUseNarrowLayout && isExpenseFilterPage && queryJSON?.inputQuery !== SearchUtils.buildCannedSearchQuery()}
                         />
                         <SearchTypeMenu queryJSON={queryJSON} />
                     </>
