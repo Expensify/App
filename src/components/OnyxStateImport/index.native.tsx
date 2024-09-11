@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
+import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -91,7 +92,7 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                         delete transformedState[key as keyof OnyxValues];
                     }
                 });
-
+                setShouldForceOffline(true);
                 Onyx.clear(KEYS_TO_PRESERVE).then(() => {
                     applyStateInChunks(transformedState).then(() => {
                         setIsLoading(false);
