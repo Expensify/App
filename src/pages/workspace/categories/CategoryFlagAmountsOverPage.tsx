@@ -75,7 +75,7 @@ function CategoryFlagAmountsOverPage({
                     submitButtonStyles={styles.ph5}
                 >
                     <View style={[styles.mb4, styles.pt3, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', categoryName)}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName})}</Text>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
