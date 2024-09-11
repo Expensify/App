@@ -50,7 +50,7 @@ function SearchPageBottomTab() {
         topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
     };
 
-    const newHandleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset, layoutMeasurement, contentSize} = event.nativeEvent;
         if (windowHeight > contentSize.height) {
             return;
@@ -131,7 +131,7 @@ function SearchPageBottomTab() {
             {shouldUseNarrowLayout && (
                 <Search
                     queryJSON={queryJSON}
-                    onSearchListScroll={newHandleScroll}
+                    onSearchListScroll={handleScroll}
                     contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentMargin : undefined}
                 />
             )}
