@@ -77,7 +77,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
                 <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}>
                     {translate('workspace.accounting.chooseReconciliationAccount.settlementAccount')}
                 </TextLink>
-                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', settlementAccountEnding)}
+                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', {lastFourPAN: settlementAccountEnding})}
             </Text>
 
             <SelectionList

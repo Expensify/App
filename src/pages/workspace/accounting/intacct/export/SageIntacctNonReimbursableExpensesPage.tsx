@@ -146,7 +146,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                         {creditCardAccount}
                         <ToggleSettingOptionRow
                             title={translate('workspace.sageIntacct.defaultVendor')}
-                            subtitle={translate('workspace.sageIntacct.defaultVendorDescription', false)}
+                            subtitle={translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: false})}
                             shouldPlaceSubtitleBelowSwitch
                             switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                             isActive={!!config?.export.nonReimbursableCreditCardChargeDefaultVendor}

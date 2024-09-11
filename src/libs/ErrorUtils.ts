@@ -1,14 +1,14 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
-function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
+function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
         case CONST.JSON_CODE.UNABLE_TO_RETRY:
             return 'session.offlineMessageRetry';

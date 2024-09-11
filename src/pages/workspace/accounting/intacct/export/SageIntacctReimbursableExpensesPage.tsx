@@ -118,7 +118,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                 <View style={[styles.flexGrow1, styles.flexShrink1]}>
                     <ToggleSettingOptionRow
                         title={translate('workspace.sageIntacct.defaultVendor')}
-                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription', true)}
+                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: true})}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={!!reimbursableExpenseReportDefaultVendor}
