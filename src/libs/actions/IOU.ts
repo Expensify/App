@@ -3824,7 +3824,7 @@ function trackExpense(
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
 
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
