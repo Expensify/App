@@ -535,7 +535,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot staging deploy failed. 💥`,
+                text: `💥 NewDot staging GH prerelease failed. 💥`,
               }]
             }
         env:
@@ -586,7 +586,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot production deploy failed. 💥`,
+                text: `💥 NewDot production GH release failed. 💥`,
               }]
             }
         env:
@@ -596,7 +596,7 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
-    if: ${{ fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
