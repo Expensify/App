@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
+import ScrollView from '@components/ScrollView';
 
 type SavedSearchMenuItem = MenuItemBaseProps & {
     key: string;
@@ -56,6 +57,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     useEffect(() => {
         setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
+        console.log('savedSearches length', Object.keys(savedSearches ?? {}).length);
     }, [savedSearches]);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
@@ -158,7 +160,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 <MenuItemList
                     menuItems={menuItems}
                     wrapperStyle={styles.sectionMenuItem}
-                    icon={Expensicons.Star}
+                    icon={Expensicons.Bookmark}
                     iconWidth={variables.iconSizeNormal}
                     iconHeight={variables.iconSizeNormal}
                     shouldUseSingleExecution
@@ -209,7 +211,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     );
                 })}
             </View>
-            {savedSearches && renderSavedSearchesSection(savedSearchesMenuItems())}
+            <ScrollView>
+                {savedSearches && renderSavedSearchesSection(savedSearchesMenuItems())}
+            </ScrollView>
             <DeleteConfirmModal />
         </>
     );
