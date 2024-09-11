@@ -197,6 +197,7 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import Bookmark from '@assets/images/bookmark.svg';
 
 export {
     ActiveRoomAvatar,
@@ -398,4 +399,5 @@ export {
     Star,
     Table,
     SpreadsheetComputer,
+    Bookmark,
 };
