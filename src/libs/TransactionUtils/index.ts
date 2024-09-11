@@ -126,6 +126,7 @@ function buildOptimisticTransaction(
     currency: string,
     reportID: string,
     comment = '',
+    attendees: Attendee[] | undefined = undefined,
     created = '',
     source = '',
     originalTransactionID = '',
@@ -171,6 +172,7 @@ function buildOptimisticTransaction(
         taxAmount,
         billable,
         reimbursable,
+        attendees,
     };
 }
 
@@ -281,6 +283,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
+    if (Object.hasOwn(transactionChanges, 'attendees')) {
+        updatedTransaction.modifiedAttendees = transactionChanges?.attendees;
+    }
+
     if (
         shouldUpdateReceiptState &&
         shouldStopSmartscan &&
@@ -304,6 +310,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'attendees') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;

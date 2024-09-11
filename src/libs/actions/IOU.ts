@@ -1998,6 +1998,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    attendees?: Attendee[],
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -2057,6 +2058,7 @@ function getMoneyRequestInformation(
         currency,
         iouReport.reportID,
         comment,
+        attendees,
         created,
         '',
         '',
@@ -2084,6 +2086,7 @@ function getMoneyRequestInformation(
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
+    console.log('%%%%%\n', 'optimisticTransaction', optimisticTransaction);
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
     // 2. CREATED action for the iouReport
@@ -3529,6 +3532,7 @@ function requestMoney(
         payeeEmail,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
+        attendees,
     );
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -3566,6 +3570,7 @@ function requestMoney(
         default: {
             const parameters: RequestMoneyParams = {
                 debtorEmail: payerEmail,
+                attendees,
                 debtorAccountID: payerAccountID,
                 amount,
                 currency,
