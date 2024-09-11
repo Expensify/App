@@ -86,7 +86,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'blockquote',
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
-                    if (tnode.attributes.islarge === undefined) {
+                    if (tnode.attributes.isEmojisOnly === undefined) {
                         return;
                     }
                     return styles.onlyEmojisTextLineHeight;
