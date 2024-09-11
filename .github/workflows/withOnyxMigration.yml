@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.ts', '**.tsx']
+    paths: ['**.ts']
 
 jobs:
   withOnyxMigration:

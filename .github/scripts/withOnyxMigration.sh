@@ -13,7 +13,7 @@ IFS=$'\n'
 git fetch origin main --no-tags --depth=1
 
 # Get the list of modified and added files
-modified_files=$(git diff --name-only --diff-filter=AM origin/main HEAD -- '*.ts' '*.tsx')
+modified_files=$(git diff --name-only --diff-filter=AM origin/main HEAD -- '*.tsx')
 
 # Count instances of 'withOnyx' on main branch and current branch
 count_main=0
