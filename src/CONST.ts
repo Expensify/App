@@ -2474,22 +2474,6 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
-    },
-    AVATAR_ROW_SIZE: {
-        DEFAULT: 4,
-        LARGE_SCREEN: 8,
-    },
-    OPTION_MODE: {
-        COMPACT: 'compact',
-        DEFAULT: 'default',
-    },
-    SUBSCRIPTION: {
-        TYPE: {
-            ANNUAL: 'yearly2018',
-            PAYPERUSE: 'monthly2018',
-        },
-    },
-    COMPANY_CARDS: {
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -2573,6 +2557,20 @@ const CONST = {
              * Name of Card NVP for QuickBooks Desktop custom export accounts
              */
             NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID: 'financialforce_export_vendor_policy_id',
+        },
+    },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
+    },
+    OPTION_MODE: {
+        COMPACT: 'compact',
+        DEFAULT: 'default',
+    },
+    SUBSCRIPTION: {
+        TYPE: {
+            ANNUAL: 'yearly2018',
+            PAYPERUSE: 'monthly2018',
         },
     },
     REGEX: {
