@@ -28,15 +28,16 @@ function stringToArray(input: string) {
 }
 
 /**
- * Makes a tree from an input string, which has been converted by {@link stringToArray}.
+ * Makes a tree from an input string
  * **Important:** As we only support an alphabet of 26 characters, the input string should only contain characters from a-z.
  * Thus, all input data must be cleaned before being passed to this function.
  * If you then use this tree for search you should clean your search input as well (so that a search query of "testuser@myEmail.com" becomes "testusermyemailcom").
  */
-function makeTree(a: number[]) {
+function makeTree(searchString: string) {
+    const a = stringToArray(searchString);
     const N = 25000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
-    const t = Array.from({length: N}, () => Array(ALPHABET_SIZE).fill(-1)) as number[][];
+    const t = Array.from({length: N}, () => Array(ALPHABET_SIZE).fill(-1) as number[]);
     const l = Array(N).fill(0) as number[];
     const r = Array(N).fill(0) as number[];
     const p = Array(N).fill(0) as number[];
@@ -183,8 +184,9 @@ function makeTree(a: number[]) {
 }
 
 function performanceProfile(input: string, search = 'sasha') {
-    // TODO: For emojis we could precalculate the stringToArray or even the makeTree function during build time using a babel plugin
-    const {build, findSubstring} = makeTree(stringToArray(input));
+    // TODO: For emojis we could precalculate the makeTree function during build time using a babel plugin
+    // maybe babel plugin that just precalculates the result of function execution (so that it can be generic purpose plugin)
+    const {build, findSubstring} = makeTree(input);
 
     const buildStart = performance.now();
     build();
@@ -212,4 +214,4 @@ function testEmojis() {
     return performanceProfile(searchString, 'smile');
 }
 
-export {makeTree, stringToArray, testEmojis};
+export {makeTree, testEmojis};

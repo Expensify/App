@@ -18,7 +18,7 @@ import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
-import {makeTree, stringToArray} from '@libs/SuffixUkkonenTree';
+import {makeTree} from '@libs/SuffixUkkonenTree';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -159,12 +159,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         console.log(searchString.substring(0, 20));
         console.log('building search strings', performance.now() - start);
 
-        // TODO: stringToArray is probably also an implementation detail we want to hide from the developer
         start = performance.now();
-        const numbers = stringToArray(searchString);
-        console.log('stringToArray', performance.now() - start);
-        start = performance.now();
-        const tree = makeTree(numbers);
+        const tree = makeTree(searchString);
         console.log('makeTree', performance.now() - start);
         start = performance.now();
         tree.build();
