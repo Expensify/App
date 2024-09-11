@@ -348,16 +348,20 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
+function getReportNewestTransactionDate(report: ReportListItemType) {
+    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > max.created ? curr : max), report.transactions[0])?.created;
+}
+
 function getSortedReportData(data: ReportListItemType[]) {
     return data.sort((a, b) => {
-        const aValue = a?.created;
-        const bValue = b?.created;
+        const aNewestTransaction = getReportNewestTransactionDate(a);
+        const bNewestTransaction = getReportNewestTransactionDate(b);
 
-        if (aValue === undefined || bValue === undefined) {
+        if (!aNewestTransaction || !bNewestTransaction) {
             return 0;
         }
 
-        return bValue.toLowerCase().localeCompare(aValue);
+        return bNewestTransaction.toLowerCase().localeCompare(aNewestTransaction);
     });
 }
 
