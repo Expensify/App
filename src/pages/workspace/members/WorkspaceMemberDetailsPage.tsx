@@ -332,7 +332,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             {memberCards.map((memberCard) => (
                                                 <MenuItem
                                                     title={memberCard.nameValuePairs?.cardTitle}
-                                                    badgeText={CurrencyUtils.convertAmountToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)}
+                                                    badgeText={CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)}
                                                     icon={ExpensifyCardImage}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
