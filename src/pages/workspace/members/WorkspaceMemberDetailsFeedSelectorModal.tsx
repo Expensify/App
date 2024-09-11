@@ -12,8 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
@@ -54,7 +56,11 @@ function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}:
             setShouldShowError(true);
             return;
         }
-        console.log(selectedFeed);
+        if (selectedFeed === 'expensifyCard') {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed));
+        }
     };
 
     const handleSelectFeed = (feed: CardFeedListItem) => {
