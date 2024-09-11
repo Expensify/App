@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy/Policy';
 import * as CardUtils from '@libs/CardUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -103,19 +105,34 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                title={card?.nameValuePairs?.cardTitle}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
-                            />
-                            {exportMenuItem && (
+                            <OfflineWithFeedback
+                                pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
+                                errorRowStyles={[styles.ph5, styles.mb3]}
+                                errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
+                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
+                            >
                                 <MenuItemWithTopDescription
-                                    description={exportMenuItem.description}
-                                    title={exportMenuItem.title}
+                                    description={translate('workspace.moreFeatures.companyCards.cardName')}
+                                    title={card?.nameValuePairs?.cardTitle}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
+                                    brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
                                 />
+                            </OfflineWithFeedback>
+                            {exportMenuItem && (
+                                <OfflineWithFeedback
+                                    pendingAction={card?.nameValuePairs?.pendingFields?.exportAccountDetails}
+                                    errorRowStyles={[styles.ph5, styles.mb3]}
+                                    errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'exportAccountDetails')}
+                                    onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'exportAccountDetails')}
+                                >
+                                    <MenuItemWithTopDescription
+                                        description={exportMenuItem.description}
+                                        title={exportMenuItem.title}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
+                                    />
+                                </OfflineWithFeedback>
                             )}
                             <MenuItemWithTopDescription
                                 shouldShowRightComponent={card?.isLoadingLastUpdated}
@@ -134,13 +151,21 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 title={card?.startDate ? format(card.startDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
-                            <MenuItem
-                                icon={Expensicons.Sync}
-                                iconFill={theme.success}
-                                title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                style={styles.mv1}
-                                onPress={updateCard}
-                            />
+                            <OfflineWithFeedback
+                                pendingAction={card?.pendingFields?.lastUpdated}
+                                errorRowStyles={[styles.ph5, styles.mb3]}
+                                errors={ErrorUtils.getLatestErrorField(card ?? {}, 'lastUpdated')}
+                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastUpdated', true)}
+                            >
+                                <MenuItem
+                                    icon={Expensicons.Sync}
+                                    iconFill={theme.success}
+                                    title={translate('workspace.moreFeatures.companyCards.updateCard')}
+                                    style={styles.mv1}
+                                    brickRoadIndicator={card?.errorFields?.lastUpdated ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={updateCard}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
                                 icon={Expensicons.RemoveMembers}
                                 iconFill={theme.success}

@@ -50,6 +50,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+
     /** Is card data loading */
     isLoading?: boolean;
 
@@ -93,6 +96,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Card expiration date */
         expirationDate?: string;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
     }>;
 }>;
 
