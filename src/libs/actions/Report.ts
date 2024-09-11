@@ -1020,7 +1020,7 @@ function navigateToAndOpenReport(
                 avatarUri ?? '',
                 avatarFile?.name ?? '',
                 optimisticReportID,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             );
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(
