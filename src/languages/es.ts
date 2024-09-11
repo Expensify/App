@@ -147,7 +147,6 @@ import type {
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
-    TranslationDeepObject,
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
@@ -183,7 +182,8 @@ import type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
-} from './types';
+} from './params';
+import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
 const translations = {
