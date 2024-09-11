@@ -439,8 +439,7 @@ const ROUTES = {
     },
     SETTINGS_CATEGORY_EDIT: {
         route: 'settings/:policyID/categories/:categoryName/edit',
-        getRoute: (policyID: string, categoryName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
+        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
