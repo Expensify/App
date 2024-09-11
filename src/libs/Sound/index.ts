@@ -58,6 +58,7 @@ function withMinimalExecutionTime<F extends (...args: Parameters<F>) => ReturnTy
 }
 
 const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
+    Sound.setCategory('Ambient', true);
     const sound = new Sound(`${config.prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
         if (error || isMuted) {
             return;
