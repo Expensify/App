@@ -45,8 +45,7 @@ function navigateToEditChatName() {
 }
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
-    const optimisticReportID = useRef<string>(newGroupDraft?.optimisticReportID ?? ReportUtils.generateReportID());
-    const shouldClearGroupDraft = useRef<boolean>(false);
+    const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -106,20 +105,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
         Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-        shouldClearGroupDraft.current = true;
     }, [newGroupDraft, avatarFile]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
-
-    useEffect(() => {
-        Report.setGroupDraft({optimisticReportID: optimisticReportID.current});
-        return () => {
-            if (!shouldClearGroupDraft.current) {
-                return;
-            }
-            Report.clearGroupChat();
-        };
-    }, []);
 
     useEffect(() => {
         if (!stashedLocalAvatarImage) {
@@ -163,11 +151,11 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
+                    shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     shouldUseStyleUtilityForAnchorPosition
                     style={styles.w100}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(optimisticReportID.current))}
                 />
             </View>
             <MenuItemWithTopDescription

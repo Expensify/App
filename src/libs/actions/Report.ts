@@ -849,6 +849,8 @@ function openReport(
         if (avatar) {
             parameters.file = avatar;
         }
+
+        clearGroupChat();
     }
 
     if (isFromDeepLink) {
