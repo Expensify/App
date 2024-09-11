@@ -29,7 +29,6 @@ import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
-import SearchInputManager from '@pages/workspace/SearchInputManager';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -198,8 +197,6 @@ const modalScreenListeners = {
         Modal.setModalVisibility(false);
     },
     beforeRemove: () => {
-        // Clear search input (WorkspaceInvitePage) when modal is closed
-        SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
         Modal.willAlertModalBecomeVisible(false);
     },
