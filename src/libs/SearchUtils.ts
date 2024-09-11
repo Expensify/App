@@ -702,6 +702,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
             icon: Expensicons.Pencil,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
+            shouldCallAfterModalHide: true,
         },
         {
             text: translateLocal('common.delete'),
