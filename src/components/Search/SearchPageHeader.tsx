@@ -301,7 +301,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             icon={headerIcon}
             subtitleStyles={subtitleStyles}
         >
-            {headerButtonsOptions.length > 0 && (
+            {headerButtonsOptions.length > 0 ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
@@ -311,13 +311,14 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     options={headerButtonsOptions}
                     isSplitButton={false}
                 />
+            ) : (
+                <Button
+                    text={translate('search.filtersHeader')}
+                    icon={Expensicons.Filters}
+                    onPress={onPress}
+                    medium
+                />
             )}
-            <Button
-                text={translate('search.filtersHeader')}
-                icon={Expensicons.Filters}
-                onPress={onPress}
-                medium
-            />
         </HeaderWrapper>
     );
 }
