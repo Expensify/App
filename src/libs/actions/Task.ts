@@ -25,7 +25,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
-type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'notificationPreference' | 'pendingFields' | 'participants'>;
+type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
 type Assignee = {
     icons: Icon[];
     displayName: string;
@@ -499,7 +499,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const reportName = (title ?? report?.reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
-    const newDescription = description ? ReportUtils.getParsedComment(description) : report.description;
+    const newDescription = typeof description === 'string' ? ReportUtils.getParsedComment(description) : report.description;
     const reportDescription = (newDescription ?? '').trim();
 
     const optimisticData: OnyxUpdate[] = [
@@ -581,9 +581,13 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
-        notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID)
-            ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
-            : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        participants: {
+            [currentUserAccountID]: {
+                notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID)
+                    ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+                    : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        },
     };
     const successReport: NullishDeep<OnyxTypes.Report> = {pendingFields: {...(assigneeAccountID && {managerID: null})}};
 
@@ -662,7 +666,12 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
-        optimisticReport.participants = {[assigneeAccountID]: {hidden: false}};
+        optimisticReport.participants = {
+            ...(optimisticReport.participants ?? {}),
+            [assigneeAccountID]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            },
+        };
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,

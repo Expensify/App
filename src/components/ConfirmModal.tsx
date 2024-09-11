@@ -19,6 +19,9 @@ type ConfirmModalProps = {
     /** A callback to call when the form has been closed */
     onCancel?: () => void;
 
+    /** A callback to call when backdrop is pressed */
+    onBackdropPress?: () => void;
+
     /** Modal visibility */
     isVisible: boolean;
 
@@ -108,6 +111,7 @@ function ConfirmModal({
     success = true,
     danger = false,
     onCancel = () => {},
+    onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = true,
     shouldSetModalVisibility = true,
@@ -132,6 +136,7 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
 }: ConfirmModalProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -139,6 +144,7 @@ function ConfirmModal({
         <Modal
             onSubmit={onConfirm}
             onClose={onCancel}
+            onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}

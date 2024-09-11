@@ -27,9 +27,9 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {queryJSON, policyID, isCustomQuery} = useMemo(() => {
+    const {queryJSON, policyID} = useMemo(() => {
         if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyID: undefined, isCustomQuery: undefined};
+            return {queryJSON: undefined, policyID: undefined};
         }
 
         const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
@@ -38,7 +38,6 @@ function SearchPageBottomTab() {
         return {
             queryJSON: parsedQuery,
             policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
-            isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
 
@@ -62,10 +61,7 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchTypeMenu
-                            isCustomQuery={isCustomQuery}
-                            queryJSON={queryJSON}
-                        />
+                        <SearchTypeMenu queryJSON={queryJSON} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -76,12 +72,7 @@ function SearchPageBottomTab() {
                         }}
                     />
                 )}
-                {shouldUseNarrowLayout && queryJSON && (
-                    <Search
-                        queryJSON={queryJSON}
-                        isCustomQuery={isCustomQuery}
-                    />
-                )}
+                {shouldUseNarrowLayout && queryJSON && <Search queryJSON={queryJSON} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

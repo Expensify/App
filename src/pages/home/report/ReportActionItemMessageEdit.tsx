@@ -61,6 +61,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string;
 
+    /** PolicyID of the policy the report belongs to */
+    policyID?: string;
+
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -68,7 +71,7 @@ type ReportActionItemMessageEditProps = {
     shouldDisableEmojiPicker?: boolean;
 
     /** Whether report is from group policy */
-    isGroupPolicyReport?: boolean;
+    isGroupPolicyReport: boolean;
 };
 
 // native ids
@@ -81,7 +84,7 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 const draftMessageVideoAttributeCache = new Map<string, string>();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
@@ -532,7 +535,8 @@ function ReportActionItemMessageEdit(
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                        isGroupPolicyReport={false}
+                        isGroupPolicyReport={isGroupPolicyReport}
+                        policyID={policyID}
                         value={draft}
                         selection={selection}
                         setSelection={setSelection}
