@@ -4,8 +4,10 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import OfflineWithFeedback from './OfflineWithFeedback';
 
 type MenuItemLink = string | (() => Promise<string>);
 
@@ -15,6 +17,18 @@ type MenuItemWithLink = MenuItemProps & {
 
     /** A unique key for the menu item */
     key?: string;
+
+    /** The pending action for the menu item */
+    pendingAction?: OnyxCommon.PendingAction | null;
+
+    /** A function to dismiss the pending action */
+    onPendingActionDismiss?: () => void;
+
+    /** The error for the menu item */
+    error?: OnyxCommon.Errors | null;
+
+    /** Whether we should force opacity */
+    shouldForceOpacity?: boolean;
 };
 
 type MenuItemListProps = {
@@ -69,21 +83,28 @@ function MenuItemList({
     return (
         <>
             {menuItems.map((menuItemProps) => (
-                <MenuItem
-                    key={menuItemProps.key ?? menuItemProps.title}
+                <OfflineWithFeedback
+                    pendingAction={menuItemProps.pendingAction}
+                    onClose={menuItemProps.onPendingActionDismiss}
+                    errors={menuItemProps.error}
+                    shouldForceOpacity={menuItemProps.shouldForceOpacity}
+                >
+                    <MenuItem
+                        key={menuItemProps.key ?? menuItemProps.title}
                     wrapperStyle={wrapperStyle}
-                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                    ref={popoverAnchor}
-                    shouldBlockSelection={!!menuItemProps.link}
+                        onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                        ref={popoverAnchor}
+                        shouldBlockSelection={!!menuItemProps.link}
                     icon={icon}
                     iconWidth={iconWidth}
                     iconHeight={iconHeight}
                     isPaneMenu={isPaneMenu}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...menuItemProps}
-                    disabled={!!menuItemProps.disabled || isExecuting}
-                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
-                />
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...menuItemProps}
+                        disabled={!!menuItemProps.disabled || isExecuting}
+                        onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                    />
+                </OfflineWithFeedback>
             ))}
         </>
     );
