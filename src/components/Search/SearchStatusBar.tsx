@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
