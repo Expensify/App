@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -115,11 +116,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     useFocusEffect(fetchCompanyCards);
 
     const companyCards = cardFeeds?.companyCards ?? {};
-    const selectedCompanyCards = Object.fromEntries(Object.entries(companyCards).filter(([key]) => key === selectedFeed));
-    const companyCardsLength = Object.keys(selectedCompanyCards).length;
-    const isNoFeed = companyCardsLength === 0;
-    const isFeedAdded = companyCardsLength > 0;
-    const isPending = companyCardsLength === 1 && Object.values(selectedCompanyCards)[0].pending;
+    const selectedCompanyCard = companyCards[selectedFeed] ?? {};
+    const isNoFeed = lodashIsEmpty(selectedCompanyCard);
+    const isPending = selectedCompanyCard?.pending;
+    const isFeedAdded = !isPending && !lodashIsEmpty(selectedCompanyCard);
     const isLoading = !cardFeeds || cardFeeds.isLoading;
 
     // TODO: use data form onyx instead of mocked one when API is implemented
