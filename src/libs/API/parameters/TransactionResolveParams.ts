@@ -1,5 +1,5 @@
 type TransactionResolveParams = {
-    transactionIDToKeep: string;
+    transactionID: string;
     transactionIDList: string[];
     created: string;
     merchant: string;

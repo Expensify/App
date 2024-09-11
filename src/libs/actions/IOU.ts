@@ -8083,7 +8083,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         };
     });
 
-    const reportIDList = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})
+    const iouActionList = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})
         ?.filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 return false;
@@ -8093,8 +8093,13 @@ function resolveDuplicates(params: TransactionMergeParams) {
                 return false;
             }
             return params.transactionIDList.includes(message.IOUTransactionID);
-        })
-        .map((action) => action?.childReportID);
+        });
+    
+    const reportIDList = iouActionList.map((action) => action?.childReportID);
+    const orderedTransactionIDList = iouActionList.map((action) => {
+        const message = ReportActionsUtils.getOriginalMessage(action);
+        return message?.IOUTransactionID ?? '';
+    });
 
     const optimisticHoldActions: OnyxUpdate[] = [];
     const failureHoldActions: OnyxUpdate[] = [];
@@ -8159,12 +8164,12 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, optimisticReportActionData);
     failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, failureReportActionData);
-    const {transactionID, reportID, receiptID, ...otherParams} = params;
+    const {reportID, transactionIDList, receiptID, ...otherParams} = params;
 
     const parameters: TransactionResolveParams = {
         ...otherParams,
-        transactionIDToKeep: params.transactionID,
         reportActionIDList,
+        transactionIDList: orderedTransactionIDList,
         optimisticReportActionID: optimisticReportAction.reportActionID,
     };
 
