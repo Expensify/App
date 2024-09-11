@@ -195,7 +195,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute());
                 },
             });
         }

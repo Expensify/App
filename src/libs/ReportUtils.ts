@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import * as SearchActions from '@libs/actions/Search';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -3118,7 +3119,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string, currentSearchHash?: number, selectedTransactions?: string[]): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -3135,11 +3136,20 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
+        if (currentSearchHash) {
+            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID])
+            return;
+        }
         IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
     } else {
+        if (currentSearchHash) {
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(transactionID));
+            return;
+        }
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
+        
     }
 };
 
