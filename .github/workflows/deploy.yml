@@ -562,7 +562,8 @@ jobs:
             ./desktop-build-artifact/NewExpensify.dmg \
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./web-build-tar-gz-artifact/webBuild.tar.gz \
-            ./web-build-zip-artifact/webBuild.zip
+            ./web-build-zip-artifact/webBuild.zip \
+            --clobber
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -651,7 +652,7 @@ jobs:
     name: Post a GitHub comments on all deployed PRs when platforms are done building and deploying
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
