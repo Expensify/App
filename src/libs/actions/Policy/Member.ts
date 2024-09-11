@@ -174,7 +174,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(membersLength: number) {
+function updateImportSpreadsheetData(membersLength: number): OnyxData {
     const onyxData: OnyxData = {
         successData: [
             {
@@ -684,7 +684,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
 
     const parameters = {
         policyID,
-        employees: JSON.stringify([...members.map((member) => ({email: member.email, role: member.role}))]),
+        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role}))),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);

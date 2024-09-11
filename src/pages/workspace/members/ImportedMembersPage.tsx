@@ -126,7 +126,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const closeImportPageAndModal = () => {
         setIsImporting(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     return (
