@@ -8,7 +8,6 @@ import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, 
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
-import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -234,7 +233,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: LocaleContextProps['translate'],
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
