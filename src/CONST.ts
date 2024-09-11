@@ -4547,6 +4547,24 @@ const CONST = {
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
                 },
+                {
+                    type: 'setupTags',
+                    autoCompleted: false,
+                    title: 'Set up tags (optional)',
+                    description: ({workspaceMoreFeaturesLink}) =>
+                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.' +
+                        '\n' +
+                        '*Here’s how to setup tags:*\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click More features.\n' +
+                        '5. Enable tags.\n' +
+                        '6. Navigate to Tags in the workspace editor.\n' +
+                        '7. In Tags, click + Add tag to make your own.' +
+                        '\n' +
+                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
+                },
             ],
         },
         [onboardingChoices.PERSONAL_SPEND]: {
