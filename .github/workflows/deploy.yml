@@ -652,7 +652,7 @@ jobs:
     name: Post a GitHub comments on all deployed PRs when platforms are done building and deploying
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease]
+    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
