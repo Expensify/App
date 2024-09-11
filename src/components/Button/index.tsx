@@ -324,6 +324,9 @@ function Button(
                 />
             )}
             <PressableWithFeedback
+                dataSet={{
+                    listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
+                }}
                 ref={ref}
                 onPress={(event) => {
                     if (event?.type === 'click') {
