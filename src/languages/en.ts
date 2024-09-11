@@ -3995,12 +3995,9 @@ export default {
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
-            has: 'Has',
             link: 'Link',
-            is: 'Is',
             pinned: 'Pinned',
             unread: 'Unread',
-            draft: 'Draft',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,

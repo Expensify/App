@@ -5426,11 +5426,6 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
         },
-        CHAT_STATUS: {
-            UNREAD: 'unread',
-            PINNED: 'pinned',
-            DRAFT: 'draft',
-        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             HOLD: 'hold',
@@ -5471,10 +5466,6 @@ const CONST = {
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
             },
-        },
-        CHAT_TYPES: {
-            LINK: 'link',
-            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5523,8 +5514,6 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
-            HAS: 'has',
-            IS: 'is',
         },
     },
 
