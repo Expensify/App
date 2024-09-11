@@ -62,7 +62,9 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         let indicator;
         if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        } else if (!login?.validatedDate && !isDefaultContactMethod && sortedLoginNames.length === 1) {
+        } else if (!login?.validatedDate && !isDefaultContactMethod) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        } else if (!login?.validatedDate && isDefaultContactMethod && sortedLoginNames.length > 1) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
