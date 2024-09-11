@@ -55,7 +55,7 @@ function splitLongWord(word: string, maxLength: number): string[] {
 
 function getFontSizeFromStyles(textStyles: StyleProp<TextStyle>): number {
     if (Array.isArray(textStyles)) {
-        for (let style of textStyles) {
+        for (const style of textStyles) {
             if (style && 'fontSize' in style && style.fontSize) {
                 return style.fontSize;
             }
@@ -72,16 +72,17 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
 
-    if (typeof children !== 'string') {
-        return null;
-    }
-
     const textMatrix = useMemo(() => {
         const fontSize = getFontSizeFromStyles(textStyles);
         const charsPerLine = Math.floor(windowWidth / (fontSize * variables.fontSizeToWidthRatio));
 
-        return getTextMatrix(children).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
-    }, [textStyles]);
+        const childrenString = typeof children === 'string' ? children : '';
+        return getTextMatrix(childrenString).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
+    }, [textStyles, children, windowWidth]);
+
+    if (typeof children !== 'string') {
+        return null;
+    }
 
     return textMatrix.map((rowText, rowIndex) => (
         <Fragment
