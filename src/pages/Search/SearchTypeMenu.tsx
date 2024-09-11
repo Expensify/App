@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
@@ -81,7 +82,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     return (
         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
             {typeMenuItems.map((item, index) => {
-                const onPress = singleExecution(() => Navigation.navigate(item.route));
+                const onPress = singleExecution(() => {
+                    SearchActions.clearAllFilters();
+                    Navigation.navigate(item.route);
+                });
 
                 return (
                     <MenuItem

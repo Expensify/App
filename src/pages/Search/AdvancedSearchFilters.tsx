@@ -229,7 +229,7 @@ function AdvancedSearchFilters() {
 
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
-        SearchActions.clearAdvancedFilters();
+        SearchActions.clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
