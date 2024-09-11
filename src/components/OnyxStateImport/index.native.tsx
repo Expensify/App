@@ -69,7 +69,7 @@ function applyStateInChunks(state: OnyxValues) {
     return promise;
 }
 
-export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
+export default function OnyxStateImport({setIsLoading, isLoading}: {setIsLoading: (isLoading: boolean) => void; isLoading: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -93,6 +93,10 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
             .finally(() => {
                 setIsLoading(false);
             });
+
+        if (isLoading) {
+            setIsLoading(false);
+        }
     };
 
     return (

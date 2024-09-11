@@ -13,7 +13,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {cleanAndTransformState} from './utils';
 
-export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
+export default function OnyxStateImport({setIsLoading, isLoading}: {setIsLoading: (isLoading: boolean) => void; isLoading: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -22,11 +22,11 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
             return;
         }
 
+        setIsLoading(true);
         const blob = new Blob([file as BlobPart]);
         const response = new Response(blob);
 
         response.text().then((text) => {
-            setIsLoading(true);
             const fileContent = text;
             const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
             setShouldForceOffline(true);
@@ -41,6 +41,10 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                     });
             });
         });
+
+        if (isLoading) {
+            setIsLoading(false);
+        }
     };
 
     return (
