@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -22,23 +21,10 @@ type ReportAvatarOnyxProps = {
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true}: ReportAvatarProps) {
-    const {translate} = useLocalize();
     const policyID = route.params.policyID ?? '-1';
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const policyName = ReportUtils.getPolicyName(report, true, policy);
-    const isPolicyRelatedReport = !!policyName;
-    const unavailableWorkspace = translate('workspace.common.unavailable');
 
     const attachment = useMemo(() => {
-        if (isPolicyRelatedReport) {
-            return {
-                source: UserUtils.getFullSizeAvatar(ReportUtils.getWorkspaceAvatar(report), 0),
-                headerTitle: policyName,
-                originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
-                isWorkspaceAvatar: true,
-            };
-        }
-
         if (ReportUtils.isGroupChat(report) && !ReportUtils.isThread(report)) {
             return {
                 source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID ?? ''),
@@ -50,8 +36,8 @@ function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = tr
 
         return {
             source: UserUtils.getFullSizeAvatar(ReportUtils.getWorkspaceAvatar(report), 0),
-            headerTitle: unavailableWorkspace,
-            originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
+            headerTitle: ReportUtils.getPolicyName(report, false, policy),
+            originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
             isWorkspaceAvatar: true,
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
