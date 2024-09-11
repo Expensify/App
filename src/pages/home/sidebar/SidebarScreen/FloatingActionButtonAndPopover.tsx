@@ -357,7 +357,7 @@ function FloatingActionButtonAndPopover(
         if (canUseCombinedTrackSubmit) {
             return [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
+                    icon: getIconForAction(CONST.IOU.TYPE.GLOBAL_CREATE),
                     text: translate('iou.createExpense'),
                     onSelected: () =>
                         interceptAnonymousUser(() =>
