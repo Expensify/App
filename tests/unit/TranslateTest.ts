@@ -2,7 +2,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as translations from '@src/languages/translations';
-import type {TranslationBase, TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationDeepObject, TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import * as Localize from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
@@ -168,7 +168,7 @@ describe('flattenObject', () => {
             },
         };
 
-        const result = translations.flattenObject(simpleObject as TranslationBase<typeof simpleObject>);
+        const result = translations.flattenObject(simpleObject as TranslationDeepObject<typeof simpleObject>);
         expect(result).toStrictEqual({
             'common.yes': 'Yes',
             'common.no': 'No',

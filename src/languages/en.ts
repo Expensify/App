@@ -149,7 +149,7 @@ import type {
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
-    TranslationBase,
+    TranslationDeepObject,
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
@@ -4805,4 +4805,4 @@ const translations = {
     },
 };
 
-export default translations satisfies TranslationBase<typeof translations>;
+export default translations satisfies TranslationDeepObject<typeof translations>;

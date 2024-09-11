@@ -269,7 +269,7 @@ type PaySomeoneParams = {name?: string} | undefined;
 
 type TaskCreatedActionParams = {title: string};
 
-type PluralizeValue = {
+type PluralForm = {
     one: string;
     other: string;
     zero?: string;
@@ -278,24 +278,25 @@ type PluralizeValue = {
     many?: string;
 };
 
-type Primitive = string | boolean | number;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FirstArgument<TFunction> = TFunction extends (arg: infer A, ...args: any[]) => any ? A : never;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ArgumentType<T, R> = T extends (arg: infer A, ...args: any[]) => R ? A : unknown;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue<T> = T extends string
+/**
+ * Translation value can be a string or a function that returns a string
+ */
+type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends string
     ? string
-    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    T extends (...args: any[]) => string | PluralizeValue
-    ? (
-          arg: ArgumentType<T, string | PluralizeValue> extends Primitive ? Record<string, unknown> : ArgumentType<T, string | PluralizeValue>,
-          ...unnecessaryArguments: unknown[]
-      ) => string | PluralizeValue
-    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (arg: ArgumentType<T, any> extends Primitive ? Record<string, unknown> : ArgumentType<T, any>, ...unnecessaryArguments: unknown[]) => string | PluralizeValue;
-type TranslationBase<T = unknown> = {
+    : (
+          arg: FirstArgument<TStringOrFunction> extends Record<string, unknown> | undefined ? FirstArgument<TStringOrFunction> : Record<string, unknown>,
+          ...noOtherArguments: unknown[]
+      ) => string | PluralForm;
+
+/**
+ * Translation object is a recursive object that can contain other objects or string/function values
+ */
+type TranslationDeepObject<TTranslations> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [K in keyof T]: T[K] extends boolean | number | any[] ? string : T[K] extends string | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
+    [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any) ? TranslationLeafValue<TTranslations[Path]> : TranslationDeepObject<TTranslations[Path]>;
 };
 
 /* Flat Translation Object types */
@@ -701,7 +702,7 @@ export type {
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
-    TranslationBase,
+    TranslationDeepObject,
     TranslationFlatObject,
     TranslationPaths,
     UntilTimeParams,
@@ -748,7 +749,7 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
-    PluralizeValue,
+    PluralForm,
     ConnectionNameParams,
     LastSyncDateParams,
     CustomersOrJobsLabelParams,
