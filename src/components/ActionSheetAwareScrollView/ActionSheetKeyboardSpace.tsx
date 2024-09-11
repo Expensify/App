@@ -32,7 +32,6 @@ const useAnimatedKeyboard = () => {
         {
             onStart: (e) => {
                 'worklet';
-
                 // save the last keyboard height
                 if (e.height === 0) {
                     heightWhenOpened.value = height.value;
@@ -47,7 +46,6 @@ const useAnimatedKeyboard = () => {
             },
             onEnd: (e) => {
                 'worklet';
-
                 state.value = e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED;
                 height.value = e.height;
                 progress.value = e.progress;
@@ -57,12 +55,6 @@ const useAnimatedKeyboard = () => {
     );
 
     return {state, height, heightWhenOpened, progress};
-};
-
-const setInitialValueAndRunAnimation = (value: number, animation: number) => {
-    'worklet';
-
-    return withSequence(withTiming(value, {duration: 0}), animation);
 };
 
 const useSafeAreaPaddings = () => {
@@ -95,10 +87,11 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     useAnimatedReaction(
         () => keyboard.state.value,
         (lastState) => {
-            if (lastState === syncLocalWorkletState.lastState) {
-                return;
-            }
-
+          if (lastState === syncLocalWorkletState.lastState) {
+            return;
+          }
+          syncLocalWorkletState.lastState = lastState;
+          
             if (lastState === KeyboardState.OPEN) {
                 runOnJS(transitionActionSheetState)({type: Actions.OPEN_KEYBOARD});
             } else if (lastState === KeyboardState.CLOSED) {
@@ -132,14 +125,15 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
-
         switch (current.state) {
             case States.KEYBOARD_OPEN: {
-                if (previous.state === States.KEYBOARD_CLOSED_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
+                    if (previous.state === States.KEYBOARD_CLOSED_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
+                    console.log(110, Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0) + Math.max(elementOffset, 0));
+                    console.log(1101, previous.state === States.KEYBOARD_CLOSED_POPOVER, previous.state === States.KEYBOARD_OPEN, elementOffset);
                     return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0) + Math.max(elementOffset, 0);
                 }
 
-                console.log(111, 0);
+                console.log(111, 0, previous.state === States.KEYBOARD_CLOSED_POPOVER, previous.state === States.KEYBOARD_OPEN, elementOffset);
                 return withSpring(0, SPRING_CONFIG);
             }
 
@@ -152,7 +146,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 });
             }
 
-            case States.MODAL_DELETED:
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
@@ -166,103 +159,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
                 console.log(115, 0);
                 return 0;
-            }
-            case States.ATTACHMENTS_POPOVER_OPEN:
-            case States.EMOJI_PICKER_POPOVER_OPEN: {
-                if (popoverHeight) {
-                    if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
-                        console.log(98, elementOffset < 0 ? 0 : elementOffset, elementOffset);
-                        return withSpring(elementOffset < 0 ? 0 : elementOffset, SPRING_CONFIG);
-                    }
-
-                    console.log(99, Math.max(previousElementOffset, 0), previousElementOffset, popoverHeight - composerHeight);
-                    return withSpring(popoverHeight - composerHeight, SPRING_CONFIG);
-                }
-
-                console.log(1100, 0);
-                return 0;
-            }
-
-            case States.MODAL_WITH_KEYBOARD_OPEN_DELETED:
-            case States.EMOJI_PICKER_POPOVER_WITH_KEYBOARD_OPEN: {
-                // when item is higher than keyboard and bottom sheet
-                // we should just stay in place
-                if (elementOffset < 0) {
-                    console.log(116, invertedKeyboardHeight);
-                    return invertedKeyboardHeight;
-                }
-
-                const nextOffset = invertedKeyboardHeight + elementOffset;
-                if (previous?.payload?.popoverHeight !== popoverHeight) {
-                    const previousOffset = invertedKeyboardHeight + previousElementOffset;
-
-                    if (previousElementOffset === 0 || nextOffset > previousOffset) {
-                        console.log(117, nextOffset);
-                        return withSpring(nextOffset, SPRING_CONFIG);
-                    }
-
-                    console.log(118, previousOffset);
-                    return previousOffset;
-                }
-                console.log(119, nextOffset);
-                return nextOffset;
-            }
-
-            case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED:
-            case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: {
-                // this transition is extremely slow and we may not have `popoverHeight` when keyboard is hiding
-                // so we run two fold animation:
-                // - when keyboard is hiding -> we return `0` and thus the content is sticky to composer
-                // - when keyboard is closed and we have `popoverHeight` (i. e. popup was measured) -> we run spring animation
-                if (keyboard.state.value === KeyboardState.CLOSING) {
-                    console.log(1200, 0);
-                    return 0;
-                }
-                if (keyboard.progress.value === 0) {
-                    console.log(1201, keyboard.progress.value, interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]), popoverHeight, composerHeight);
-                    return withSpring(popoverHeight - composerHeight, SPRING_CONFIG);
-                }
-
-                // when keyboard appears -> we already have all values so we do interpolation based on keyboard position
-                console.log(1202, keyboard.progress.value, interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]), popoverHeight, composerHeight);
-                return interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]);
-            }
-            case States.CALL_POPOVER_WITH_KEYBOARD_OPEN: {
-                if (keyboard.height.value > 0) {
-                    console.log(121, 0);
-                    return 0;
-                }
-                console.log(122, lastKeyboardHeight, popoverHeight - composerHeight);
-                return setInitialValueAndRunAnimation(lastKeyboardHeight, withSpring(popoverHeight - composerHeight, SPRING_CONFIG));
-            }
-            case States.CALL_POPOVER_WITH_KEYBOARD_CLOSED: {
-                // keyboard is opened
-                if (keyboard.height.value > 0) {
-                    console.log(123, 0);
-                    return 0;
-                }
-
-                console.log(124, lastKeyboardHeight);
-                return withSpring(lastKeyboardHeight, SPRING_CONFIG);
-            }
-            case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
-                if (keyboard.state.value === KeyboardState.CLOSED) {
-                    console.log(125, popoverHeight - composerHeight);
-                    return popoverHeight - composerHeight;
-                }
-
-                console.log(126, 0);
-                return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0);
-            }
-
-            case States.KEYBOARD_POPOVER_CLOSED: {
-                if (keyboard.heightWhenOpened.value === keyboard.height.value) {
-                    console.log(127, 0);
-                    return 0;
-                }
-
-                console.log(128, popoverHeight - composerHeight);
-                return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0);
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {
@@ -309,10 +205,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 return withTiming(elementOffset + lastKeyboardHeight, {
                     duration: 0,
                 });
-            }
-            case States.EDIT_MESSAGE: {
-                console.log(137, 0);
-                return 0;
             }
 
             default:
