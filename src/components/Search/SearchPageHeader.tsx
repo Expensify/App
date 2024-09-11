@@ -294,6 +294,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         return null;
     }
 
+    const onPress = () => {
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        SearchActions.updateAdvancedFilters(values);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    };
+
     return (
         <HeaderWrapper
             title={headerTitle}
@@ -315,7 +321,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             <Button
                 text={translate('search.filtersHeader')}
                 icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                onPress={onPress}
                 medium
             />
         </HeaderWrapper>
