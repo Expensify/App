@@ -51,13 +51,7 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
 
 function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
-    const modifiedQueryJSON = {
-        ...queryJSON,
-        // we need to base64 encode
-        // to avoid special characters like "<>" being truncated for date
-        inputQuery: btoa(queryJSON.inputQuery),
-    };
-    const jsonQuery = JSON.stringify(modifiedQueryJSON);
+    const jsonQuery = JSON.stringify(queryJSON);
     API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name}, {optimisticData, finallyData});
 }
 
