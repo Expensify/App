@@ -7,8 +7,6 @@ import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
-    const activeWorkspaceID = useNavigationState(getPolicyIDFromState);
-
     const lastPolicyRoute = useNavigationState((state) =>
         state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE),
     );

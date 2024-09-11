@@ -4,8 +4,7 @@ import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
-import {isCentralPaneName} from '@libs/NavigationUtils';
+import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
@@ -69,28 +68,6 @@ function getParamsFromRoute(screenName: string): string[] {
     return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
 }
 
-function createSplitNavigator(splitNavigatorLHNScreen: SplitNavigatorLHNScreen, route?: NavigationPartialRoute<SplitNavigatorScreenName>): NavigationPartialRoute<SplitNavigator> {
-    const routes = [];
-
-    const policyID = route?.params && 'policyID' in route.params ? route.params.policyID : undefined;
-
-    // Both routes in WorkspaceNavigator should store a policyID in params, so here this param is also passed to the screen displayed in LHN in WorkspaceNavigator
-    routes.push({
-        name: splitNavigatorLHNScreen,
-        params: {
-            policyID,
-        },
-    });
-
-    if (route) {
-        routes.push(route);
-    }
-    return {
-        name: mapLhnToSplitNavigatorName[splitNavigatorLHNScreen],
-        state: getRoutesWithIndex(routes),
-    };
-}
-
 // This function will return CentralPaneNavigator route or WorkspaceNavigator route.
 function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<SplitNavigator> | NavigationPartialRoute<'Search_Central_Pane'> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
@@ -107,16 +84,14 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
                 }
             }
 
-            // If we know that backTo targets the root route (full screen) we want to use it.
-            const fullScreenNavigator = stateForBackTo.routes.find((rt) => rt.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
-            if (fullScreenNavigator && fullScreenNavigator.state) {
-                return fullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.WORKSPACE_NAVIGATOR>;
-            }
+            const splitNavigator = stateForBackTo.routes.find(
+                // eslint-disable-next-line @typescript-eslint/no-shadow
+                (route) => route.name.endsWith('SplitNavigator'),
+            );
 
-            // If we know that backTo targets a central pane screen we want to use it.
-            const centralPaneScreen = stateForBackTo.routes.find((rt) => isCentralPaneName(rt.name));
-            if (centralPaneScreen) {
-                return centralPaneScreen as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.WORKSPACE_NAVIGATOR>;
+            // If we know that backTo targets the root route (central pane or full screen) we want to use it.
+            if (splitNavigator && splitNavigator.state) {
+                return splitNavigator as NavigationPartialRoute<SplitNavigator>;
             }
         }
     }
