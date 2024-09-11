@@ -24,6 +24,7 @@ import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Bolt from '@assets/images/bolt.svg';
+import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
@@ -197,7 +198,6 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
-import Bookmark from '@assets/images/bookmark.svg';
 
 export {
     ActiveRoomAvatar,

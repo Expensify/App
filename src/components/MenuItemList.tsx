@@ -3,8 +3,8 @@ import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-nati
 import useSingleExecution from '@hooks/useSingleExecution';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -91,14 +91,14 @@ function MenuItemList({
                 >
                     <MenuItem
                         key={menuItemProps.key ?? menuItemProps.title}
-                    wrapperStyle={wrapperStyle}
+                        wrapperStyle={wrapperStyle}
                         onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                         ref={popoverAnchor}
                         shouldBlockSelection={!!menuItemProps.link}
-                    icon={icon}
-                    iconWidth={iconWidth}
-                    iconHeight={iconHeight}
-                    isPaneMenu={isPaneMenu}
+                        icon={icon}
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
+                        isPaneMenu={isPaneMenu}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...menuItemProps}
                         disabled={!!menuItemProps.disabled || isExecuting}
