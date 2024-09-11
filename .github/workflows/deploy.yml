@@ -551,6 +551,14 @@ jobs:
           mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
           mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
+      - name: 🚀 Edit the release to be no longer a prerelease 🚀
+        run: |
+          LATEST_RELEASE="$(gh release list --repo ${{ github.repository }} --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
+          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.APP_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
+          gh release edit ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Upload artifacts to GitHub Release
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
@@ -559,14 +567,6 @@ jobs:
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./web-build-tar-gz-artifact/webBuild.tar.gz \
             ./web-build-zip-artifact/webBuild.zip
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: 🚀 Edit the release to be no longer a prerelease 🚀
-        run: |
-          LATEST_RELEASE="$(gh release list --repo ${{ github.repository }} --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
-          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.APP_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
-          gh release edit ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
