@@ -4,25 +4,32 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import * as SearchUtils from '@src/libs/SearchUtils';
 import ROUTES from '@src/ROUTES';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
 
 type SearchTypeMenuNarrowProps = {
     typeMenuItems: SearchTypeMenuItem[];
     activeItemIndex: number;
+    queryJSON: SearchQueryJSON;
     title?: string;
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
 
@@ -31,13 +38,21 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
 
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
+    const onPress = () => {
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        SearchActions.updateAdvancedFilters(values);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    };
 
     const popoverMenuItems = typeMenuItems.map((item, index) => {
         const isSelected = title ? false : index === activeItemIndex;
 
         return {
             text: item.title,
-            onSelected: singleExecution(() => Navigation.navigate(item.route)),
+            onSelected: singleExecution(() => {
+                SearchActions.clearAllFilters();
+                Navigation.navigate(item.route);
+            }),
             icon: item.icon,
             iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
             iconRight: Expensicons.Checkmark,
@@ -74,21 +89,23 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100]}>
+                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
                                 fill={theme.icon}
+                                small
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.fontSizeLabel]}
                             >
                                 {menuTitle}
                             </Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}
+                                small
                             />
                         </View>
                     </Animated.View>
@@ -96,7 +113,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
             </PressableWithFeedback>
             <Button
                 icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                onPress={onPress}
             />
             <PopoverMenu
                 menuItems={popoverMenuItems}
