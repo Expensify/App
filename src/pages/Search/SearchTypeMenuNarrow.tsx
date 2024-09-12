@@ -48,6 +48,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {hash} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -61,24 +62,32 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
+    const currentSavedSearch = useMemo(
+        () =>
+            savedSearchesMenuItems.find((item) => {
+                return Number(item.hash) === hash;
+            }),
+        [savedSearchesMenuItems, hash],
+    );
+
     const popoverMenuItems = useMemo(() => {
         const items = typeMenuItems.map((item, index) => {
             const isSelected = title ? false : index === activeItemIndex;
 
-        return {
-            text: item.title,
-            onSelected: singleExecution(() => {
-                SearchActions.clearAllFilters();
-                Navigation.navigate(item.route);
-            }),
-            icon: item.icon,
-            iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-            iconRight: Expensicons.Checkmark,
-            shouldShowRightIcon: isSelected,
-            success: isSelected,
-            containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-        };
-    });
+            return {
+                text: item.title,
+                onSelected: singleExecution(() => {
+                    SearchActions.clearAllFilters();
+                    Navigation.navigate(item.route);
+                }),
+                icon: item.icon,
+                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: isSelected,
+                success: isSelected,
+                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+            };
+        });
 
         if (title) {
             items.push({
@@ -87,14 +96,14 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 icon: Expensicons.Filters,
                 iconFill: theme.iconSuccessFill,
                 success: true,
-                containerStyle: [{backgroundColor: theme.border}],
+                containerStyle: !currentSavedSearch ? [{backgroundColor: theme.border}] : undefined,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: false,
             });
         }
 
         return items;
-    }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu]);
+    }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu, currentSavedSearch]);
 
     const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
@@ -118,6 +127,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                     }}
                 />
             ),
+            containerStyle: currentSavedSearch?.hash === item.hash ? [{backgroundColor: theme.border}] : undefined,
         }));
 
         if (savedSearchesMenuItems.length > 0) {
