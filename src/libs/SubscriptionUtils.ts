@@ -389,9 +389,6 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | und
     if (isUserOnFreeTrial()) {
         return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
     }
-    if (hasUserFreeTrialEnded()) {
-        return translateLocal('subscription.billingBanner.trialEnded.title');
-    }
 
     return undefined;
 }
