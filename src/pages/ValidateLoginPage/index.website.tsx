@@ -28,7 +28,7 @@ function ValidateLoginPage({
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo);
 
-    // If the magic link was previously expired (FAILED), we want to clear it so the magic code expired won't show briefly.
+    // If the magic link was previously expired (FAILED), we want to clear the failed state so the magic code expired won't show briefly.
     if (firstRenderRef.current) {
         firstRenderRef.current = false;
         if (autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) {
