@@ -381,7 +381,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return false;
         }
 
-        // If we just finished loading the app, we still need to try fetching the report?. Wait until that's done before
+        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
         // showing the Not Found page
         if (finishedLoadingApp) {
             return false;
@@ -427,7 +427,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
         /**
          * Since OpenReport is a write, the response from OpenReport will get dropped while the app is
-         * still loading. This usually happens when signing in and deeplinking to a report?. Instead,
+         * still loading. This usually happens when signing in and deeplinking to a report. Instead,
          * we'll fetch the report after the app finishes loading.
          *
          * This needs to be a strict equality check since isLoadingApp is initially undefined until the
@@ -501,7 +501,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        // This function is triggered when a user clicks on a link to navigate to a report?.
+        // This function is triggered when a user clicks on a link to navigate to a report.
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReportIfNeeded();
