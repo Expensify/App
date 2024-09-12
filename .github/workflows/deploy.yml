@@ -196,13 +196,13 @@ jobs:
       - name: Upload desktop sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
           path: ./desktop/dist/www/merged-source-map.js.map
 
       - name: Upload desktop build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
   iOS:
@@ -407,7 +407,7 @@ jobs:
       - name: Upload web sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'web' || 'web-staging' }}-sourcemaps-artifact
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-sourcemaps-artifact
           path: ./dist/merged-source-map.js.map
 
       - name: Compress web build .tar.gz and .zip
@@ -418,13 +418,13 @@ jobs:
       - name: Upload .tar.gz web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'web' || 'web-staging' }}-build-tar-gz-artifact
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-build-tar-gz-artifact
           path: ./webBuild.tar.gz
 
       - name: Upload .zip web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SHOULD_DEPLOY_PRODUCTION && 'web' || 'web-staging' }}-build-zip-artifact
+          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-build-zip-artifact
           path: ./webBuild.zip
 
   postSlackMessageOnFailure:

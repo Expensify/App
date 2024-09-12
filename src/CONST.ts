@@ -773,6 +773,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
