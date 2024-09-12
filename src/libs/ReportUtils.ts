@@ -3435,7 +3435,7 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        [originalMessage.oldAttendees, originalMessage.attendees] = TransactionUtils.getFormattedAttendees(oldTransaction?.modifiedAttendees, oldTransaction?.attendees);
+        [originalMessage.oldAttendees, originalMessage.attendees] = TransactionUtils.getFormattedAttendees(transactionChanges?.attendees, TransactionUtils.getAttendees(oldTransaction));
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both

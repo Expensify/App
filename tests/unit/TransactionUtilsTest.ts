@@ -1,3 +1,4 @@
+import type {Attendee} from '@src/types/onyx/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Transaction} from '../../src/types/onyx';
 
@@ -6,8 +7,9 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const amount = 100;
     const currency = 'USD';
     const comment = '';
+    const attendees: Attendee[] = [];
     const created = '2023-10-01';
-    const baseValues = TransactionUtils.buildOptimisticTransaction(amount, currency, reportID, comment, created);
+    const baseValues = TransactionUtils.buildOptimisticTransaction(amount, currency, reportID, comment, attendees, created);
 
     return {...baseValues, ...values};
 }

@@ -2686,7 +2686,7 @@ function getUpdateMoneyRequestParams(
     // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multpiply limit by attende count
     if ('attendees' in transactionChanges && !!overLimitViolation) {
         const limitForSingleAttendee = Number(overLimitViolation.data?.formattedLimit?.replace(/[^0-9]+/g, ''));
-        if (limitForSingleAttendee * (transaction?.attendees?.length ?? 1) > (transaction?.amount ?? 0)) {
+        if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(TransactionUtils.getAmount(transaction))) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -3008,6 +3008,7 @@ function updateMoneyRequestMerchant(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
+    console.log('%%%%%\n', 'onyxData merchant', onyxData);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
@@ -3026,6 +3027,7 @@ function updateMoneyRequestAttendees(
     };
     const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true, violations);
     const {params, onyxData} = data;
+    console.log('%%%%%\n', 'onyxData', onyxData);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
 }
 

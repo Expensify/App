@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -39,7 +40,7 @@ function IOURequestStepAttendees({
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(transaction?.attendees ?? []);
+    const [attendees, setAttendees] = useState<Attendee[]>(TransactionUtils.getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
