@@ -50,9 +50,18 @@ function prepareData<T>({data, transform}: {data: T[]; transform: (data: T) => s
 
             return searchStringForTree;
         })
-        // TODO: this can probably improved by a reduce
-        .filter(Boolean)
-        .join(delimiterChar);
+        // slightly faster alternative to `.filter(Boolean).join(delimiterChar)`
+        .reduce((acc: string, curr) => {
+            if (!curr) {
+                return acc;
+            }
+
+            if (acc === '') {
+                return curr;
+            }
+
+            return `${acc}${delimiterChar}${curr}`;
+        }, '');
 
     return [str, searchIndexList];
 }
