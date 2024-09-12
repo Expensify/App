@@ -8,6 +8,7 @@ import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -34,6 +35,7 @@ type TimePickerProps = {
     /** Whether the time value should be validated */
     shouldValidate?: boolean;
 
+    /** Whether the picker shows hours, minutes, seconds and miliseconds */
     showFullFormat?: boolean;
 };
 
@@ -693,6 +695,22 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         }
     };
 
+    const updateRefs = (refName: 'hourRef' | 'minuteRef' | 'secondRef' | 'milisecondRef', updatedRef: BaseTextInputRef | null) => {
+        const updatedRefs = {
+            hourRef: hourInputRef.current,
+            minuteRef: minuteInputRef.current,
+            secondRef: secondInputRef.current,
+            milisecondRef: milisecondInputRef.current,
+            [refName]: updatedRef,
+        };
+        if (typeof ref === 'function') {
+            ref(updatedRefs);
+        } else if (ref && 'current' in ref) {
+            // eslint-disable-next-line no-param-reassign
+            ref.current = updatedRefs;
+        }
+    };
+
     return (
         <View style={styles.flex1}>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -708,22 +726,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         }}
                         onChangeAmount={handleHourChange}
                         ref={(textInputRef) => {
-                            if (typeof ref === 'function') {
-                                ref({
-                                    hourRef: textInputRef as TextInput | null,
-                                    minuteRef: minuteInputRef.current,
-                                    secondRef: secondInputRef.current,
-                                    milisecondRef: milisecondInputRef.current,
-                                });
-                            } else if (ref && 'current' in ref) {
-                                // eslint-disable-next-line no-param-reassign
-                                ref.current = {
-                                    hourRef: textInputRef as TextInput | null,
-                                    minuteRef: minuteInputRef.current,
-                                    secondRef: secondInputRef.current,
-                                    milisecondRef: milisecondInputRef.current,
-                                };
-                            }
+                            updateRefs('hourRef', textInputRef);
                             // eslint-disable-next-line react-compiler/react-compiler
                             hourInputRef.current = textInputRef as TextInput | null;
                         }}
@@ -745,24 +748,11 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         }}
                         onChangeAmount={handleMinutesChange}
                         ref={(textInputRef) => {
-                            if (typeof ref === 'function') {
-                                ref({
-                                    hourRef: hourInputRef.current,
-                                    minuteRef: textInputRef as TextInput | null,
-                                    secondRef: secondInputRef.current,
-                                    milisecondRef: milisecondInputRef.current,
-                                });
-                            } else if (ref && 'current' in ref) {
-                                // eslint-disable-next-line no-param-reassign
-                                ref.current = {
-                                    hourRef: hourInputRef.current,
-                                    minuteRef: textInputRef as TextInput | null,
-                                    secondRef: secondInputRef.current,
-                                    milisecondRef: milisecondInputRef.current,
-                                };
-                            }
+                            updateRefs('minuteRef', textInputRef);
                             minuteInputRef.current = textInputRef as TextInput | null;
-                            inputCallbackRef(textInputRef as TextInput | null);
+                            if (!showFullFormat) {
+                                inputCallbackRef(textInputRef as TextInput | null);
+                            }
                         }}
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
@@ -784,24 +774,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                                 }}
                                 onChangeAmount={handleSecondsChange}
                                 ref={(textInputRef) => {
-                                    if (typeof ref === 'function') {
-                                        ref({
-                                            hourRef: hourInputRef.current,
-                                            minuteRef: minuteInputRef.current,
-                                            secondRef: textInputRef as TextInput | null,
-                                            milisecondRef: milisecondInputRef.current,
-                                        });
-                                    } else if (ref && 'current' in ref) {
-                                        // eslint-disable-next-line no-param-reassign
-                                        ref.current = {
-                                            hourRef: hourInputRef.current,
-                                            minuteRef: minuteInputRef.current,
-                                            secondRef: textInputRef as TextInput | null,
-                                            milisecondRef: milisecondInputRef.current,
-                                        };
-                                    }
+                                    updateRefs('secondRef', textInputRef);
                                     secondInputRef.current = textInputRef as TextInput | null;
-                                    inputCallbackRef(textInputRef as TextInput | null);
                                 }}
                                 onSelectionChange={(e) => {
                                     setSelectionSecond(e.nativeEvent.selection);
@@ -821,24 +795,11 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                                 }}
                                 onChangeAmount={handleMilisecondsChange}
                                 ref={(textInputRef) => {
-                                    if (typeof ref === 'function') {
-                                        ref({
-                                            hourRef: hourInputRef.current,
-                                            minuteRef: minuteInputRef.current,
-                                            secondRef: secondInputRef.current,
-                                            milisecondRef: textInputRef as TextInput | null,
-                                        });
-                                    } else if (ref && 'current' in ref) {
-                                        // eslint-disable-next-line no-param-reassign
-                                        ref.current = {
-                                            hourRef: hourInputRef.current,
-                                            minuteRef: minuteInputRef.current,
-                                            secondRef: secondInputRef.current,
-                                            milisecondRef: textInputRef as TextInput | null,
-                                        };
-                                    }
+                                    updateRefs('milisecondRef', textInputRef);
                                     milisecondInputRef.current = textInputRef as TextInput | null;
-                                    inputCallbackRef(textInputRef as TextInput | null);
+                                    if (showFullFormat) {
+                                        inputCallbackRef(textInputRef as TextInput | null);
+                                    }
                                 }}
                                 onSelectionChange={(e) => {
                                     setSelectionMilisecond(e.nativeEvent.selection);

@@ -1,3 +1,4 @@
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import ACTION_FORM_INPUT_IDS from '@src/types/form/DebugReportActionForm';
 import REPORT_FORM_INPUT_IDS from '@src/types/form/DebugReportForm';
@@ -23,7 +24,7 @@ const DETAILS_CONSTANT_FIELDS = [
     REPORT_FORM_INPUT_IDS.TYPE,
     REPORT_FORM_INPUT_IDS.LAST_ACTION_TYPE,
     REPORT_FORM_INPUT_IDS.WRITE_CAPABILITY,
-] as string[];
+];
 
 const DETAILS_DATETIME_FIELDS = [
     ACTION_FORM_INPUT_IDS.CREATED,
@@ -31,6 +32,11 @@ const DETAILS_DATETIME_FIELDS = [
     REPORT_FORM_INPUT_IDS.LAST_READ_TIME,
     REPORT_FORM_INPUT_IDS.LAST_VISIBLE_ACTION_CREATED,
     REPORT_FORM_INPUT_IDS.LAST_VISIBLE_ACTION_LAST_MODIFIED,
-] as string[];
+];
 
+type DetailsConstantFieldsKeys = TupleToUnion<typeof DETAILS_CONSTANT_FIELDS>;
+
+type DetailsDatetimeFieldsKeys = TupleToUnion<typeof DETAILS_DATETIME_FIELDS>;
+
+export type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys};
 export {DETAILS_CONSTANT_OPTIONS, LAST_ACTION_TYPE, ACTION_NAME, DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS};

@@ -69,7 +69,7 @@ function DebugReportActionCreatePage({
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.editJson')}</Text>
                             <TextInput
                                 errorText={error}
-                                accessibilityLabel="Text input field"
+                                accessibilityLabel={translate('debug.editJson')}
                                 forceActiveLabel
                                 numberOfLines={18}
                                 multiline

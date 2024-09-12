@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TimePicker from '@components/TimePicker/TimePicker';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +24,7 @@ function DebugDetailsDateTimePickerPage({
     },
     navigation,
 }: DebugDetailsDateTimePickerPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [date, setDate] = useState(DateUtils.extractDate(fieldValue));
     return (
@@ -30,7 +32,7 @@ function DebugDetailsDateTimePickerPage({
             <HeaderWithBackButton title={fieldName} />
             <ScrollView contentContainerStyle={styles.gap8}>
                 <View style={styles.ph5}>
-                    <Text style={styles.headerText}>Date</Text>
+                    <Text style={styles.headerText}>{translate('debug.date')}</Text>
                     <DatePicker
                         inputID=""
                         value={date}
@@ -38,7 +40,7 @@ function DebugDetailsDateTimePickerPage({
                     />
                 </View>
                 <View>
-                    <Text style={[styles.headerText, styles.ph5]}>Time</Text>
+                    <Text style={[styles.headerText, styles.ph5]}>{translate('debug.time')}</Text>
                     <TimePicker
                         onSubmit={(time) => {
                             // Check the navigation state and "backTo" parameter to decide navigation behavior

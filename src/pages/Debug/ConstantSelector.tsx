@@ -15,6 +15,7 @@ type ConstantSelectorProps = {
     /** Current selected constant  */
     value?: string;
 
+    /** Name of the field */
     name: string;
 
     /** inputID used by the Form component */

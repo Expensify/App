@@ -4815,5 +4815,13 @@ export default {
         reportAction: 'Report Action',
         report: 'Report',
         hint: "Data changes won't be sent to the backend",
+        textFields: 'Text fields',
+        numberFields: 'Number fields',
+        booleanFields: 'Boolean fields',
+        constantFields: 'Constant fields',
+        dateTimeFields: 'DateTime fields',
+        date: 'Date',
+        time: 'Time',
+        none: 'None',
     },
 } satisfies TranslationBase;

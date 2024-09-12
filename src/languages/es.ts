@@ -5332,5 +5332,13 @@ export default {
         reportAction: 'Report Action',
         report: 'Report',
         hint: 'Los cambios de datos no se enviarán al backend',
+        textFields: 'Campos de texto',
+        numberFields: 'Campos numéricos',
+        booleanFields: 'Campos booleanos',
+        constantFields: 'Campos constantes',
+        dateTimeFields: 'Campos de fecha y hora',
+        date: 'Fecha',
+        time: 'Hora',
+        none: 'Ninguno',
     },
 } satisfies EnglishTranslation;

@@ -30,6 +30,7 @@ function DebugDetailsConstantPickerPage({
         () =>
             Object.entries(DETAILS_CONSTANT_OPTIONS[fieldName as keyof typeof DETAILS_CONSTANT_OPTIONS])
                 .reduce((acc: Array<[string, string]>, [key, value]) => {
+                    // Option has multiple constants, so we need to flatten these into separate options
                     if (isObject(value)) {
                         acc.push(...Object.entries(value));
                         return acc;

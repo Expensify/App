@@ -19,6 +19,7 @@ import Debug from '@userActions/Debug';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+import type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys} from './const';
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS} from './const';
 import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
@@ -51,7 +52,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const constantFields = useMemo(
         () =>
             Object.entries(data ?? {})
-                .filter(([key]) => DETAILS_CONSTANT_FIELDS.includes(key))
+                .filter(([key]) => DETAILS_CONSTANT_FIELDS.includes(key as DetailsConstantFieldsKeys))
                 .sort((a, b) => a[0].localeCompare(b[0])) as Array<[string, string]>,
         [data],
     );
@@ -65,13 +66,18 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const textFields = useMemo(
         () =>
             Object.entries(data ?? {})
-                .filter(([key, value]) => (typeof value === 'string' || typeof value === 'object') && !DETAILS_CONSTANT_FIELDS.includes(key) && !DETAILS_DATETIME_FIELDS.includes(key))
+                .filter(
+                    ([key, value]) =>
+                        (typeof value === 'string' || typeof value === 'object') &&
+                        !DETAILS_CONSTANT_FIELDS.includes(key as DetailsConstantFieldsKeys) &&
+                        !DETAILS_DATETIME_FIELDS.includes(key as DetailsDatetimeFieldsKeys),
+                )
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
                 .sort((a, b) => a[0].localeCompare(b[0])),
         [data],
     );
-    const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_DATETIME_FIELDS.includes(key)) as Array<[string, string]>, [data]);
+    const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_DATETIME_FIELDS.includes(key as DetailsDatetimeFieldsKeys)) as Array<[string, string]>, [data]);
 
     const validator = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
@@ -136,7 +142,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 enabledWhenOffline
                 allowHTML
             >
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Text fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.textFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {textFields.map(([key, value]) => {
                         const numberOfLines = DebugUtils.getNumberOfLinesFromString((formDraftData?.[key] as string) ?? value);
@@ -144,7 +150,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={key}
-                                accessibilityLabel="Text input field"
+                                accessibilityLabel={key}
                                 shouldSaveDraft
                                 forceActiveLabel
                                 label={key}
@@ -156,13 +162,13 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     })}
                     {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Number fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.numberFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {numberFields.map(([key, value]) => (
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={key}
-                            accessibilityLabel="Text input field"
+                            accessibilityLabel={key}
                             shouldSaveDraft
                             forceActiveLabel
                             label={key}
@@ -171,7 +177,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     ))}
                     {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Constant fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.constantFields')}</Text>
                 <View style={styles.mb5}>
                     {constantFields.map(([key, value]) => (
                         <InputWrapper
@@ -185,7 +191,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     ))}
                     {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Datetime fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.dateTimeFields')}</Text>
                 <View style={styles.mb5}>
                     {dateTimeFields.map(([key, value]) => (
                         <InputWrapper
@@ -199,7 +205,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     ))}
                     {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>Boolean fields</Text>
+                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.booleanFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {booleanFields.map(([key, value]) => (
                         <InputWrapper
@@ -207,7 +213,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             label={key}
                             inputID={key}
                             shouldSaveDraft
-                            accessibilityLabel="Checkbox input field"
+                            accessibilityLabel={key}
                             defaultValue={value}
                         />
                     ))}
