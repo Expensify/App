@@ -1515,7 +1515,7 @@ export default {
     reportDescriptionPage: {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
-        explainerText: 'Set a custom decription for the room.',
+        explainerText: 'Set a custom description for the room.',
     },
     groupConfirmPage: {
         groupName: 'Group name',
