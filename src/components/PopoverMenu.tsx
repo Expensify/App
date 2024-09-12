@@ -2,6 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -20,6 +21,7 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
@@ -97,6 +99,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to show the selected option checkmark */
     shouldShowSelectedItemCheck?: boolean;
+
+    /** The style of content container which wraps all child views */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 function PopoverMenu({
@@ -122,6 +127,7 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
+    containerStyle,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -247,52 +253,56 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <View style={[isSmallScreenWidth ? {} : styles.createMenuContainer, containerStyle]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {currentMenuItems.map((item, menuIndex) => (
-                        <FocusableMenuItem
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${item.text}_${menuIndex}`}
-                            icon={item.icon}
-                            iconWidth={item.iconWidth}
-                            iconHeight={item.iconHeight}
-                            iconFill={item.iconFill}
-                            contentFit={item.contentFit}
-                            title={item.text}
-                            shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                            shouldCheckActionAllowedOnPress={false}
-                            description={item.description}
-                            numberOfLinesDescription={item.numberOfLinesDescription}
-                            onPress={() => selectItem(menuIndex)}
-                            focused={focusedIndex === menuIndex}
-                            displayInDefaultIconColor={item.displayInDefaultIconColor}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            iconRight={item.iconRight}
-                            shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
-                            label={item.label}
-                            style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
-                            isLabelHoverable={item.isLabelHoverable}
-                            floatRightAvatars={item.floatRightAvatars}
-                            floatRightAvatarSize={item.floatRightAvatarSize}
-                            shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
-                            disabled={item.disabled}
-                            onFocus={() => setFocusedIndex(menuIndex)}
-                            success={item.success}
-                            containerStyle={item.containerStyle}
-                            shouldRenderTooltip={item.shouldRenderTooltip}
-                            tooltipAnchorAlignment={item.tooltipAnchorAlignment}
-                            tooltipShiftHorizontal={item.tooltipShiftHorizontal}
-                            tooltipShiftVertical={item.tooltipShiftVertical}
-                            tooltipWrapperStyle={item.tooltipWrapperStyle}
-                            renderTooltipContent={item.renderTooltipContent}
-                            numberOfLinesTitle={item.numberOfLinesTitle}
-                            interactive={item.interactive}
-                            isSelected={item.isSelected}
-                            badgeText={item.badgeText}
-                        />
-                    ))}
+                    <ScrollView>
+                        {currentMenuItems.map((item, menuIndex) => (
+                            <FocusableMenuItem
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${item.text}_${menuIndex}`}
+                                icon={item.icon}
+                                iconWidth={item.iconWidth}
+                                iconHeight={item.iconHeight}
+                                iconFill={item.iconFill}
+                                contentFit={item.contentFit}
+                                title={item.text}
+                                shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                                titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                                shouldCheckActionAllowedOnPress={false}
+                                description={item.description}
+                                numberOfLinesDescription={item.numberOfLinesDescription}
+                                onPress={() => selectItem(menuIndex)}
+                                focused={focusedIndex === menuIndex}
+                                displayInDefaultIconColor={item.displayInDefaultIconColor}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
+                                iconRight={item.iconRight}
+                                shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                                label={item.label}
+                                style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                isLabelHoverable={item.isLabelHoverable}
+                                floatRightAvatars={item.floatRightAvatars}
+                                floatRightAvatarSize={item.floatRightAvatarSize}
+                                shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                                disabled={item.disabled}
+                                onFocus={() => setFocusedIndex(menuIndex)}
+                                success={item.success}
+                                containerStyle={item.containerStyle}
+                                shouldRenderTooltip={item.shouldRenderTooltip}
+                                tooltipAnchorAlignment={item.tooltipAnchorAlignment}
+                                tooltipShiftHorizontal={item.tooltipShiftHorizontal}
+                                tooltipShiftVertical={item.tooltipShiftVertical}
+                                tooltipWrapperStyle={item.tooltipWrapperStyle}
+                                renderTooltipContent={item.renderTooltipContent}
+                                numberOfLinesTitle={item.numberOfLinesTitle}
+                                interactive={item.interactive}
+                                isSelected={item.isSelected}
+                                badgeText={item.badgeText}
+                                avatarID={item.avatarID}
+                                iconType={item.iconType}
+                            />
+                        ))}
+                    </ScrollView>
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
