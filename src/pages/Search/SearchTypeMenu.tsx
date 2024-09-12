@@ -60,7 +60,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     useEffect(() => {
         setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
-    }, [savedSearches]);
+    }, []);
+
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
