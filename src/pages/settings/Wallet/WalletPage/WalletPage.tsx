@@ -3,7 +3,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -42,9 +42,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type {WalletPageOnyxProps, WalletPageProps} from './types';
 
-function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadingPaymentMethods = true, shouldListenForResize = false, userWallet, walletTerms = {}}: WalletPageProps) {
+type WalletPageProps = {
+    /** Listen for window resize event on web and desktop. */
+    shouldListenForResize?: boolean;
+};
+
+function WalletPage({shouldListenForResize = false}: WalletPageProps) {
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}});
+    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -582,26 +593,4 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
 WalletPage.displayName = 'WalletPage';
 
-export default withOnyx<WalletPageProps, WalletPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-    },
-})(WalletPage);
+export default WalletPage;
