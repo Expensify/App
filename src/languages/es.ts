@@ -3080,7 +3080,7 @@ export default {
                 emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
                 emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
                 pendingFeedTitle: `Estamos revisando tu solicitud...`,
-                pendingFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de Concierge.`,
+                pendingFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de`,
             },
             workflows: {
                 title: 'Flujos de trabajo',
