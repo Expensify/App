@@ -31,7 +31,11 @@ type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends string
  */
 type TranslationDeepObject<TTranslations> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any) ? TranslationLeafValue<TTranslations[Path]> : TranslationDeepObject<TTranslations[Path]>;
+    [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any)
+        ? TranslationLeafValue<TTranslations[Path]>
+        : TTranslations[Path] extends number | boolean | null | undefined | unknown[]
+        ? string
+        : TranslationDeepObject<TTranslations[Path]>;
 };
 
 /**
