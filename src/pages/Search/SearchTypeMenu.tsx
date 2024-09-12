@@ -195,12 +195,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }
 
     return (
-        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-            {typeMenuItems.map((item, index) => {
-                const onPress = singleExecution(() => {
-                    SearchActions.clearAllFilters();
-                    Navigation.navigate(item.route);
-                });
+        <>
+            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                {typeMenuItems.map((item, index) => {
+                    const onPress = singleExecution(() => {
+                        SearchActions.clearAllFilters();
+                        Navigation.navigate(item.route);
+                    });
 
                     return (
                         <MenuItem
