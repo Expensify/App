@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {setClearIsReportActionLinked} from './clearReportAction';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -131,14 +132,6 @@ function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string)
 }
 
 const onScrollToIndexFailed = () => {};
-
-let clearIsReportActionLinked: () => void = () => {};
-
-export const setClearIsReportActionLinked = (fn: () => void) => {
-    clearIsReportActionLinked = fn;
-};
-
-export const getClearIsReportActionLinked = () => clearIsReportActionLinked;
 
 function ReportActionsList({
     report,

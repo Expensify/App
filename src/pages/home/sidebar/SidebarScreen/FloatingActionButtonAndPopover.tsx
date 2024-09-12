@@ -25,7 +25,7 @@ import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import {getClearIsReportActionLinked} from '@pages/home/report/ReportActionsList';
+import {getClearIsReportActionLinked} from '@pages/home/report/clearReportAction';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy/Policy';
