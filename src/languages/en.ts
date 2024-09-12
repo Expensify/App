@@ -2818,11 +2818,11 @@ export default {
                         companyLabel: 'Company ID',
                     },
                     amex: {
-                        title: `What's the Amex delivery file name`,
+                        title: `What's the Amex delivery file name?`,
                         fileNameLabel: 'Delivery file name',
                     },
                     mastercard: {
-                        title: `What's the Mastercard distribution ID`,
+                        title: `What's the Mastercard distribution ID?`,
                         distributionLabel: 'Distribution ID',
                     },
                 },
