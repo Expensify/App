@@ -65,6 +65,8 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}
                     initiallyFocusedOptionKey={currentExpenseLimitType}
+                    isAlternateTextMultilineSupported
+                    alternateTextNumberOfLines={3}
                 />
             </ScreenWrapper>
         </Modal>
