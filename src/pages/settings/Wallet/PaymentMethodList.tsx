@@ -203,7 +203,7 @@ function PaymentMethodList({
     const getDescriptionForPolicyDomainCard = (domainName: string): string => {
         const match = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME);
         if (match) {
-            const policyID = match[1];
+            const policyID = match[1].toUpperCase();
             const policy = PolicyUtils.getPolicy(policyID);
             return policy?.name ?? domainName;
         }
