@@ -1,5 +1,5 @@
-import isEmpty from 'lodash/isEmpty';
 import debounce from 'lodash/debounce';
+import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -330,7 +330,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
         let shouldResetPaymentMethodData = false;
 
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&isEmpty(bankAccountList?.[paymentMethod.methodID])) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isEmpty(bankAccountList?.[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && isEmpty(fundList?.[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;

@@ -1,7 +1,7 @@
 import {fastMerge, Str} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
 import clone from 'lodash/clone';
 import lodashFindLast from 'lodash/findLast';
+import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
