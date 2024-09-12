@@ -2,7 +2,8 @@ import {NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -161,7 +162,7 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
-    const optimisticData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRYNEWDOT,
@@ -173,19 +174,15 @@ function completeHybridAppOnboarding() {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
-            value: {
-                classicRedirect: {
-                    completedHybridAppOnboarding: false,
-                },
-            },
-        },
-    ];
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {successData}).then((response) => {
+        if (!response) {
+            return;
+        }
 
-    API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
+        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === 200});
+        NativeModules.HybridAppModule.completeOnboarding(response?.jsonCode === 200);
+    });
 }
 
 Onyx.connect({
