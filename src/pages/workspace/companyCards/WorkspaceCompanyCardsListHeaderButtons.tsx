@@ -30,7 +30,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     return (
         <View style={[styles.w100, styles.ph5, !shouldUseNarrowLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
