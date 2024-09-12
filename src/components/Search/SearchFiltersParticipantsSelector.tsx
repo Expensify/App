@@ -104,18 +104,19 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             true,
         );
 
-        const isCurrentUserSelected = selectedOptions.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+        const currentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+
+        if (chatOptions.currentUserOption) {
+            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
+            if (!currentUser) {
+                chatOptions.currentUserOption.text = formattedName;
+                chatOptions.recentReports.unshift(chatOptions.currentUserOption);
+            } else {
+                currentUser.text = formattedName;
+            }
+        }
 
         newSections.push(formattedResults.section);
-
-        if (chatOptions.currentUserOption && !isCurrentUserSelected) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
-            newSections.push({
-                title: '',
-                data: [{...chatOptions.currentUserOption, text: formattedName}],
-                shouldShow: true,
-            });
-        }
 
         newSections.push({
             title: '',
