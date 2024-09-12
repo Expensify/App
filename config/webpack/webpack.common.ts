@@ -222,6 +222,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
     resolve: {
         alias: {
+            lodash: 'lodash-es',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-config': 'react-web-config',
             // eslint-disable-next-line @typescript-eslint/naming-convention
