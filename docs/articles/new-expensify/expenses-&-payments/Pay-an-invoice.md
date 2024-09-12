@@ -33,7 +33,6 @@ To pay an invoice,
 You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
 {% include faq-begin.md %}
-# FAQ
 
 **Can someone else pay an invoice besides the person who received it?**
 
