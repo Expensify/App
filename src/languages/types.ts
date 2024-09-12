@@ -2,6 +2,7 @@
 import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type en from './en';
 
+type PluralParams = {count: number};
 type PluralForm = {
     zero?: string;
     one: string;
@@ -78,9 +79,15 @@ type FlatTranslationsObject = {
     [Path in TranslationPaths]: TranslationValue<DefaultTranslation, Path>;
 };
 
-type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (...args: infer A) => unknown ? A : never[];
+type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (...args: infer Args) => infer Return
+    ? Return extends PluralForm
+        ? Args[0] extends undefined
+            ? [PluralParams]
+            : [Args[0] & PluralParams]
+        : Args
+    : never[];
 
-export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, TranslationValue, FlatTranslationsObject, TranslationParameters};
+export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, TranslationValue, FlatTranslationsObject, TranslationParameters, PluralForm};
 
 /**
  * Check all translations that are functions to make sure they have a valid argument

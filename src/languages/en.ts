@@ -197,6 +197,22 @@ type AllCountries = Record<Country, string>;
 
 /* eslint-disable max-len */
 const translations = {
+    test: ({test}: {test: string}) => ({
+        zero: 'Zero',
+        one: `One ${test}`,
+        two: 'Two',
+        few: (count: number) => `Few ${count}`,
+        many: (count: number) => `Many ${count}`,
+        other: (count: number) => `Other ${count}`,
+    }),
+    test2: () => ({
+        zero: 'Zero',
+        one: `One`,
+        two: 'Two',
+        few: (count: number) => `Few ${count}`,
+        many: (count: number) => `Many ${count}`,
+        other: (count: number) => `Other ${count}`,
+    }),
     common: {
         cancel: 'Cancel',
         dismiss: 'Dismiss',
