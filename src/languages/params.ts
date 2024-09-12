@@ -329,7 +329,7 @@ type TaskCreatedActionParams = {title: string};
 //     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 // };
 
-type OptionalParam<T> = Partial<T> | undefined;
+type OptionalParam<T> = Partial<T>;
 
 type TermsParams = {amount: string};
 
