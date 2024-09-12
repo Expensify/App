@@ -132,9 +132,13 @@ function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string)
 
 const onScrollToIndexFailed = () => {};
 
-// Declare a reference to store the setter function
-// eslint-disable-next-line import/no-mutable-exports
 let clearIsReportActionLinked: () => void = () => {};
+
+export const setClearIsReportActionLinked = (fn: () => void) => {
+    clearIsReportActionLinked = fn;
+};
+
+export const getClearIsReportActionLinked = () => clearIsReportActionLinked;
 
 function ReportActionsList({
     report,
@@ -191,10 +195,13 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const [linkedReportActionID, setLinkedReportActionID] = useState(route?.params?.reportActionID ?? '-1');
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    clearIsReportActionLinked = useCallback(() => {
+    const clearIsReportActionLinked = useCallback(() => {
         setLinkedReportActionID('-1');
     }, []);
+
+    useEffect(() => {
+        setClearIsReportActionLinked(clearIsReportActionLinked);
+    }, [clearIsReportActionLinked]);
 
     useEffect(() => {
         if (route?.params?.reportActionID) {
