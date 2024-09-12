@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -41,6 +43,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
 
+    /** Callback to navigate to Track Expense confirmation flow  */
+    onTrackExpensePress?: () => void;
+
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
@@ -54,7 +59,15 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    onTrackExpensePress,
+    onFinish,
+    onParticipantsAdded,
+    iouType,
+    iouRequestType,
+    action,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -364,6 +377,22 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
+    const headerContent = useMemo(() => {
+        if (iouType !== CONST.IOU.TYPE.GLOBAL_CREATE) {
+            return;
+        }
+
+        // We only render the track expense button if the user is coming from the combined submit/track flow.
+        return (
+            <MenuItem
+                title={translate('iou.justTrackIt')}
+                shouldShowRightIcon
+                icon={Expensicons.Coins}
+                onPress={onTrackExpensePress}
+            />
+        );
+    }, [iouType, translate, onTrackExpensePress]);
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -449,6 +478,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
+            headerContent={headerContent}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
