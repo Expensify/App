@@ -268,7 +268,7 @@ type PaySomeoneParams = {name?: string} | undefined;
 
 type TaskCreatedActionParams = {title: string};
 
-type OptionalParam<T> = Partial<T> | undefined;
+type OptionalParam<T> = Partial<T>;
 
 type TermsParams = {amount: string};
 

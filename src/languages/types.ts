@@ -78,7 +78,7 @@ type FlatTranslationsObject = {
     [Path in TranslationPaths]: TranslationValue<DefaultTranslation, Path>;
 };
 
-type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (arg: infer A, ...args: unknown[]) => unknown ? [A] : [];
+type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (...args: infer A) => unknown ? A : never[];
 
 /**
  * Check all translations that are functions to make sure they have a valid argument
