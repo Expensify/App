@@ -1,6 +1,7 @@
 type ResolveDuplicatesParams = {
     /** The ID of the transaction that we want to keep */
     transactionID: string;
+
     /** The list of other duplicated transactions */
     transactionIDList: string[];
     created: string;
@@ -12,9 +13,11 @@ type ResolveDuplicatesParams = {
     billable: boolean;
     reimbursable: boolean;
     tag: string;
-    /** The reportActionID of the dismiss violation action of the kept transaction thread report */
+
+    /** The reportActionID of the dismissed violation action in the kept transaction thread report */
     optimisticReportActionID: string;
-    /** The list ID of hold report action corresponds to transactionIDList */
+
+    /** The ID list of the hold report actions corresponding to the transactionIDList */
     reportActionIDList: string[];
 };
 
