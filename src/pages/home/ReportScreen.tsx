@@ -169,47 +169,47 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const report = useMemo(
         (): OnyxEntry<OnyxTypes.Report> =>
             reportOnyx && {
-                lastReadTime: reportOnyx?.lastReadTime,
-                reportID: reportOnyx?.reportID ?? '',
-                policyID: reportOnyx?.policyID,
-                lastVisibleActionCreated: reportOnyx?.lastVisibleActionCreated,
-                statusNum: reportOnyx?.statusNum,
-                stateNum: reportOnyx?.stateNum,
-                writeCapability: reportOnyx?.writeCapability,
-                type: reportOnyx?.type,
-                errorFields: reportOnyx?.errorFields,
-                isPolicyExpenseChat: reportOnyx?.isPolicyExpenseChat,
-                parentReportID: reportOnyx?.parentReportID,
-                parentReportActionID: reportOnyx?.parentReportActionID,
-                chatType: reportOnyx?.chatType,
-                pendingFields: reportOnyx?.pendingFields,
-                isDeletedParentAction: reportOnyx?.isDeletedParentAction,
-                reportName: reportOnyx?.reportName,
-                description: reportOnyx?.description,
-                managerID: reportOnyx?.managerID,
-                total: reportOnyx?.total,
-                nonReimbursableTotal: reportOnyx?.nonReimbursableTotal,
-                fieldList: reportOnyx?.fieldList,
-                ownerAccountID: reportOnyx?.ownerAccountID,
-                currency: reportOnyx?.currency,
-                unheldTotal: reportOnyx?.unheldTotal,
-                participants: reportOnyx?.participants,
-                isWaitingOnBankAccount: reportOnyx?.isWaitingOnBankAccount,
-                iouReportID: reportOnyx?.iouReportID,
-                isOwnPolicyExpenseChat: reportOnyx?.isOwnPolicyExpenseChat,
-                isPinned: reportOnyx?.isPinned,
-                chatReportID: reportOnyx?.chatReportID,
-                visibility: reportOnyx?.visibility,
-                oldPolicyName: reportOnyx?.oldPolicyName,
-                policyName: reportOnyx?.policyName,
+                lastReadTime: reportOnyx.lastReadTime,
+                reportID: reportOnyx.reportID,
+                policyID: reportOnyx.policyID,
+                lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
+                statusNum: reportOnyx.statusNum,
+                stateNum: reportOnyx.stateNum,
+                writeCapability: reportOnyx.writeCapability,
+                type: reportOnyx.type,
+                errorFields: reportOnyx.errorFields,
+                isPolicyExpenseChat: reportOnyx.isPolicyExpenseChat,
+                parentReportID: reportOnyx.parentReportID,
+                parentReportActionID: reportOnyx.parentReportActionID,
+                chatType: reportOnyx.chatType,
+                pendingFields: reportOnyx.pendingFields,
+                isDeletedParentAction: reportOnyx.isDeletedParentAction,
+                reportName: reportOnyx.reportName,
+                description: reportOnyx.description,
+                managerID: reportOnyx.managerID,
+                total: reportOnyx.total,
+                nonReimbursableTotal: reportOnyx.nonReimbursableTotal,
+                fieldList: reportOnyx.fieldList,
+                ownerAccountID: reportOnyx.ownerAccountID,
+                currency: reportOnyx.currency,
+                unheldTotal: reportOnyx.unheldTotal,
+                participants: reportOnyx.participants,
+                isWaitingOnBankAccount: reportOnyx.isWaitingOnBankAccount,
+                iouReportID: reportOnyx.iouReportID,
+                isOwnPolicyExpenseChat: reportOnyx.isOwnPolicyExpenseChat,
+                isPinned: reportOnyx.isPinned,
+                chatReportID: reportOnyx.chatReportID,
+                visibility: reportOnyx.visibility,
+                oldPolicyName: reportOnyx.oldPolicyName,
+                policyName: reportOnyx.policyName,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: reportOnyx?.private_isArchived,
-                isOptimisticReport: reportOnyx?.isOptimisticReport,
-                lastMentionedTime: reportOnyx?.lastMentionedTime,
-                avatarUrl: reportOnyx?.avatarUrl,
+                private_isArchived: reportOnyx.private_isArchived,
+                isOptimisticReport: reportOnyx.isOptimisticReport,
+                lastMentionedTime: reportOnyx.lastMentionedTime,
+                avatarUrl: reportOnyx.avatarUrl,
                 permissions,
-                invoiceReceiver: reportOnyx?.invoiceReceiver,
-                policyAvatar: reportOnyx?.policyAvatar,
+                invoiceReceiver: reportOnyx.invoiceReceiver,
+                policyAvatar: reportOnyx.policyAvatar,
             },
         [reportOnyx, permissions],
     );
@@ -452,15 +452,17 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? ''));
     }, [accountManagerReportID]);
 
+    const reportID = report?.reportID;
+
     // Clear notifications for the current report when it's opened and re-focused
     const clearNotifications = useCallback(() => {
         // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
-        if (!isTopMostReportId || !report?.reportID) {
+        if (!isTopMostReportId || !reportID) {
             return;
         }
 
-        clearReportNotifications(report?.reportID);
-    }, [report?.reportID, isTopMostReportId]);
+        clearReportNotifications(reportID);
+    }, [reportID, isTopMostReportId]);
 
     useEffect(clearNotifications, [clearNotifications]);
     useAppFocusEvent(clearNotifications);
