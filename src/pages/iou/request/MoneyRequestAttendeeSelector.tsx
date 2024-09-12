@@ -53,7 +53,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();
     const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session.accountID);
-    // const currentUserOptionData = OptionsListUtils.getParticipantsOption(session, personalDetails) as OptionData;
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
