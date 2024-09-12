@@ -773,6 +773,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -1822,6 +1823,16 @@ const CONST = {
         CREDIT_CARD: 'credit_card',
         DEBIT_CARD: 'debit_card',
         VENDOR_BILL: 'bill',
+    },
+
+    MISSING_PERSONAL_DETAILS_INDEXES: {
+        MAPPING: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+        },
+        INDEX_LIST: ['1', '2', '3', '4'],
     },
 
     ACCOUNT_ID: {

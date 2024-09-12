@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -18,7 +19,9 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -394,50 +397,6 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString) {
-    try {
-        const result = searchParser.parse(query) as SearchQueryJSON;
-
-        // Add the full input and hash to the results
-        result.inputQuery = query;
-        result.hash = getQueryHashFromString(query);
-        return result;
-    } catch (e) {
-        console.error(`Error when parsing SearchQuery: "${query}"`, e);
-    }
-}
-
-function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
-    const queryParts: string[] = [];
-    const defaultQueryJSON = buildSearchQueryJSON('');
-
-    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        const existingFieldValue = queryJSON?.[key];
-        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
-
-        if (queryFieldValue) {
-            queryParts.push(`${key}:${queryFieldValue}`);
-        }
-    }
-
-    if (!queryJSON) {
-        return queryParts.join(' ');
-    }
-
-    const filters = getFilters(queryJSON);
-
-    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
-        const queryFilter = filters[filterKey];
-
-        if (queryFilter) {
-            const filterValueString = buildFilterString(filterKey, queryFilter);
-            queryParts.push(filterValueString);
-        }
-    }
-
-    return queryParts.join(' ');
-}
-
 /**
  * Update string query with all the default params that are set by parser
  */
@@ -510,10 +469,56 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function buildSearchQueryJSON(query: SearchQueryString) {
+    try {
+        const result = searchParser.parse(query) as SearchQueryJSON;
+        const flatFilters = getFilters(result);
+
+        // Add the full input and hash to the results
+        result.inputQuery = query;
+        result.hash = getQueryHashFromString(query);
+        result.flatFilters = flatFilters;
+        return result;
+    } catch (e) {
+        console.error(`Error when parsing SearchQuery: "${query}"`, e);
+    }
+}
+
+function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
+    const queryParts: string[] = [];
+    const defaultQueryJSON = buildSearchQueryJSON('');
+
+    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        const existingFieldValue = queryJSON?.[key];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+
+        if (queryFieldValue) {
+            queryParts.push(`${key}:${queryFieldValue}`);
+        }
+    }
+
+    if (!queryJSON) {
+        return queryParts.join(' ');
+    }
+
+    const filters = queryJSON.flatFilters;
+
+    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+        const queryFilter = filters[filterKey];
+
+        if (queryFilter) {
+            const filterValueString = buildFilterString(filterKey, queryFilter);
+            queryParts.push(filterValueString);
+        }
+    }
+
+    return queryParts.join(' ');
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
-function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
+function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
         if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -563,6 +568,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
     return filtersString.filter(Boolean).join(' ');
 }
 
+/**
+ *
+ * @private
+ * traverses the AST and returns filters as a QueryFilters object
+ */
 function getFilters(queryJSON: SearchQueryJSON) {
     const filters = {} as QueryFilters;
     const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
@@ -684,12 +694,25 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
     return policyID;
 }
 
-function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
+function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        return PersonalDetailsUtils.createDisplayName(personalDetails[filter]?.login ?? '', personalDetails[filter]);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return cardList[filter].bank;
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
+    }
+    return filter;
+}
+
+function buildFilterString(filterName: string, queryFilters: QueryFilter[], delimiter = ',') {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
@@ -698,15 +721,37 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     return filterValueString;
 }
 
-function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
+function getSearchHeaderTitle(
+    queryJSON: SearchQueryJSON,
+    PersonalDetails: OnyxTypes.PersonalDetailsList,
+    cardList: OnyxTypes.CardList,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    TaxRates: Record<string, string[]>,
+) {
     const {type, status} = queryJSON;
-    const filters = getFilters(queryJSON) ?? {};
+    const filters = queryJSON.flatFilters ?? {};
 
     let title = `type:${type} status:${status}`;
 
     Object.keys(filters).forEach((key) => {
         const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
-        title += buildFilterString(key, queryFilter);
+        let displayQueryFilters: QueryFilter[] = [];
+        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+            const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
+            const taxRateNames = Object.entries(TaxRates)
+                .filter(([, taxRateKeys]) => taxRateKeys.some((taxID) => taxRateIDs.includes(taxID)))
+                .map(([taxRate]) => taxRate);
+            displayQueryFilters = taxRateNames.map((taxRate) => ({
+                operator: queryFilter[0].operator,
+                value: taxRate,
+            }));
+        } else {
+            displayQueryFilters = queryFilter.map((filter) => ({
+                operator: filter.operator,
+                value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
+            }));
+        }
+        title += buildFilterString(key, displayQueryFilters, ' ');
     });
 
     return title;
@@ -727,11 +772,10 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 export {
-    buildQueryStringFromFilters,
+    buildQueryStringFromFilterValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
-    getFilters,
     getFiltersFormValues,
     getPolicyIDFromSearchQuery,
     getListItem,
