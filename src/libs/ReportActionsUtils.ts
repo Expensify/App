@@ -742,8 +742,8 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
 function formatLastMessageText(lastMessageText: string) {
     const trimmedMessage = String(lastMessageText).trim();
 
-    // Add support for empty inline code
-    // The message will be displayed as a blank space in LHN
+    // Add support for inline code containing only space characters
+    // The message will appear as a blank space in the LHN
     if ((trimmedMessage === '' && lastMessageText.length > 0) || (trimmedMessage === '?\u2026' && lastMessageText.length > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)) {
         return ' ';
     }
