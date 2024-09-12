@@ -604,7 +604,7 @@ function splitTextWithEmojis(text = ''): TextWithEmoji[] {
 
     // The regex needs to be cloned because `exec()` is a stateful operation and maintains the state inside
     // the regex variable itself, so we must have an independent instance for each function's call.
-    const emojisRegex = CONST.REGEX.ALL_EMOJIS;
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
 
     const splitText: TextWithEmoji[] = [];
     let regexResult: RegExpExecArray | null;
