@@ -99,38 +99,28 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
     /**
      * Builds a suffix tree and returns a function to search in it.
-     *
-     * // TODO:
-     * - The results we get from tree.findSubstring are the indexes of the occurrence in the original string
-     *   I implemented a manual mapping function here, we probably want to put that inside the tree implementation
-     *   (including the implementation detail of the delimiter character)
      */
     const findInSearchTree = useMemo(() => {
         let start = performance.now();
-        const [personalDetailsSearchString, searchIndexListPersonalDetails] = prepareData({
-            data: searchOptions.personalDetails,
-            transform: (option) => {
-                // TODO: there are probably more fields we'd like to add to the search string
-                return (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+        const tree = makeTree([
+            {
+                data: searchOptions.personalDetails,
+                transform: (option) => {
+                    // TODO: there are probably more fields we'd like to add to the search string
+                    return (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+                },
             },
-        });
-        const [recentReportsSearchString, searchIndexListRecentReports] = prepareData({
-            data: searchOptions.recentReports,
-            transform: (option) => {
-                let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
-                searchStringForTree += option.reportID ?? '';
-                searchStringForTree += option.name ?? '';
+            {
+                data: searchOptions.recentReports,
+                transform: (option) => {
+                    let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+                    searchStringForTree += option.reportID ?? '';
+                    searchStringForTree += option.name ?? '';
 
-                return searchStringForTree;
+                    return searchStringForTree;
+                },
             },
-        });
-        const searchString = `${personalDetailsSearchString}${recentReportsSearchString}|`; // End Character
-        console.log(searchIndexListPersonalDetails.slice(0, 20));
-        console.log(searchString.substring(0, 20));
-        console.log('building search strings', performance.now() - start);
-
-        start = performance.now();
-        const tree = makeTree(searchString);
+        ]);
         console.log('makeTree', performance.now() - start);
         start = performance.now();
         tree.build();
@@ -138,32 +128,12 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         function search(searchInput: string) {
             start = performance.now();
-            const result = tree.findSubstring(searchInput);
-            console.log('FindSubstring index result for searchInput', searchInput, result);
-            // Map the results to the original options
-            const mappedResults = {
-                personalDetails: [] as OptionData[],
-                recentReports: [] as OptionData[],
+            const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
+
+            return {
+                personalDetails,
+                recentReports,
             };
-            result.forEach((index) => {
-                // const textInSearchString = searchString.substring(index, searchString.indexOf(delimiterChar, index));
-                // console.log('textInSearchString', textInSearchString);
-
-                if (index < searchIndexListPersonalDetails.length) {
-                    const option = searchIndexListPersonalDetails[index];
-                    if (option) {
-                        mappedResults.personalDetails.push(option);
-                    }
-                } else {
-                    const option = searchIndexListRecentReports[index - searchIndexListPersonalDetails.length];
-                    if (option) {
-                        mappedResults.recentReports.push(option);
-                    }
-                }
-            });
-
-            console.log('search', performance.now() - start);
-            return mappedResults;
         }
 
         return search;

@@ -31,7 +31,12 @@ const aToZRegex = /[^a-z]/gi;
 // The character that separates the different options in the search string
 const delimiterChar = '{';
 
-function prepareData<T>({data, transform}: {data: T[]; transform: (data: T) => string}): [string, Array<T | undefined>] {
+type PrepareDataParams<T> = {
+    data: T[];
+    transform: (data: T) => string;
+};
+
+function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const str = data
         .map((option) => {
@@ -72,7 +77,19 @@ function prepareData<T>({data, transform}: {data: T[]; transform: (data: T) => s
  * Thus, all input data must be cleaned before being passed to this function.
  * If you then use this tree for search you should clean your search input as well (so that a search query of "testuser@myEmail.com" becomes "testusermyemailcom").
  */
-function makeTree(stringToSearch: string) {
+function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
+    const start1 = performance.now();
+    const strings = [];
+    const indexes: Array<Array<T | undefined>> = [];
+
+    for (const {data, transform} of compose) {
+        const [str, searchIndexList] = prepareData({data, transform});
+        strings.push(str);
+        indexes.push(searchIndexList);
+    }
+    const stringToSearch = `${strings.join('')}|`; // End Character
+    console.log('building search strings', performance.now() - start1);
+
     const a = stringToArray(stringToSearch);
     const N = 25000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
@@ -216,16 +233,48 @@ function makeTree(stringToSearch: string) {
         return occurrences;
     }
 
+    function findInSearchTree(searchInput: string) {
+        const now = performance.now();
+        const result = findSubstring(searchInput);
+        console.log('FindSubstring index result for searchInput', searchInput, result);
+        // Map the results to the original options
+
+        const mappedResults: T[][] = Array.from({length: compose.length}, () => []);
+        console.log({result});
+        result.forEach((index) => {
+            // const textInSearchString = searchString.substring(index, searchString.indexOf(delimiterChar, index));
+            // console.log('textInSearchString', textInSearchString);
+
+            // TODO: check with Hanno whether we restore the data correctly
+            let offset = 0;
+            for (let i = 0; i < indexes.length; i++) {
+                const relativeIndex = index - offset;
+                if (relativeIndex < indexes[i].length && relativeIndex >= 0) {
+                    const option = indexes[i][relativeIndex];
+                    if (option) {
+                        mappedResults[i].push(option);
+                    }
+                } else {
+                    offset += indexes[i].length;
+                }
+            }
+        });
+
+        console.log('search', performance.now() - now);
+        return mappedResults;
+    }
+
     return {
         build,
         findSubstring,
+        findInSearchTree,
     };
 }
 
-function performanceProfile(input: string, search = 'sasha') {
+function performanceProfile<T>(input: PrepareDataParams<T>, search = 'sasha') {
     // TODO: For emojis we could precalculate the makeTree function during build time using a babel plugin
     // maybe babel plugin that just precalculates the result of function execution (so that it can be generic purpose plugin)
-    const {build, findSubstring} = makeTree(input);
+    const {build, findSubstring} = makeTree([input]);
 
     const buildStart = performance.now();
     build();
@@ -246,11 +295,16 @@ function performanceProfile(input: string, search = 'sasha') {
 
 // Demo function testing the performance for emojis
 function testEmojis() {
-    let searchString = '';
-    Object.values(enEmojis).forEach(({keywords}) => {
-        searchString += `${keywords.join('')}{`;
-    });
-    return performanceProfile(searchString, 'smile');
+    const data = Object.values(enEmojis);
+    return performanceProfile(
+        {
+            data,
+            transform: ({keywords}) => {
+                return `${keywords.join('')}{`;
+            },
+        },
+        'smile',
+    );
 }
 
 export {makeTree, prepareData, testEmojis};
