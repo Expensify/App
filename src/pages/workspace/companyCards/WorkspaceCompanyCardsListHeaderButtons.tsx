@@ -8,10 +8,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,17 +23,13 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 
     /** Currently selected feed */
     selectedFeed: string;
-
-    /** Is pending state of the feed */
-    isPending: boolean;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, isPending}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
 
     return (
@@ -60,7 +56,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, isPendi
                 <Button
                     medium
                     success
-                    isDisabled={isPending}
+                    isDisabled={cardFeeds?.companyCards?.[selectedFeed].pending ?? false}
                     // TODO: navigate to Assign card flow when it's implemented
                     onPress={() => {}}
                     icon={Expensicons.Plus}

@@ -1,15 +1,14 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -103,8 +102,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const policyID = route.params.policyID;
-    const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
@@ -116,10 +114,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     useFocusEffect(fetchCompanyCards);
 
     const companyCards = cardFeeds?.companyCards ?? {};
-    const selectedCompanyCard = companyCards[selectedFeed] ?? {};
-    const isNoFeed = lodashIsEmpty(selectedCompanyCard);
+    const selectedCompanyCard = companyCards[selectedFeed] ?? null;
+    const isNoFeed = !selectedCompanyCard;
     const isPending = selectedCompanyCard?.pending;
-    const isFeedAdded = !isPending && !lodashIsEmpty(selectedCompanyCard);
+    const isFeedAdded = !isPending && !isNoFeed;
     const isLoading = !cardFeeds || cardFeeds.isLoading;
 
     // TODO: use data form onyx instead of mocked one when API is implemented
@@ -153,7 +151,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}
-                            isPending={isPending}
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
