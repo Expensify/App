@@ -785,6 +785,8 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
             icon: Expensicons.Trashcan,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
+            shouldCallAfterModalHide: true,
+            shouldCloseAllModals: true,
         },
     ];
 }

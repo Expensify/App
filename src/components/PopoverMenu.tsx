@@ -42,6 +42,9 @@ type PopoverMenuItem = MenuItemProps & {
      *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
      */
     shouldCallAfterModalHide?: boolean;
+
+    /** Whether to close all modals */
+    shouldCloseAllModals?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -97,6 +100,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to show the selected option checkmark */
     shouldShowSelectedItemCheck?: boolean;
+
+    /** Should close all modals */
+    shouldCloseAllModals?: boolean;
 };
 
 function PopoverMenu({
@@ -142,9 +148,14 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
             onItemSelected(selectedItem, index);
-            Modal.close(() => {
-                selectedItem.onSelected?.();
-            });
+            console.log('selectedItem', selectedItem, selectedItem.shouldCloseAllModals);
+            Modal.close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
