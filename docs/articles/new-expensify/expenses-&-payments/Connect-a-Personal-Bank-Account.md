@@ -2,9 +2,7 @@
 title: Connect a Personal Bank Account to Receive Payments
 description: Receive payments and reimbursements by adding a personal bank account.
 ---
-Connecting a personal bank account to Expensify allows you to:
-  - Receive peer-to-peer personal payments
-  - Get reimbursed for company expenses
+Connecting a personal bank account to Expensify allows you to get reimbursed for company expenses and receive peer-to-peer payments directly into your Expensify Wallet.
 
 **To connect a personal bank account:**
 1. Click your profile image or icon in the bottom left menu.
@@ -22,5 +20,3 @@ Plaid is an encrypted third-party financial data platform that Expensify uses to
 8. Click **Save & continue**.
 
 Once connected, all payments and reimbursements will be deposited directly into that bank account. 
-
-</div>
