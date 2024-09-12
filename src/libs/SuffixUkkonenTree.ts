@@ -27,14 +27,44 @@ function stringToArray(input: string) {
     return res;
 }
 
+const aToZRegex = /[^a-z]/gi;
+// The character that separates the different options in the search string
+const delimiterChar = '{';
+
+function prepareData<T>({data, transform}: {data: T[]; transform: (data: T) => string}): [string, Array<T | undefined>] {
+    const searchIndexList: Array<T | undefined> = [];
+    const str = data
+        .map((option) => {
+            let searchStringForTree = transform(option);
+            // Remove all none a-z chars:
+            searchStringForTree = searchStringForTree.toLowerCase().replace(aToZRegex, '');
+
+            if (searchStringForTree.length > 0) {
+                // We need to push an array that has the same length as the length of the string we insert for this option:
+                const indexes = Array.from({length: searchStringForTree.length}, () => option);
+                // Note: we add undefined for the delimiter character
+                searchIndexList.push(...indexes, undefined);
+            } else {
+                return undefined;
+            }
+
+            return searchStringForTree;
+        })
+        // TODO: this can probably improved by a reduce
+        .filter(Boolean)
+        .join(delimiterChar);
+
+    return [str, searchIndexList];
+}
+
 /**
  * Makes a tree from an input string
  * **Important:** As we only support an alphabet of 26 characters, the input string should only contain characters from a-z.
  * Thus, all input data must be cleaned before being passed to this function.
  * If you then use this tree for search you should clean your search input as well (so that a search query of "testuser@myEmail.com" becomes "testusermyemailcom").
  */
-function makeTree(searchString: string) {
-    const a = stringToArray(searchString);
+function makeTree(stringToSearch: string) {
+    const a = stringToArray(stringToSearch);
     const N = 25000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
     const t = Array.from({length: N}, () => Array(ALPHABET_SIZE).fill(-1) as number[]);
@@ -214,4 +244,4 @@ function testEmojis() {
     return performanceProfile(searchString, 'smile');
 }
 
-export {makeTree, testEmojis};
+export {makeTree, prepareData, testEmojis};

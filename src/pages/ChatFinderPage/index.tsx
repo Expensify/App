@@ -18,7 +18,7 @@ import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
-import {makeTree} from '@libs/SuffixUkkonenTree';
+import {makeTree, prepareData} from '@libs/SuffixUkkonenTree';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -106,55 +106,25 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
      *   (including the implementation detail of the delimiter character)
      */
     const findInSearchTree = useMemo(() => {
-        // The character that separates the different options in the search string
-        const delimiterChar = '{';
-
-        const searchIndexListRecentReports: Array<OptionData | undefined> = [];
-        const searchIndexListPersonalDetails: Array<OptionData | undefined> = [];
-
         let start = performance.now();
-        let searchString = searchOptions.personalDetails
-            .map((option) => {
+        const [personalDetailsSearchString, searchIndexListPersonalDetails] = prepareData({
+            data: searchOptions.personalDetails,
+            transform: (option) => {
                 // TODO: there are probably more fields we'd like to add to the search string
-                let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
-                // Remove all none a-z chars:
-                searchStringForTree = searchStringForTree.toLowerCase().replace(aToZRegex, '');
-
-                if (searchStringForTree.length > 0) {
-                    // We need to push an array that has the same length as the length of the string we insert for this option:
-                    const indexes = Array.from({length: searchStringForTree.length}, () => option);
-                    // Note: we add undefined for the delimiter character
-                    searchIndexListPersonalDetails.push(...indexes, undefined);
-                } else {
-                    return undefined;
-                }
-
-                return searchStringForTree;
-            })
-            .filter(Boolean)
-            .join(delimiterChar);
-        searchString += searchOptions.recentReports
-            .map((option) => {
+                return (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+            },
+        });
+        const [recentReportsSearchString, searchIndexListRecentReports] = prepareData({
+            data: searchOptions.recentReports,
+            transform: (option) => {
                 let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
                 searchStringForTree += option.reportID ?? '';
                 searchStringForTree += option.name ?? '';
-                // Remove all none a-z chars:
-                searchStringForTree = searchStringForTree.toLowerCase().replace(aToZRegex, '');
-
-                if (searchStringForTree.length > 0) {
-                    // We need to push an array that has the same length as the length of the string we insert for this option:
-                    const indexes = Array.from({length: searchStringForTree.length}, () => option);
-                    searchIndexListRecentReports.push(...indexes, undefined);
-                } else {
-                    return undefined;
-                }
 
                 return searchStringForTree;
-            })
-            // TODO: this can probably improved by a reduce
-            .filter(Boolean)
-            .join(delimiterChar);
-        searchString += '|'; // End Character
+            },
+        });
+        const searchString = `${personalDetailsSearchString}${recentReportsSearchString}|`; // End Character
         console.log(searchIndexListPersonalDetails.slice(0, 20));
         console.log(searchString.substring(0, 20));
         console.log('building search strings', performance.now() - start);
