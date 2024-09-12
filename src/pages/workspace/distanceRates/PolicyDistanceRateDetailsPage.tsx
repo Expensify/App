@@ -155,7 +155,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             </View>
                         </OfflineWithFeedback>
                     )}
-                    {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
+                    {isDistanceTrackTaxEnabled && !!taxRate && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(rate, 'taxClaimablePercentage')}
                             pendingAction={rate?.pendingFields?.taxClaimablePercentage}

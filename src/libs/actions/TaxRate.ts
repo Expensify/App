@@ -286,6 +286,10 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {}).sort((a, b) => a.localeCompare(b))[0];
+    const customUnits = policy?.customUnits ?? {};
+    const ratesToUpdate = Object.values(customUnits?.[Object.keys(customUnits)[0]]?.rates).filter(
+        (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
+    );
 
     if (!policyTaxRates) {
         console.debug('Policy or tax rates not found');
@@ -293,6 +297,35 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     }
 
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
+
+    const optimisticRates: Record<string, Rate> = {};
+    const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+
+    ratesToUpdate.forEach((rate) => {
+        const rateID = rate.customUnitRateID ?? '';
+        optimisticRates[rateID] = {
+            ...rate,
+            attributes: {
+                ...rate?.attributes,
+                taxRateExternalID: undefined,
+                taxClaimablePercentage: undefined,
+            },
+            pendingFields: {
+                taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        };
+        successRates[rateID] = {...rate, pendingFields: {taxRateExternalID: null}};
+        failureRates[rateID] = {
+            ...rate,
+            pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
+            errorFields: {
+                taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        };
+    });
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -308,6 +341,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
+                    customUnits: policy.customUnits && {
+                        [Object.keys(policy.customUnits)[0]]: {
+                            rates: optimisticRates,
+                        },
+                    },
                 },
             },
         ],
@@ -322,6 +360,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             acc[taxID] = null;
                             return acc;
                         }, {}),
+                    },
+                    customUnits: policy.customUnits && {
+                        [Object.keys(policy.customUnits)[0]]: {
+                            rates: successRates,
+                        },
                     },
                 },
             },
@@ -340,6 +383,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             };
                             return acc;
                         }, {}),
+                    },
+                    customUnits: policy.customUnits && {
+                        [Object.keys(policy.customUnits)[0]]: {
+                            rates: failureRates,
+                        },
                     },
                 },
             },
