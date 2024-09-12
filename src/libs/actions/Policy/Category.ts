@@ -18,6 +18,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -1150,7 +1151,8 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const approvalRules = policy?.rules?.approvalRules ?? [];
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
-    const existingCategoryApproverRule = updatedApprovalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
+
     let newApprover = approver;
 
     if (!existingCategoryApproverRule) {

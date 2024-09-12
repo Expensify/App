@@ -26,7 +26,7 @@ function CategoryApproverPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
 
-    const selectedApprover = CategoryUtils.getCategoryApprover(policy?.rules?.approvalRules ?? [], categoryName) ?? '';
+    const selectedApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
 
     return (
         <AccessOrNotFoundWrapper

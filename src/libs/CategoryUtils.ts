@@ -44,11 +44,11 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     );
 }
 
-function getCategoryApprover(approvalRules: ApprovalRule[], categoryName: string) {
+function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
     const approverRule = approvalRules?.find((rule) =>
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
     );
-    return approverRule?.approver;
+    return approverRule;
 }
 
 function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
@@ -62,4 +62,4 @@ function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: st
     return categoryDefaultTaxRate;
 }
 
-export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApprover, getCategoryDefaultTaxRate};
+export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate};

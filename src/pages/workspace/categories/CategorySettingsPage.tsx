@@ -84,7 +84,7 @@ function CategorySettingsPage({
     }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
-        const categoryApprover = CategoryUtils.getCategoryApprover(policy?.rules?.approvalRules ?? [], categoryName);
+        const categoryApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver;
         return categoryApprover ?? '';
     }, [categoryName, policy?.rules?.approvalRules]);
 
