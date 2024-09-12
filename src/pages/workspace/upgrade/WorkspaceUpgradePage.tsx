@@ -32,6 +32,19 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
     const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
+    const goBack = useCallback(() => {
+        if (!feature) {
+            return;
+        }
+        switch (feature.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            default:
+                return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
+        }
+    }, [feature, policyID, route.params.backTo]);
+
     const upgradeToCorporate = () => {
         if (!canPerformUpgrade) {
             return;
@@ -47,14 +60,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 Policy.enablePolicyReportFields(policyID, true, true);
-                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 Policy.enablePolicyRules(policyID, true, true);
-                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                break;
             default:
-                return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params.backTo]);
+    }, [feature, policyID]);
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {
@@ -79,11 +91,21 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => (isUpgraded ? Navigation.dismissModal() : Navigation.goBack())}
+                onBackButtonPress={() => {
+                    if (isUpgraded) {
+                        Navigation.dismissModal();
+                    } else {
+                        Navigation.goBack();
+                    }
+                    goBack();
+                }}
             />
             {isUpgraded && (
                 <UpgradeConfirmation
-                    onConfirmUpgrade={() => Navigation.dismissModal()}
+                    onConfirmUpgrade={() => {
+                        Navigation.dismissModal();
+                        goBack();
+                    }}
                     policyName={policy.name}
                 />
             )}

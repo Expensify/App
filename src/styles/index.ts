@@ -3,7 +3,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -71,7 +71,7 @@ type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmall
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
-type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
+type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
 
@@ -3450,6 +3450,12 @@ const styles = (theme: ThemeColors) =>
             pending: {
                 opacity: 0.5,
             },
+            default: {
+                // fixes a crash on iOS when we attempt to remove already unmounted children
+                // see https://github.com/Expensify/App/issues/48197 for more details
+                // it's a temporary solution while we are working on a permanent fix
+                opacity: Platform.OS === 'ios' ? 0.99 : undefined,
+            },
             error: {
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -3638,6 +3644,12 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...getPopOverVerticalOffset(180),
                 horizontal: windowWidth - 355,
+            } satisfies AnchorPosition),
+
+        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(70),
+                horizontal: windowWidth - 20,
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
@@ -4107,11 +4119,6 @@ const styles = (theme: ThemeColors) =>
         taskCheckboxWrapper: {
             height: variables.fontSizeNormalHeight,
             ...flex.justifyContentCenter,
-        },
-
-        taskCheckbox: {
-            height: 16,
-            width: 16,
         },
 
         taskTitleMenuItem: {
