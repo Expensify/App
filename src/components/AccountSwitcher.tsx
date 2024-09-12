@@ -37,7 +37,7 @@ function AccountSwitcher() {
     const {canUseNewDotCopilot} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
