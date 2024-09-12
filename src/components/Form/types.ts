@@ -62,7 +62,7 @@ type ValidInputs =
     | typeof NetSuiteCustomFieldMappingPicker
     | typeof NetSuiteMenuWithTopDescriptionForm
     | typeof CountryPicker
-    | typeof StatePicker;
+    | typeof StatePicker
     | typeof ConstantSelector;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
