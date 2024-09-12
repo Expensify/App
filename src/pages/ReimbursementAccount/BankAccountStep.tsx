@@ -30,8 +30,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import BankInfo from './BankInfo/BankInfo';
 
 type BankAccountStepOnyxProps = {
-    /** Object with various information about the user */
-    user: OnyxEntry<OnyxTypes.User>;
+    /** Holds information about the users account that is logging in */
+    account: OnyxEntry<OnyxTypes.Account>;
 
     /** If the plaid button has been disabled */
     isPlaidDisabled: OnyxEntry<boolean>;
@@ -66,7 +66,7 @@ function BankAccountStep({
     plaidLinkOAuthToken = '',
     policyID = '',
     policyName = '',
-    user,
+    account,
     receivedRedirectURI,
     reimbursementAccount,
     onBackButtonPress,
@@ -155,9 +155,9 @@ function BankAccountStep({
                             <MenuItem
                                 icon={Expensicons.Bank}
                                 title={translate('bankAccount.connectOnlineWithPlaid')}
-                                disabled={!!isPlaidDisabled || !user?.validated}
+                                disabled={!!isPlaidDisabled || !account?.validated}
                                 onPress={() => {
-                                    if (!!isPlaidDisabled || !user?.validated) {
+                                    if (!!isPlaidDisabled || !account?.validated) {
                                         return;
                                     }
                                     removeExistingBankAccountDetails();
@@ -171,7 +171,7 @@ function BankAccountStep({
                             <MenuItem
                                 icon={Expensicons.Connect}
                                 title={translate('bankAccount.connectManually')}
-                                disabled={!user?.validated}
+                                disabled={!account?.validated}
                                 onPress={() => {
                                     removeExistingBankAccountDetails();
                                     BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
@@ -181,7 +181,7 @@ function BankAccountStep({
                             />
                         </View>
                     </Section>
-                    {!user?.validated && <ValidateAccountMessage />}
+                    {!account?.validated && <ValidateAccountMessage />}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
@@ -207,8 +207,8 @@ function BankAccountStep({
 BankAccountStep.displayName = 'BankAccountStep';
 
 export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
+    account: {
+        key: ONYXKEYS.ACCOUNT,
     },
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
