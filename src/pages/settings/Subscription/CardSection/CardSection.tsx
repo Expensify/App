@@ -61,7 +61,7 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = SearchUtils.buildQueryStringFromFilters({merchant: CONST.EXPENSIFY_MERCHANT});
+        const query = SearchUtils.buildQueryStringFromFilterValues({merchant: CONST.EXPENSIFY_MERCHANT});
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
     }, []);
 
