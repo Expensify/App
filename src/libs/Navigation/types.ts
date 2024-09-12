@@ -1181,6 +1181,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1410,6 +1411,12 @@ type RestrictedActionParamList = {
     };
 };
 
+type MissingPersonalDetailsParamList = {
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: {
+        policyID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -1481,4 +1488,5 @@ export type {
     SearchReportParamList,
     SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
+    MissingPersonalDetailsParamList,
 };
