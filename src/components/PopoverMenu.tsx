@@ -100,9 +100,6 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to show the selected option checkmark */
     shouldShowSelectedItemCheck?: boolean;
-
-    /** Should close all modals */
-    shouldCloseAllModals?: boolean;
 };
 
 function PopoverMenu({
@@ -148,7 +145,6 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
             onItemSelected(selectedItem, index);
-            console.log('selectedItem', selectedItem, selectedItem.shouldCloseAllModals);
             Modal.close(
                 () => {
                     selectedItem.onSelected?.();
