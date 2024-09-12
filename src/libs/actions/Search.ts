@@ -88,11 +88,11 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function saveSearch({queryJSON}: {queryJSON: SearchQueryJSON}) {
-    const name = queryJSON?.inputQuery ?? '';
-    const {optimisticData, failureData} = getOnyxSavedSearchData(queryJSON.hash, name, JSON.stringify(queryJSON));
+function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
+    const saveSearchName = name ?? queryJSON?.inputQuery ?? '';
+    const {optimisticData, failureData} = getOnyxSavedSearchData(queryJSON.hash, saveSearchName, JSON.stringify(queryJSON));
     const jsonQuery = JSON.stringify(queryJSON);
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName}, {optimisticData, failureData});
 }
 
 function deleteSavedSearch(hash: number) {
