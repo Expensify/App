@@ -786,7 +786,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
-            shouldCloseAllModals: true,            
+            shouldCloseAllModals: true,
         },
     ];
 }
