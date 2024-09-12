@@ -19,7 +19,7 @@ public class ShortcutManagerUtils {
         ShortcutManagerCompat.removeAllDynamicShortcuts(context);
     }
 
-    public static void addDynamicShortcut(Context context, String reportID, String name, String accountID, Bitmap personIcon, Person person) {
+    public static void addDynamicShortcut(Context context, long reportID, String name, String accountID, Bitmap personIcon, Person person) {
         Intent intent = new Intent(Intent.ACTION_VIEW,
                 Uri.parse("new-expensify://r/" + reportID));
 

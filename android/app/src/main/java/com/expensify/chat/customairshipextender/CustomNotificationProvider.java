@@ -218,7 +218,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             Person person = createMessagePersonObject(IconCompat.createWithBitmap(personIcon), accountID, name);
 
-            ShortcutManagerUtils.addDynamicShortcut(context, reportId, name, accountID, personIcon, person);
+            ShortcutManagerUtils.addDynamicShortcut(context, reportID, name, accountID, personIcon, person);
 
             // Create latest received message object
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
