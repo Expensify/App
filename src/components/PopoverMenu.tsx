@@ -125,6 +125,7 @@ function PopoverMenu({
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
