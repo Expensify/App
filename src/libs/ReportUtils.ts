@@ -458,6 +458,7 @@ type OptionData = {
     tabIndex?: 0 | -1;
     isConciergeChat?: boolean;
     isBold?: boolean;
+    isSender?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {

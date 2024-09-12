@@ -168,6 +168,10 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
+        const isSender = participants?.find((participant) => participant.isSender);
+        if (isSender?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(isSender.policyID);
+        }
     }, [isOffline, participants, transaction?.billable, policy, transactionID]);
 
     const defaultBillable = !!policy?.defaultBillable;
