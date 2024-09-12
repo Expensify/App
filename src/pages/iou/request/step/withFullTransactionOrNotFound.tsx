@@ -55,6 +55,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         if (!transactionID) {
             return <FullPageNotFoundView shouldShow={isFocused} />;
         }
+
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
