@@ -31,7 +31,7 @@ function sleep(error: RequestError, command: string): Promise<void> {
         if (requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
             const currentRequestWaitTime = getRequestWaitTime();
             Log.info(
-                `[RequestThrottle] Retrying request after error: '${error.name}', '${error.message}'. Command: ${command}. Retry count:  ${requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
+                `[RequestThrottle] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
             );
             setTimeout(resolve, currentRequestWaitTime);
             return;

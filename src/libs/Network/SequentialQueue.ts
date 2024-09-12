@@ -13,6 +13,7 @@ import * as NetworkStore from './NetworkStore';
 type RequestError = Error & {
     name?: string;
     message?: string;
+    status?: string;
 };
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
