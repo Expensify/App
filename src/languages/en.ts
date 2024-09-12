@@ -68,6 +68,7 @@ import type {
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -639,6 +640,8 @@ export default {
                 ? `This chat is no longer active because <strong>you</strong> are no longer a member of the ${policyName} workspace.`
                 : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
+            `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
             `This chat is no longer active because ${policyName} is no longer an active workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'This booking is archived.',
     },
@@ -1638,6 +1641,10 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: "What's your legal name?",
+        enterDateOfBirth: "What's your date of birth?",
+        enterAddress: "What's your address?",
+        enterPhoneNumber: "What's your phone number?",
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
         legalName: 'Legal name',
@@ -2152,7 +2159,7 @@ export default {
         common: {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
-            companyCards: 'Company Cards',
+            companyCards: 'Company cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2793,6 +2800,43 @@ export default {
         companyCards: {
             addCompanyCards: 'Add company cards',
             selectCardFeed: 'Select card feed',
+            addCardFeed: 'Add card feed',
+            addNewCard: {
+                cardProviders: {
+                    amex: 'American Express Corporate Cards',
+                    mastercard: 'Mastercard Commercial Cards',
+                    visa: 'Visa Commercial Cards',
+                },
+                yourCardProvider: `Who's your card provider?`,
+                enableFeed: {
+                    title: (provider: string) => `Enable your ${provider} feed`,
+                    heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
+                    visa: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructionson how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    amex: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) to find out if American Express can enable a custom feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
+                    mastercard: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                },
+                whatBankIssuesCard: 'What bank issues these cards?',
+                enterNameOfBank: 'Enter name of bank',
+                feedDetails: {
+                    visa: {
+                        title: 'What are the Visa feed details?',
+                        processorLabel: 'Processor ID',
+                        bankLabel: 'Financial institution (bank) ID',
+                        companyLabel: 'Company ID',
+                    },
+                    amex: {
+                        title: `What's the Amex delivery file name`,
+                        fileNameLabel: 'Delivery file name',
+                    },
+                    mastercard: {
+                        title: `What's the Mastercard distribution ID`,
+                        distributionLabel: 'Distribution ID',
+                    },
+                },
+                error: {
+                    pleaseSelectProvider: 'Please select a card provider before continuing.',
+                },
+            },
             assignCard: 'Assign card',
             cardNumber: 'Card number',
             customFeed: 'Custom feed',
@@ -2866,11 +2910,11 @@ export default {
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
-            addMailingAddress: 'Add mailing address',
+            addShippingDetails: 'Add shipping details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
-            issuedCardNoMailingAddress: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
+            issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are added.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
-            addedAddress: (assignee: string) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
+            addedShippingDetails: (assignee: string) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -2952,7 +2996,7 @@ export default {
                 },
             },
             companyCards: {
-                title: 'Company Cards',
+                title: 'Company cards',
                 subtitle: 'Import spend from existing company cards.',
                 feed: {
                     title: 'Import company cards',
@@ -2963,7 +3007,7 @@ export default {
                     },
                     ctaTitle: 'Add company cards',
                 },
-                disableCardTitle: 'Disable Company Cards',
+                disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
                 assignCard: 'Assign card',
@@ -3671,7 +3715,7 @@ export default {
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
             companyCards: {
-                title: 'Company Cards',
+                title: 'Company cards',
                 description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
@@ -3851,6 +3895,19 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' and ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+            }
+            const workflowWord = Str.pluralize('workflow', 'workflows', submittersNames.length);
+            const chatWord = Str.pluralize('chat', 'chats', submittersNames.length);
+            return `removed you from ${joinedNames}'s approval ${workflowWord} and workspace ${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -3942,12 +3999,9 @@ export default {
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
-            has: 'Has',
             link: 'Link',
-            is: 'Is',
             pinned: 'Pinned',
             unread: 'Unread',
-            draft: 'Draft',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,

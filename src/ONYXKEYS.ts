@@ -402,6 +402,9 @@ const ONYXKEYS = {
     /** Stores the information about the state of issuing a new card */
     ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
 
+    /** Stores the information about the state of addint a new company card */
+    ADD_NEW_COMPANY_CARD: 'addNewCompanyCard',
+
     /** Stores the information about the state of assigning a company card */
     ASSIGN_CARD: 'assignCard',
 
@@ -413,11 +416,16 @@ const ONYXKEYS = {
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
+    /** Stores the user search value for persistance across the screens */
+    ROOM_MEMBERS_USER_SEARCH_PHRASE: 'roomMembersUserSearchPhrase',
     /** Stores information about recently uploaded spreadsheet file */
     IMPORTED_SPREADSHEET: 'importedSpreadsheet',
 
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
+
+    /** Stores recently used currencies */
+    RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
     /** Collection Keys */
     COLLECTION: {
@@ -552,6 +560,8 @@ const ONYXKEYS = {
         DATE_OF_BIRTH_FORM_DRAFT: 'dateOfBirthFormDraft',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         HOME_ADDRESS_FORM_DRAFT: 'homeAddressFormDraft',
+        PERSONAL_DETAILS_FORM: 'personalDetailsForm',
+        PERSONAL_DETAILS_FORM_DRAFT: 'personalDetailsFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
@@ -632,6 +642,8 @@ const ONYXKEYS = {
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
         ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCard',
         ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardDraft',
+        ADD_NEW_CARD_FEED_FORM: 'addNewCardFeed',
+        ADD_NEW_CARD_FEED_FORM_DRAFT: 'addNewCardFeedDraft',
         ASSIGN_CARD_FORM: 'assignCard',
         ASSIGN_CARD_FORM_DRAFT: 'assignCardDraft',
         EDIT_EXPENSIFY_CARD_NAME_FORM: 'editExpensifyCardName',
@@ -697,6 +709,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: FormTypes.WorkspaceInviteMessageForm;
     [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM]: FormTypes.DateOfBirthForm;
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: FormTypes.HomeAddressForm;
+    [ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM]: FormTypes.PersonalDetailsForm;
     [ONYXKEYS.FORMS.NEW_ROOM_FORM]: FormTypes.NewRoomForm;
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.RoomSettingsForm;
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.NewTaskForm;
@@ -741,6 +754,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
+    [ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM]: FormTypes.AddNewCardFeedForm;
     [ONYXKEYS.FORMS.ASSIGN_CARD_FORM]: FormTypes.AssignCardForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
@@ -825,7 +839,7 @@ type OnyxValuesMapping = {
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
-
+    [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -944,6 +958,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
@@ -954,6 +969,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
     [ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
+    [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;

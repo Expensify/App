@@ -5,13 +5,11 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
-import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -157,10 +155,7 @@ function SettlementButton({
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();
-    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID, session?.email), [activePolicyID, session?.email]);
-
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
@@ -234,22 +229,20 @@ function SettlementButton({
                 });
             }
 
-            if (PolicyUtils.isPolicyAdmin(primaryPolicy) && PolicyUtils.isPaidGroupPolicy(primaryPolicy)) {
-                buttonOptions.push({
-                    text: translate('iou.settleBusiness', {formattedAmount}),
-                    icon: Expensicons.Building,
-                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                    backButtonText: translate('iou.business'),
-                    subMenuItems: [
-                        {
-                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                            icon: Expensicons.Cash,
-                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
-                        },
-                    ],
-                });
-            }
+            buttonOptions.push({
+                text: translate('iou.settleBusiness', {formattedAmount}),
+                icon: Expensicons.Building,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                backButtonText: translate('iou.business'),
+                subMenuItems: [
+                    {
+                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                        icon: Expensicons.Cash,
+                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                    },
+                ],
+            });
         }
 
         if (shouldShowApproveButton) {

@@ -249,7 +249,7 @@ function ExpensifyCardPage({
                                                     }
                                                 />
                                                 <DotIndicatorMessage
-                                                    messages={cardsDetailsErrors[card.cardID] ? {error: cardsDetailsErrors[card.cardID]} : {}}
+                                                    messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
                                                     type="error"
                                                     style={[styles.ph5]}
                                                 />

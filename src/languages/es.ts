@@ -67,6 +67,7 @@ import type {
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -632,6 +633,8 @@ export default {
                 ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
             `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
@@ -1647,6 +1650,10 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: '¿Cuál es tu nombre legal?',
+        enterDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
+        enterAddress: '¿Cuál es tu dirección?',
+        enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         legalName: 'Nombre completo',
@@ -2838,6 +2845,44 @@ export default {
         companyCards: {
             addCompanyCards: 'Agregar tarjetas de empresa',
             selectCardFeed: 'Seleccionar feed de tarjetas',
+            addCardFeed: 'Añadir alimentación de tarjeta',
+            addNewCard: {
+                cardProviders: {
+                    amex: 'Tarjetas de empresa American Express',
+                    mastercard: 'Tarjetas comerciales Mastercard',
+                    visa: 'Tarjetas comerciales Visa',
+                },
+                yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
+                enableFeed: {
+                    title: (provider: string) => `Habilita tu feed ${provider}`,
+                    heading:
+                        'Tenemos una integración directa con el emisor de su tarjeta y podemos importar los datos de sus transacciones a Expensify de forma rápida y precisa.\n\nPara empezar, simplemente:',
+                    visa: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_HELP}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Visa.\n\n2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_HELP}) para comprobar que admiten un feed personalizado para su programa, y pídales que lo activen.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                    amex: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_HELP}) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentación, Amex le enviará una carta de producción.\n\n3. *Una vez que tenga la información de alimentación, continúe con la siguiente pantalla.*`,
+                    mastercard: `1. Visite [este artículo de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Mastercard.\n\n 2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_HELP}) para verificar que admiten un feed personalizado para su programa, y pídales que lo habiliten.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                },
+                whatBankIssuesCard: '¿Qué banco emite estas tarjetas?',
+                enterNameOfBank: 'Introduzca el nombre del banco',
+                feedDetails: {
+                    visa: {
+                        title: '¿Cuáles son los datos de alimentación de Visa?',
+                        processorLabel: 'ID del procesador',
+                        bankLabel: 'Identificación de la institución financiera (banco)',
+                        companyLabel: 'Empresa ID',
+                    },
+                    amex: {
+                        title: `¿Cuál es el nombre del archivo de entrega de Amex?`,
+                        fileNameLabel: 'Nombre del archivo de entrega',
+                    },
+                    mastercard: {
+                        title: `¿Cuál es el identificador de distribución de Mastercard?`,
+                        distributionLabel: 'ID de distribución',
+                    },
+                },
+                error: {
+                    pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
+                },
+            },
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             customFeed: 'Fuente personalizada',
@@ -2914,11 +2959,11 @@ export default {
                 `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
-            addMailingAddress: 'Añadir dirección de postal',
+            addShippingDetails: 'Añadir detalles de envío',
             issuedCard: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta llegará en 2-3 días laborables.`,
-            issuedCardNoMailingAddress: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se añada una dirección postal.`,
+            issuedCardNoShippingDetails: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se agreguen los detalles de envío.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
-            addedAddress: (assignee: string) => `${assignee} ha añadido la dirección. Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            addedShippingDetails: (assignee: string) => `${assignee} agregó los detalles de envío. La Tarjeta Expensify llegará en 2-3 días hábiles.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -3902,6 +3947,19 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' y ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+            }
+            const workflowWord = Str.pluralize('del flujo', 'de los flujos', submittersNames.length);
+            const chatWord = Str.pluralize('del chat', 'de los chats', submittersNames.length);
+            return `te eliminó ${workflowWord} de trabajo de aprobaciones y ${chatWord} del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -3993,12 +4051,9 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
-            has: 'Tiene',
             link: 'Enlace',
-            is: 'Está',
             pinned: 'Fijado',
             unread: 'No leído',
-            draft: 'Borrador',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
