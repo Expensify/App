@@ -44,7 +44,7 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCallAfterModalHide?: boolean;
 
     /** Whether to close all modals */
-    shouldCloseAllModals?: boolean;    
+    shouldCloseAllModals?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -100,9 +100,6 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to show the selected option checkmark */
     shouldShowSelectedItemCheck?: boolean;
-
-     /** Should close all modals */
-    shouldCloseAllModals?: boolean;
 };
 
 function PopoverMenu({
