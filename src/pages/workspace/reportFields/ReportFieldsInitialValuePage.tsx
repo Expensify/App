@@ -43,19 +43,21 @@ function ReportFieldsInitialValuePage({
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
-
-    const [initialValue, setInitialValue] = useState(WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField));
+    const currentInitialValue = WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField);
+    const [initialValue, setInitialValue] = useState(currentInitialValue);
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            ReportField.updateReportFieldInitialValue(policyID, reportFieldID, initialValue === values.initialValue ? '' : values.initialValue);
+            if (currentInitialValue !== values.initialValue) {
+                ReportField.updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+            }
             Navigation.goBack();
         },
-        [policyID, reportFieldID, initialValue],
+        [policyID, reportFieldID, currentInitialValue],
     );
 
     const submitListValueUpdate = (value: string) => {
-        ReportField.updateReportFieldInitialValue(policyID, reportFieldID, initialValue === value ? '' : value);
+        ReportField.updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
         Navigation.goBack();
     };
 

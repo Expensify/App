@@ -50,22 +50,9 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import RNMeasureContainer from './measureContainer';
 import SendButton from './SendButton';
-
-type ComposerRef = {
-    blur: () => void;
-    focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
-    getCurrentText: () => string;
-    isFocused: () => boolean;
-    /**
-     * Calling clear will immediately clear the input on the UI thread (its a worklet).
-     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
-     */
-    clear: () => void;
-};
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -142,7 +129,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -180,7 +167,7 @@ function ReportActionCompose({
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
-        return !draftComment || !!draftComment.match(/^(\s)*$/);
+        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -214,25 +201,13 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
-    // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
-    const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
-
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (includesConcierge) {
-            if (userBlockedFromConcierge) {
-                return translate('reportActionCompose.blockedFromConcierge');
-            }
-
-            return translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
+        if (includesConcierge && userBlockedFromConcierge) {
+            return translate('reportActionCompose.blockedFromConcierge');
         }
-
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge]);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -579,7 +554,7 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}

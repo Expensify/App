@@ -3,7 +3,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -71,7 +71,7 @@ type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmall
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
-type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
+type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
 
@@ -998,7 +998,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        uploadReceiptView: (isSmallScreenWidth: boolean) =>
+        uploadFileView: (isSmallScreenWidth: boolean) =>
             ({
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderWidth: isSmallScreenWidth ? 0 : 2,
@@ -1014,7 +1014,7 @@ const styles = (theme: ThemeColors) =>
                 flex: 1,
             } satisfies ViewStyle),
 
-        receiptViewTextContainer: {
+        uploadFileViewTextContainer: {
             paddingHorizontal: 40,
             ...sizing.w100,
         },
@@ -1409,14 +1409,14 @@ const styles = (theme: ThemeColors) =>
             color: theme.textError,
         },
 
-        textReceiptUpload: {
+        textFileUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             color: theme.text,
             textAlign: 'center',
         },
 
-        subTextReceiptUpload: {
+        subTextFileUpload: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
@@ -2827,8 +2827,6 @@ const styles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         avatarSectionWrapperSettings: {
@@ -3452,6 +3450,12 @@ const styles = (theme: ThemeColors) =>
             pending: {
                 opacity: 0.5,
             },
+            default: {
+                // fixes a crash on iOS when we attempt to remove already unmounted children
+                // see https://github.com/Expensify/App/issues/48197 for more details
+                // it's a temporary solution while we are working on a permanent fix
+                opacity: Platform.OS === 'ios' ? 0.99 : undefined,
+            },
             error: {
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -3642,6 +3646,12 @@ const styles = (theme: ThemeColors) =>
                 horizontal: windowWidth - 355,
             } satisfies AnchorPosition),
 
+        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(70),
+                horizontal: windowWidth - 20,
+            } satisfies AnchorPosition),
+
         iPhoneXSafeArea: {
             backgroundColor: theme.inverse,
             flex: 1,
@@ -3731,19 +3741,19 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        receiptDropOverlay: {
-            backgroundColor: theme.receiptDropUIBG,
+        fileDropOverlay: {
+            backgroundColor: theme.fileDropUIBG,
             zIndex: 2,
         },
 
         isDraggingOver: {
-            backgroundColor: theme.receiptDropUIBG,
+            backgroundColor: theme.fileDropUIBG,
         },
 
-        receiptImageWrapper: (receiptImageTopPosition: number) =>
+        fileUploadImageWrapper: (fileTopPosition: number) =>
             ({
                 position: 'absolute',
-                top: receiptImageTopPosition,
+                top: fileTopPosition,
             } satisfies ViewStyle),
 
         cardSectionContainer: {
@@ -4109,11 +4119,6 @@ const styles = (theme: ThemeColors) =>
         taskCheckboxWrapper: {
             height: variables.fontSizeNormalHeight,
             ...flex.justifyContentCenter,
-        },
-
-        taskCheckbox: {
-            height: 16,
-            width: 16,
         },
 
         taskTitleMenuItem: {
@@ -4529,6 +4534,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        profilePageAvatar: {
+            borderColor: theme.highlightBG,
+        },
+
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
@@ -4803,7 +4812,7 @@ const styles = (theme: ThemeColors) =>
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
-            backgroundColor: theme.receiptDropUIBG,
+            backgroundColor: theme.fileDropUIBG,
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -5081,6 +5090,15 @@ const styles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        emptyStateCardIllustrationContainer: {
+            height: 220,
+        },
+
+        emptyStateCardIllustration: {
+            width: 164,
+            height: 190,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
@@ -5141,6 +5159,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: 400,
+            width: '100%',
         },
 
         emptyStateHeader: (isIllustration: boolean) => ({
@@ -5170,6 +5189,22 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        importColumnCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+            flexWrap: 'wrap',
+        },
+
+        accountSwitcherPopover: {
+            width: variables.sideBarWidth - 19,
+        },
+
+        accountSwitcherAnchorPosition: {
+            top: 80,
+            left: 12,
         },
     } satisfies Styles);
 

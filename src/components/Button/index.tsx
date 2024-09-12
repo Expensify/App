@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -52,6 +52,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 
     /** A function that is called when the button is clicked on */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -137,13 +140,13 @@ type ButtonProps = Partial<ChildrenProps> & {
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
 
-const accessibilityRoles: string[] = Object.values(CONST.ROLE);
+const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
 
 function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -192,6 +195,7 @@ function Button(
         isLoading = false,
         isDisabled = false,
 
+        onLayout = () => {},
         onPress = () => {},
         onLongPress = () => {},
         onPressIn = () => {},
@@ -289,8 +293,9 @@ function Button(
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
-                                    small={medium}
-                                    medium={large}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             ) : (
                                 <Icon
@@ -324,6 +329,7 @@ function Button(
             )}
             <PressableWithFeedback
                 ref={ref}
+                onLayout={onLayout}
                 onPress={(event) => {
                     if (event?.type === 'click') {
                         const currentTarget = event?.currentTarget as HTMLElement;

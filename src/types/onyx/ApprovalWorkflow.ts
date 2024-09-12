@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
 /**
  * Approver in the approval workflow
@@ -59,7 +60,7 @@ type Member = {
 /**
  * Approval workflow for a group of employees
  */
-type ApprovalWorkflow = {
+type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
     /**
      * List of member emails in the workflow
      */
@@ -76,7 +77,7 @@ type ApprovalWorkflow = {
      * Is this the default workflow for the policy (first approver of this workflow is the same as the policy's default approver)
      */
     isDefault: boolean;
-};
+}>;
 
 /**
  * Approval workflow for a group of employees with additional properties for the Onyx store
