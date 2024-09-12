@@ -1,15 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type en from './en';
 
 type PluralForm = {
-    one: string;
-    other: string;
     zero?: string;
+    one: string;
     two?: string;
-    few?: string;
-    many?: string;
+    few?: (count: number) => string;
+    many?: (count: number) => string;
+    other: (count: number) => string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/**
+ * Retrieves the first argument of a function
+ */
 type FirstArgument<TFunction> = TFunction extends (arg: infer A, ...args: any[]) => any ? A : never;
 
 /**
@@ -30,14 +34,15 @@ type TranslationDeepObject<TTranslations> = {
     [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any) ? TranslationLeafValue<TTranslations[Path]> : TranslationDeepObject<TTranslations[Path]>;
 };
 
-/* Flat Translation Object types */
-// Flattens an object and returns concatenations of all the keys of nested objects
+/**
+ * Flattens an object and returns concatenations of all the keys of nested objects
+ *
+ * Ex:
+ * Input: { common: { yes: "Yes", no: "No" }}
+ * Output: "common.yes" | "common.no"
+ */
 type FlattenObject<TObject, TPrefix extends string = ''> = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [TKey in keyof TObject]: TObject[TKey] extends (args: any) => any
-        ? `${TPrefix}${TKey & string}`
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        TObject[TKey] extends any[]
+    [TKey in keyof TObject]: TObject[TKey] extends (arg: any) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/ban-types
         TObject[TKey] extends object
@@ -45,21 +50,68 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
         : `${TPrefix}${TKey & string}`;
 }[keyof TObject];
 
-// Retrieves a type for a given key path (calculated from the type above)
-type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
+/**
+ * Retrieves a type for a given key path (calculated from the type above)
+ */
+type TranslationValue<TObject, TPath extends string> = TPath extends keyof TObject
     ? TObject[TPath]
     : TPath extends `${infer TKey}.${infer TRest}`
     ? TKey extends keyof TObject
-        ? TranslateType<TObject[TKey], TRest>
+        ? TranslationValue<TObject[TKey], TRest>
         : never
     : never;
 
-type EnglishTranslation = typeof en;
+/**
+ * English is the default translation, other languages will be type-safe based on this
+ */
+type DefaultTranslation = typeof en;
 
-type TranslationPaths = FlattenObject<EnglishTranslation>;
+/**
+ * Flattened default translation object
+ */
+type TranslationPaths = FlattenObject<DefaultTranslation>;
 
-type TranslationFlatObject = {
-    [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
+/**
+ * Flattened default translation object with its values
+ */
+type FlatTranslationsObject = {
+    [Path in TranslationPaths]: TranslationValue<DefaultTranslation, Path>;
 };
 
-export type {TranslationDeepObject, TranslationFlatObject, TranslationPaths, PluralForm};
+type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (arg: infer A, ...args: unknown[]) => unknown ? [A] : [];
+
+/**
+ * Check all translations that are functions to make sure they have a valid argument
+ *
+ * The argument must be an defined object or undefined
+ *
+ * Example:
+ * {
+ *   // This is valid because the argument is defined
+ *   content: ({content}: ReportContentArgs) => `This is the content: ${content}`,
+ *
+ *   // This is invalid because the argument is not defined
+ *   content: ({content}) => `This is the content: ${content}`,
+ *
+ *   // This is invalid because the argument is not an object
+ *   content: (content: string) => `This is the content: ${content}`,
+ * }
+ */
+type InvalidFunctionTranslations = {
+    [Path in keyof FlatTranslationsObject]: FlatTranslationsObject[Path] extends infer Value
+        ? Value extends (...args: any[]) => any
+            ? Parameters<Value>[0] extends Record<string, unknown> | undefined
+                ? never
+                : Path
+            : never
+        : never;
+}[keyof FlatTranslationsObject];
+
+type TranslationArgumentShouldBeObjectError =
+    "ERROR: The argument of a translation function must be an object. The keys highlighted in 'InvalidFunctionTranslations' type have invalid function parameter.";
+
+/** If this type errors, it means that the translation functions have invalid arguments,  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertTranslations = AssertTypesEqual<never, InvalidFunctionTranslations, TranslationArgumentShouldBeObjectError>;
+
+export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, TranslationValue, FlatTranslationsObject, TranslationParameters, AssertTranslations};

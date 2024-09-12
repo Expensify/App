@@ -1,7 +1,7 @@
 import en from './en';
 import es from './es';
 import esES from './es-ES';
-import type {TranslationDeepObject, TranslationFlatObject} from './types';
+import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
  * Converts an object to it's flattened version.
@@ -12,7 +12,7 @@ import type {TranslationDeepObject, TranslationFlatObject} from './types';
  */
 // Necessary to export so that it is accessible to the unit tests
 // eslint-disable-next-line rulesdir/no-inline-named-export
-export function flattenObject<T = typeof en>(obj: TranslationDeepObject<T>): TranslationFlatObject {
+export function flattenObject<T = typeof en>(obj: TranslationDeepObject<T>): FlatTranslationsObject {
     const result: Record<string, unknown> = {};
 
     const recursive = (data: TranslationDeepObject<T>, key: string): void => {
@@ -40,7 +40,7 @@ export function flattenObject<T = typeof en>(obj: TranslationDeepObject<T>): Tra
     };
 
     recursive(obj, '');
-    return result as TranslationFlatObject;
+    return result as FlatTranslationsObject;
 }
 
 export default {
