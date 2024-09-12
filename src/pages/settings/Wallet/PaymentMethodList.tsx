@@ -201,10 +201,10 @@ function PaymentMethodList({
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     const getDescriptionForPolicyDomainCard = (domainName: string): string => {
-        const match = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME);
-        if (match) {
-            const policyID = match[1].toUpperCase();
-            const policy = PolicyUtils.getPolicy(policyID);
+        // A domain name containing a policyID indicates that this is a workspace feed
+        const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+        if (policyID) {
+            const policy = PolicyUtils.getPolicy(policyID.toUpperCase());
             return policy?.name ?? domainName;
         }
         return domainName;
