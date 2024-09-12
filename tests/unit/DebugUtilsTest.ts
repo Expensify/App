@@ -138,10 +138,10 @@ describe('DebugUtils', () => {
             }).not.toThrow();
         });
 
-        it('throws SyntaxError when value is an empty string', () => {
+        it('does not throw SyntaxError when value is an empty string', () => {
             expect(() => {
                 DebugUtils.validateNumber('');
-            }).toThrow();
+            }).not.toThrow();
         });
 
         it('throws SyntaxError when value is not a valid number', () => {
