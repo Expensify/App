@@ -739,6 +739,18 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
     return sortedReportActions[0];
 }
 
+function formatLastMessageText(lastMessageText: string) {
+    const trimmedMessage = String(lastMessageText).trim();
+
+    // Add support for empty inline code
+    // The message will be displayed as a blank space in LHN
+    if ((trimmedMessage === '' && lastMessageText.length > 0) || (trimmedMessage === '?\u2026' && lastMessageText.length > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)) {
+        return ' ';
+    }
+
+    return StringUtils.lineBreaksToSpaces(trimmedMessage).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+}
+
 function getLastVisibleMessage(
     reportID: string,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
@@ -763,7 +775,7 @@ function getLastVisibleMessage(
 
     let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
     if (messageText) {
-        messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = formatLastMessageText(messageText);
     }
     return {
         lastMessageText: messageText,
@@ -1667,6 +1679,7 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
+    formatLastMessageText,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
