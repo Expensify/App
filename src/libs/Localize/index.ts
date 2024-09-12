@@ -6,7 +6,7 @@ import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement'
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 import LocaleListener from './LocaleListener';
@@ -67,10 +67,6 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
     }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
 );
 
-function isPlainObject(value: string): boolean {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 /**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
@@ -114,29 +110,30 @@ function getTranslatedPhrase<TPath extends TranslationPaths>(
              * param in parameters
              *
              */
+            const translateFunction = translatedPhrase as unknown as (...parameters: TranslationParameters<TPath>) => string | PluralForm;
+            const translateResult = translateFunction(...parameters);
 
-            const phraseTranslated = translatedPhrase(...parameters);
-
-            if (isPlainObject(phraseTranslated)) {
-                const phraseObject = {...(parameters[0] as Record<string, unknown>)};
-
-                if ('count' in phraseObject && typeof phraseObject.count === 'number') {
-                    const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
-
-                    if (phraseTranslated && typeof phraseTranslated === 'object' && pluralRule in phraseTranslated) {
-                        return phraseTranslated[pluralRule];
-                    }
-
-                    Log.alert(`Plural form ${pluralRule} is not found for ${path}, using 'other' form`);
-                    // NOTEME fix ts error and lint error
-
-                    /* eslint-disable @typescript-eslint/no-unsafe-return */
-                    // @ts-expect-error Property 'other' does not exist on type 'string'
-                    return phraseTranslated.other;
-                }
+            if (typeof translateResult === 'string') {
+                return translateResult;
             }
 
-            return phraseTranslated;
+            const phraseObject = parameters[0];
+            if (phraseObject && typeof phraseObject === 'object' && 'count' in phraseObject && typeof phraseObject.count === 'number') {
+                const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+
+                const pluralResult = pluralRule in translateResult && translateResult[pluralRule];
+                if (pluralResult) {
+                    if (typeof pluralResult === 'string') {
+                        return pluralResult;
+                    }
+
+                    return pluralResult(phraseObject.count);
+                }
+
+                return translateResult.other(phraseObject.count);
+            }
+
+            throw new Error(`Invalid plural form for '${path}'`);
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
@@ -183,7 +180,7 @@ function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' 
     // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
-        const phraseString: string = Array.isArray(path) ? path.join('.') : path;
+        const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the en locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
