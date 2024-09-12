@@ -16,22 +16,37 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
+
+    policyID: string | undefined;
 };
 
 type IssueNewCardOriginalMessage = OriginalMessage<
     typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
 >;
 
-function IssueCardMessage({action}: IssueCardMessageProps) {
+function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const assignee = `<mention-user accountID=${(action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID}></mention-user>`;
+    const assigneeAccountID = (action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
+
+    const assignee = `<mention-user accountID=${assigneeAccountID}></mention-user>`;
     const link = `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('cardPage.expensifyCard')}</a>`;
 
-    const noMailingAddress = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address);
+    const missingDetails =
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0;
+
+    const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
+
+    const shouldShowDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
 
     const getTranslation = () => {
         switch (action?.actionName) {
@@ -40,7 +55,7 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
                 return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
             case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-                return translate(`workspace.expensifyCard.${noMailingAddress ? 'issuedCardNoMailingAddress' : 'addedAddress'}`, assignee);
+                return translate(`workspace.expensifyCard.${!isAssigneeCurrentUser || shouldShowDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, assignee);
             default:
                 return '';
         }
@@ -49,13 +64,18 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     return (
         <>
             <RenderHTML html={`<muted-text>${getTranslation()}</muted-text>`} />
-            {noMailingAddress && (
+            {shouldShowDetailsButton && (
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
+                    onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(policyID));
+                    }}
                     success
                     medium
                     style={[styles.alignSelfStart, styles.mt3]}
-                    text={translate('workspace.expensifyCard.addMailingAddress')}
+                    text={translate('workspace.expensifyCard.addShippingDetails')}
                 />
             )}
         </>

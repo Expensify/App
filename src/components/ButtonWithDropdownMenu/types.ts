@@ -99,6 +99,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
+    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
+    shouldUseStyleUtilityForAnchorPosition?: boolean;
+
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
