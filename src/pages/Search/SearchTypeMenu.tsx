@@ -26,9 +26,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
+import type SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SavedSearchMenuItem = MenuItemBaseProps & {
     key: string;
@@ -96,7 +97,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     );
 
     const createSavedSearchMenuItem = useCallback(
-        (item: {name: string; query: string}, key: string, isNarrow: boolean) => {
+        (item: SaveSearchItem, key: string, isNarrow: boolean) => {
             const baseMenuItem: SavedSearchMenuItem = {
                 key: item.name,
                 title: item.name,
@@ -156,7 +157,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout));
+        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout));
     };
 
     const renderSavedSearchesSection = useCallback(

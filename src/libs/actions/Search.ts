@@ -43,7 +43,7 @@ function getOnyxSavedSearchData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
-            value: onyxUpdate,
+            value: [onyxUpdate],
         },
     ];
 
@@ -51,9 +51,7 @@ function getOnyxSavedSearchData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
-            value: {
-                [hash]: null,
-            },
+            value: [{[hash]: null}],
         },
     ];
 
@@ -100,9 +98,7 @@ function deleteSavedSearch(hash: number) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
-            value: {
-                [hash]: null,
-            },
+            value: [{[hash]: null}],
         },
     ];
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData});
