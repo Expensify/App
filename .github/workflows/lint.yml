@@ -29,8 +29,7 @@ jobs:
           CI: true
 
       - name: Run ESLint with stricter checks on changed files
-        run: |
-          npx eslint --config ./.eslintrc.pr.js $(git diff --diff-filter=AM --name-only main -- "*.js" "*.ts" "*.tsx")
+        run: npx eslint --config ./.eslintrc.pr.js $(git diff --diff-filter=AM --name-only main -- "*.js" "*.ts" "*.tsx")
 
       - name: Verify there's no Prettier diff
         run: |
