@@ -6,7 +6,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
