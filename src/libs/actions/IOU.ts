@@ -141,7 +141,7 @@ type UpdateMoneyRequestData = {
 };
 
 type PayMoneyRequestData = {
-    params: PayMoneyRequestParams;
+    params: PayMoneyRequestParams & Partial<PayInvoiceParams>;
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
@@ -896,13 +896,6 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
-    }
-
-    // Show field violations only for control policies
-    if (PolicyUtils.isControlPolicy(policy)) {
-        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-        optimisticData.push(...fieldViolationsOptimisticData);
-        failureData.push(...fieldViolationsFailureData);
     }
 
     return [optimisticData, successData, failureData];
@@ -3831,7 +3824,7 @@ function trackExpense(
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
 
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
@@ -6564,7 +6557,54 @@ function getPayMoneyRequestParams(
     payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
+    const activePolicy = PolicyUtils.getPolicy(activePolicyID);
+    let payerPolicyID = activePolicyID;
     let chatReport = initialChatReport;
+    let policyParams = {};
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const shouldCreatePolicy = !activePolicy || !PolicyUtils.isPolicyAdmin(activePolicy) || !PolicyUtils.isPaidGroupPolicy(activePolicy);
+
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && shouldCreatePolicy) {
+        payerPolicyID = Policy.generatePolicyID();
+        const {
+            optimisticData: policyOptimisticData,
+            failureData: policyFailureData,
+            successData: policySuccessData,
+            params,
+        } = Policy.buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
+        const {
+            announceChatReportID,
+            announceCreatedReportActionID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        } = params;
+
+        policyParams = {
+            policyID: payerPolicyID,
+            announceChatReportID,
+            announceCreatedReportActionID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        };
+
+        optimisticData.push(...policyOptimisticData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
+        successData.push(...policySuccessData);
+        failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicyID ?? null});
+    }
 
     if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
         const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', activePolicyID);
@@ -6613,14 +6653,14 @@ function getPayMoneyRequestParams(
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
     };
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && payerPolicyID) {
         optimisticChatReport.invoiceReceiver = {
             type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
-            policyID: activePolicyID,
+            policyID: payerPolicyID,
         };
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -6662,23 +6702,21 @@ function getPayMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
             value: optimisticNextStep,
         },
-    ];
+    );
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {
-                pendingFields: {
-                    preview: null,
-                    reimbursed: null,
-                    partial: null,
-                },
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+        value: {
+            pendingFields: {
+                preview: null,
+                reimbursed: null,
+                partial: null,
             },
         },
-    ];
+    });
 
-    const failureData: OnyxUpdate[] = [
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
@@ -6705,7 +6743,7 @@ function getPayMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
             value: currentNextStep,
         },
-    ];
+    );
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
@@ -6776,6 +6814,7 @@ function getPayMoneyRequestParams(
             optimisticHoldReportID,
             optimisticHoldActionID,
             optimisticHoldReportExpenseActionIDs,
+            ...policyParams,
         },
         optimisticData,
         successData,
@@ -7459,18 +7498,48 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         optimisticData,
         successData,
         failureData,
-        params: {reportActionID},
+        params: {
+            reportActionID,
+            policyID,
+            announceChatReportID,
+            announceCreatedReportActionID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        },
     } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
 
-    const params: PayInvoiceParams = {
+    let params: PayInvoiceParams = {
         reportID: invoiceReport.reportID,
         reportActionID,
         paymentMethodType,
         payAsBusiness,
     };
+
+    if (policyID) {
+        params = {
+            ...params,
+            policyID,
+            announceChatReportID,
+            announceCreatedReportActionID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        };
+    }
 
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
@@ -8111,5 +8180,6 @@ export {
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
     mergeDuplicates,
+    prepareToCleanUpMoneyRequest,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
