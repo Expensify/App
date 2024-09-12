@@ -1688,7 +1688,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         workspaceAccountID?: number;
 
         /** Information about rules being updated */
-        pendingRulesUpdates: Record<
+        pendingRulesUpdates?: Record<
             CategoryOrTagName,
             {
                 /** Indicates whether the approval rule is updated for the given category or tag */
