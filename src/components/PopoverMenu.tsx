@@ -257,51 +257,25 @@ function PopoverMenu({
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     <ScrollView>
-                        {currentMenuItems.map((item, menuIndex) => (
-                            <FocusableMenuItem
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${item.text}_${menuIndex}`}
-                                icon={item.icon}
-                                iconWidth={item.iconWidth}
-                                iconHeight={item.iconHeight}
-                                iconFill={item.iconFill}
-                                contentFit={item.contentFit}
-                                title={item.text}
-                                shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                                titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                                shouldCheckActionAllowedOnPress={false}
-                                description={item.description}
-                                numberOfLinesDescription={item.numberOfLinesDescription}
-                                onPress={() => selectItem(menuIndex)}
-                                focused={focusedIndex === menuIndex}
-                                displayInDefaultIconColor={item.displayInDefaultIconColor}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                iconRight={item.iconRight}
-                                shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
-                                label={item.label}
-                                style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
-                                isLabelHoverable={item.isLabelHoverable}
-                                floatRightAvatars={item.floatRightAvatars}
-                                floatRightAvatarSize={item.floatRightAvatarSize}
-                                shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
-                                disabled={item.disabled}
-                                onFocus={() => setFocusedIndex(menuIndex)}
-                                success={item.success}
-                                containerStyle={item.containerStyle}
-                                shouldRenderTooltip={item.shouldRenderTooltip}
-                                tooltipAnchorAlignment={item.tooltipAnchorAlignment}
-                                tooltipShiftHorizontal={item.tooltipShiftHorizontal}
-                                tooltipShiftVertical={item.tooltipShiftVertical}
-                                tooltipWrapperStyle={item.tooltipWrapperStyle}
-                                renderTooltipContent={item.renderTooltipContent}
-                                numberOfLinesTitle={item.numberOfLinesTitle}
-                                interactive={item.interactive}
-                                isSelected={item.isSelected}
-                                badgeText={item.badgeText}
-                                avatarID={item.avatarID}
-                                iconType={item.iconType}
-                            />
-                        ))}
+                        {currentMenuItems.map((item, menuIndex) => {
+                            const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
+                            return (
+                                <FocusableMenuItem
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`${item.text}_${menuIndex}`}
+                                    title={text}
+                                    onPress={() => selectItem(menuIndex)}
+                                    focused={focusedIndex === menuIndex}
+                                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                                    shouldCheckActionAllowedOnPress={false}
+                                    onFocus={() => setFocusedIndex(menuIndex)}
+                                    style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                    titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                                    // eslint-disable-next-line react/jsx-props-no-spreading
+                                    {...menuItemProps}
+                                />
+                            );
+                        })}
                     </ScrollView>
                 </View>
             </FocusTrapForModal>
