@@ -280,6 +280,7 @@
     "eslint-config-airbnb-typescript": "^18.0.0",
     "eslint-config-expensify": "^2.0.58",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-jest": "^28.6.0",
     "eslint-plugin-jsdoc": "^46.2.6",
     "eslint-plugin-react-compiler": "0.0.0-experimental-9ed098e-20240725",
