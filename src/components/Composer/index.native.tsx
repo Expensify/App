@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import variables from '@styles/variables';
 import type {ComposerProps} from './types';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -43,7 +42,6 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const [hasMultipleLines, setHasMultipleLines] = useState(false);
     const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
@@ -109,10 +107,7 @@ function Composer(
     );
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(
-        () => StyleSheet.flatten([style, textContainsOnlyEmojis && hasMultipleLines ? styles.onlyEmojisTextLineHeight : {}]),
-        [style, textContainsOnlyEmojis, hasMultipleLines, styles],
-    );
+    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     return (
         <RNMarkdownTextInput
@@ -121,10 +116,7 @@ function Composer(
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
             value={value}
-            onContentSizeChange={(e) => {
-                setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
-                updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles, true);
-            }}
+            onContentSizeChange={(e) => updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles, true)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
