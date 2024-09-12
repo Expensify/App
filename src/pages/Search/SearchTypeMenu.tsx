@@ -1,13 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
-import type {MenuItemBaseProps} from '@components/MenuItem';
 import {useOnyx} from 'react-native-onyx';
+import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import ScrollView from '@components/ScrollView';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
