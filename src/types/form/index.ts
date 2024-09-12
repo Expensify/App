@@ -83,3 +83,4 @@ export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDesc
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
+export type {PersonalDetailsForm} from './PersonalDetailsForm';

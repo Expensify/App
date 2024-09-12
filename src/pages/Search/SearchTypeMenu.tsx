@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {MenuItemBaseProps} from '@components/MenuItem';
+import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import ScrollView from '@components/ScrollView';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -15,7 +16,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -58,6 +61,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     useEffect(() => {
         setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
     }, [savedSearches]);
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -174,12 +181,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON);
+        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
         return (
             <SearchTypeMenuNarrow
                 typeMenuItems={typeMenuItems}
                 activeItemIndex={activeItemIndex}
+                queryJSON={queryJSON}
                 title={title}
                 savedSearchesMenuItems={savedSearchesMenuItems()}
             />
@@ -187,10 +195,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }
 
     return (
-        <>
-            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                {typeMenuItems.map((item, index) => {
-                    const onPress = singleExecution(() => Navigation.navigate(item.route));
+        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+            {typeMenuItems.map((item, index) => {
+                const onPress = singleExecution(() => {
+                    SearchActions.clearAllFilters();
+                    Navigation.navigate(item.route);
+                });
 
                     return (
                         <MenuItem

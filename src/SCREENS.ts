@@ -48,8 +48,6 @@ const SCREENS = {
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
-        ADVANCED_FILTERS_HAS_RHP: 'Search_Advanced_Filters_Has_RHP',
-        ADVANCED_FILTERS_IS_RHP: 'Search_Advanced_Filters_Is_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
@@ -179,6 +177,7 @@ const SCREENS = {
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
+        MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -546,6 +545,7 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
+    MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

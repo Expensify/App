@@ -7,16 +7,20 @@ import type {MenuItemBaseProps} from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -32,13 +36,15 @@ type SavedSearchMenuItem = MenuItemBaseProps & {
 type SearchTypeMenuNarrowProps = {
     typeMenuItems: SearchTypeMenuItem[];
     activeItemIndex: number;
+    queryJSON: SearchQueryJSON;
     title?: string;
     savedSearchesMenuItems: SavedSearchMenuItem[];
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearchesMenuItems}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title, savedSearchesMenuItems}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -49,22 +55,30 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearc
 
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
+    const onPress = () => {
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        SearchActions.updateAdvancedFilters(values);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    };
 
     const popoverMenuItems = useMemo(() => {
         const items = typeMenuItems.map((item, index) => {
             const isSelected = title ? false : index === activeItemIndex;
 
-            return {
-                text: item.title,
-                onSelected: singleExecution(() => Navigation.navigate(item.route)),
-                icon: item.icon,
-                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: isSelected,
-                success: isSelected,
-                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-            };
-        });
+        return {
+            text: item.title,
+            onSelected: singleExecution(() => {
+                SearchActions.clearAllFilters();
+                Navigation.navigate(item.route);
+            }),
+            icon: item.icon,
+            iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+            iconRight: Expensicons.Checkmark,
+            shouldShowRightIcon: isSelected,
+            success: isSelected,
+            containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+        };
+    });
 
         if (title) {
             items.push({
@@ -128,21 +142,23 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearc
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100]}>
+                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
                                 fill={theme.icon}
+                                small
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.fontSizeLabel]}
                             >
                                 {menuTitle}
                             </Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}
+                                small
                             />
                         </View>
                     </Animated.View>
@@ -150,7 +166,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, savedSearc
             </PressableWithFeedback>
             <Button
                 icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                onPress={onPress}
             />
             <PopoverMenu
                 menuItems={allMenuItems as PopoverMenuItem[]}
