@@ -316,6 +316,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
+                    shouldUseStyleUtilityForAnchorPosition
                 />
             ) : (
                 <Button
