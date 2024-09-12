@@ -989,6 +989,12 @@ function getTagApproverRule(policyID: string, tagName: string) {
     return approverRule;
 }
 
+type PolicyFieldUpdateKeyField = ValueOf<typeof CONST.POLICY.FIELDS>;
+
+function getPolicyFieldUpdateKey(fieldValue: string, fieldName: PolicyFieldUpdateKeyField) {
+    return `${fieldName}_${fieldValue}`;
+}
+
 function getDomainNameForPolicy(policyID?: string): string {
     if (!policyID) {
         return '';
@@ -1110,6 +1116,7 @@ export {
     getTagApproverRule,
     getDomainNameForPolicy,
     getWorkflowApprovalsUnavailable,
+    getPolicyFieldUpdateKey,
 };
 
 export type {MemberEmailsToAccountIDs};

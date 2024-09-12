@@ -853,6 +853,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
+    const tagRuleUpdateKey = PolicyUtils.getPolicyFieldUpdateKey(tag, CONST.POLICY.FIELDS.TAG);
 
     const updatedApproverRule = approverRuleToUpdate
         ? {...approverRuleToUpdate, approver}
@@ -880,7 +881,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                         approvalRules: updatedApprovalRules,
                     },
                     pendingRulesUpdates: {
-                        [tag]: {
+                        [tagRuleUpdateKey]: {
                             approvalRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                     },
@@ -896,7 +897,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                         approvalRules: updatedApprovalRules,
                     },
                     pendingRulesUpdates: {
-                        [tag]: {
+                        [tagRuleUpdateKey]: {
                             approvalRule: null,
                         },
                     },
@@ -912,7 +913,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                         approvalRules: prevApprovalRules,
                     },
                     pendingRulesUpdates: {
-                        [tag]: {
+                        [tagRuleUpdateKey]: {
                             approvalRule: null,
                         },
                     },

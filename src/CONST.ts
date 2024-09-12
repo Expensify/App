@@ -2150,6 +2150,7 @@ const CONST = {
             TAG: 'tag',
             CATEGORY: 'category',
             TITLE: 'text_title',
+            TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {

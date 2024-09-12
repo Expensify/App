@@ -28,6 +28,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1152,6 +1153,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const approvalRules = policy?.rules?.approvalRules ?? [];
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
     const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
+    const categoryRuleUpdateKey = PolicyUtils.getPolicyFieldUpdateKey(categoryName, CONST.POLICY.FIELDS.CATEGORY);
 
     let newApprover = approver;
 
@@ -1184,7 +1186,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                         approvalRules: updatedApprovalRules,
                     },
                     pendingRulesUpdates: {
-                        [categoryName]: {
+                        [categoryRuleUpdateKey]: {
                             approvalRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                     },
@@ -1197,8 +1199,8 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingRulesUpdates: {
-                        [categoryName]: {
-                            approvalRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        [categoryRuleUpdateKey]: {
+                            approvalRule: null,
                         },
                     },
                 },
@@ -1213,8 +1215,8 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                         approvalRules,
                     },
                     pendingRulesUpdates: {
-                        [categoryName]: {
-                            approvalRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        [categoryRuleUpdateKey]: {
+                            approvalRule: null,
                         },
                     },
                 },
@@ -1236,6 +1238,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const categoryRuleUpdateKey = PolicyUtils.getPolicyFieldUpdateKey(categoryName, CONST.POLICY.FIELDS.TAX);
 
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({
@@ -1268,7 +1271,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                         expenseRules: updatedExpenseRules,
                     },
                     pendingRulesUpdates: {
-                        [categoryName]: {
+                        [categoryRuleUpdateKey]: {
                             expenseRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                     },
@@ -1281,7 +1284,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingRulesUpdates: {
-                        [categoryName]: {
+                        [categoryRuleUpdateKey]: {
                             expenseRule: null,
                         },
                     },
@@ -1297,7 +1300,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                         expenseRules,
                     },
                     pendingRulesUpdates: {
-                        [categoryName]: {
+                        [categoryRuleUpdateKey]: {
                             expenseRule: null,
                         },
                     },

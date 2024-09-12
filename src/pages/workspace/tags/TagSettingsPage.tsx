@@ -161,7 +161,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={policy.pendingRulesUpdates?.[tagName]?.approvalRule}>
+                            <OfflineWithFeedback pendingAction={policy.pendingRulesUpdates?.[PolicyUtils.getPolicyFieldUpdateKey(tagName, CONST.POLICY.FIELDS.TAG)]?.approvalRule}>
                                 <MenuItemWithTopDescription
                                     title={tagApprover ?? ''}
                                     description={translate(`workspace.tags.approverDescription`)}
