@@ -197,7 +197,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                     {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
-                            medium
                             success
                             onPress={navigateToCreateTagPage}
                             icon={Expensicons.Plus}
@@ -206,7 +205,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         />
                     )}
                     <Button
-                        medium
                         onPress={navigateToTagsSettings}
                         icon={Expensicons.Gear}
                         text={translate('common.settings')}
