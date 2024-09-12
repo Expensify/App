@@ -591,7 +591,7 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
-    if: ${{ fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
