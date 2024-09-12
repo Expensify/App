@@ -62,13 +62,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const currentSavedSearch = useMemo(
-        () =>
-            savedSearchesMenuItems.find((item) => {
-                return Number(item.hash) === hash;
-            }),
-        [savedSearchesMenuItems, hash],
-    );
+    const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
 
     const popoverMenuItems = useMemo(() => {
         const items = typeMenuItems.map((item, index) => {
@@ -109,38 +103,35 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 
-    const allMenuItems = useMemo(() => {
-        const items = [...popoverMenuItems];
-        const newItems = [];
-        const savedSearchItems = savedSearchesMenuItems.map((item: SavedSearchMenuItem) => ({
-            text: item.title ?? '',
+    const savedSearchItems = savedSearchesMenuItems.map((item) => ({
+        text: item.title ?? '',
+        styles: [styles.textSupporting],
+        onSelected: item.onPress,
+        shouldShowRightComponent: true,
+        rightComponent: (
+            <ThreeDotsMenu
+                menuItems={SearchUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), item.query ?? '', showDeleteModal, true, closeMenu)}
+                anchorPosition={{horizontal: 0, vertical: 380}}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+            />
+        ),
+        containerStyle: currentSavedSearch?.hash === item.hash ? [{backgroundColor: theme.border}] : undefined,
+    }));
+
+    const allMenuItems = [];
+    allMenuItems.push(...popoverMenuItems);
+
+    if (savedSearchesMenuItems.length > 0) {
+        allMenuItems.push({
+            text: translate('search.savedSearchesMenuItemTitle'),
             styles: [styles.textSupporting],
-            onSelected: item.onPress,
-            shouldShowRightComponent: true,
-            rightComponent: (
-                <ThreeDotsMenu
-                    menuItems={SearchUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), item.query ?? '', showDeleteModal, true, closeMenu)}
-                    anchorPosition={{horizontal: 0, vertical: 380}}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                />
-            ),
-            containerStyle: currentSavedSearch?.hash === item.hash ? [{backgroundColor: theme.border}] : undefined,
-        }));
-
-        if (savedSearchesMenuItems.length > 0) {
-            newItems.push({
-                text: translate('search.savedSearchesMenuItemTitle'),
-                styles: [styles.textSupporting],
-                disabled: true,
-            });
-            newItems.push(...savedSearchItems);
-        }
-
-        return [...items, ...newItems];
-    }, [popoverMenuItems, savedSearchesMenuItems, styles, showDeleteModal, closeMenu, translate, currentSavedSearch?.hash, theme.border]);
+            disabled: true,
+        });
+        allMenuItems.push(...savedSearchItems);
+    }
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
