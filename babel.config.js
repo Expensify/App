@@ -8,7 +8,12 @@ const ReactCompilerConfig = {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
 };
-const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
+/**
+ * Setting targets to node 20 to reduce JS bundle size
+ * It is also recommended by babel:
+ * https://babeljs.io/docs/options#no-targets
+ */
+const defaultPresets = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [
     ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
