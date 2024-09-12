@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
+import useNetwork from '@hooks/useNetwork';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,13 +17,14 @@ function FreeTrialBadge({badgeStyles}: FreeTrialBadgeProps) {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
-        if (!privateSubscription) {
+        if (!privateSubscription && !isOffline) {
             return;
         }
         setFreeTrialText(SubscriptionUtils.getFreeTrialText(policies));
-    }, [privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial]);
+    }, [isOffline, privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial]);
 
     if (!freeTrialText) {
         return null;
