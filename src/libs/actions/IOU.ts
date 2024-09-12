@@ -8214,7 +8214,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const optimisticReportActionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
             [optimisticReportAction.reportActionID]: optimisticReportAction,
         },
@@ -8222,7 +8222,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const failureReportActionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
             [optimisticReportAction.reportActionID]: null,
         },
