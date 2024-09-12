@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import clone from 'lodash/clone';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -38,7 +38,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             PersistedRequests.getAll()
                 .slice(offset)
                 .forEach((persistedRequest, index) => {
-                    const persistedRequestClone = _.clone(persistedRequest);
+                    const persistedRequestClone = clone(persistedRequest);
                     persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
                     PersistedRequests.update(index + offset, persistedRequestClone);
                 });

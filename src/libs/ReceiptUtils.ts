@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import _ from 'lodash';
+import findLast from 'lodash/findLast';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +30,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
         return {isThumbnail: true, isLocalFile: true};
     }
     // If there're errors, we need to display them in preview. We can store many files in errors, but we just need to get the last one
-    const errors = _.findLast(transaction?.errors) as ReceiptError | undefined;
+    const errors = findLast(transaction?.errors) as ReceiptError | undefined;
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
     const path = errors?.source ?? transaction?.receipt?.source ?? receiptPath ?? '';
     // filename of uploaded image or last part of remote URI
