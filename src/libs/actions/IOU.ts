@@ -3008,7 +3008,6 @@ function updateMoneyRequestMerchant(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
-    console.log('%%%%%\n', 'onyxData merchant', onyxData);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
@@ -3027,7 +3026,6 @@ function updateMoneyRequestAttendees(
     };
     const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true, violations);
     const {params, onyxData} = data;
-    console.log('%%%%%\n', 'onyxData', onyxData);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
 }
 
