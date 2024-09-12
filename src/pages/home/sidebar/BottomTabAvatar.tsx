@@ -54,11 +54,16 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             <AvatarWithOptionalStatus
                 emojiStatus={emojiStatus}
                 isSelected={isSelected}
-                containerStyle={emojiStatus && styles.sidebarStatusAvatarWithEmojiContainer}
+                containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
             />
         );
     } else {
-        children = <ProfileAvatarWithIndicator isSelected={isSelected} />;
+        children = (
+            <ProfileAvatarWithIndicator
+                isSelected={isSelected}
+                containerStyles={styles.tn0Half}
+            />
+        );
     }
 
     return (
