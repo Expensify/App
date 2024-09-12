@@ -719,13 +719,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
-    const firstReportAction = reportActions[0];
-    const shouldRenderFirstReportAction = !!firstReportAction &&
-        !ReportActionsUtils.isActionOfType(firstReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
-        !ReportActionsUtils.isDeletedAction(firstReportAction);
-
-
-    console.log('[wildebug] firstReportAction', firstReportAction)
+    const mostRecentReportAction = reportActions[0];
+    const shouldShowMostRecentReportAction =
+        !!mostRecentReportAction &&
+        !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
+        !ReportActionsUtils.isDeletedAction(mostRecentReportAction);
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
@@ -807,9 +805,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        {shouldRenderFirstReportAction && (
+                                        {shouldShowMostRecentReportAction && (
                                             <ReportActionsListItemRenderer
-                                                reportAction={firstReportAction}
+                                                reportAction={mostRecentReportAction}
                                                 reportActions={reportActions}
                                                 parentReportAction={parentReportAction}
                                                 parentReportActionForTransactionThread={undefined}
