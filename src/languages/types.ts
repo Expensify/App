@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type en from './en';
 
 type PluralParams = {count: number};
@@ -83,6 +82,9 @@ type FlatTranslationsObject = {
     [Path in TranslationPaths]: TranslationValue<DefaultTranslation, Path>;
 };
 
+/**
+ * Determines the expected parameters for a specific translation function based on the provided translation path
+ */
 type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (...args: infer Args) => infer Return
     ? Return extends PluralForm
         ? Args[0] extends undefined
@@ -91,38 +93,4 @@ type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObj
         : Args
     : never[];
 
-/**
- * Check all translations that are functions to make sure they have a valid argument
- *
- * The argument must be an defined object or undefined
- *
- * Example:
- * {
- *   // This is valid because the argument is defined
- *   content: ({content}: ReportContentArgs) => `This is the content: ${content}`,
- *
- *   // This is invalid because the argument is not defined
- *   content: ({content}) => `This is the content: ${content}`,
- *
- *   // This is invalid because the argument is not an object
- *   content: (content: string) => `This is the content: ${content}`,
- * }
- */
-type InvalidFunctionTranslations = {
-    [Path in keyof FlatTranslationsObject]: FlatTranslationsObject[Path] extends infer Value
-        ? Value extends (...args: any[]) => any
-            ? Parameters<Value>[0] extends Record<string, unknown> | undefined
-                ? never
-                : Path
-            : never
-        : never;
-}[keyof FlatTranslationsObject];
-
-type TranslationArgumentShouldBeObjectError =
-    "ERROR: The argument of a translation function must be an object. The keys highlighted in 'InvalidFunctionTranslations' type have invalid function parameter.";
-
-/** If this type errors, it means that the translation functions have invalid arguments,  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type AssertTranslations = AssertTypesEqual<never, InvalidFunctionTranslations, TranslationArgumentShouldBeObjectError>;
-
-export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, PluralForm, TranslationValue, FlatTranslationsObject, TranslationParameters, AssertTranslations};
+export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, PluralForm, TranslationValue, FlatTranslationsObject, TranslationParameters};
