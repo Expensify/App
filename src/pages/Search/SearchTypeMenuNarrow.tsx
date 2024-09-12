@@ -140,7 +140,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         }
 
         return [...items, ...newItems];
-    }, [popoverMenuItems, savedSearchesMenuItems, styles, showDeleteModal, closeMenu, translate]);
+    }, [popoverMenuItems, savedSearchesMenuItems, styles, showDeleteModal, closeMenu, translate, currentSavedSearch?.hash, theme.border]);
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
