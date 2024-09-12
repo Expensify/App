@@ -8164,7 +8164,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
     });
 
     const iouActionList = getIOUActionForTransactions(params.transactionIDList, params.reportID);
-    const reportIDList = iouActionList.map((action) => action?.childReportID);
+    const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
     const orderedTransactionIDList = iouActionList.map((action) => {
         const message = ReportActionsUtils.getOriginalMessage(action);
         return message?.IOUTransactionID ?? '';
@@ -8173,7 +8173,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const optimisticHoldActions: OnyxUpdate[] = [];
     const failureHoldActions: OnyxUpdate[] = [];
     const reportActionIDList: string[] = [];
-    reportIDList.forEach((transactionThreadReportID) => {
+    transactionThreadReportIDList.forEach((transactionThreadReportID) => {
         const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
         optimisticHoldActions.push({
@@ -8194,7 +8194,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         });
     });
 
-    const transactionReportID = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.find(
+    const transactionThreadReportID = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.find(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 return false;
