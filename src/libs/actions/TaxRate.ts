@@ -287,7 +287,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {}).sort((a, b) => a.localeCompare(b))[0];
     const customUnits = policy?.customUnits ?? {};
-    const ratesToUpdate = Object.values(customUnits?.[Object.keys(customUnits)[0]]?.rates).filter(
+    const ratesToUpdate = Object.values(customUnits?.[Object.keys(customUnits)[0]]?.rates ?? {}).filter(
         (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
     );
 
