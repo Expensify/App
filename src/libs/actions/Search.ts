@@ -12,6 +12,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SaveSearch} from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
@@ -22,6 +23,42 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
     },
 });
+
+function getOnyxSavedSearchData(
+    hash: number,
+    name: string,
+    jsonQuery: string,
+): {
+    optimisticData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
+} {
+    const onyxUpdate: SaveSearch = {
+        [hash]: {
+            name,
+            query: jsonQuery,
+        },
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: onyxUpdate,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [hash]: null,
+            },
+        },
+    ];
+
+    return {optimisticData, failureData};
+}
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
@@ -51,15 +88,24 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
+function saveSearch({queryJSON}: {queryJSON: SearchQueryJSON}) {
+    const name = queryJSON?.inputQuery ?? '';
+    const {optimisticData, failureData} = getOnyxSavedSearchData(queryJSON.hash, name, JSON.stringify(queryJSON));
     const jsonQuery = JSON.stringify(queryJSON);
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name}, {optimisticData, failureData});
 }
 
 function deleteSavedSearch(hash: number) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, finallyData});
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [hash]: null,
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData});
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -156,6 +202,10 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+function dismissSaveSearchRenameTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVE_SEARCH_RENAME_TOOLTIP, true);
+}
+
 export {
     saveSearch,
     search,
@@ -168,4 +218,5 @@ export {
     clearAllFilters,
     clearAdvancedFilters,
     deleteSavedSearch,
+    dismissSaveSearchRenameTooltip,
 };
