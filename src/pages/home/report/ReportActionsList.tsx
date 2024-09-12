@@ -700,5 +700,4 @@ function ReportActionsList({
 ReportActionsList.displayName = 'ReportActionsList';
 
 export default withCurrentUserPersonalDetails(memo(ReportActionsList));
-export {clearIsReportActionLinked};
 export type {LoadNewerChats, ReportActionsListProps};
