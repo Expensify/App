@@ -63,7 +63,7 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
         />
     );
 }
