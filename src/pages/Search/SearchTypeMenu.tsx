@@ -1,16 +1,21 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -34,6 +39,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -41,6 +50,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
+        },
+        {
+            title: translate('common.chats'),
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
         },
         {
             title: translate('workspace.common.invoices'),
@@ -60,12 +75,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON);
+        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
         return (
             <SearchTypeMenuNarrow
                 typeMenuItems={typeMenuItems}
                 activeItemIndex={activeItemIndex}
+                queryJSON={queryJSON}
                 title={title}
             />
         );
@@ -74,7 +90,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     return (
         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
             {typeMenuItems.map((item, index) => {
-                const onPress = singleExecution(() => Navigation.navigate(item.route));
+                const onPress = singleExecution(() => {
+                    SearchActions.clearAllFilters();
+                    Navigation.navigate(item.route);
+                });
 
                 return (
                     <MenuItem

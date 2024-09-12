@@ -2407,13 +2407,13 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.26):
+  - rnmapbox-maps (10.1.30):
     - MapboxMaps (~> 10.18.2)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.26)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.30)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.26):
+  - rnmapbox-maps/DynamicLibrary (10.1.30):
     - DoubleConversion
     - hermes-engine
     - MapboxMaps (~> 10.18.2)
@@ -3237,7 +3237,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: cfc927fc0b1182e364237c72692e079107c6f5f1
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
+  rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: a15b431d2903bc2eb3474ff8d9a05d3e67a70199
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
