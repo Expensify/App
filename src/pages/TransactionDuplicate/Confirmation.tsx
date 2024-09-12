@@ -35,19 +35,17 @@ function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
-    const isActionOwner = report?.ownerAccountID === currentUserPersonalDetails?.accountID;
-    const isApprover = ReportUtils.isMoneyRequestReport(report) && report?.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
-    const isAdmin = ReportUtils.isPolicyAdmin(report?.policyID ?? '-1', allPolicies);
+    const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
 
@@ -60,6 +58,7 @@ function Confirmation() {
         IOU.resolveDuplicates(transactionsMergeParams);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
     }, [transactionsMergeParams, reportAction?.childReportID]);
+
 
     const contextValue = useMemo(
         () => ({
@@ -123,7 +122,7 @@ function Confirmation() {
                                 text={translate('common.confirm')}
                                 success
                                 onPress={() => {
-                                    if ((isAdmin || isApprover) && !isActionOwner) {
+                                    if (!isReportOwner) {
                                         resolveDuplicates();
                                         return;
                                     }
