@@ -879,8 +879,11 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                     rules: {
                         approvalRules: updatedApprovalRules,
                     },
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    pendingFields: {rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    pendingRulesUpdates: {
+                        [tag]: {
+                            approvalRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
                 },
             },
         ],
@@ -892,8 +895,11 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                     rules: {
                         approvalRules: updatedApprovalRules,
                     },
-                    pendingAction: null,
-                    pendingFields: {rules: null},
+                    pendingRulesUpdates: {
+                        [tag]: {
+                            approvalRule: null,
+                        },
+                    },
                 },
             },
         ],
@@ -905,8 +911,11 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                     rules: {
                         approvalRules: prevApprovalRules,
                     },
-                    pendingAction: null,
-                    pendingFields: {rules: null},
+                    pendingRulesUpdates: {
+                        [tag]: {
+                            approvalRule: null,
+                        },
+                    },
                 },
             },
         ],
