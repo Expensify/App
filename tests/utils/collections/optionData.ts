@@ -19,7 +19,7 @@ export default function createRandomOptionData(index: number): OptionData {
         policyName: randWord(),
         policyID: `policy_${index}`,
         accountID: randNumber(),
-        isArchivedRoom: randBoolean(),
+        private_isArchived: new Date().toISOString(),
         isPolicyExpenseChat: randBoolean(),
         chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
         hasOutstandingChildRequest: randBoolean(),
