@@ -186,6 +186,7 @@ import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
+import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
@@ -393,6 +394,7 @@ export {
     Filter,
     UserEye,
     CaretUpDown,
+    UserPlus,
     Feed,
     Table,
     SpreadsheetComputer,
