@@ -12,6 +12,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -290,8 +291,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
+    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
+        const menuItems: PopoverMenuItem[] = [
             {
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -303,7 +306,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
                 },
             },
-            {
+        ];
+
+        if (hasVisibleTags) {
+            menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
@@ -313,11 +319,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }
                     Tag.downloadTagsCSV(policyID);
                 },
-            },
-        ];
+            });
+        }
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [translate, hasVisibleTags, isOffline, policyID]);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -337,8 +343,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             )}
         </View>
     );
-
-    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -384,7 +388,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || !hasVisibleTag || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -392,7 +396,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {!hasVisibleTag && !isLoading && (
+                {!hasVisibleTags && !isLoading && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
@@ -403,7 +407,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
-                {hasVisibleTag && !isLoading && (
+                {hasVisibleTags && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!isMultiLevelTags}
