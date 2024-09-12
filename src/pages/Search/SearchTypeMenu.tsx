@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -55,12 +55,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [shouldHideSaveSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_SAVE_SEARCH_RENAME_TOOLTIP, {initialValue: true});
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [prevSavedSearchesLength, setPrevSavedSearchesLength] = useState(0);
-
-    useEffect(() => {
-        setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
-    }, []);
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -127,7 +123,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             if (!isNarrow) {
                 return {
                     ...baseMenuItem,
-                    shouldRenderTooltip: Object.keys(savedSearches ?? {}).length === 1 && prevSavedSearchesLength === 0,
+                    shouldRenderTooltip: !shouldHideSaveSearchRenameTooltip,
                     tooltipAnchorAlignment: {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -135,22 +131,25 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     tooltipShiftHorizontal: -32,
                     tooltipShiftVertical: 15,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    renderTooltipContent: () => (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <Expensicons.Lightbulb
-                                width={16}
-                                height={16}
-                                fill={styles.colorGreenSuccess.color}
-                            />
-                            <Text style={[styles.ml1, styles.textLabel]}>{translate('search.saveSearchTooltipText')}</Text>
-                        </View>
-                    ),
+                    renderTooltipContent: () => {
+                        SearchActions.dismissSaveSearchRenameTooltip();
+                        return (
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <Expensicons.Lightbulb
+                                    width={16}
+                                    height={16}
+                                    fill={styles.colorGreenSuccess.color}
+                                />
+                                <Text style={[styles.ml1, styles.textLabel]}>{translate('search.saveSearchTooltipText')}</Text>
+                            </View>
+                        );
+                    },
                 };
             }
 
             return baseMenuItem;
         },
-        [hash, savedSearches, styles, getOverflowMenu, prevSavedSearchesLength, translate],
+        [hash, styles, getOverflowMenu, translate, shouldHideSaveSearchRenameTooltip],
     );
 
     const savedSearchesMenuItems = () => {
