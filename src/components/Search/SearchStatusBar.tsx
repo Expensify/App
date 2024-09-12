@@ -192,7 +192,6 @@ function SearchStatusBar({type, status, resetOffset}: SearchStatusBarProps) {
                         textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
                         // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
                         style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
-                        medium
                     />
                 );
             })}
