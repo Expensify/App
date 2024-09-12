@@ -70,12 +70,11 @@ function CurrencySelectionList({
         }
 
         if (shouldDisplayRecentlyOptions) {
-            const cutRecentlyUsedCurrencyOptions = recentlyUsedCurrencyOptions.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
             if (!isEmpty) {
                 result.push(
                     {
                         title: translate('common.recents'),
-                        data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(cutRecentlyUsedCurrencyOptions) : cutRecentlyUsedCurrencyOptions,
+                        data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
                         shouldShow: shouldDisplayRecentlyOptions,
                     },
                     {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies},

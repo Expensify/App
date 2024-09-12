@@ -2219,7 +2219,7 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
         return [];
     }
 
-    return lodashUnion([currency], allRecentlyUsedCurrencies);
+    return lodashUnion([currency], allRecentlyUsedCurrencies).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
 
 /**
