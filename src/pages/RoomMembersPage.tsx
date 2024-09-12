@@ -295,7 +295,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
