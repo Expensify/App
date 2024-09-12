@@ -370,11 +370,11 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb3]}>
+        <View style={[styles.ph5, styles.pv5]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
@@ -433,13 +433,14 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
+            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                contentContainerStyle={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100]}
+                showsVerticalScrollIndicator={false}
             >
-                {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}
                 {generalMenuItems}

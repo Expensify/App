@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
@@ -69,7 +69,7 @@ function AvatarWithDisplayName({
         ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report) || ReportUtils.isInvoiceReport(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
