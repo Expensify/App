@@ -126,7 +126,7 @@ function buildOptimisticTransaction(
     currency: string,
     reportID: string,
     comment = '',
-    attendees: Attendee[] | undefined = undefined,
+    attendees: Attendee[] = [],
     created = '',
     source = '',
     originalTransactionID = '',
