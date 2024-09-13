@@ -222,7 +222,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     );
                 })}
             </View>
-            <ScrollView>{savedSearches && savedSearches.length > 0 && renderSavedSearchesSection(savedSearchesMenuItems())}</ScrollView>
+            <ScrollView>{savedSearches && Object.keys(savedSearches).length > 0 && renderSavedSearchesSection(savedSearchesMenuItems())}</ScrollView>
             <DeleteConfirmModal />
         </>
     );
