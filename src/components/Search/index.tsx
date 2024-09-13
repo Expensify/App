@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -51,19 +52,26 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
-    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType | ReportActionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+function mapToItemWithSelectionInfo(
+    item: TransactionListItemType | ReportListItemType | ReportActionListItemType,
+    selectedTransactions: SelectedTransactions,
+    canSelectMultiple: boolean,
+    shouldAnimateInHighlight: boolean,
+) {
     if (SearchUtils.isReportActionListItemType(item)) {
         return item;
     }
+
     return SearchUtils.isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple)),
+              shouldAnimateInHighlight,
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
               isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
@@ -96,6 +104,8 @@ function Search({queryJSON}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const previousTransactions = usePrevious(transactions);
 
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -123,8 +133,40 @@ function Search({queryJSON}: SearchProps) {
         }
 
         SearchActions.search({queryJSON, offset});
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
+
+    const searchTriggeredRef = useRef(false);
+
+    useEffect(() => {
+        const previousTransactionsLength = previousTransactions && Object.keys(previousTransactions).length;
+        const transactionsLength = transactions && Object.keys(transactions).length;
+
+        if (!previousTransactionsLength || !transactionsLength || previousTransactionsLength === transactionsLength) {
+            return;
+        }
+
+        // Check if the search block was already triggered
+        if (!searchTriggeredRef.current && transactionsLength > previousTransactionsLength) {
+            // A transaction was added, trigger the action again
+            SearchActions.search({queryJSON, offset});
+            searchTriggeredRef.current = true; // Set the flag to true to prevent further triggers
+        }
+    }, [transactions, previousTransactions, queryJSON, offset]);
+
+    // Reset the flag using InteractionManager after the search action
+    useEffect(() => {
+        if (!searchTriggeredRef.current) {
+            return;
+        }
+
+        // Schedule a task to reset the flag after all current interactions have completed
+        const interactionHandle = InteractionManager.runAfterInteractions(() => {
+            searchTriggeredRef.current = false; // Reset the flag after interactions
+        });
+
+        // Cleanup the interaction handle if the component unmounts or effect reruns
+        return () => interactionHandle.cancel();
+    }, [transactions]);
 
     const handleOnCancelConfirmModal = () => {
         setDeleteExpensesConfirmModalVisible(false);
@@ -182,6 +224,18 @@ function Search({queryJSON}: SearchProps) {
     }
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
+    const previousSearchResults = usePrevious(searchResults?.data);
+
+    const newSearchResultKey = useMemo(() => {
+        if (!previousSearchResults || !searchResults?.data) {
+            return null;
+        }
+
+        const previousKeys = Object.keys(previousSearchResults);
+        const currentKeys = Object.keys(searchResults.data);
+
+        return currentKeys.find((key) => !previousKeys.includes(key));
+    }, [searchResults, previousSearchResults]);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -229,7 +283,10 @@ function Search({queryJSON}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type, status);
     const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
     const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
-    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
+    const sortedSelectedData = sortedData.map((item) => {
+        const shouldAnimateInHighlight = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}` === newSearchResultKey;
+        return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+    });
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 

@@ -4,11 +4,13 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
 
@@ -33,6 +35,7 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
+    shouldAnimateInHighlight = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -59,6 +62,13 @@ function BaseListItem<TItem extends ListItem>({
 
         return rightHandSideComponent;
     };
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
 
     return (
         <OfflineWithFeedback
@@ -98,6 +108,7 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
+                wrapperStyle={shouldAnimateInHighlight ? [styles.mh5, animatedHighlightStyle] : []}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
