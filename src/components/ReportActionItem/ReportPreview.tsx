@@ -523,7 +523,6 @@ function ReportPreview({
                                 )}
                                 {shouldShowSubmitButton && (
                                     <Button
-                                        medium
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}
