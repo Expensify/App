@@ -216,8 +216,8 @@ const ONYXKEYS = {
     NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
 
     /** Whether to hide save search rename tooltip */
-    NVP_SHOULD_HIDE_SAVE_SEARCH_RENAME_TOOLTIP: 'nvp_should_hide_save_search_rename_tooltip',
-
+    NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP: 'nvp_should_hide_saved_search_rename_tooltip',
+    
     /**  Whether to hide gbr tooltip */
     NVP_SHOULD_HIDE_GBR_TOOLTIP: 'nvp_should_hide_gbr_tooltip',
 
@@ -983,7 +983,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
-    [ONYXKEYS.NVP_SHOULD_HIDE_SAVE_SEARCH_RENAME_TOOLTIP]: boolean;
+    [ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

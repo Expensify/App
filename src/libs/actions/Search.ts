@@ -157,7 +157,7 @@ function clearAdvancedFilters() {
 }
 
 function dismissSaveSearchRenameTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVE_SEARCH_RENAME_TOOLTIP, true);
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, true);
 }
 
 export {

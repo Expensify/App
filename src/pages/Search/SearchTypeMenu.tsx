@@ -56,7 +56,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [shouldHideSaveSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_SAVE_SEARCH_RENAME_TOOLTIP, {initialValue: true});
+    const [shouldHideSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, {initialValue: true});
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const personalDetails = usePersonalDetails();
@@ -125,7 +125,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             if (!isNarrow) {
                 return {
                     ...baseMenuItem,
-                    shouldRenderTooltip: !shouldHideSaveSearchRenameTooltip,
+                    shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
                     tooltipAnchorAlignment: {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -151,7 +151,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
             return baseMenuItem;
         },
-        [hash, styles, getOverflowMenu, translate, shouldHideSaveSearchRenameTooltip],
+        [hash, styles, getOverflowMenu, translate, shouldHideSavedSearchRenameTooltip],
     );
 
     const savedSearchesMenuItems = () => {
