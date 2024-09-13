@@ -248,7 +248,7 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
             // TODO: check with Hanno whether we restore the data correctly
             let offset = 0;
             for (let i = 0; i < indexes.length; i++) {
-                const relativeIndex = index - offset;
+                const relativeIndex = index - offset + 1;
                 if (relativeIndex < indexes[i].length && relativeIndex >= 0) {
                     const option = indexes[i][relativeIndex];
                     if (option) {
