@@ -120,7 +120,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 }}
             />
         ),
-        isSelected: currentSavedSearch?.hash === item.hash
+        isSelected: currentSavedSearch?.hash === item.hash,
     }));
 
     const allMenuItems = [];
