@@ -706,8 +706,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
             navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
-            const {urlToNavigateBack} = IOU.prepareToCleanUpMoneyRequest(iouTransactionID, requestParentReportAction, true);
-            navigateBackToAfterDelete.current = urlToNavigateBack;
+            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
 
         isTransactionDeleted.current = true;
@@ -815,12 +814,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             Navigation.dismissModal();
                         } else {
                             ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
-                            if (!requestParentReportAction) {
-                                return;
-                            }
-                            setTimeout(() => {
-                                IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
-                            }, CONST.ANIMATED_TRANSITION);
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}

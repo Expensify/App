@@ -216,13 +216,13 @@ type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: strin
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
-type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+type SetTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; newAmountToDisplay: string};
 
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
-type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
@@ -506,7 +506,18 @@ type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
 
+type IntegrationExportParams = {
+    integration: string;
+    type?: string;
+};
+
+type ConnectionParams = {
+    connection: string;
+};
+
 export type {
+    ConnectionParams,
+    IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
@@ -625,7 +636,7 @@ export type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
@@ -639,7 +650,7 @@ export type {
     ToValidateLoginParams,
     TransferParams,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
