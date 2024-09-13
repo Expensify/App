@@ -38,7 +38,7 @@
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-deprecation": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.pr.js $(git diff --diff-filter=AM --name-only main -- \"*.ts\" \"*.tsx\")",
-    "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only main -- \"*.js\" \"*.ts\" \"*.tsx\")",
+    "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.js\" \"*.ts\" \"*.tsx\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "prettier": "prettier --write .",
