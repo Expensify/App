@@ -587,13 +587,16 @@ function IOURequestStepConfirmation({
 
     const onConfirm = (listOfParticipants: Participant[]) => {
         setSelectedParticipantList(listOfParticipants);
-        const shouldStartLocationPermissionFlow =
-            !lastLocationPermissionPrompt ||
-            (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') && DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > 7);
 
-        if (gpsRequired && shouldStartLocationPermissionFlow) {
-            setStartLocationPermissionFlow(true);
-            return;
+        if (gpsRequired) {
+            const shouldStartLocationPermissionFlow =
+                !lastLocationPermissionPrompt ||
+                (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') && DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > 7);
+
+            if (shouldStartLocationPermissionFlow) {
+                setStartLocationPermissionFlow(true);
+                return;
+            }
         }
 
         createTransaction(listOfParticipants);
