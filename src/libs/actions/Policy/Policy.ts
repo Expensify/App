@@ -1,5 +1,6 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import {escapeRegExp} from 'lodash';
+import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
