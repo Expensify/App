@@ -25,6 +25,7 @@ function EmptyStateComponent({
     subtitle,
     headerStyles,
     headerContentStyles,
+    lottieWebViewStyles,
     minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
@@ -65,6 +66,7 @@ function EmptyStateComponent({
                         autoPlay
                         loop
                         style={headerContentStyles}
+                        webStyle={lottieWebViewStyles}
                     />
                 );
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
@@ -77,7 +79,7 @@ function EmptyStateComponent({
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
         <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}>
