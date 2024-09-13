@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -29,18 +29,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import BankInfo from './BankInfo/BankInfo';
 
-type BankAccountStepOnyxProps = {
-    /** Holds information about the users account that is logging in */
-    account: OnyxEntry<OnyxTypes.Account>;
-
-    /** If the plaid button has been disabled */
-    isPlaidDisabled: OnyxEntry<boolean>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
-};
-
-type BankAccountStepProps = BankAccountStepOnyxProps & {
+type BankAccountStepProps = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI?: string | null;
 
@@ -62,20 +51,14 @@ type BankAccountStepProps = BankAccountStepOnyxProps & {
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 
-function BankAccountStep({
-    plaidLinkOAuthToken = '',
-    policyID = '',
-    policyName = '',
-    account,
-    receivedRedirectURI,
-    reimbursementAccount,
-    onBackButtonPress,
-    isPlaidDisabled = false,
-    bankAccountList = {},
-}: BankAccountStepProps) {
+function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = '', receivedRedirectURI, reimbursementAccount, onBackButtonPress}: BankAccountStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {initialValue: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+
     let subStep = reimbursementAccount?.achData?.subStep ?? '';
     const shouldReinitializePlaidLink = plaidLinkOAuthToken && receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -83,7 +66,7 @@ function BankAccountStep({
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
-    const personalBankAccounts = Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+    const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -206,14 +189,4 @@ function BankAccountStep({
 
 BankAccountStep.displayName = 'BankAccountStep';
 
-export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-    isPlaidDisabled: {
-        key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-})(BankAccountStep);
+export default BankAccountStep;
