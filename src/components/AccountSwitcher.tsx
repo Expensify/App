@@ -47,7 +47,11 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, errors?: Errors, additionalProps: Partial<PopoverMenuItem> = {}): PopoverMenuItem => {
+    const createBaseMenuItem = (
+        personalDetails: PersonalDetails | undefined,
+        errors?: Errors,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
+    ): PopoverMenuItem => {
         const error = Object.values(errors ?? {})[0] ?? '';
         return {
             text: personalDetails?.displayName ?? personalDetails?.login ?? '',
@@ -66,11 +70,10 @@ function AccountSwitcher() {
 
     const menuItems = (): PopoverMenuItem[] => {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            wrapperStyle: [styles.buttonDefaultBG],
-            focused: true,
             shouldShowRightIcon: true,
             iconRight: Expensicons.Checkmark,
             success: true,
+            isSelected: true,
         });
 
         if (isActingAsDelegate) {
@@ -93,7 +96,6 @@ function AccountSwitcher() {
                         }
                         disconnect();
                     },
-                    isSelected: true,
                 }),
                 currentUserMenuItem,
             ];
@@ -188,7 +190,8 @@ function AccountSwitcher() {
                         }
                         item.onSelected();
                     }}
-                    containerStyle={{maxHeight: windowHeight / 2}}
+                    containerStyle={{maxHeight: windowHeight / 2, width: 'fit-content'}}
+                    shouldUseScrollView
                 />
             )}
             <ConfirmModal

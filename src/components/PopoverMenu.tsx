@@ -102,6 +102,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** The style of content container which wraps all child views */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we should wrap the list item in a scroll view */
+    shouldUseScrollView?: boolean;
 };
 
 function PopoverMenu({
@@ -128,6 +131,7 @@ function PopoverMenu({
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
     containerStyle,
+    shouldUseScrollView = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -138,6 +142,7 @@ function PopoverMenu({
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const WrapComponent = shouldUseScrollView ? ScrollView : View;
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems[index];
@@ -256,7 +261,7 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {} : styles.createMenuContainer, containerStyle]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    <ScrollView>
+                    <WrapComponent>
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
                             return (
@@ -269,14 +274,14 @@ function PopoverMenu({
                                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                                     shouldCheckActionAllowedOnPress={false}
                                     onFocus={() => setFocusedIndex(menuIndex)}
-                                    style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                    style={{backgroundColor: focusedIndex === menuIndex ? theme.activeComponentBG : undefined}}
                                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                                     // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...menuItemProps}
                                 />
                             );
                         })}
-                    </ScrollView>
+                    </WrapComponent>
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
