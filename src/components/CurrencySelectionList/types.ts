@@ -19,6 +19,9 @@ type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
     /** Currency item to be selected initially */
     initiallySelectedCurrencyCode?: string;
 
+    /** List of recently used currencies */
+    recentlyUsedCurrencies?: string[];
+
     /** Callback to fire when a currency is selected */
     onSelect: (item: CurrencyListItem) => void;
 
