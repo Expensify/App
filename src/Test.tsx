@@ -1,10 +1,8 @@
 import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text} from 'react-native';
-import './console';
-import Test from './Test';
 
-function App() {
+export default function Test() {
     const [count, setCount] = useState(0);
     return (
         <>
@@ -13,13 +11,8 @@ function App() {
                 style={{color: 'black'}}
                 onPress={() => setCount(count + 1)}
             >
-                button
+                no siema
             </Text>
-            <Test />
         </>
     );
 }
-
-App.displayName = 'App';
-
-export default App;

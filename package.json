@@ -296,6 +296,7 @@
     "jest-transformer-svg": "^2.0.1",
     "link": "^2.1.1",
     "memfs": "^4.6.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "onchange": "^7.1.0",
     "openai": "^4.47.2",
     "patch-package": "^8.0.0",

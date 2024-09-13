@@ -1,88 +1,151 @@
+/* eslint-disable no-underscore-dangle */
+
+/* eslint-disable @typescript-eslint/naming-convention */
+
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import fs from 'fs';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 import path from 'path';
-import portfinder from 'portfinder';
-import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
-import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
-import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
-import {merge} from 'webpack-merge';
-import type Environment from './types';
-import getCommonConfiguration from './webpack.common';
+import type {Configuration} from 'webpack';
 
-const BASE_PORT = 8082;
+const projectRoot = path.resolve(__dirname, '../../');
+const __DEV__ = true;
 
+const resolveAll = (targetPath: any, matcher: any) => {
+    let folders = fs
+        .readdirSync(path.resolve(projectRoot, targetPath))
+        .map((folder) => `${path.resolve(projectRoot, targetPath)}/${folder}`)
+        .filter((folder) => fs.statSync(folder).isDirectory());
+    if (matcher) {
+        folders = folders.filter((folder) => folder.includes(matcher));
+    }
+    return folders;
+};
+
+const include = [path.resolve(projectRoot, 'index.js'), path.resolve(projectRoot, 'src'), ...resolveAll('node_modules', '/react-native')];
+
+const babelLoaderConfiguration = {
+    test: /\.(js|ts|tsx|jsx|cjs)$/,
+    exclude: /node_modules/,
+    // Add every directory that needs to be compiled by Babel during the build.
+    include,
+    use: {
+        loader: 'babel-loader',
+        options: {
+            cacheDirectory: true,
+            // The 'metro-react-native-babel-preset' preset is recommended to match
+            // React Native's packager presets:
+            // ["module:metro-react-native-babel-preset"], Re-write paths to import
+            // only the modules needed by the app
+            plugins: [
+                'react-native-web',
+                '@babel/plugin-transform-export-namespace-from',
+                '@babel/plugin-transform-flow-strip-types',
+                '@babel/plugin-transform-class-properties',
+                '@babel/plugin-transform-private-property-in-object',
+                ['@babel/plugin-transform-block-scoping'],
+                require.resolve('react-refresh/babel'),
+                'react-native-reanimated/plugin',
+            ].filter(Boolean),
+            presets: [
+                [
+                    '@babel/preset-env',
+                    {
+                        corejs: {version: 3, proposals: true},
+                        targets: {
+                            browsers: ['last 2 versions', 'edge 18'],
+                            node: '20.9.0',
+                        },
+                    },
+                ],
+                '@babel/preset-react',
+                '@babel/preset-typescript',
+                'module:metro-react-native-babel-preset',
+            ],
+        },
+    },
+};
+
+const includeModules = [
+    'react-native-animatable',
+    'react-native-reanimated',
+    'react-native-picker-select',
+    'react-native-web',
+    'react-native-webview',
+    '@react-native-picker',
+    'react-native-modal',
+    'react-native-gesture-handler',
+    'react-native-google-places-autocomplete',
+    'react-native-qrcode-svg',
+    'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
+].join('|');
+
+process.env.NODE_ENV = 'development';
 /**
  * Configuration for the local dev server
  */
-const getConfiguration = (environment: Environment): Promise<Configuration> =>
-    portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
-        // Check if the USE_WEB_PROXY variable has been provided
-        // and rewrite any requests to the local proxy server
-        const proxySettings: Pick<DevServerConfiguration, 'proxy'> =
-            process.env.USE_WEB_PROXY === 'false'
-                ? {}
-                : {
-                      proxy: [
-                          {
-                              context: ['/api', '/staging', '/chat-attachments', '/receipts'],
-                              target: 'http://[::1]:9000',
-                          },
-                      ],
-                  };
+const getConfiguration = (): Configuration => {
+    const config: Configuration = {
+        resolve: {
+            extensions: ['.web.ts', '.ts', '.web.tsx', '.tsx', '.web.js', '.js'],
+        },
+        entry: {
+            main: ['./index.js'],
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.(js|ts)x?$/,
+                    loader: 'babel-loader',
 
-        const baseConfig = getCommonConfiguration(environment);
-
-        const config = merge(baseConfig, {
-            mode: 'development',
-            devtool: 'eval-source-map',
-            devServer: {
-                static: {
-                    directory: path.join(__dirname, '../../dist'),
+                    /**
+                     * Exclude node_modules except any packages we need to convert for rendering HTML because they import
+                     * "react-native" internally and use JSX which we need to convert to JS for the browser.
+                     *
+                     * You'll need to add anything in here that needs the alias for "react-native" -> "react-native-web"
+                     * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
+                     * use JSX/JS that needs to be transformed by babel.
+                     */
+                    exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
                 },
-                client: {
-                    overlay: false,
-                },
-                hot: true,
-                ...proxySettings,
-                historyApiFallback: true,
-                port,
-                host: 'dev.new.expensify.com',
-                server: {
-                    type: 'https',
-                    options: {
-                        key: path.join(__dirname, 'key.pem'),
-                        cert: path.join(__dirname, 'certificate.pem'),
-                    },
-                },
-                headers: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'Document-Policy': 'js-profiling',
-                },
-            },
-            plugins: [
-                new DefinePlugin({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'process.env.PORT': port,
-                }),
             ],
-            cache: {
-                type: 'filesystem',
-                name: environment.platform ?? 'default',
-                buildDependencies: {
-                    // By default, webpack and loaders are build dependencies
-                    // This (also) makes all dependencies of this config file - build dependencies
-                    config: [__filename],
+        },
+
+        mode: 'development',
+        devtool: 'inline-source-map',
+        // @ts-expect-error sds
+        devServer: {
+            client: {
+                overlay: {
+                    errors: true,
+                    warnings: false,
                 },
             },
-            snapshot: {
-                // A list of paths webpack trusts would not be modified while webpack is running
-                managedPaths: [
-                    // Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules would not be reflected live
-                    /([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/,
-                ],
-            },
-        });
+            compress: true,
+            historyApiFallback: true,
+            hot: true,
+        },
+        plugins: [
+            new DefinePlugin({
+                __DEV__,
+            }),
+            new HtmlWebpackPlugin({
+                template: 'web/index.html',
+                filename: 'index.html',
+                isWeb: true,
+            }),
+            __DEV__ && new ReactRefreshWebpackPlugin(),
+        ],
+        watch: true,
+    };
 
-        return TimeAnalyticsPlugin.wrap(config);
-    });
+    return config;
+};
 
 export default getConfiguration;
