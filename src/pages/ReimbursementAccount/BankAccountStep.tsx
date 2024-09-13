@@ -56,7 +56,7 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {initialValue: false});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     let subStep = reimbursementAccount?.achData?.subStep ?? '';
