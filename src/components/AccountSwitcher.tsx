@@ -58,13 +58,13 @@ function AccountSwitcher() {
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? -1,
             icon: personalDetails?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
             numberOfLinesDescription: 1,
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
             errorTextStyle: styles.mt2,
             ...additionalProps,
-            iconType: CONST.ICON_TYPE_AVATAR,
         };
     };
 
