@@ -99,7 +99,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, isNarrow: boolean) => {
             const baseMenuItem: SavedSearchMenuItem = {
-                key: key,
+                key,
                 title: item.name,
                 hash: key,
                 query: item.query,

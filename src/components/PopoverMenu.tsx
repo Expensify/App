@@ -1,7 +1,8 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -20,6 +21,7 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
