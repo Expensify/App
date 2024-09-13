@@ -24,7 +24,9 @@ import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListH
 
 const mockedCards = {
     id1: {
-        accountID: 885646,
+        cardID: 885646,
+        accountID: 11309072,
+        bank: 'cdfbmo',
         nameValuePairs: {
             cardTitle: 'Test 1',
         },
@@ -32,6 +34,8 @@ const mockedCards = {
     },
     id2: {
         accountID: 885646,
+        bank: 'cdfbmo',
+        cardID: 885642,
         nameValuePairs: {
             cardTitle: 'Test 2',
         },
@@ -39,26 +43,32 @@ const mockedCards = {
     },
     id18: {
         accountID: 885646,
+        cardID: 885643,
         nameValuePairs: {
             cardTitle: 'Test 1',
         },
         cardNumber: '1234 56XX XXXX 1222',
     },
     id27: {
+        cardID: 885644,
         accountID: 885646,
+        bank: 'cdfbmo',
         nameValuePairs: {
             cardTitle: 'Test 2',
         },
         cardNumber: '1234 56XX XXXX 1222',
     },
     id16: {
+        cardID: 885645,
         accountID: 885646,
+        bank: 'cdfbmo',
         nameValuePairs: {
             cardTitle: 'Test 1',
         },
         cardNumber: '1234 56XX XXXX 1222',
     },
     id25: {
+        cardID: 885646,
         accountID: 885646,
         nameValuePairs: {
             cardTitle: 'Test 2',
@@ -66,20 +76,25 @@ const mockedCards = {
         cardNumber: '1234 56XX XXXX 1222',
     },
     id14: {
+        cardID: 885647,
         accountID: 885646,
+        bank: 'cdfbmo',
         nameValuePairs: {
             cardTitle: 'Test 1',
         },
         cardNumber: '1234 56XX XXXX 1222',
     },
     id23: {
+        cardID: 885648,
         accountID: 885646,
+        bank: 'cdfbmo',
         nameValuePairs: {
             cardTitle: 'Test 2',
         },
         cardNumber: '1234 56XX XXXX 1222',
     },
     id12: {
+        cardID: 885649,
         accountID: 885646,
         nameValuePairs: {
             cardTitle: 'Test 1',
@@ -87,7 +102,9 @@ const mockedCards = {
         cardNumber: '1234 56XX XXXX 1222',
     },
     id21: {
+        cardID: 885640,
         accountID: 885646,
+        bank: 'cdfbmo',
         nameValuePairs: {
             cardTitle: 'Test 2',
         },
@@ -156,7 +173,12 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
                     {isFeedAdded && !isPending && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
-                    {isFeedAdded && !isPending && <WorkspaceCompanyCardsList cardsList={cardsList} />}
+                    {isFeedAdded && !isPending && (
+                        <WorkspaceCompanyCardsList
+                            cardsList={cardsList}
+                            policyID={policyID}
+                        />
+                    )}
                 </WorkspacePageWithSections>
             )}
         </AccessOrNotFoundWrapper>
