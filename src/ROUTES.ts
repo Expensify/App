@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${encodeURIComponent(query)}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -53,9 +53,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
-    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
-    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
-
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: (reportID: string, reportActionID?: string) => {
@@ -1240,6 +1237,10 @@ const ROUTES = {
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
+    },
+    MISSING_PERSONAL_DETAILS: {
+        route: 'missing-personal-details/workspace/:policyID',
+        getRoute: (policyID: string) => `missing-personal-details/workspace/${policyID}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
