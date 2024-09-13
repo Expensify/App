@@ -67,6 +67,7 @@ import type {
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -633,6 +634,8 @@ export default {
                 ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
             `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
@@ -1648,6 +1651,10 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: '¿Cuál es tu nombre legal?',
+        enterDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
+        enterAddress: '¿Cuál es tu dirección?',
+        enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         legalName: 'Nombre completo',
@@ -2968,11 +2975,11 @@ export default {
                 `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
-            addMailingAddress: 'Añadir dirección de postal',
+            addShippingDetails: 'Añadir detalles de envío',
             issuedCard: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta llegará en 2-3 días laborables.`,
-            issuedCardNoMailingAddress: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se añada una dirección postal.`,
+            issuedCardNoShippingDetails: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se agreguen los detalles de envío.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
-            addedAddress: (assignee: string) => `${assignee} ha añadido la dirección. Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            addedShippingDetails: (assignee: string) => `${assignee} agregó los detalles de envío. La Tarjeta Expensify llegará en 2-3 días hábiles.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -4061,12 +4068,9 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
-            has: 'Tiene',
             link: 'Enlace',
-            is: 'Está',
             pinned: 'Fijado',
             unread: 'No leído',
-            draft: 'Borrador',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,

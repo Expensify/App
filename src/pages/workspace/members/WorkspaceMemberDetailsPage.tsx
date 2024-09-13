@@ -227,7 +227,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <Button
                                             text={translate('workspace.people.transferOwner')}
                                             onPress={startChangeOwnershipFlow}
-                                            medium
                                             isDisabled={isOffline}
                                             icon={Expensicons.Transfer}
                                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
@@ -237,7 +236,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <Button
                                             text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                             onPress={askForConfirmationToRemove}
-                                            medium
                                             isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                             icon={Expensicons.RemoveMembers}
                                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
