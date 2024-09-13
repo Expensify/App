@@ -106,6 +106,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {
+                    SearchActions.clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
                 },
                 rightComponent: (
