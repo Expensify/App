@@ -17,6 +17,10 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const avatarURL = participant?.avatar;
 
+    if (displayName === CONST.REPORT.OWNER_EMAIL_FAKE || displayName === '') {
+        return null;
+    }
+
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Avatar

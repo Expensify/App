@@ -48,6 +48,9 @@ function ExpenseItemHeaderNarrow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
+    // It might happen that we are missing display names for `From` or `To`, we only display arrow icon if both names exist
+    const shouldDisplayArrowIcon = participantFromDisplayName && participantToDisplayName;
+
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
@@ -77,12 +80,14 @@ function ExpenseItemHeaderNarrow({
                         displayName={participantFromDisplayName}
                     />
                 </View>
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeXXSmall}
-                    height={variables.iconSizeXXSmall}
-                    fill={theme.icon}
-                />
+                {shouldDisplayArrowIcon && (
+                    <Icon
+                        src={Expensicons.ArrowRightLong}
+                        width={variables.iconSizeXXSmall}
+                        height={variables.iconSizeXXSmall}
+                        fill={theme.icon}
+                    />
+                )}
                 <View style={[styles.flex1, styles.mw50]}>
                     <UserInfoCell
                         participant={participantTo}
