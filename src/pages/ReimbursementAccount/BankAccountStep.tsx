@@ -185,13 +185,11 @@ function BankAccountStep({
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
-                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
+                            onPress={() => Link.openExternalLink('https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         >
-                            <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/">
-                                {translate('bankAccount.yourDataIsSecure')}
-                            </TextLink>
+                            <TextLink href="https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/">{translate('bankAccount.yourDataIsSecure')}</TextLink>
                             <View style={styles.ml1}>
                                 <Icon
                                     src={Expensicons.Lock}

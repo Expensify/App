@@ -47,8 +47,6 @@ const SCREENS = {
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
-        ADVANCED_FILTERS_HAS_RHP: 'Search_Advanced_Filters_Has_RHP',
-        ADVANCED_FILTERS_IS_RHP: 'Search_Advanced_Filters_Is_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
@@ -130,6 +128,12 @@ const SCREENS = {
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
             REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
         },
+        DELEGATE: {
+            ADD_DELEGATE: 'Settings_Delegate_Add',
+            DELEGATE_ROLE: 'Settings_Delegate_Role',
+            DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
+            DELEGATE_MAGIC_CODE: 'Settings_Delegate_Magic_Code',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -171,6 +175,7 @@ const SCREENS = {
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
+        MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -372,6 +377,11 @@ const SCREENS = {
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
+        COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
+        COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
+        COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
+        COMPANY_CARDS_NAME: 'Workspace_CompanyCards_Name',
+        COMPANY_CARDS_DETAILS: 'Workspace_CompanyCards_Details',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
@@ -533,6 +543,7 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
+    MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;
