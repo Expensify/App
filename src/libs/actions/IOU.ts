@@ -8016,7 +8016,7 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '-1';
 }
 
-function getIOUActionForTransactions(transactionIDList: string[], iouReportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>[] {
+function getIOUActionForTransactions(transactionIDList: string[], iouReportID: string): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
