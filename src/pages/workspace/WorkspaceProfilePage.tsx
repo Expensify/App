@@ -270,7 +270,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
                                     onPress={onPressShare}
-                                    medium
                                     icon={Expensicons.QrCode}
                                 />
                                 {isOwner && (
@@ -279,7 +278,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
-                                        medium
                                         icon={Expensicons.Trashcan}
                                     />
                                 )}

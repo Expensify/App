@@ -34,6 +34,8 @@ const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 const MAX_DATE = dateAdd(new Date(), {years: 1});
 const MIN_DATE = dateSubtract(new Date(), {years: 20});
+const EXPENSIFY_POLICY_DOMAIN = 'expensify-policy';
+const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -187,6 +189,8 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
+    ANIMATION_PAY_BUTTON_DURATION: 200,
+    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -725,8 +729,8 @@ const CONST = {
         INBOX: 'inbox',
     },
 
-    EXPENSIFY_POLICY_DOMAIN: 'expensify-policy',
-    EXPENSIFY_POLICY_DOMAIN_EXTENSION: '.exfy',
+    EXPENSIFY_POLICY_DOMAIN,
+    EXPENSIFY_POLICY_DOMAIN_EXTENSION,
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -773,6 +777,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -1824,6 +1829,16 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    MISSING_PERSONAL_DETAILS_INDEXES: {
+        MAPPING: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+        },
+        INDEX_LIST: ['1', '2', '3', '4'],
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
@@ -2327,6 +2342,8 @@ const CONST = {
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
                 NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
+                NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
+                NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
@@ -2579,6 +2596,10 @@ const CONST = {
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
 
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+
+        get EXPENSIFY_POLICY_DOMAIN_NAME() {
+            return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
+        },
     },
 
     PRONOUNS: {

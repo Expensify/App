@@ -7,11 +7,13 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import * as SearchUtils from '@src/libs/SearchUtils';
 import ROUTES from '@src/ROUTES';
@@ -27,6 +29,7 @@ type SearchTypeMenuNarrowProps = {
 function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
 
@@ -50,6 +53,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
                 SearchActions.clearAllFilters();
                 Navigation.navigate(item.route);
             }),
+            isSelected,
             icon: item.icon,
             iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
             iconRight: Expensicons.Checkmark,
@@ -63,6 +67,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
         popoverMenuItems.push({
             text: title,
             onSelected: closeMenu,
+            isSelected: true,
             icon: Expensicons.Filters,
             iconFill: theme.iconSuccessFill,
             success: true,
@@ -86,21 +91,23 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100]}>
+                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
                                 fill={theme.icon}
+                                small
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.fontSizeLabel]}
                             >
                                 {menuTitle}
                             </Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}
+                                small
                             />
                         </View>
                     </Animated.View>
