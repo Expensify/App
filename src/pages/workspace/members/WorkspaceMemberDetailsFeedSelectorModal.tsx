@@ -22,6 +22,7 @@ type CardFeedListItem = ListItem & {
     value: string;
 };
 
+// TODO: mocking now, replace with proper data from Onyx
 const cardFeeds = {
     companyCardNicknames: {
         cdfbmo: 'BMO MasterCard',
@@ -56,11 +57,12 @@ function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}:
             setShouldShowError(true);
             return;
         }
-        if (selectedFeed === 'expensifyCard') {
+        if (selectedFeed === CONST.EXPENSIFY_CARD.NAME) {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed));
         }
+        onClose();
     };
 
     const handleSelectFeed = (feed: CardFeedListItem) => {
@@ -87,10 +89,10 @@ function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}:
         ? [
               ...companyCardFeeds,
               {
-                  value: 'expensifyCard',
+                  value: CONST.EXPENSIFY_CARD.NAME,
                   text: translate('workspace.common.expensifyCard'),
-                  keyForList: 'expensifyCard',
-                  isSelected: selectedFeed === 'expensifyCard',
+                  keyForList: CONST.EXPENSIFY_CARD.NAME,
+                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
                   leftElement: (
                       <Icon
                           src={ExpensifyCardImage}
