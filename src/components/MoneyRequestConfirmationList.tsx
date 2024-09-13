@@ -166,6 +166,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** Should play sound on confirmation */
     shouldPlaySound?: boolean;
+
+    /** Whether the expense is confirmed or not */
+    isConfirmed?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
@@ -209,6 +212,7 @@ function MoneyRequestConfirmationList({
     currencyList,
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
+    isConfirmed,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -300,7 +304,7 @@ function MoneyRequestConfirmationList({
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
-    const [didConfirm, setDidConfirm] = useState(false);
+    const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
@@ -419,6 +423,10 @@ function MoneyRequestConfirmationList({
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
     }
+
+    useEffect(() => {
+        setDidConfirm(isConfirmed);
+    }, [isConfirmed]);
 
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
@@ -776,7 +784,6 @@ function MoneyRequestConfirmationList({
                 if (shouldPlaySound) {
                     playSound(SOUNDS.DONE);
                 }
-                setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -785,9 +792,6 @@ function MoneyRequestConfirmationList({
                 if (formError) {
                     return;
                 }
-
-                setDidConfirm(true);
-
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney?.(paymentMethod);
             }
@@ -907,7 +911,7 @@ function MoneyRequestConfirmationList({
             action={action}
             canUseP2PDistanceRequests={canUseP2PDistanceRequests}
             currency={currency}
-            didConfirm={didConfirm}
+            didConfirm={!!didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
             formError={formError}

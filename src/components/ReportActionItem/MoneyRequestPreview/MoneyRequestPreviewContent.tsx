@@ -449,7 +449,6 @@ function MoneyRequestPreviewContent({
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
-                    medium
                     style={styles.p4}
                     onPress={navigateToReviewFields}
                 />

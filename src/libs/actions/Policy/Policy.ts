@@ -1,6 +1,7 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
+import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -190,6 +191,12 @@ Onyx.connect({
     callback: (val) => (reimbursementAccount = val),
 });
 
+let allRecentlyUsedCurrencies: string[];
+Onyx.connect({
+    key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+    callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -226,11 +233,8 @@ function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: s
 }
 
 /** Check if the policy has invoicing company details */
-// eslint-disable-next-line react/no-unused-prop-types,@typescript-eslint/no-unused-vars
 function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
-    // TODO: uncomment when invoicing details inside a policy are supported.
-    // return !!policy.invoice.companyName && !!policy.invoice.companyWebsite;
-    return true;
+    return !!policy?.invoice?.companyName && !!policy?.invoice?.companyWebsite;
 }
 
 /**
@@ -2220,6 +2224,14 @@ function clearErrors(policyID: string) {
  */
 function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
+}
+
+function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
+    if (!currency) {
+        return [];
+    }
+
+    return lodashUnion([currency], allRecentlyUsedCurrencies).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
 
 /**
@@ -4654,6 +4666,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
+    buildOptimisticRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,

@@ -319,7 +319,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
-                            medium
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
@@ -331,7 +330,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.pv2, styles.pr0]}
@@ -369,7 +367,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {shouldShowSubmitButton && shouldUseNarrowLayout && (
                         <Button
-                            medium
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
@@ -379,7 +376,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
