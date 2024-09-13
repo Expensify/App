@@ -2340,6 +2340,8 @@ const CONST = {
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
                 NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
+                NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
+                NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',

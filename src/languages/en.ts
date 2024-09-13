@@ -3461,6 +3461,10 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importing vendors';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importing custom lists';
                         case 'netSuiteSyncImportCustomLists':
                             return 'Importing custom lists';
                         case 'netSuiteSyncImportSubsidiaries':

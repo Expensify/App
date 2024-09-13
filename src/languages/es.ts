@@ -3447,6 +3447,10 @@ export default {
                             return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importando proveedores';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importando listas personalizadas';
                         case 'intacctCheckConnection':
                             return 'Comprobando la conexión a Sage Intacct';
                         case 'intacctImportDimensions':
