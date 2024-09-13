@@ -1664,6 +1664,10 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
     return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames});
 }
 
+function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1766,6 +1770,7 @@ export {
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getRenamedAction,
+    isCardIssuedAction,
 };
 
 export type {LastVisibleMessage};
