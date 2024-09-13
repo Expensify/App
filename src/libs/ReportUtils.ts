@@ -1419,13 +1419,13 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  * Checks if the user has auditor permission in the provided report
  */
 function isAuditor(report: OnyxEntry<Report>): boolean {
-    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
-        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR);
-    }
-
     if (report?.policyID) {
         const policy = getPolicy(report.policyID);
         return PolicyUtils.isPolicyAuditor(policy);
+    }
+
+    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR);
     }
 
     return false;
