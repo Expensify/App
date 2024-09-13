@@ -20,7 +20,9 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
 
-type MinuteHourRefs = {hourRef: TextInput | null; minuteRef: TextInput | null; secondRef: TextInput | null; milisecondRef: TextInput | null};
+type TimePickerRefName = 'hourRef' | 'minuteRef' | 'secondRef' | 'milisecondRef';
+
+type TimePickerRef = Record<TimePickerRefName, TextInput | null>;
 
 type TimePickerProps = {
     /** Default value for the inputs */
@@ -110,7 +112,7 @@ function clearSelectedValue(value: string, selection: {start: number; end: numbe
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, showFullFormat = false}: TimePickerProps, ref: ForwardedRef<MinuteHourRefs>) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, showFullFormat = false}: TimePickerProps, ref: ForwardedRef<TimePickerRef>) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -695,7 +697,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         }
     };
 
-    const updateRefs = (refName: 'hourRef' | 'minuteRef' | 'secondRef' | 'milisecondRef', updatedRef: BaseTextInputRef | null) => {
+    const updateRefs = (refName: TimePickerRefName, updatedRef: BaseTextInputRef | null) => {
         const updatedRefs = {
             hourRef: hourInputRef.current,
             minuteRef: minuteInputRef.current,
