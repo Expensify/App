@@ -1,6 +1,6 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -8,6 +8,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -194,6 +195,38 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+function getCardDetailsImage(cardFeed: string): IconAsset {
+    if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
+        return Illustrations.MasterCardCompanyCardDetail;
+    }
+
+    if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)) {
+        return Illustrations.VisaCompanyCardDetail;
+    }
+
+    return Illustrations.AmexCardCompanyCardDetail;
+}
+
+function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<WorkspaceCardsList>, accountID?: number) {
+    const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
+    const cards: WorkspaceCardsList = {};
+    const mockedCardsList = allCardsList ?? {};
+    Object.keys(mockedCardsList)
+        .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceId}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
+        .forEach((key) => {
+            const feedCards = mockedCardsList?.[key];
+            if (feedCards && Object.keys(feedCards).length > 0) {
+                Object.keys(feedCards).forEach((feedCardKey) => {
+                    if (feedCards?.[feedCardKey].accountID !== accountID) {
+                        return;
+                    }
+                    cards[feedCardKey] = feedCards[feedCardKey];
+                });
+            }
+        });
+    return cards;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -210,4 +243,6 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    getCardDetailsImage,
+    getMemberCards,
 };
