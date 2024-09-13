@@ -3646,6 +3646,12 @@ const styles = (theme: ThemeColors) =>
                 horizontal: windowWidth - 355,
             } satisfies AnchorPosition),
 
+        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(70),
+                horizontal: windowWidth - 20,
+            } satisfies AnchorPosition),
+
         iPhoneXSafeArea: {
             backgroundColor: theme.inverse,
             flex: 1,
@@ -5183,6 +5189,14 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        colorGreenSuccess: {
+            color: colors.green400,
+        },
+
+        bgPaleGreen: {
+            backgroundColor: colors.green100,
         },
 
         importColumnCard: {

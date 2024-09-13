@@ -316,13 +316,13 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
+                    shouldUseStyleUtilityForAnchorPosition
                 />
             ) : (
                 <Button
                     text={translate('search.filtersHeader')}
                     icon={Expensicons.Filters}
                     onPress={onPress}
-                    medium
                 />
             )}
         </HeaderWrapper>
