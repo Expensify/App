@@ -7527,7 +7527,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
 function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
-            return !isEmptyObject(iouReport) ? iouReport.managerID : reportAction?.childManagerAccountID;
+            return !isEmptyObject(iouReport) ? reportAction?.actorAccountID : reportAction?.childManagerAccountID;
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
