@@ -73,7 +73,6 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -100,7 +99,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
 
-    const hasMultipleFeeds = true;
+    const hasMultipleFeeds = policy?.areCompanyCardsEnabled;
 
     const memberCards = useMemo(() => {
         if (!expensifyCardsList) {
