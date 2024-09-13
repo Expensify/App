@@ -34,6 +34,8 @@ const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 const MAX_DATE = dateAdd(new Date(), {years: 1});
 const MIN_DATE = dateSubtract(new Date(), {years: 20});
+const EXPENSIFY_POLICY_DOMAIN = 'expensify-policy';
+const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -714,7 +716,9 @@ const CONST = {
     SAGE_INTACCT_HELP_LINK:
         "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
+    COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
@@ -723,8 +727,8 @@ const CONST = {
         INBOX: 'inbox',
     },
 
-    EXPENSIFY_POLICY_DOMAIN: 'expensify-policy',
-    EXPENSIFY_POLICY_DOMAIN_EXTENSION: '.exfy',
+    EXPENSIFY_POLICY_DOMAIN,
+    EXPENSIFY_POLICY_DOMAIN_EXTENSION,
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -771,6 +775,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -823,6 +828,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REJECTED: 'REJECTED',
+                REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -942,6 +948,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            INVOICE_RECEIVER_POLICY_DELETED: 'invoiceReceiverPolicyDeleted',
             BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
@@ -1820,6 +1827,16 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    MISSING_PERSONAL_DETAILS_INDEXES: {
+        MAPPING: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+        },
+        INDEX_LIST: ['1', '2', '3', '4'],
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
@@ -2463,6 +2480,23 @@ const CONST = {
         },
         CARD_TITLE_INPUT_LIMIT: 255,
     },
+    COMPANY_CARDS: {
+        STEP: {
+            CARD_TYPE: 'CardType',
+            CARD_INSTRUCTIONS: 'CardInstructions',
+            CARD_NAME: 'CardName',
+            CARD_DETAILS: 'CardDetails',
+        },
+        CARD_TYPE: {
+            AMEX: 'amex',
+            VISA: 'visa',
+            MASTERCARD: 'mastercard',
+        },
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
@@ -2475,12 +2509,6 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
-        },
-    },
-    COMPANY_CARDS: {
-        DELETE_TRANSACTIONS: {
-            RESTRICT: 'corporate',
-            ALLOW: 'personal',
         },
     },
     REGEX: {
@@ -2572,6 +2600,10 @@ const CONST = {
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
 
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+
+        get EXPENSIFY_POLICY_DOMAIN_NAME() {
+            return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
+        },
     },
 
     PRONOUNS: {
@@ -4092,8 +4124,8 @@ const CONST = {
         GETCODE: 'GETCODE',
     },
     DELEGATE_ROLE: {
-        SUBMITTER: 'submitter',
         ALL: 'all',
+        SUBMITTER: 'submitter',
     },
     DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
@@ -5419,11 +5451,6 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
         },
-        CHAT_STATUS: {
-            UNREAD: 'unread',
-            PINNED: 'pinned',
-            DRAFT: 'draft',
-        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             HOLD: 'hold',
@@ -5464,10 +5491,6 @@ const CONST = {
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
             },
-        },
-        CHAT_TYPES: {
-            LINK: 'link',
-            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5516,8 +5539,6 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
-            HAS: 'has',
-            IS: 'is',
         },
     },
 

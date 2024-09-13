@@ -26,7 +26,6 @@ function WorkspaceCardCreateAWorkspace() {
                 text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}
                 success
-                medium
             />
         </Section>
     );
