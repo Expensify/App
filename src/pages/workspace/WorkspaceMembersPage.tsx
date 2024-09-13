@@ -522,7 +522,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
@@ -600,7 +599,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             textInputRef={textInputRef}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
                         />
                     </View>

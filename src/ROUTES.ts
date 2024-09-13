@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${encodeURIComponent(query)}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -53,9 +53,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
-    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
-    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
-
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: (reportID: string, reportActionID?: string) => {
@@ -134,6 +131,19 @@ const ROUTES = {
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
+    SETTINGS_DELEGATE_ROLE: {
+        route: 'settings/security/delegate/:login/role/:role',
+        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM: {
+        route: 'settings/security/delegate/:login/role/:role/confirm',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/magic-code` as const,
+    },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
@@ -356,9 +366,16 @@ const ROUTES = {
         route: 'r/:reportID/members',
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
+    ROOM_MEMBER_DETAILS: {
+        route: 'r/:reportID/members/:accountID',
+        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/members/${accountID}` as const,
+    },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role ?? ''}` as const,
+        getRoute: (reportID: string, role?: string) => {
+            const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
+            return route;
+        },
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
@@ -649,8 +666,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex?: number, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const, backTo),
+        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
@@ -786,6 +803,26 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/:categoryName/gl-code',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/gl-code` as const,
     },
+    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/tax-rate',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/tax-rate` as const,
+    },
+    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/flag-amounts',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/flag-amounts` as const,
+    },
+    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/description-hint',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/description-hint` as const,
+    },
+    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/require-receipts-over',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORSKPACE_CATEGORY_APPROVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/approver',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/approver` as const,
+    },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
@@ -916,6 +953,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
         getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
+    WORKSPACE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ADD_NEW: {
+        route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
+    },
     WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
@@ -923,10 +968,6 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
-    },
-    WORKSPACE_COMPANY_CARDS: {
-        route: 'settings/workspaces/:policyID/company-cards',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
@@ -1197,6 +1238,10 @@ const ROUTES = {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
+    MISSING_PERSONAL_DETAILS: {
+        route: 'missing-personal-details/workspace/:policyID',
+        getRoute: (policyID: string) => `missing-personal-details/workspace/${policyID}` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
@@ -1424,7 +1469,9 @@ const ROUTES = {
  */
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
-    MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
+    MONEY_REQUEST_CREATE_TAB_SCAN: '/submit/new/scan',
+    MONEY_REQUEST_CREATE_TAB_MANUAL: '/submit/new/manual',
+    MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
 } as const;
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
