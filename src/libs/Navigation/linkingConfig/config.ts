@@ -123,6 +123,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORK.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.EMPLOYEES]: {
+                    path: ROUTES.ONBOARDING_EMPLOYEES.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.ACCOUNTING]: {
+                    path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                    exact: true,
+                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {

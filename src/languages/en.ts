@@ -1626,6 +1626,19 @@ export default {
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },
+        employees: {
+            title: 'How many employees do you have?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 employees',
+        },
+        accounting: {
+            title: 'Do you use any accounting software?',
+            description: 'Connect your accounting software directly to Expensify',
+            noneOfAbove: 'None of the above',
+        },
         error: {
             requiredFirstName: 'Please input your first name to continue.',
         },

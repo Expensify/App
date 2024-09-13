@@ -1102,6 +1102,14 @@ const ROUTES = {
         route: 'onboarding/work',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work`, backTo),
     },
+    ONBOARDING_EMPLOYEES: {
+        route: 'onboarding/employees',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
+    },
+    ONBOARDING_ACCOUNTING: {
+        route: 'onboarding/accounting',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
+    },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),

@@ -64,6 +64,10 @@ function adaptOnboardingRouteState() {
                     name: SCREENS.ONBOARDING.WORK,
                     params: currentRoute?.params,
                 },
+                {
+                    name: SCREENS.ONBOARDING.EMPLOYEES,
+                    params: currentRoute?.params,
+                },
                 {...currentRoute},
             ],
         } as Readonly<PartialState<NavigationState>>;

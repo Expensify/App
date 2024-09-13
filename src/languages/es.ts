@@ -1635,6 +1635,20 @@ export default {
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
+        employees: {
+            title: 'How many empleados do you have?',
+            description: `Don't worry, you can change this later.`,
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 empleados',
+        },
+        accounting: {
+            title: 'Do you use any accounting software?',
+            description: 'Connect your accounting software directly to Expensify',
+            noneOfAbove: 'None of the above',
+        },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar.',
         },

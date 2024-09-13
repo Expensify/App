@@ -1,0 +1,103 @@
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
+import CONST from '@src/CONST';
+import type {OnboardingCompanySizeType} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {BaseOnboardingEmployeesProps} from './types';
+
+function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingEmployeesProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(null);
+    const [error, setError] = useState('');
+
+    const companySizeOptions: ListItem[] = useMemo(() => {
+        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize) => {
+            return {
+                text: translate(`onboarding.employees.${companySize}`),
+                keyForList: companySize,
+                isSelected: companySize === selectedCompanySize,
+            };
+        });
+    }, [translate, selectedCompanySize]);
+
+    const footerContent = (
+        <>
+            {!!error && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message={error}
+                />
+            )}
+            <Button
+                success
+                large
+                text={translate('common.confirm')}
+                onPress={() => {
+                    if (!selectedCompanySize) {
+                        setError(translate('onboarding.purpose.errorSelection'));
+                        return;
+                    }
+                    Welcome.setOnboardingCompanySize(selectedCompanySize);
+                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                }}
+                pressOnEnter
+            />
+        </>
+    );
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            shouldEnableKeyboardAvoidingView
+            testID="BaseOnboardingEmployees"
+        >
+            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
+                    onBackButtonPress={OnboardingFlow.goBack}
+                />
+                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mh5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.employees.title')}</Text>
+                    </View>
+                </View>
+                <SelectionList
+                    sections={[{data: companySizeOptions}]}
+                    onSelectRow={(item) => {
+                        setSelectedCompanySize(item.keyForList);
+                        setError('');
+                    }}
+                    shouldUpdateFocusedIndex
+                    ListItem={UserListItem}
+                    footerContent={footerContent}
+                />
+            </View>
+        </ScreenWrapper>
+    );
+}
+
+BaseOnboardingEmployees.displayName = 'BaseOnboardingEmployees';
+
+export default BaseOnboardingEmployees;

@@ -5,7 +5,7 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -144,6 +144,10 @@ function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
+function setOnboardingCompanySize(value: OnboardingCompanySizeType) {
+    Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, value);
+}
+
 function setOnboardingErrorMessage(value: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
 }
@@ -236,4 +240,5 @@ export {
     completeHybridAppOnboarding,
     handleHybridAppOnboarding,
     setOnboardingErrorMessage,
+    setOnboardingCompanySize,
 };
