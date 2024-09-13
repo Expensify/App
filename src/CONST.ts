@@ -2632,10 +2632,8 @@ const CONST = {
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
-
         EMPTY_COMMENT: /^(\s)*$/,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
-
         FIRST_SPACE: /.+?(?=\s)/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
@@ -2653,33 +2651,24 @@ const CONST = {
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
-
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
             REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
         },
-
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
-
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
-
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
-
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
-
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
-
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
-
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
-
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+        DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
             return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);

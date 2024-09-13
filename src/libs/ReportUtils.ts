@@ -3431,6 +3431,7 @@ function getModifiedExpenseOriginalMessage(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
+    updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OriginalMessageModifiedExpense {
     const originalMessage: OriginalMessageModifiedExpense = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
@@ -3490,12 +3491,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.billable = transactionChanges?.billable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
     }
 
-    if ('customUnitRateID' in transactionChanges) {
+    if ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) {
         originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
 
-        const modifiedDistanceFields = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
+        const modifiedDistanceFields = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(updatedTransaction, transactionChanges, policy, isFromExpenseReport);
 
         // For the originalMessage, we should use the non-negative amount, similar to what TransactionUtils.getAmount does for oldAmount
         originalMessage.amount = Math.abs(modifiedDistanceFields.modifiedAmount);
@@ -4867,8 +4868,9 @@ function buildOptimisticModifiedExpenseReportAction(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
+    updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,

@@ -77,7 +77,7 @@ import type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
@@ -96,7 +96,7 @@ import type {
     UnapprovedParams,
     UnshareParams,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -834,13 +834,13 @@ export default {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
-        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) =>
-            `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
+        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+            `estableció la ${translatedChangedField} a ${newMerchant}, lo que estableció el importe a ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
-        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
-            `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
+        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+            `cambió la ${translatedChangedField} a ${newMerchant} (previamente ${oldMerchant}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
@@ -4905,7 +4905,7 @@ export default {
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams = {}) => `${surcharge}% de recargo aplicado`,
-        customUnitOutOfPolicy: 'La unidad ya no es válida',
+        customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
         duplicatedTransaction: 'Duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
