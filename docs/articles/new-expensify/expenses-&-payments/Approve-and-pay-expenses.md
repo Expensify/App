@@ -6,11 +6,12 @@ description: Approve, hold, or pay expenses submitted to you
 
 As a workspace admin, you can set an approval workflow for the expenses submitted to you. Expenses can be,
 
-- Instantly submitted without needing approval.
-
-- Submitted at a desired frequency (daily, weekly, monthly) and follow an approval workflow. 
+- Instantly submitted without needing approval.
+- Submitted at a desired frequency (daily, weekly, monthly) and follow an approval workflow. 
 
 **Setting approval workflow and submission frequencies**
+
+Approval workflow settings and submission frequencies can be set in the Workflow settings of your workspace. 
 
 # Manually approve expense
 

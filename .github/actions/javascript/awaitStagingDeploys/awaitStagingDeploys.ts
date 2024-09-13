@@ -18,7 +18,7 @@ function run() {
             GitHubUtils.octokit.actions.listWorkflowRuns({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
-                workflow_id: 'platformDeploy.yml',
+                workflow_id: 'deploy.yml',
                 event: 'push',
                 branch: tag,
             }),

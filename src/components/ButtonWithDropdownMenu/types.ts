@@ -10,6 +10,8 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
+type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
 type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
@@ -58,7 +60,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
@@ -93,11 +95,21 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
+
+    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
+    shouldUseStyleUtilityForAnchorPosition?: boolean;
+
+    /** Decides which index in menuItems should be selected */
+    defaultSelectedIndex?: number;
+
+    /** Whether selected items should be marked as selected */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
 export type {
     PaymentType,
     WorkspaceMemberBulkActionType,
+    RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,
     ButtonWithDropdownMenuProps,
