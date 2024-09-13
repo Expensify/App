@@ -88,11 +88,11 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             items.push({
                 text: title,
                 onSelected: closeMenu,
-                isSelected: true,
+                isSelected: !currentSavedSearch,
                 icon: Expensicons.Filters,
                 iconFill: theme.iconSuccessFill,
                 success: true,
-                containerStyle: !currentSavedSearch ? [{backgroundColor: theme.border}] : undefined,
+                containerStyle: undefined,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: false,
             });
@@ -120,7 +120,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 }}
             />
         ),
-        containerStyle: currentSavedSearch?.hash === item.hash ? [{backgroundColor: theme.border}] : undefined,
+        isSelected: currentSavedSearch?.hash === item.hash
     }));
 
     const allMenuItems = [];
