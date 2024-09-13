@@ -1153,7 +1153,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const approvalRules = policy?.rules?.approvalRules ?? [];
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
     const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
-    const categoryRuleUpdateKey = PolicyUtils.getPolicyFieldUpdateKey(categoryName, CONST.POLICY.FIELDS.CATEGORY);
+    const categoryRuleUpdateKey = PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.CATEGORY);
 
     let newApprover = approver;
 
@@ -1238,7 +1238,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    const categoryRuleUpdateKey = PolicyUtils.getPolicyFieldUpdateKey(categoryName, CONST.POLICY.FIELDS.TAX);
+    const categoryRuleUpdateKey = PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.TAX);
 
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({

@@ -2149,7 +2149,7 @@ const CONST = {
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
-            TITLE: 'text_title',
+            FIELD_LIST_TITLE: 'text_title',
             TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',

@@ -3891,8 +3891,8 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
         return;
     }
 
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.TITLE] ?? {};
-    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELDS.TITLE]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] ?? {};
+    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3928,7 +3928,7 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
             value: {
                 shouldShowCustomReportTitleOption: !!policy?.shouldShowCustomReportTitleOption,
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: previousReportTitleField,
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: previousReportTitleField,
                 },
                 pendingFields: {
                     shouldShowCustomReportTitleOption: null,
@@ -3960,11 +3960,11 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
 function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     const policy = getPolicy(policyID);
 
-    if (customName === policy?.fieldList?.[CONST.POLICY.FIELDS.TITLE]?.defaultValue) {
+    if (customName === policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue) {
         return;
     }
 
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.TITLE] ?? {};
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3972,7 +3972,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
                         defaultValue: customName,
                         pendingFields: {defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
@@ -3987,7 +3987,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: {pendingFields: {defaultValue: null}},
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {pendingFields: {defaultValue: null}},
                 },
                 errorFields: null,
             },
@@ -4000,7 +4000,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: {...previousReportTitleField, pendingFields: {defaultValue: null}},
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, pendingFields: {defaultValue: null}},
                 },
                 errorFields: {
                     fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -4029,11 +4029,11 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
 function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean) {
     const policy = getPolicy(policyID);
 
-    if (!enforced === policy?.fieldList?.[CONST.POLICY.FIELDS.TITLE].deletable) {
+    if (!enforced === policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable) {
         return;
     }
 
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.TITLE] ?? {};
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4041,7 +4041,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: {...previousReportTitleField, deletable: !enforced, pendingFields: {deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, deletable: !enforced, pendingFields: {deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
                 },
             },
         },
@@ -4053,7 +4053,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: {pendingFields: {deletable: null}},
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {pendingFields: {deletable: null}},
                 },
                 errorFields: null,
             },
@@ -4066,7 +4066,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELDS.TITLE]: {...previousReportTitleField, pendingFields: {deletable: null}},
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, pendingFields: {deletable: null}},
                 },
                 errorFields: {
                     fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),

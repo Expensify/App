@@ -853,7 +853,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
-    const tagRuleUpdateKey = PolicyUtils.getPolicyFieldUpdateKey(tag, CONST.POLICY.FIELDS.TAG);
+    const tagRuleUpdateKey = PolicyUtils.getKeyForPendingRuleUpdate(tag, CONST.POLICY.FIELDS.TAG);
 
     const updatedApproverRule = approverRuleToUpdate
         ? {...approverRuleToUpdate, approver}

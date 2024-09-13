@@ -261,7 +261,7 @@ function CategorySettingsPage({
                                         </OfflineWithFeedback>
                                     )}
                                     <OfflineWithFeedback
-                                        pendingAction={policy?.pendingRulesUpdates?.[PolicyUtils.getPolicyFieldUpdateKey(categoryName, CONST.POLICY.FIELDS.CATEGORY)]?.approvalRule}
+                                        pendingAction={policy?.pendingRulesUpdates?.[PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.CATEGORY)]?.approvalRule}
                                     >
                                         <MenuItemWithTopDescription
                                             title={approverText}
@@ -287,7 +287,7 @@ function CategorySettingsPage({
                                     )}
                                     {policy?.tax?.trackingEnabled && (
                                         <OfflineWithFeedback
-                                            pendingAction={policy?.pendingRulesUpdates?.[PolicyUtils.getPolicyFieldUpdateKey(categoryName, CONST.POLICY.FIELDS.TAX)]?.expenseRule}
+                                            pendingAction={policy?.pendingRulesUpdates?.[PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.TAX)]?.expenseRule}
                                         >
                                             <MenuItemWithTopDescription
                                                 title={defaultTaxRateText}
