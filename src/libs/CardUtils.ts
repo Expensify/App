@@ -1,6 +1,6 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -24,6 +24,14 @@ Onyx.connect({
 
         allCards = val;
     },
+});
+
+let allCardsLists: OnyxCollection<WorkspaceCardsList>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+    waitForCollectionCallback: true,
+    callback: (value) => (allCardsLists = value),
 });
 
 /**
@@ -194,6 +202,17 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+/** Checks if the Expensify Card toggle should be disabled */
+function shouldExpensifyCardToggleBeDisabled(workspaceAccountID?: number, areExpensifyCardsEnabled?: boolean): boolean {
+    if (!areExpensifyCardsEnabled || !workspaceAccountID) {
+        return false;
+    }
+
+    const cardsList = allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`];
+
+    return !isEmptyObject(cardsList);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -210,4 +229,5 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    shouldExpensifyCardToggleBeDisabled,
 };
