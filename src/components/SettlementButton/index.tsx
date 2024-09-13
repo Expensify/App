@@ -17,7 +17,6 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LastPaymentMethod} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type SettlementButtonProps from './types';
@@ -47,7 +46,7 @@ function SettlementButton({
     formattedAmount = '',
     onPress,
     pressOnEnter = false,
-    policyID = '',
+    policyID = '-1',
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
@@ -65,9 +64,7 @@ function SettlementButton({
     const session = useSession();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
-    // The "nvpLastPaymentMethod" object needs to be stable to prevent the "useMemo"
-    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_OBJECT
-    const [nvpLastPaymentMethod = CONST.EMPTY_OBJECT as LastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
+    const [lastPaymentMethod = '-1'] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod?.[policyID]});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
@@ -109,9 +106,6 @@ function SettlementButton({
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
-        // If the user has previously chosen a specific payment option or paid for some expense,
-        // let's use the last payment method or use default.
-        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
@@ -160,14 +154,27 @@ function SettlementButton({
             buttonOptions.push(approveButtonOption);
         }
 
-        // Put the preferred payment method to the front of the array, so it's shown as default
-        if (paymentMethod) {
-            return buttonOptions.sort((method) => (method.value === paymentMethod ? -1 : 0));
+        // Put the preferred payment method to the front of the array, so it's shown as default. We assume their last payment method is their preferred.
+        if (lastPaymentMethod) {
+            return buttonOptions.sort((method) => (method.value === lastPaymentMethod ? -1 : 0));
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [currency, formattedAmount, iouReport, chatReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
+    }, [
+        iouReport,
+        translate,
+        formattedAmount,
+        shouldDisableApproveButton,
+        isInvoiceReport,
+        currency,
+        shouldHidePaymentOptions,
+        shouldShowApproveButton,
+        shouldShowPaywithExpensifyOption,
+        shouldShowPayElsewhereOption,
+        chatReport,
+        onPress,
+    ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
@@ -226,7 +233,12 @@ function SettlementButton({
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    onOptionSelected={(option) => savePreferredPaymentMethod(policyID, option.value)}
+                    onOptionSelected={(option) => {
+                        if (policyID === '-1') {
+                            return;
+                        }
+                        savePreferredPaymentMethod(policyID, option.value);
+                    }}
                     style={style}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
