@@ -1,6 +1,7 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
+import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -188,6 +189,12 @@ let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     callback: (val) => (reimbursementAccount = val),
+});
+
+let allRecentlyUsedCurrencies: string[];
+Onyx.connect({
+    key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+    callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
 /**
@@ -2217,6 +2224,14 @@ function clearErrors(policyID: string) {
  */
 function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
+}
+
+function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
+    if (!currency) {
+        return [];
+    }
+
+    return lodashUnion([currency], allRecentlyUsedCurrencies).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
 
 /**
@@ -4651,6 +4666,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
+    buildOptimisticRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
