@@ -320,6 +320,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        bottomTabBarLabel: {
+            lineHeight: 14,
+        },
+
         webViewStyles: webViewStyles(theme),
 
         link: link(theme),

@@ -158,7 +158,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     </View>
                     <Text
                         textAlign="center"
-                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : styles.textSupporting]}
+                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : styles.textSupporting, styles.bottomTabBarLabel]}
                     >
                         {translate('common.inbox')}
                     </Text>
@@ -182,7 +182,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     </View>
                     <Text
                         textAlign="center"
-                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : styles.textSupporting]}
+                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : styles.textSupporting, styles.bottomTabBarLabel]}
                     >
                         {translate('common.search')}
                     </Text>

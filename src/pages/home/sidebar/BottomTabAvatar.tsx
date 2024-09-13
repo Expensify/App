@@ -78,7 +78,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
                 {children}
                 <Text
                     textAlign="center"
-                    style={[styles.textSmall, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half]}
+                    style={[styles.textSmall, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}
                 >
                     {translate('common.settings')}
                 </Text>
