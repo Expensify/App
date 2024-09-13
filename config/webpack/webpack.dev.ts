@@ -1,3 +1,4 @@
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import path from 'path';
 import portfinder from 'portfinder';
 import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
@@ -8,6 +9,7 @@ import {merge} from 'webpack-merge';
 import type Environment from './types';
 import getCommonConfiguration from './webpack.common';
 
+process.env.NODE_ENV = 'development';
 const BASE_PORT = 8082;
 
 /**
@@ -63,6 +65,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'process.env.PORT': port,
                 }),
+                new ReactRefreshWebpackPlugin(),
             ],
             cache: {
                 type: 'filesystem',
@@ -82,6 +85,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
             },
         });
 
+        return config;
         return TimeAnalyticsPlugin.wrap(config);
     });
 
