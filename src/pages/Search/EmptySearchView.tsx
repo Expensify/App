@@ -53,13 +53,13 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             SkeletonComponent={SearchRowSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
             headerMedia={content.headerMedia}
-            headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter]}
+            headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto]}
             title={content.title}
             subtitle={content.subtitle}
             buttonText={content.buttonText}
             buttonAction={content.buttonAction}
             headerContentStyles={[styles.h100, styles.w100]}
-            lottieWebViewStyles={content.lottieWebViewStyles}
+            lottieWebViewStyles={{...content.lottieWebViewStyles, ...styles.mtAuto, ...styles.mbAuto}}
         />
     );
 }
