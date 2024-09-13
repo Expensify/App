@@ -51,11 +51,13 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
                 const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
                 const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
-                if (shouldOpenAllWorkspace) {
-                    switchPolicyID(navigationRef, {route: ROUTES.HOME});
-                } else {
-                    switchPolicyID(navigationRef, {policyID, route: ROUTES.HOME});
-                }
+                // @TODO Handle dismissing modal with switching a policyID
+
+                // if (shouldOpenAllWorkspace) {
+                //     switchPolicyID(navigationRef, {route: ROUTES.HOME});
+                // } else {
+                //     switchPolicyID(navigationRef, {policyID, route: ROUTES.HOME});
+                // }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
                 if (action) {

@@ -97,9 +97,10 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
 
                     Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
                     if (!reportBelongsToWorkspace) {
-                        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+                        Navigation.switchPolicyID({policyID, reportID});
+                    } else {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                     }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                 } catch (error) {
                     let errorMessage = String(error);
                     if (error instanceof Error) {

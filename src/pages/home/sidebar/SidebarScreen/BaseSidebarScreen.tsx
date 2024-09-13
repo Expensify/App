@@ -36,14 +36,14 @@ function BaseSidebarScreen() {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
-    useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined) {
-            return;
-        }
+    // useEffect(() => {
+    //     if (!!activeWorkspace || activeWorkspaceID === undefined) {
+    //         return;
+    //     }
 
-        Navigation.navigateWithSwitchPolicyID({policyID: undefined});
-        updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID]);
+    //     Navigation.switchPolicyID({policyID: undefined});
+    //     updateLastAccessedWorkspace(undefined);
+    // }, [activeWorkspace, activeWorkspaceID]);
 
     return (
         <ScreenWrapper

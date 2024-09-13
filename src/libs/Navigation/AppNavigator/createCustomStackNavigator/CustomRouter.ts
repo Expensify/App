@@ -90,8 +90,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType | CustomRootStackActionType, configOptions: RouterConfigOptions) {
-            // TODO: Put this into const;
-            if (action.type === 'SWITCH_POLICY_ID') {
+            if (action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID) {
                 const lastRoute = state.routes.at(-1);
                 if (lastRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
                     const currentParams = lastRoute.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
@@ -114,6 +113,27 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 }
                 if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                     // TODO: handle change policy id of reports navigator.
+
+                    if (action.payload.reportID) {
+                        const newRoute = createSplitNavigator(
+                            {
+                                name: SCREENS.HOME,
+                            },
+                            {
+                                name: SCREENS.REPORT,
+                                params: {
+                                    reportID: action.payload.reportID,
+                                    reportActionID: action.payload.reportActionID,
+                                    referrer: action.payload.referrer,
+                                },
+                            },
+                            {
+                                policyID: action.payload.policyID,
+                            },
+                        );
+                        const newRoutes = [...state.routes, newRoute];
+                        return {...state, stale: true, routes: newRoutes, index: newRoutes.length - 1};
+                    }
 
                     const splitNavigatorMainScreen = getIsNarrowLayout() ? undefined : {name: SCREENS.REPORT, params: {reportID: ''}};
 
