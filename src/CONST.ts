@@ -34,6 +34,8 @@ const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 const MAX_DATE = dateAdd(new Date(), {years: 1});
 const MIN_DATE = dateSubtract(new Date(), {years: 20});
+const EXPENSIFY_POLICY_DOMAIN = 'expensify-policy';
+const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -725,8 +727,8 @@ const CONST = {
         INBOX: 'inbox',
     },
 
-    EXPENSIFY_POLICY_DOMAIN: 'expensify-policy',
-    EXPENSIFY_POLICY_DOMAIN_EXTENSION: '.exfy',
+    EXPENSIFY_POLICY_DOMAIN,
+    EXPENSIFY_POLICY_DOMAIN_EXTENSION,
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -773,6 +775,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -945,6 +948,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            INVOICE_RECEIVER_POLICY_DELETED: 'invoiceReceiverPolicyDeleted',
             BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
@@ -1823,6 +1827,16 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    MISSING_PERSONAL_DETAILS_INDEXES: {
+        MAPPING: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+        },
+        INDEX_LIST: ['1', '2', '3', '4'],
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
@@ -2582,6 +2596,10 @@ const CONST = {
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
 
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+
+        get EXPENSIFY_POLICY_DOMAIN_NAME() {
+            return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
+        },
     },
 
     PRONOUNS: {
@@ -5429,11 +5447,6 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
         },
-        CHAT_STATUS: {
-            UNREAD: 'unread',
-            PINNED: 'pinned',
-            DRAFT: 'draft',
-        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             HOLD: 'hold',
@@ -5474,10 +5487,6 @@ const CONST = {
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
             },
-        },
-        CHAT_TYPES: {
-            LINK: 'link',
-            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5526,8 +5535,6 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
-            HAS: 'has',
-            IS: 'is',
         },
     },
 
