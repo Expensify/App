@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,7 +17,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LastPaymentMethod, Policy} from '@src/types/onyx';
+import type {LastPaymentMethod} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type SettlementButtonProps from './types';
@@ -26,16 +25,6 @@ import type SettlementButtonProps from './types';
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
-
-type SettlementButtonOnyxProps = {
-    /** The last payment method used per policy */
-    nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-
-    /** The policy of the report */
-    policy: OnyxEntry<Policy>;
-};
-
-type SettlementButtonWithOnyxProps = SettlementButtonProps & SettlementButtonOnyxProps;
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -53,9 +42,6 @@ function SettlementButton({
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
     iouReport,
-    // The "nvpLastPaymentMethod" object needs to be stable to prevent the "useMemo"
-    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_OBJECT
-    nvpLastPaymentMethod = CONST.EMPTY_OBJECT,
     isDisabled = false,
     isLoading = false,
     formattedAmount = '',
@@ -70,16 +56,19 @@ function SettlementButton({
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
-    policy,
     useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-}: SettlementButtonWithOnyxProps) {
+}: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const session = useSession();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
+    // The "nvpLastPaymentMethod" object needs to be stable to prevent the "useMemo"
+    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_OBJECT
+    const [nvpLastPaymentMethod = CONST.EMPTY_OBJECT as LastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption =
@@ -252,12 +241,4 @@ function SettlementButton({
 
 SettlementButton.displayName = 'SettlementButton';
 
-export default withOnyx<SettlementButtonWithOnyxProps, SettlementButtonOnyxProps>({
-    nvpLastPaymentMethod: {
-        key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-        selector: (paymentMethod) => paymentMethod ?? {},
-    },
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-})(SettlementButton);
+export default SettlementButton;
