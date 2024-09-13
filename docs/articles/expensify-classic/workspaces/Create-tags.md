@@ -55,10 +55,10 @@ When you first connect your accounting integration (for example, QuickBooks Onli
 You can add a list of single tags by importing them in a .csv, .txt, .xls, or .xlsx spreadsheet.
 
 1. Determine whether you will use independent (a separate tag for department and project) or dependent tags (the project tags populate different options based on the department selected), and whether you will capture general ledge (GL) codes. Then use one of the following templates to build your tags list:
-   - [Dependent tags with GL codes](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fus.v-cdn.net%2F6030147%2Fuploads%2FO7G7UWJCCFXC%2Fdependant-tag-with-gl-code-template.xlsx)
-   - [Dependent tags without GL codes](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fus.v-cdn.net%2F6030147%2Fuploads%2FY7DCMUVLSHEO%2Fdependant-tag-without-gl-code-template.xlsx)
-   - [Independent tags with GL codes](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fs3-us-west-1.amazonaws.com%2Fconcierge-responses-expensify-com%2Fuploads%252F1618929581886-Independent%2Bwith%2BGL%2Bcodes%2Bformat%2B-%2BSheet1.csv)
-   - [Independent tags without GL codes](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fs3-us-west-1.amazonaws.com%2Fconcierge-responses-expensify-com%2Fuploads%252F1618929575401-Independent%2Bwithout%2BGL%2Bcodes%2Bformat%2B-%2BSheet1.csv)
+   - [Dependent tags with GL codes]({{site.url}}/assets/Files/Dependent+with+GL+codes+format.csv)
+   - [Dependent tags without GL codes]({{site.url}}/assets/Files/Dependent+without+GL+codes+format.csv)
+   - [Independent tags with GL codes]({{site.url}}/assets/Files/Independent+with+GL+codes+format.csv)
+   - [Independent tags without GL codes]({{site.url}}/assets/Files/Independent+without+GL+codes+format.csv)
 
 {% include info.html %}
 If you have more than 50,000 tags, divide them into two separate files.

@@ -2,7 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -14,7 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts} from '@components/OnyxProvider';
+import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
@@ -81,13 +81,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-
-const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
-    const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
-    const draftMessage = drafts?.[draftKey]?.[action.reportActionID];
-    return typeof draftMessage === 'string' ? draftMessage : draftMessage?.message;
-};
 
 type ReportActionItemOnyxProps = {
     /** IOU report for this action, if any */
@@ -185,8 +178,14 @@ function ReportActionItem({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const blockedFromConcierge = useBlockedFromConcierge();
-    const reportActionDrafts = useReportActionsDrafts();
-    const draftMessage = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(report.reportID, action) || '-1', [report.reportID, action]);
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
+        selector: (draftMessagesForReport) => {
+            const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
+            return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+        },
+    });
     const theme = useTheme();
     const styles = useThemeStyles();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
@@ -204,7 +203,6 @@ function ReportActionItem({
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
-    const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -383,8 +381,8 @@ function ReportActionItem({
     }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
-        (emoji: Emoji) => {
-            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions);
+        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
+            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
         },
         [report, action, emojiReactions],
     );
@@ -397,6 +395,7 @@ function ReportActionItem({
             action,
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+            isDisabled: false,
         }),
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
@@ -643,7 +642,9 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -664,10 +665,17 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action)} />;
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getRemovedFromApprovalChainMessage(action)} />;
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
-            children = <IssueCardMessage action={action} />;
+            children = (
+                <IssueCardMessage
+                    action={action}
+                    policyID={report.policyID}
+                />
+            );
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
@@ -722,6 +730,7 @@ function ReportActionItem({
                                 action={action}
                                 draftMessage={draftMessage}
                                 reportID={report.reportID}
+                                policyID={report.policyID}
                                 index={index}
                                 ref={textInputRef}
                                 shouldDisableEmojiPicker={
@@ -759,7 +768,7 @@ function ReportActionItem({
                             reportAction={action}
                             emojiReactions={emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji) => {
+                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
 
@@ -767,7 +776,7 @@ function ReportActionItem({
                                         Session.signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji);
+                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -917,7 +926,7 @@ function ReportActionItem({
                                 reportID={report.reportID}
                                 reportActionID={action.reportActionID}
                                 anchor={popoverAnchorRef}
-                                originalReportID={originalReportID ?? '-1'}
+                                originalReportID={originalReportID}
                                 isArchivedRoom={isArchivedRoom}
                                 displayAsGroup={displayAsGroup}
                                 disabledActions={disabledActions}

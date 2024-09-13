@@ -29,7 +29,13 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROM
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; reportID?: string}) => PromotedAction;
+    hold: (params: {
+        isTextHold: boolean;
+        reportAction: ReportAction | undefined;
+        reportID?: string;
+        isDelegateAccessRestricted: boolean;
+        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
+    }) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -70,11 +76,16 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, reportID}) => ({
+    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
         onSelected: () => {
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true); // Show the menu
+                return;
+            }
+
             if (!isTextHold) {
                 Navigation.goBack();
             }
@@ -117,7 +128,6 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     <Button
                         onPress={onSelected}
                         iconFill={theme.icon}
-                        medium
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />

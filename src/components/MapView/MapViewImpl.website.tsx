@@ -112,7 +112,7 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
 
-            // Avoid animating the naviagtion to the same location
+            // Avoid animating the navigation to the same location
             const shouldAnimate = prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude;
 
             mapRef.flyTo({
@@ -279,7 +279,6 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
                         <Button
                             onPress={centerMap}
                             iconFill={theme.icon}
-                            medium
                             icon={Expensicons.Crosshair}
                             accessibilityLabel={translate('common.center')}
                         />
