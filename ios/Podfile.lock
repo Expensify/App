@@ -2582,7 +2582,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNShare (10.0.2):
+  - RNShare (11.0.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3236,7 +3236,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: a15b431d2903bc2eb3474ff8d9a05d3e67a70199
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
-  RNShare: a3c2fbbca5682530b65ff405b34c91dad1e22442
+  RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 1079f96b39a35753d481a20e30603fd6fc4f6fa9
   SDWebImage: 066c47b573f408f18caa467d71deace7c0f8280d
