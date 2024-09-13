@@ -5,7 +5,6 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useSession} from '@components/OnyxProvider';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
 import ScrollView from '@components/ScrollView';
@@ -14,6 +13,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import * as UserUtils from '@libs/UserUtils';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
@@ -29,8 +29,7 @@ type VerifyStepProps = BaseTwoFactorAuthFormOnyxProps;
 function VerifyStep({account}: VerifyStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const session = useSession();
-
+    const contactMethod = UserUtils.getContactMethod();
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -65,7 +64,7 @@ function VerifyStep({account}: VerifyStepProps) {
      * so it can be detected by authenticator apps
      */
     function buildAuthenticatorUrl() {
-        return `otpauth://totp/Expensify:${account?.primaryLogin ?? session?.email}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
+        return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
     return (

@@ -12,6 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
 import colors from '@styles/theme/colors';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -36,8 +37,8 @@ function ManageTrips() {
     const {translate} = useLocalize();
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policy = usePolicy(activePolicyID);
+    const contactMethod = UserUtils.getContactMethod();
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -62,7 +63,7 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        if (Str.isSMSLogin(account?.primaryLogin ?? '')) {
+                        if (Str.isSMSLogin(contactMethod)) {
                             setCtaErrorMessage(translate('travel.phoneError'));
                             return;
                         }
