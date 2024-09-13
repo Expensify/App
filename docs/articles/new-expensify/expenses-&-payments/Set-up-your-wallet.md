@@ -27,7 +27,6 @@ Plaid is an encrypted third-party financial data platform that Expensify uses to
 9. Follow the prompts on your mobile device to submit your ID with Onfido.
 
 When your ID is uploaded successfully, Onfido closes automatically. You can return to your Expensify Wallet to verify that it is now enabled. Once enabled, you are ready to send and receive payments. 
-{% include end-option.html %}
 
 {% include option.html value="mobile" %}
 1. Tap your profile image or icon in the bottom menu.
@@ -47,7 +46,6 @@ Plaid is an encrypted third-party financial data platform that Expensify uses to
 9. Tap **Enable wallet** again to enable payments for the wallet.
 
 Once enabled, you are ready to send and receive payments. 
-{% include end-option.html %}
 
 {% include end-selector.html %}
 
