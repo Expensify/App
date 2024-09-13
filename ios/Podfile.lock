@@ -27,8 +27,6 @@ PODS:
   - AppAuth/ExternalUserAgent (1.7.5):
     - AppAuth/Core
   - boost (1.84.0)
-  - BVLinearGradient (2.8.1):
-    - React-Core
   - DoubleConversion (1.1.6)
   - EXAV (14.0.7):
     - ExpoModulesCore
@@ -2692,7 +2690,6 @@ PODS:
 DEPENDENCIES:
   - AirshipServiceExtension
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
-  - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -2856,8 +2853,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
-  BVLinearGradient:
-    :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
@@ -3102,7 +3097,6 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
-  BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: afa491e598334bbbb92a92a2f4dd33d7149ad37f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
@@ -3252,7 +3246,7 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
-  Yoga: 2a45d7e59592db061217551fd3bbe2dd993817ae
+  Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
 PODFILE CHECKSUM: e479ec84cb53e5fd463486d71dfee91708d3fd9a
 
