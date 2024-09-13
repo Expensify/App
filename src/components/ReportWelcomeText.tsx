@@ -46,10 +46,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions
-        .filter(
-            (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.GLOBAL_CREATE> =>
-                item !== CONST.IOU.TYPE.INVOICE && item !== CONST.IOU.TYPE.GLOBAL_CREATE,
-        )
+        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.GLOBAL_CREATE> => item !== CONST.IOU.TYPE.INVOICE)
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
