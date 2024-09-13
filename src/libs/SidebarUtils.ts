@@ -400,7 +400,7 @@ function getOptionData({
 
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !report?.private_isArchived) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result?.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
@@ -575,8 +575,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
-    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+    if (report?.private_isArchived) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {
