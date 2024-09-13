@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -254,7 +254,7 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <ScrollView style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
@@ -302,7 +302,7 @@ function PopoverMenu({
                             badgeText={item.badgeText}
                         />
                     ))}
-                </View>
+                </ScrollView>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
