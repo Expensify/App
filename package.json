@@ -70,6 +70,8 @@
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-live-markdown": "0.1.120",
     "@expo/metro-runtime": "~3.2.3",
+    "@firebase/app": "^0.10.10",
+    "@firebase/performance": "^0.6.8",
     "@formatjs/intl-datetimeformat": "^6.12.5",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
