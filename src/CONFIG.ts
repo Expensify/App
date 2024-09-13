@@ -98,9 +98,9 @@ export default {
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     USE_REACT_STRICT_MODE: true,
     FIREBASE_WEB_CONFIG: {
-        apiKey: get(Config, 'FB_API_KEY', ''),
-        appId: get(Config, 'FB_APP_ID', ''),
-        projectId: get(Config, 'FB_PROJECT_ID', ''),
+        apiKey: get(Config, 'FB_API_KEY', 'AIzaSyDxzigVLZl4G8MP7jACQ0qpmADMzmrrON0'),
+        appId: get(Config, 'FB_APP_ID', '1:921154746561:web:7b8213357d07d6e4027c40'),
+        projectId: get(Config, 'FB_PROJECT_ID', 'expensify-chat'),
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
