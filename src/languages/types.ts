@@ -95,6 +95,10 @@ type ReportArchiveReasonsPolicyDeletedParams = {
     policyName: string;
 };
 
+type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
+    policyName: string;
+};
+
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
@@ -425,6 +429,7 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
