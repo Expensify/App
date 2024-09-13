@@ -227,6 +227,7 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
+    const CANNED_SEARCH_QUERY = 'type:expense status:all';
     const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters), [searchAdvancedFilters]);
 
     const applyFiltersAndNavigate = () => {
@@ -310,7 +311,7 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {queryString && (
+            {queryString !== CANNED_SEARCH_QUERY && (
                 <Button
                     text={translate('search.saveSearch')}
                     onPress={onSaveSearch}
