@@ -13,6 +13,7 @@ import * as NetworkStore from './NetworkStore';
 type RequestError = Error & {
     name?: string;
     message?: string;
+    status?: string;
 };
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
@@ -105,7 +106,7 @@ function process(): Promise<void> {
                 return process();
             }
             PersistedRequests.rollbackOngoingRequest();
-            return RequestThrottle.sleep()
+            return RequestThrottle.sleep(error, requestToProcess.command)
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
@@ -248,3 +249,4 @@ function waitForIdle(): Promise<unknown> {
 }
 
 export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause};
+export type {RequestError};
