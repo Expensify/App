@@ -244,7 +244,6 @@ function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<
             }
         });
     return cards;
-
 }
 
 export {
