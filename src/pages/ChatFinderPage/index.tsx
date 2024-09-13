@@ -150,17 +150,25 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        const newOptions1 = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         const newOptions = findInSearchTree(debouncedSearchValue.toLowerCase().replace(aToZRegex, ''));
+        const userToInvite = OptionsListUtils.pickUserToInvite({
+            canInviteUser: true,
+            recentReports: newOptions.recentReports,
+            personalDetails: newOptions.personalDetails,
+            searchValue: debouncedSearchValue,
+            optionsToExclude: [{login: CONST.EMAIL.NOTIFICATIONS}],
+        });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: undefined, // newOptions.userToInvite,
+            userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, findInSearchTree]);
+    }, [debouncedSearchValue, searchOptions, findInSearchTree]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
