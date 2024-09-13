@@ -16,7 +16,7 @@ type AccountSwitcherSkeletonViewProps = {
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
-function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE}: AccountSwitcherSkeletonViewProps) {
+function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.DEFAULT}: AccountSwitcherSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -30,7 +30,7 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                 animate={shouldAnimate}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
-                height={avatarPlaceholderSize + styles.pb3.paddingBottom}
+                height={avatarPlaceholderSize}
             >
                 <Circle
                     cx={startPositionX}
@@ -39,13 +39,13 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                 />
                 <Rect
                     x={startPositionX + avatarPlaceholderRadius + styles.gap3.gap}
-                    y="11"
+                    y="6"
                     width="45%"
                     height="8"
                 />
                 <Rect
                     x={startPositionX + avatarPlaceholderRadius + styles.gap3.gap}
-                    y="31"
+                    y="26"
                     width="55%"
                     height="8"
                 />
