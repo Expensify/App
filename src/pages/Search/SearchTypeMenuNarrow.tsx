@@ -53,6 +53,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
                 SearchActions.clearAllFilters();
                 Navigation.navigate(item.route);
             }),
+            isSelected,
             icon: item.icon,
             iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
             iconRight: Expensicons.Checkmark,
@@ -66,6 +67,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
         popoverMenuItems.push({
             text: title,
             onSelected: closeMenu,
+            isSelected: true,
             icon: Expensicons.Filters,
             iconFill: theme.iconSuccessFill,
             success: true,

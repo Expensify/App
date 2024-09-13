@@ -572,7 +572,6 @@ function IOURequestStepScan({
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                         <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                         <Button
-                            medium
                             success
                             text={translate('common.continue')}
                             accessibilityLabel={translate('common.continue')}
@@ -679,7 +678,6 @@ function IOURequestStepScan({
             <AttachmentPicker>
                 {({openPicker}) => (
                     <Button
-                        medium
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
