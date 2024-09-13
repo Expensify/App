@@ -137,7 +137,7 @@ function ReportPreview({
         [transactions, iouReportID, action],
     );
 
-    const [shouldStartPaidAnimation, setShouldStartPaidAnimation] = useState(false);
+    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
@@ -198,7 +198,7 @@ function ReportPreview({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const stopAnimation = useCallback(() => setShouldStartPaidAnimation(false), []);
+    const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type) {
             return;
@@ -210,7 +210,7 @@ function ReportPreview({
         } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
-            setShouldStartPaidAnimation(true);
+            setIsPaidAnimationRunning(true);
             HapticFeedback.longPress();
             if (ReportUtils.isInvoiceReport(iouReport)) {
                 IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
@@ -312,8 +312,8 @@ function ReportPreview({
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
     const shouldShowPayButton = useMemo(
-        () => shouldStartPaidAnimation || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
-        [shouldStartPaidAnimation, iouReport, chatReport, policy, allTransactions],
+        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
+        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
     );
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
@@ -482,7 +482,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
-                                        shouldStartPaidAnimation={shouldStartPaidAnimation}
+                                        isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}

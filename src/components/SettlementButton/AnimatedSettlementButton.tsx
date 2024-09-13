@@ -8,11 +8,11 @@ import SettlementButton from '.';
 import type SettlementButtonProps from './types';
 
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
-    shouldStartPaidAnimation: boolean;
+    isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
 };
 
-function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
+function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const buttonScale = useSharedValue(1);
     const buttonOpacity = useSharedValue(1);
@@ -34,7 +34,7 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
         justifyContent: 'center',
         overflow: 'hidden',
     }));
-    const buttonDisabledStyle = shouldStartPaidAnimation
+    const buttonDisabledStyle = isPaidAnimationRunning
         ? {
               opacity: 1,
               ...styles.cursorDefault,
@@ -51,7 +51,7 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
     }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height]);
 
     useEffect(() => {
-        if (!shouldStartPaidAnimation) {
+        if (!isPaidAnimationRunning) {
             resetAnimation();
             return;
         }
@@ -67,11 +67,11 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
             withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION}, () => runOnJS(onAnimationFinish)()),
         );
         paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION}));
-    }, [shouldStartPaidAnimation, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
+    }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
 
     return (
         <Animated.View style={containerStyles}>
-            {shouldStartPaidAnimation && (
+            {isPaidAnimationRunning && (
                 <Animated.View style={paymentCompleteTextStyles}>
                     <Text style={[styles.buttonMediumText]}>Payment complete</Text>
                 </Animated.View>
@@ -80,7 +80,7 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
-                    isDisabled={shouldStartPaidAnimation || isDisabled}
+                    isDisabled={isPaidAnimationRunning || isDisabled}
                     disabledStyle={buttonDisabledStyle}
                 />
             </Animated.View>
