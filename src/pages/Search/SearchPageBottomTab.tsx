@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -27,8 +28,6 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const EXPENSE_FILTERS_TYPE = 'expense';
-
     const {queryJSON, policyID, isExpenseFilterPage} = useMemo(() => {
         if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
             return {queryJSON: undefined, policyID: undefined, isExpenseFilterPage: undefined};
@@ -39,7 +38,7 @@ function SearchPageBottomTab() {
         return {
             queryJSON: parsedQuery,
             policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
-            isExpenseFilterPage: parsedQuery?.type === EXPENSE_FILTERS_TYPE,
+            isExpenseFilterPage: parsedQuery?.type === CONST.SEARCH.DATA_TYPES.EXPENSE,
         };
     }, [activeCentralPaneRoute]);
 
@@ -62,7 +61,7 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
-                            isCustomSearchQuery={shouldUseNarrowLayout && isExpenseFilterPage && queryJSON?.inputQuery !== SearchUtils.buildCannedSearchQuery()}
+                            isCustomSearchQuery={shouldUseNarrowLayout && isExpenseFilterPage && !SearchUtils.isCannedSearchQuery(queryJSON)}
                         />
                         <SearchTypeMenu queryJSON={queryJSON} />
                     </>

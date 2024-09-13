@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys} from '@components/Search/types';
+import type {AdvancedFiltersKeys, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -227,8 +227,8 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const CANNED_SEARCH_QUERY = 'type:expense status:all';
-    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
@@ -241,11 +241,6 @@ function AdvancedSearchFilters() {
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery());
-        if (!queryJSON) {
-            return;
-        }
-
         SearchActions.saveSearch({
             queryJSON,
         });
@@ -311,7 +306,8 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {queryString !== CANNED_SEARCH_QUERY && (
+
+            {!SearchUtils.isCannedSearchQuery(queryJSON) && (
                 <Button
                     text={translate('search.saveSearch')}
                     onPress={onSaveSearch}
