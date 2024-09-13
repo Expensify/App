@@ -175,6 +175,7 @@ const SCREENS = {
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
+        MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -383,6 +384,9 @@ const SCREENS = {
         COMPANY_CARDS_DETAILS: 'Workspace_CompanyCards_Details',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
+        COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
+        COMPANY_CARD_NAME: 'Workspace_CompanyCard_Name',
+        COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
@@ -542,6 +546,7 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
+    MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

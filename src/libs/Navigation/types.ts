@@ -706,6 +706,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
+        policyID: string;
+        bank: string;
+        cardID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+        bank: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
+        policyID: string;
+        cardID: string;
+        bank: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
         backTo?: Routes;
@@ -1165,6 +1181,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1394,6 +1411,12 @@ type RestrictedActionParamList = {
     };
 };
 
+type MissingPersonalDetailsParamList = {
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: {
+        policyID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -1465,4 +1488,5 @@ export type {
     SearchReportParamList,
     SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
+    MissingPersonalDetailsParamList,
 };
