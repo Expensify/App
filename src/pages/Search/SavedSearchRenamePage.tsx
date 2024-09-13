@@ -3,6 +3,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,10 +31,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(q || SearchUtils.buildCannedSearchQuery());
-        if (!queryJSON) {
-            return;
-        }
+        const queryJSON = SearchUtils.buildSearchQueryJSON(q || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         SearchActions.saveSearch({
             queryJSON,
