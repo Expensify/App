@@ -156,7 +156,7 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-function dismissSaveSearchRenameTooltip() {
+function dismissSavedSearchRenameTooltip() {
     Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, true);
 }
 
@@ -172,5 +172,5 @@ export {
     clearAllFilters,
     clearAdvancedFilters,
     deleteSavedSearch,
-    dismissSaveSearchRenameTooltip,
+    dismissSavedSearchRenameTooltip,
 };
