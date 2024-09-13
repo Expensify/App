@@ -522,7 +522,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}

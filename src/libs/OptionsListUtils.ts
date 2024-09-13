@@ -471,13 +471,14 @@ function uniqFast(items: string[]): string[] {
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce((prevReportActionErrors, action) => {
-        if (!action || isEmptyObject(action.errors)) {
-            return prevReportActionErrors;
-        }
+    const reportActionsArray = Object.values(reportActions ?? {});
+    const reportActionErrors: OnyxCommon.ErrorFields = {};
 
-        return Object.assign(prevReportActionErrors, action.errors);
-    }, {});
+    for (const action of reportActionsArray) {
+        if (action && !isEmptyObject(action.errors)) {
+            Object.assign(reportActionErrors, action.errors);
+        }
+    }
     const parentReportAction: OnyxEntry<ReportAction> =
         !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
 
@@ -491,24 +492,23 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
         }
-    } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
+    } else if (ReportUtils.hasSmartscanError(reportActionsArray)) {
         reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
     }
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
-    const errorSources = {
-        reportErrors,
-        ...reportErrorFields,
-        ...reportActionErrors,
-    };
+    // Use Object.assign to merge all error objects into one since it is faster and uses less memory than spread operator
+    // eslint-disable-next-line prefer-object-spread
+    const errorSources = Object.assign({}, reportErrors, reportErrorFields, reportActionErrors);
+
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => {
-        if (isEmptyObject(errors)) {
-            return prevReportErrors;
+    const errorSourcesArray = Object.values(errorSources ?? {});
+    const allReportErrors = {};
+
+    for (const errors of errorSourcesArray) {
+        if (!isEmptyObject(errors)) {
+            Object.assign(allReportErrors, errors);
         }
-
-        return Object.assign(prevReportErrors, errors);
-    }, {});
-
+    }
     return allReportErrors;
 }
 
