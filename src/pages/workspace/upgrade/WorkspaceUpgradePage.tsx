@@ -94,10 +94,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 onBackButtonPress={() => {
                     if (isUpgraded) {
                         Navigation.dismissModal();
+                        goBack();
                     } else {
                         Navigation.goBack();
                     }
-                    goBack();
                 }}
             />
             {isUpgraded && (
