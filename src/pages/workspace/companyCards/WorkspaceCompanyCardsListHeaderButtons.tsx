@@ -59,7 +59,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
 
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
-                    medium
                     success
                     // TODO: navigate to Assign card flow when it's implemented
                     onPress={() => {}}
@@ -68,7 +67,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     style={shouldUseNarrowLayout && styles.flex1}
                 />
                 <Button
-                    medium
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}

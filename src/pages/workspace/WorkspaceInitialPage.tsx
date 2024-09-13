@@ -159,6 +159,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
+
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
@@ -190,7 +191,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.expensifyCard',
-            icon: Expensicons.CreditCard,
+            icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
         });
