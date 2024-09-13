@@ -212,6 +212,7 @@ function shouldExpensifyCardToggleBeDisabled(workspaceAccountID?: number, areExp
     const cardsList = allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`];
 
     return !isEmptyObject(cardsList);
+}
 
 function getCardDetailsImage(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
