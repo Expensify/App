@@ -1,7 +1,7 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +82,7 @@ function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, subm
  * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>): ReportNextStep | null {
+function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, shouldFixViolations?: boolean): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
@@ -103,6 +103,28 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
+            if (shouldFixViolations) {
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    message: [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'fix the issue(s)',
+                        },
+                    ],
+                };
+                break;
+            }
             // Self review
             optimisticNextStep = {
                 type,
@@ -297,4 +319,4 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep};
+export {buildNextStep, parseMessage};
