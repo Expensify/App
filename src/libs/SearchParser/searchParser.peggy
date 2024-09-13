@@ -119,9 +119,7 @@ key "key"
       / "cardID"
       / "from"
       / "expenseType"
-      / "has"
       / "in"
-      / "is"
     )
 
 defaultKey "default key"
