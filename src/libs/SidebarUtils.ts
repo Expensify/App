@@ -400,8 +400,7 @@ function getOptionData({
 
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !report?.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {

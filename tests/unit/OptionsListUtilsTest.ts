@@ -2639,11 +2639,9 @@ describe('OptionsListUtils', () => {
             const searchText = 'Archived';
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-            const reportNameValuePairs = ReportUtils.getReportNameValuePairs(filteredOptions.recentReports[0]?.reportID);
-            const isArchivedRoom = ReportUtils.isArchivedRoom(filteredOptions.recentReports[0], reportNameValuePairs);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(isArchivedRoom).toBe(true);
+            expect(filteredOptions.recentReports[0].private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
