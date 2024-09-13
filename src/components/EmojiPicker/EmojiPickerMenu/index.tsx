@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -141,21 +142,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 return;
             }
 
-            // Select the currently highlighted emoji if enter is pressed
             if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                let indexToSelect = focusedIndex;
-                if (highlightFirstEmoji) {
-                    indexToSelect = 0;
-                }
-
-                const item = filteredEmojis[indexToSelect];
-                if (!item) {
-                    return;
-                }
-                if ('types' in item || 'name' in item) {
-                    const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
-                    onEmojiSelected(emoji, item);
-                }
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
                 // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
@@ -175,7 +162,32 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, focusedIndex, highlightFirstEmoji, isFocused, onEmojiSelected, preferredSkinTone],
+        [isFocused],
+    );
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ENTER,
+        (keyBoardEvent) => {
+            if (!(keyBoardEvent instanceof KeyboardEvent) || isEnterWhileComposition(keyBoardEvent) || keyBoardEvent.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                return;
+            }
+
+            // Select the currently highlighted emoji if enter is pressed
+            let indexToSelect = focusedIndex;
+            if (highlightFirstEmoji) {
+                indexToSelect = 0;
+            }
+
+            const item = filteredEmojis[indexToSelect];
+            if (!item) {
+                return;
+            }
+            if ('types' in item || 'name' in item) {
+                const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
+                onEmojiSelected(emoji, item);
+            }
+        },
+        {shouldPreventDefault: true, shouldStopPropagation: true},
     );
 
     /**

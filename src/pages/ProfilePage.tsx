@@ -155,10 +155,11 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference =
-        !isEmptyObject(report) && !isCurrentUser && !!report.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
+
+    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
-        ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
+        ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -197,7 +198,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                                 accessibilityLabel={translate('common.profile')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>

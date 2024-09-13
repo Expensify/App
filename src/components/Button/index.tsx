@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -29,6 +29,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** The fill color to pass into the icon. */
     iconFill?: string;
 
+    /** The fill color to pass into the icon when the button is hovered. */
+    iconHoverFill?: string;
+
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
@@ -49,6 +52,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 
     /** A function that is called when the button is clicked on */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -80,8 +86,14 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
+    /** Additional text styles when the button is hovered */
+    textHoverStyles?: StyleProp<TextStyle>;
+
     /** Whether we should use the default hover style */
     shouldUseDefaultHover?: boolean;
+
+    /** Additional hover styles */
+    hoverStyles?: StyleProp<ViewStyle>;
 
     /** Whether we should use the success theme color */
     success?: boolean;
@@ -170,6 +182,7 @@ function Button(
 
         iconRight = Expensicons.ArrowRight,
         iconFill,
+        iconHoverFill,
         icon = null,
         iconStyles = [],
         iconRightStyles = [],
@@ -177,11 +190,12 @@ function Button(
 
         small = false,
         large = false,
-        medium = false,
+        medium = !small && !large,
 
         isLoading = false,
         isDisabled = false,
 
+        onLayout = () => {},
         onPress = () => {},
         onLongPress = () => {},
         onPressIn = () => {},
@@ -194,8 +208,10 @@ function Button(
         style = [],
         innerStyles = [],
         textStyles = [],
+        textHoverStyles = [],
 
         shouldUseDefaultHover = true,
+        hoverStyles = undefined,
         success = false,
         danger = false,
 
@@ -238,6 +254,7 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     textStyles,
+                    isHovered && textHoverStyles,
                     link && styles.link,
                     link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                     link && styles.fontWeightNormal,
@@ -249,6 +266,8 @@ function Button(
             </Text>
         );
 
+        const defaultFill = success || danger ? theme.textLight : theme.icon;
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
@@ -259,28 +278,29 @@ function Button(
                                 <Icon
                                     src={icon}
                                     hasText={!!text}
-                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
                                 />
                             </View>
                         )}
-                        {textComponent}
+                        {!!text && textComponent}
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             {!isSplitButton ? (
                                 <Icon
                                     src={iconRight}
-                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
-                                    small={medium}
-                                    medium={large}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             ) : (
                                 <Icon
                                     src={iconRight}
-                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -309,6 +329,7 @@ function Button(
             )}
             <PressableWithFeedback
                 ref={ref}
+                onLayout={onLayout}
                 onPress={(event) => {
                     if (event?.type === 'click') {
                         const currentTarget = event?.currentTarget as HTMLElement;
@@ -358,6 +379,7 @@ function Button(
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
                     success && !isDisabled ? styles.buttonSuccessHovered : undefined,
                     danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                    hoverStyles,
                 ]}
                 id={id}
                 accessibilityLabel={accessibilityLabel}
