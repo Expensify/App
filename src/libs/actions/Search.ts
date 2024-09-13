@@ -12,7 +12,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SaveSearch} from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
@@ -23,40 +22,6 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
     },
 });
-
-function getOnyxSavedSearchData(
-    hash: number,
-    name: string,
-    jsonQuery: string,
-): {
-    optimisticData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
-} {
-    const onyxUpdate: SaveSearch = {
-        [hash]: {
-            name,
-            query: jsonQuery,
-        },
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SAVED_SEARCHES,
-            value: [onyxUpdate],
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SAVED_SEARCHES,
-            value: [{[hash]: null}],
-        },
-    ];
-
-    return {optimisticData, failureData};
-}
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
@@ -88,20 +53,13 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
 
 function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
     const saveSearchName = name ?? queryJSON?.inputQuery ?? '';
-    const {optimisticData, failureData} = getOnyxSavedSearchData(queryJSON.hash, saveSearchName, JSON.stringify(queryJSON));
     const jsonQuery = JSON.stringify(queryJSON);
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName}, {optimisticData, failureData});
+
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName});
 }
 
 function deleteSavedSearch(hash: number) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SAVED_SEARCHES,
-            value: [{[hash]: null}],
-        },
-    ];
-    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData});
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
