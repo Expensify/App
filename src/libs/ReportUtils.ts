@@ -3758,7 +3758,7 @@ function getReportName(
         }
 
         if (ReportActionsUtils.isCardIssuedAction(parentReportAction)) {
-            return 'cardIssued';
+            return ReportActionsUtils.getCardIssuedMessage(parentReportAction);
         }
         return reportActionMessage;
     }

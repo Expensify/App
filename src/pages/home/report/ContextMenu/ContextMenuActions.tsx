@@ -477,7 +477,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', label, errorMessage));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
-                    setClipboardMessage('cardIssued');
+                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
