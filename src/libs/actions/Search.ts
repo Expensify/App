@@ -53,9 +53,9 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
-
+    const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const queryWithOffset = {
-        ...queryJSON,
+        ...queryJSONWithoutFlatFilters,
         offset,
     };
     const jsonQuery = JSON.stringify(queryWithOffset);

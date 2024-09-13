@@ -1517,7 +1517,7 @@ export default {
     reportDescriptionPage: {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
-        explainerText: 'Set a custom decription for the room.',
+        explainerText: 'Set a custom description for the room.',
     },
     groupConfirmPage: {
         groupName: 'Group name',
@@ -1643,6 +1643,10 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: "What's your legal name?",
+        enterDateOfBirth: "What's your date of birth?",
+        enterAddress: "What's your address?",
+        enterPhoneNumber: "What's your phone number?",
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
         legalName: 'Legal name',
@@ -2157,7 +2161,7 @@ export default {
         common: {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
-            companyCards: 'Company Cards',
+            companyCards: 'Company cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2908,11 +2912,11 @@ export default {
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
-            addMailingAddress: 'Add mailing address',
+            addShippingDetails: 'Add shipping details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
-            issuedCardNoMailingAddress: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
+            issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are added.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
-            addedAddress: (assignee: string) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
+            addedShippingDetails: (assignee: string) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -2993,7 +2997,7 @@ export default {
                 },
             },
             companyCards: {
-                title: 'Company Cards',
+                title: 'Company cards',
                 subtitle: 'Import spend from existing company cards.',
                 feed: {
                     title: 'Import company cards',
@@ -3004,7 +3008,7 @@ export default {
                     },
                     ctaTitle: 'Add company cards',
                 },
-                disableCardTitle: 'Disable Company Cards',
+                disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
                 assignCard: 'Assign card',
@@ -3606,7 +3610,7 @@ export default {
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
         bankAccount: {
-            continueWithSetup: 'Continue with setup',
+            continueWithSetup: 'Continue setup',
             youreAlmostDone: "You're almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills.",
             streamlinePayments: 'Streamline payments',
             connectBankAccountNote: "Note: Personal bank accounts can't be used for payments on workspaces.",
@@ -3715,7 +3719,7 @@ export default {
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
             companyCards: {
-                title: 'Company Cards',
+                title: 'Company cards',
                 description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
