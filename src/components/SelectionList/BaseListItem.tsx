@@ -35,7 +35,7 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    shouldAnimateInHighlight = false,
+    hasAnimateInHighlightStyle = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -108,7 +108,7 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
-                wrapperStyle={shouldAnimateInHighlight ? [styles.mh5, animatedHighlightStyle] : []}
+                wrapperStyle={hasAnimateInHighlightStyle ? [styles.mh5, animatedHighlightStyle] : []}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}

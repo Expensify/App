@@ -59,7 +59,7 @@ function TransactionListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            shouldAnimateInHighlight
+            hasAnimateInHighlightStyle
         >
             <TransactionListItemRow
                 item={transactionItem}

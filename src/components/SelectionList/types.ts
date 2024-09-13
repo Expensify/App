@@ -276,7 +276,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
-    shouldAnimateInHighlight: boolean;
+    /** Errors that this user may contain */
+    hasAnimateInHighlightStyle?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
