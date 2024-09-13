@@ -1516,7 +1516,7 @@ export default {
     reportDescriptionPage: {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
-        explainerText: 'Set a custom decription for the room.',
+        explainerText: 'Set a custom description for the room.',
     },
     groupConfirmPage: {
         groupName: 'Group name',
@@ -3607,7 +3607,7 @@ export default {
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
         bankAccount: {
-            continueWithSetup: 'Continue with setup',
+            continueWithSetup: 'Continue setup',
             youreAlmostDone: "You're almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills.",
             streamlinePayments: 'Streamline payments',
             connectBankAccountNote: "Note: Personal bank accounts can't be used for payments on workspaces.",

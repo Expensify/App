@@ -68,26 +68,28 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         const items = typeMenuItems.map((item, index) => {
             const isSelected = title ? false : index === activeItemIndex;
 
-            return {
-                text: item.title,
-                onSelected: singleExecution(() => {
-                    SearchActions.clearAllFilters();
-                    Navigation.navigate(item.route);
-                }),
-                icon: item.icon,
-                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: isSelected,
-                success: isSelected,
-                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-            };
-        });
+        return {
+            text: item.title,
+            onSelected: singleExecution(() => {
+                SearchActions.clearAllFilters();
+                Navigation.navigate(item.route);
+            }),
+            isSelected,
+            icon: item.icon,
+            iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+            iconRight: Expensicons.Checkmark,
+            shouldShowRightIcon: isSelected,
+            success: isSelected,
+            containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+        };
+    });
 
         if (title) {
             items.push({
                 text: title,
                 onSelected: closeMenu,
-                icon: Expensicons.Filters,
+                isSelected: true,
+            icon: Expensicons.Filters,
                 iconFill: theme.iconSuccessFill,
                 success: true,
                 containerStyle: !currentSavedSearch ? [{backgroundColor: theme.border}] : undefined,
