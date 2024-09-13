@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -21,6 +22,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Delegate from '@userActions/Delegate';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -52,6 +54,7 @@ type BaseValidateCodeFormProps = {
 
 function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();

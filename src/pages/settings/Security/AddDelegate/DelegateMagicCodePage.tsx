@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as UserUtils from '@libs/UserUtils';
 import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import ValidateCodeForm from './ValidateCodeForm';
@@ -19,6 +21,7 @@ type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, t
 
 function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const contactMethod = UserUtils.getContactMethod();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
