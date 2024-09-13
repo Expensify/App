@@ -248,7 +248,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
-                        medium
                         success
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
@@ -257,7 +256,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
                 <Button
-                    medium
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
