@@ -255,8 +255,8 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
     }
     return new Promise((resolve, reject) => {
         ImageSize.getSize(file.uri ?? '')
-            .then((s) => {
-                if (s.height <= -1 || s.width <= 0) {
+            .then((size) => {
+                if (size.height <= 0 || size.width <= 0) {
                     return reject(new Error('Error reading file: The file is corrupted'));
                 }
                 resolve();
