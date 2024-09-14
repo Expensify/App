@@ -36,7 +36,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     // filename of uploaded image or last part of remote URI
     const filename = errors?.filename ?? transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
-    const hasEReceipt = transaction?.hasEReceipt;
+    const hasEReceipt = !TransactionUtils.hasReceiptSource(transaction) && transaction?.hasEReceipt;
     const isReceiptPDF = Str.isPDF(filename);
 
     if (hasEReceipt) {
