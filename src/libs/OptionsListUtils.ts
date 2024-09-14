@@ -471,7 +471,7 @@ function uniqFast(items: string[]): string[] {
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionsArray = Object.values(reportActions ?? {});
+    const reportActionsArray = Object.values(reportActions ?? {}).filter(action => !ReportActionUtils.isDeletedAction(action));
     const reportActionErrors: OnyxCommon.ErrorFields = {};
 
     for (const action of reportActionsArray) {
