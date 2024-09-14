@@ -340,7 +340,10 @@ function AvatarWithImagePicker({
                     maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
-                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                        <AttachmentPicker
+                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                            shouldValidateImage={false}
+                        >
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
