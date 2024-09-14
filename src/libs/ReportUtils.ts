@@ -6524,6 +6524,25 @@ function temporary_getMoneyRequestOptions(
 }
 
 /**
+ * This function generates money request options in text format
+ * @param moneyRequestOptions - money request options array
+ * @return - the money request options string
+ */
+function getMoneyRequestOptionsText(
+    moneyRequestOptions: Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>,
+): string {    
+    const moneyRequestOptionsList = moneyRequestOptions
+        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
+        .map((item, i) => Localize.translateLocal(`reportActionsView.iouTypes.${item}`));
+
+    if (moneyRequestOptionsList.length > 1) {
+        return `${moneyRequestOptionsList.slice(0, moneyRequestOptionsList.length - 1).join(', ')} or ${moneyRequestOptionsList.pop()}`;
+    } 
+    
+    return moneyRequestOptionsList[0];
+}
+
+/**
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
@@ -7928,6 +7947,7 @@ export {
     getIndicatedMissingPaymentMethod,
     getLastVisibleMessage,
     getMoneyRequestOptions,
+    getMoneyRequestOptionsText,
     getMoneyRequestSpendBreakdown,
     getNewMarkerReportActionID,
     getNonHeldAndFullAmount,

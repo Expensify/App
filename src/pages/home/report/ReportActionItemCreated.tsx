@@ -49,7 +49,7 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
 
     let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
-
+    
     if (ReportUtils.isInvoiceRoom(report) && ReportUtils.isCurrentUserInvoiceReceiver(report)) {
         icons = [...icons].reverse();
     }
@@ -86,7 +86,9 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
                     </OfflineWithFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText
-                            report={report}
+                            report={{
+                                ...report,
+                                ownerAccountID: policy?.ownerAccountID}}
                             policy={policy}
                         />
                     </View>

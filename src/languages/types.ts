@@ -52,22 +52,6 @@ type DeleteConfirmationParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
 
-type BeginningOfChatHistoryDomainRoomPartOneParams = {
-    domainRoom: string;
-};
-
-type BeginningOfChatHistoryAdminRoomPartOneParams = {
-    workspaceName: string;
-};
-
-type BeginningOfChatHistoryAnnounceRoomPartOneParams = {
-    workspaceName: string;
-};
-
-type BeginningOfChatHistoryAnnounceRoomPartTwo = {
-    workspaceName: string;
-};
-
 type WelcomeToRoomParams = {
     roomName: string;
 };
@@ -376,10 +360,6 @@ export type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartTwo,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
     ConfirmHoldExpenseParams,

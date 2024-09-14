@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -39,16 +40,18 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
+    const isAdminRoom = ReportUtils.isAdminRoom(report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+    const isDomainRoom = ReportUtils.isDomainRoom(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const otherParticipantAccountIDs = participantAccountIDs.filter(e => e !== currentUserAccountID);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(otherParticipantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const additionalText = moneyRequestOptions
-        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
-        .map((item) => translate(`reportActionsView.iouTypes.${item}`))
-        .join(', ');
+    const additionalText = !isPolicyExpenseChat && ReportUtils.getMoneyRequestOptionsText(moneyRequestOptions);
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
 
@@ -136,7 +139,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     {ReportUtils.getReportName(report)}
                                 </Text>
                             )}
-                            {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
+                            {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
+                            {welcomeMessage.phrase3 && <Text>{welcomeMessage.phrase3}</Text>}
+                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                            {welcomeMessage.phrase4 && <Text>{welcomeMessage.phrase4}</Text>}
                         </Text>
                     ))}
                 {isSelfDM && (
@@ -144,9 +150,32 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         <Text>{welcomeMessage.phrase1}</Text>
                     </Text>
                 )}
+                {(isAdminRoom || isAnnounceRoom) && (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>   
+                        <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                        <Text>{welcomeMessage.phrase2}</Text>                    
+                    </Text>
+                )}
+                {isDomainRoom && (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>   
+                        <Text style={[styles.textStrong]}>{report?.reportName}</Text>
+                        <Text>{welcomeMessage.phrase2}</Text>                    
+                    </Text>
+                )}
+                {isInvoiceRoom && (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>   
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                        <Text>{welcomeMessage.phrase2}</Text>  
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
+                        <Text>{welcomeMessage.phrase3}</Text>                   
+                    </Text>
+                )}
                 {isSystemChat && (
                     <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
+                        <Text>{welcomeMessage.phrase1}</Text>                       
                     </Text>
                 )}
                 {isDefault && (
@@ -173,9 +202,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
+                        {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)) && (
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) || moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) && (
                     <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
                 )}
             </View>
