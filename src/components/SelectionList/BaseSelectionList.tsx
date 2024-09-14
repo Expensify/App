@@ -102,6 +102,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
+        shouldDisplayRBR = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -476,6 +477,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         setFocusedIndex(normalizedIndex);
                     }}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldDisplayRBR={shouldDisplayRBR}
                 />
                 {item.footerContent && item.footerContent}
             </>

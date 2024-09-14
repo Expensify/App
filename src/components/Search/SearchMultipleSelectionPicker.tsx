@@ -114,6 +114,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldStopPropagation
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
+            shouldDisplayRBR={false}
             canSelectMultiple
             ListItem={SelectableListItem}
         />
