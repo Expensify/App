@@ -37,7 +37,7 @@ To complete this step, you must have a Control workspace, and you’ll need acce
 <ol type="a">
    <li>Log in to your DNS service provider (which may be the website you purchased the domain from or that currently hosts the domain, like NameCheap, GoDaddy, DNSMadeEasy, or Amazon Route53. You may need to contact your company’s IT department if your domain is managed internally).</li>
    <li>Find the page for DNS records, which might be labeled as DNS Management or Zone File Editor.</li>  
-   <li>Add a new TXT record  and set the value as 532F6180D8.</li>
+   <li>Add a new TXT record with the value assigned to you in the domain verification settings.</li>
    <li>Save your changes.</li>
    <li>In Expensify, click the Domain Members tab and click <b>Verify</b>.</li>
 </ol>
