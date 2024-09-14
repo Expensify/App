@@ -7,19 +7,17 @@ import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
 type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
-    shouldAutoTurnSelectionModeOffWhenHasNoActiveOption?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, shouldAutoTurnSelectionModeOffWhenHasNoActiveOption, ...rest}: SelectionListWithModalProps<TItem>,
+    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, ...rest}: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -43,16 +41,6 @@ function SelectionListWithModal<TItem extends ListItem>(
             turnOnMobileSelectionMode();
         }
     }, [sections, selectionMode, isSmallScreenWidth]);
-
-    const hasActiveOption = sections.flatMap((section) => section.data).some((item) => !item.isDisabled);
-    const prevHasActiveOption = usePrevious(hasActiveOption);
-
-    useEffect(() => {
-        if (!shouldAutoTurnSelectionModeOffWhenHasNoActiveOption || hasActiveOption || !prevHasActiveOption) {
-            return;
-        }
-        turnOffMobileSelectionMode();
-    }, [hasActiveOption, prevHasActiveOption, shouldAutoTurnSelectionModeOffWhenHasNoActiveOption]);
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
