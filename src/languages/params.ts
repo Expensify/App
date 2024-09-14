@@ -469,6 +469,8 @@ type ReconciliationWorksParams = {lastFourPAN: string};
 
 type DelegateRoleParams = {role: DelegateRole};
 
+type RoleNamesParams = {role: string};
+
 type AssignCardParams = {
     assignee: string;
     feed: string;
@@ -619,6 +621,7 @@ export type {
     PaySomeoneParams,
     PayerOwesAmountParams,
     PayerOwesParams,
+    RoleNamesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
