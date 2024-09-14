@@ -4088,13 +4088,9 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
 }
 
 function subscribeToActiveGuides() {
-    Pusher.subscribe(`activeGuides`).catch((error: ReportError) => {
+    Pusher.subscribe(`${CONST.PUSHER.PRESENT_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`).catch((error: ReportError) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChanelName: 'activeGuides'});
     });
-}
-
-function unsubscribeToActiveGuides() {
-    Pusher.unsubscribe(`activeGuides`);
 }
 
 export type {Video};
@@ -4186,5 +4182,4 @@ export {
     markAsManuallyExported,
     handleReportChanged,
     subscribeToActiveGuides,
-    unsubscribeToActiveGuides,
 };

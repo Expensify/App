@@ -13,19 +13,15 @@ type ActiveGuidesEventListenerProps = ActiveGuidesEventListenerOnyxProps;
 
 function ActiveGuidesEventListener({user}: ActiveGuidesEventListenerProps) {
     const didSubscribeToActiveGuides = useRef(false);
-    useEffect(
-        () => () => {
-            if (didSubscribeToActiveGuides.current) {
-                return;
-            }
-            if (user?.isGuide) {
-                didSubscribeToActiveGuides.current = true;
-                Report.subscribeToActiveGuides();
-            }
-        },
-
-        [user],
-    );
+    useEffect(() => {
+        if (didSubscribeToActiveGuides.current) {
+            return;
+        }
+        if (user?.isGuide) {
+            didSubscribeToActiveGuides.current = true;
+            Report.subscribeToActiveGuides();
+        }
+    }, [user]);
     return null;
 }
 
