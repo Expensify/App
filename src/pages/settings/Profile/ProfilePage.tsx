@@ -154,7 +154,7 @@ function ProfilePage({
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart]}>
+                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 <MenuItemGroup shouldUseSingleExecution={false}>
                                     <AvatarWithImagePicker
                                         isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
