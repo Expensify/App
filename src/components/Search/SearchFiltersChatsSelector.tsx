@@ -176,6 +176,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             onChangeText={(value) => {
                 setSearchTerm(value);
             }}
+            shouldDisplayRBR={false}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
