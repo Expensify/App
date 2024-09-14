@@ -38,12 +38,12 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
 
-    const shouldShowDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
+    const shouldShowAddMissingDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
 
     return (
         <>
             <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true)}</muted-text>`} />
-            {shouldShowDetailsButton && (
+            {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => {
                         if (!policyID) {

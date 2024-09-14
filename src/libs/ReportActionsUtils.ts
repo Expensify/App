@@ -1686,7 +1686,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const assigneeAccountID = (reportAction?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
 
-    const assignee = shouldRenderHTML ? `<mention-user accountID=${assigneeAccountID}></mention-user>` : assigneeDetails?.displayName ?? assigneeDetails.login ?? '';
+    const assignee = shouldRenderHTML ? `<mention-user accountID=${assigneeAccountID}></mention-user>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
     const link = shouldRenderHTML
         ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
@@ -1701,14 +1701,14 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
 
-    const shouldShowDetailsButton = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
+    const shouldShowAddMissingDetailsButton = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return Localize.translateLocal('workspace.expensifyCard.issuedCard', assignee);
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return Localize.translateLocal(`workspace.expensifyCard.${shouldShowDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, assignee);
+            return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, assignee);
         default:
             return '';
     }
