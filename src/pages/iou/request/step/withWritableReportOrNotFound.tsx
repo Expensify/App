@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/core';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -52,14 +52,21 @@ type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWr
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
     shouldIncludeDeprecatedIOUType = false,
-): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
+): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundProps<MoneyRequestRouteName>> & RefAttributes<TRef>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report = {reportID: ''}, route, isLoadingApp = true, reportDraft} = props;
+    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>, ref: ForwardedRef<TRef>) {
+        const {route} = props as TProps;
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
+
+        const reportID = route.params.reportID;
+
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? -1}`);
+        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID ?? -1}`);
+
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
@@ -81,7 +88,10 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
+                report={report}
+                isLoadingApp={isLoadingApp}
+                reportDraft={reportDraft}
                 ref={ref}
             />
         );
@@ -89,17 +99,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        reportDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`,
-        },
-    })(forwardRef(WithWritableReportOrNotFound));
+    return forwardRef(WithWritableReportOrNotFound);
 }
 
 export type {WithWritableReportOrNotFoundProps};
