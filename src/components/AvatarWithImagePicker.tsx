@@ -251,7 +251,7 @@ function AvatarWithImagePicker({
                     });
                 })
                 .catch(() => {
-                    setError('attachmentPicker.errorWhileSelectingAttachment', {});
+                    setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
                 });
         },
         [isValidExtension, isValidSize],
