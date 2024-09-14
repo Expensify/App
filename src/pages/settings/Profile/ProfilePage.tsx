@@ -163,7 +163,7 @@ function ProfilePage({
                                         onImageSelected={PersonalDetails.updateAvatar}
                                         onImageRemoved={PersonalDetails.deleteAvatar}
                                         size={CONST.AVATAR_SIZE.XLARGE}
-                                        avatarStyle={styles.avatarXLarge}
+                                        avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                         pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                         errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                                         errorRowStyles={styles.mt6}

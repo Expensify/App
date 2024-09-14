@@ -228,26 +228,31 @@ function AvatarWithImagePicker({
                 return;
             }
 
-            isValidResolution(image).then((isValid) => {
-                if (!isValid) {
-                    setError('avatarWithImagePicker.resolutionConstraints', {
-                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                    });
-                    return;
-                }
+            FileUtils.validateImageForCorruption(image)
+                .then(() => isValidResolution(image))
+                .then((isValid) => {
+                    if (!isValid) {
+                        setError('avatarWithImagePicker.resolutionConstraints', {
+                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                        });
+                        return;
+                    }
 
-                setIsAvatarCropModalOpen(true);
-                setError(null, {});
-                setIsMenuVisible(false);
-                setImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
+                    setIsAvatarCropModalOpen(true);
+                    setError(null, {});
+                    setIsMenuVisible(false);
+                    setImageData({
+                        uri: image.uri ?? '',
+                        name: image.name ?? '',
+                        type: image.type ?? '',
+                    });
+                })
+                .catch(() => {
+                    setError('attachmentPicker.errorWhileSelectingAttachment', {});
                 });
-            });
         },
         [isValidExtension, isValidSize],
     );
@@ -372,14 +377,14 @@ function AvatarWithImagePicker({
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, avatarStyle, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter]}
+                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
                                                     ref={anchorRef}
                                                 >
                                                     <OfflineWithFeedback pendingAction={pendingAction}>
                                                         {source ? (
                                                             <Avatar
                                                                 containerStyles={avatarStyle}
-                                                                imageStyles={[avatarStyle, styles.alignSelfCenter]}
+                                                                imageStyles={[styles.alignSelfCenter, avatarStyle]}
                                                                 source={source}
                                                                 avatarID={avatarID}
                                                                 fallbackIcon={fallbackIcon}
