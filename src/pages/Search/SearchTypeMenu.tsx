@@ -142,7 +142,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                     height={16}
                                     fill={styles.colorGreenSuccess.color}
                                 />
-                                <Text style={[styles.ml1, styles.textLabel]}>{translate('search.saveSearchTooltipText')}</Text>
+                                <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
                             </View>
                         );
                     },
