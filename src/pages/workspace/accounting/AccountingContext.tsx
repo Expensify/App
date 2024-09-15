@@ -1,6 +1,7 @@
 import type {MutableRefObject, RefObject} from 'react';
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
@@ -47,14 +48,14 @@ const defaultAccountingContext = {
 const AccountingContext = React.createContext<AccountingContextType>(defaultAccountingContext);
 
 type AccountingContextProviderProps = ChildrenProps & {
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
     const popoverAnchorRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
-    const policyID = policy.id;
+    const policyID = policy?.id ?? '-1';
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -127,7 +128,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                         removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);
                         closeConfirmationModal();
                     }}
-                    integrationToConnect={activeIntegration?.integrationToDisconnect}
+                    integrationToConnect={activeIntegration?.name}
                     onCancel={() => {
                         setActiveIntegration(undefined);
                     }}
