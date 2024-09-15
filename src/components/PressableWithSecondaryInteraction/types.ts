@@ -40,6 +40,18 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     /** Opacity to reduce to when active  */
     activeOpacity?: number;
 
+    /**
+     * The duration of the opacity animation
+     * @default variables.dimAnimationDuration
+     */
+    opacityAnimationDuration?: number;
+
+    /**
+     * The duration of the dimming animation
+     * @default variables.dimAnimationDuration
+     */
+    dimAnimationDuration?: number;
+
     /** Used to apply styles to the Pressable */
     style?: ParsableStyle;
 
