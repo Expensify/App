@@ -4,7 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -198,7 +198,6 @@ function PaymentMethodList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     const getDescriptionForPolicyDomainCard = (domainName: string): string => {
         // A domain name containing a policyID indicates that this is a workspace feed
@@ -332,11 +331,10 @@ function PaymentMethodList({
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 hoverAndPressStyle={styles.hoveredComponentBG}
                 ref={buttonRef}
-                disabled={!isUserValidated}
             />
         ),
 
-        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef, isUserValidated],
+        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
     );
 
     /**
