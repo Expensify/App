@@ -19,7 +19,7 @@ import {getDefaultVendorName} from './utils';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
-function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
+function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
