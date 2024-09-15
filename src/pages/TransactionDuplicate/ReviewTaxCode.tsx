@@ -23,7 +23,8 @@ function ReviewTaxRate() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const policy = PolicyUtils.getPolicy(report?.policyID ?? '');
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '');
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID ?? '');
     const transaction = TransactionUtils.getTransaction(transactionID);

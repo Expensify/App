@@ -1020,6 +1020,17 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
+            } else if (fieldName === 'taxCode') {
+                const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+                const policy = PolicyUtils.getPolicy(report?.policyID);
+                const differentValues = getDifferentValues(transactions, keys);
+                const hasValidTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name).length;
+
+                if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) || !hasValidTaxes) {
+                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                } else {
+                    processChanges(fieldName, transactions, keys);
+                }
             } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
             } else {
