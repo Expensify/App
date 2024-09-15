@@ -943,7 +943,7 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+function compareDuplicateTransactionFields(transactionID: string, reportID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
