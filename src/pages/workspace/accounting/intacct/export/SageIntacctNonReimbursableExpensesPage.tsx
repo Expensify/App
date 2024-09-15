@@ -15,15 +15,11 @@ import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntac
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
+import {getDefaultVendorName} from './utils';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
-function getDefaultVendorName(defaultVendor?: string, vendors?: SageIntacctDataElementWithValue[]): string | undefined {
-    return (vendors ?? []).find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
-}
-
-function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
+function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
