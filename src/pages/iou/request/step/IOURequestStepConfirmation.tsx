@@ -170,7 +170,7 @@ function IOURequestStepConfirmation({
         }
         const senderPolicyParticipant = participants?.find((participant) => participant.isSender);
         if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(isSender.policyID);
+            openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
         }
     }, [isOffline, participants, transaction?.billable, policy, transactionID]);
 
