@@ -568,13 +568,15 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
+function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '-1';
+    const parentReport = getParentReport(report);
+    const taskOwnerAccountID = getTaskOwnerAccountID(report);
     const optimisticReport: OptimisticReport = {
         reportName,
         managerID: assigneeAccountID ?? report.managerID,
@@ -583,9 +585,10 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         },
         participants: {
             [currentUserAccountID]: {
-                notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID)
-                    ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
-                    : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                notificationPreference:
+                    [assigneeAccountID, taskOwnerAccountID].includes(currentUserAccountID) && !parentReport
+                        ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+                        : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             },
         },
     };
@@ -631,7 +634,6 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     ];
 
     if (currentUserAccountID === assigneeAccountID) {
-        const parentReport = getParentReport(report);
         if (!isEmptyObject(parentReport)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -648,7 +650,6 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
 
     if (report.managerID === currentUserAccountID) {
         const hasOutstandingChildTask = getOutstandingChildTask(report);
-        const parentReport = getParentReport(report);
         if (!isEmptyObject(parentReport)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -665,7 +666,7 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
-    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== sessionAccountID && assigneeChatReport) {
         optimisticReport.participants = {
             ...(optimisticReport.participants ?? {}),
             [assigneeAccountID]: {
@@ -1125,7 +1126,7 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 }
 
 /**
- * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
+ * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
  */
 function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
@@ -1142,7 +1143,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(taskReport)) {
+    if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
         return false;
     }
 

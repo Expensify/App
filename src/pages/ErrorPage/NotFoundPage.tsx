@@ -2,7 +2,7 @@ import React from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -13,14 +13,14 @@ type NotFoundPageProps = {
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
-    const {isSmallScreen} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     return (
         <ScreenWrapper testID={NotFoundPage.displayName}>
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={() => {
-                    if (!isReportRelatedPage || !isSmallScreen) {
+                    if (!isReportRelatedPage || !isSmallScreenWidth) {
                         onBackButtonPress();
                         return;
                     }
