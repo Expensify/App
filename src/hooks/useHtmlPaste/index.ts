@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect} from 'react';
 import Parser from '@libs/Parser';
+import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -40,7 +41,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             if (textInputHTMLElement?.hasAttribute('contenteditable')) {
                 insertAtCaret(textInputHTMLElement, text);
             } else {
-                insertByCommand(text);
+                (textInputRef.current as unknown as HTMLInputElement)?.setRangeText(text, 0, 0, 'end');
+                // Trigger the onChange event, which sync the pasted value with the text input state
+                textInputHTMLElement?.dispatchEvent(new Event('input', {bubbles: true}));
             }
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
@@ -64,7 +67,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html));
+            paste(html.length <= CONST.MAX_MARKUP_LENGTH ? Parser.htmlToMarkdown(html) : html);
         },
         [paste],
     );
