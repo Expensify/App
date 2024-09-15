@@ -19,6 +19,8 @@ import {getDefaultVendorName} from './utils';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
+type ToggleItemWithKey = ToggleItem & {key: string};
+
 function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
@@ -28,7 +30,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
     const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
     const defaultVendorName = getDefaultVendorName(activeDefaultVendor, intacctData?.vendors);
 
-    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem> = [
+    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItemWithKey> = [
         {
             type: 'menuitem',
             title: config?.export.nonReimbursable
@@ -53,6 +55,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
         {
             type: 'toggle',
             title: translate('workspace.sageIntacct.defaultVendor'),
+            key: 'Default vendor toggle',
             subtitle: translate('workspace.sageIntacct.defaultVendorDescription', false),
             isActive: !!config?.export.nonReimbursableCreditCardChargeDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
@@ -105,7 +108,6 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                             const {type, shouldHide, ...rest} = item;
                             return (
                                 <ToggleSettingOptionRow
-                                    key={rest.title}
                                     // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}

@@ -19,6 +19,8 @@ import {getDefaultVendorName} from './utils';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
+type ToggleItemWithKey = ToggleItem & {key: string};
+
 function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
@@ -28,7 +30,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
 
     const defaultVendorName = getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors);
 
-    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem> = [
+    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItemWithKey> = [
         {
             type: 'menuitem',
             title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : translate('workspace.sageIntacct.notConfigured'),
@@ -41,6 +43,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
         {
             type: 'toggle',
             title: translate('workspace.sageIntacct.defaultVendor'),
+            key: 'Default vendor toggle',
             subtitle: translate('workspace.sageIntacct.defaultVendorDescription', true),
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
@@ -87,7 +90,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                             const {type, shouldHide, ...rest} = item;
                             return (
                                 <ToggleSettingOptionRow
-                                    key={rest.title}
                                     // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
