@@ -70,6 +70,7 @@ type SearchQueryAST = {
 type SearchQueryJSON = {
     inputQuery: SearchQueryString;
     hash: number;
+    flatFilters: QueryFilters;
 } & SearchQueryAST;
 
 export type {
