@@ -996,6 +996,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
+function isPolicyAccessible(policy: OnyxEntry<Policy>) {
+    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && policy?.id;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1105,6 +1109,7 @@ export {
     getTagNamesFromTagsLists,
     getDomainNameForPolicy,
     getWorkflowApprovalsUnavailable,
+    isPolicyAccessible,
 };
 
 export type {MemberEmailsToAccountIDs};
