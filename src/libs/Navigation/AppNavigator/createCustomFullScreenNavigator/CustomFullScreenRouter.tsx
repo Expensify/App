@@ -24,7 +24,7 @@ function adaptStateIfNecessary(state: StackState, isLoadingReportData: OnyxEntry
     if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
         const policy = PolicyUtils.getPolicy(policyID ?? '');
         const isPolicyAccessible = PolicyUtils.isPolicyAccessible(policy);
-        if (isLoadingReportData && !isPolicyAccessible) {
+        if (!isLoadingReportData && !isPolicyAccessible) {
             return;
         }
 
