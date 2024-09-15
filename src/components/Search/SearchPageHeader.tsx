@@ -10,6 +10,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -18,9 +19,9 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
@@ -126,8 +127,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -148,7 +153,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
 
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
 
-    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON);
+    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
     const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
     const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
 
@@ -196,9 +201,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -218,10 +220,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         return;
                     }
 
-                    clearSelectedTransactions();
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
@@ -272,7 +270,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -283,7 +280,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        selectionMode?.isEnabled,
     ]);
 
     if (shouldUseNarrowLayout) {
@@ -298,6 +294,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         return null;
     }
 
+    const onPress = () => {
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        SearchActions.updateAdvancedFilters(values);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    };
+
     return (
         <HeaderWrapper
             title={headerTitle}
@@ -305,7 +307,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             icon={headerIcon}
             subtitleStyles={subtitleStyles}
         >
-            {headerButtonsOptions.length > 0 && (
+            {headerButtonsOptions.length > 0 ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
@@ -314,14 +316,15 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
+                    shouldUseStyleUtilityForAnchorPosition
+                />
+            ) : (
+                <Button
+                    text={translate('search.filtersHeader')}
+                    icon={Expensicons.Filters}
+                    onPress={onPress}
                 />
             )}
-            <Button
-                text={translate('search.filtersHeader')}
-                icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
-                medium
-            />
         </HeaderWrapper>
     );
 }
