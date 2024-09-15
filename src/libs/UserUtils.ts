@@ -59,10 +59,10 @@ function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
     const filteredLoginList = Object.values(loginList ?? {}).filter((login) => {
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return login.partnerUserID || pendingAction;
+        return currentUserLogin !== login.partnerUserID && (login.partnerUserID || pendingAction);
     });
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return !Object.values(filteredLoginList ?? {}).every((field) => field.validatedDate || currentUserLogin === field.partnerUserID);
+    return !!filteredLoginList.length && filteredLoginList.every((field) => field.validatedDate || currentUserLogin === field.partnerUserID);
 }
 
 /**
