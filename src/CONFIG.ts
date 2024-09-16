@@ -96,7 +96,6 @@ export default {
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
-    USE_REACT_STRICT_MODE: true,
     FIREBASE_WEB_CONFIG: {
         apiKey: get(Config, 'FB_API_KEY', 'AIzaSyDxzigVLZl4G8MP7jACQ0qpmADMzmrrON0'),
         appId: get(Config, 'FB_APP_ID', '1:921154746561:web:7b8213357d07d6e4027c40'),
