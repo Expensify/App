@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy/Policy';
 import * as CardUtils from '@libs/CardUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -29,30 +31,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds} from '@src/types/onyx';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
-const mockedFeeds: CardFeeds = {
-    companyCards: {
-        cdfbmo: {
-            pending: false,
-            asrEnabled: true,
-            forceReimbursable: 'force_no',
-            liabilityType: 'corporate',
-            preferredPolicy: '',
-            reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
-            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-        },
-    },
-    companyCardNicknames: {
-        cdfbmo: 'BMO MasterCard',
-    },
-};
-
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo} = route.params;
+    const {policyID, cardID, backTo, bank} = route.params;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
@@ -63,26 +47,22 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(mockedFeeds?.companyCards ?? {})[0];
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
-
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const card = cardsList?.[cardID];
+    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
+    const card = allBankCards?.[cardID];
+
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, selectedFeed);
+        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, selectedFeed);
+        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
     };
 
     return (
@@ -125,19 +105,34 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                title={card?.nameValuePairs?.cardTitle}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID))}
-                            />
-                            {exportMenuItem && (
+                            <OfflineWithFeedback
+                                pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
+                                errorRowStyles={[styles.ph5, styles.mb3]}
+                                errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
+                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
+                            >
                                 <MenuItemWithTopDescription
-                                    description={exportMenuItem.description}
-                                    title={exportMenuItem.title}
+                                    description={translate('workspace.moreFeatures.companyCards.cardName')}
+                                    title={card?.nameValuePairs?.cardTitle}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID))}
+                                    brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
                                 />
+                            </OfflineWithFeedback>
+                            {exportMenuItem && (
+                                <OfflineWithFeedback
+                                    pendingAction={card?.nameValuePairs?.pendingFields?.exportAccountDetails}
+                                    errorRowStyles={[styles.ph5, styles.mb3]}
+                                    errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'exportAccountDetails')}
+                                    onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'exportAccountDetails')}
+                                >
+                                    <MenuItemWithTopDescription
+                                        description={exportMenuItem.description}
+                                        title={exportMenuItem.title}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
+                                    />
+                                </OfflineWithFeedback>
                             )}
                             <MenuItemWithTopDescription
                                 shouldShowRightComponent={card?.isLoadingLastUpdated}
@@ -156,16 +151,24 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 title={card?.startDate ? format(card.startDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
+                            <OfflineWithFeedback
+                                pendingAction={card?.pendingFields?.lastUpdated}
+                                errorRowStyles={[styles.ph5, styles.mb3]}
+                                errors={ErrorUtils.getLatestErrorField(card ?? {}, 'lastUpdated')}
+                                onClose={() => Policy.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastUpdated', true)}
+                            >
+                                <MenuItem
+                                    icon={Expensicons.Sync}
+                                    iconFill={theme.success}
+                                    title={translate('workspace.moreFeatures.companyCards.updateCard')}
+                                    style={styles.mv1}
+                                    brickRoadIndicator={card?.errorFields?.lastUpdated ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={updateCard}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
-                                icon={Expensicons.Sync}
-                                iconFill={theme.icon}
-                                title={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                style={styles.mv1}
-                                onPress={updateCard}
-                            />
-                            <MenuItem
-                                icon={Expensicons.UserCheck}
-                                iconFill={theme.icon}
+                                icon={Expensicons.RemoveMembers}
+                                iconFill={theme.success}
                                 title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                                 style={styles.mv1}
                                 onPress={() => setIsUnassignModalVisible(true)}

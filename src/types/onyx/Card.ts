@@ -2,6 +2,10 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Type of export card */
+type ExportCompanyCard = {
+    [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
+};
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -46,6 +50,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+
     /** Is card data loading */
     isLoading?: boolean;
 
@@ -56,6 +63,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
+        /** Type of export card */
+        exportAccountDetails?: ExportCompanyCard;
 
         /** User-defined nickname for the card */
         cardTitle?: string;
@@ -86,6 +96,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Card expiration date */
         expirationDate?: string;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
     }>;
 }>;
 

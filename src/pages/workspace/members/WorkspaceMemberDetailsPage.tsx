@@ -39,7 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
@@ -47,25 +47,6 @@ type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
-const allCards = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    cards_18175034_ExpensifyCard: [],
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    cards_18175034_cdfbmo: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        '1': {isLoadingLastUpdated: false, nameValuePairs: {cardTitle: 'jk'}},
-        id1: {
-            cardID: 885646,
-            accountID: 11309072,
-            nameValuePairs: {
-                cardTitle: 'Test 1',
-            },
-            cardNumber: '1234 56XX XXXX 1222',
-        },
-    },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'cards_18224126_Expensify Card': [],
-} as never as Record<string, WorkspaceCardsList>;
 
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
@@ -73,13 +54,14 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [expensifyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [expensifyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
@@ -98,6 +80,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
+    const companyCards = CardUtils.getMemberCards(policy, allCardsList, accountID);
 
     const hasMultipleFeeds = policy?.areCompanyCardsEnabled;
 
@@ -107,26 +90,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
         return Object.values(expensifyCardsList).filter((expensifyCard) => expensifyCard.accountID === accountID);
     }, [expensifyCardsList, accountID]);
-
-    const companyCards = useMemo(() => {
-        const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
-        const cards: WorkspaceCardsList = {};
-        const mockedCardsList = allCardsList ?? allCards ?? {};
-        Object.keys(mockedCardsList)
-            .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
-            .forEach((key) => {
-                const feedCards = mockedCardsList?.[key];
-                if (feedCards && Object.keys(feedCards).length > 0) {
-                    Object.keys(feedCards).forEach((feedCardKey) => {
-                        if (feedCards[feedCardKey].accountID !== accountID) {
-                            return;
-                        }
-                        cards[feedCardKey] = feedCards[feedCardKey];
-                    });
-                }
-            });
-        return cards;
-    }, [accountID, policy?.workspaceAccountID, allCardsList]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
@@ -144,14 +107,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
                 isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.ADMIN,
             },
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
-                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
             },
         ],
         [member?.role, translate],
@@ -185,8 +157,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     const navigateToCompanyCardDetails = useCallback(
-        (cardID: string) => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, Navigation.getActiveRoute()));
+        (cardID: string, bank: string) => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, Navigation.getActiveRoute()));
         },
         [policyID],
     );
@@ -247,7 +219,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             subtitle={policy?.name}
                         />
                         <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart, styles.pRelative]}>
+                            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                     <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                         <Avatar
@@ -298,10 +270,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         cancelText={translate('common.cancel')}
                                     />
                                 </View>
-                                <View style={[styles.w100]}>
+                                <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                        title={translate(`workspace.common.roleName`, member?.role)}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}
@@ -344,6 +316,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 const companyCard = companyCards[companyCardKey];
                                                 return (
                                                     <MenuItem
+                                                        key={companyCardKey}
                                                         title={companyCard?.cardNumber ?? ''}
                                                         icon={CardUtils.getCardDetailsImage(companyCard?.bank ?? '')}
                                                         displayInDefaultIconColor
@@ -351,7 +324,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                         contentFit="contain"
                                                         iconWidth={variables.cardIconWidth}
                                                         iconHeight={variables.cardIconHeight}
-                                                        onPress={() => navigateToCompanyCardDetails(companyCardKey)}
+                                                        onPress={() => navigateToCompanyCardDetails(companyCardKey, companyCard?.bank)}
                                                         shouldShowRightIcon
                                                     />
                                                 );

@@ -1,6 +1,6 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -8,6 +8,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -24,6 +25,14 @@ Onyx.connect({
 
         allCards = val;
     },
+});
+
+let allCardsLists: OnyxCollection<WorkspaceCardsList>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
+    waitForCollectionCallback: true,
+    callback: (value) => (allCardsLists = value),
 });
 
 /**
@@ -194,6 +203,17 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+/** Checks if the Expensify Card toggle should be disabled */
+function shouldExpensifyCardToggleBeDisabled(workspaceAccountID?: number, areExpensifyCardsEnabled?: boolean): boolean {
+    if (!areExpensifyCardsEnabled || !workspaceAccountID) {
+        return false;
+    }
+
+    const cardsList = allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`];
+
+    return !isEmptyObject(cardsList);
+}
+
 function getCardDetailsImage(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
         return Illustrations.MasterCardCompanyCardDetail;
@@ -204,6 +224,26 @@ function getCardDetailsImage(cardFeed: string): IconAsset {
     }
 
     return Illustrations.AmexCardCompanyCardDetail;
+}
+
+function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<WorkspaceCardsList>, accountID?: number) {
+    const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
+    const cards: WorkspaceCardsList = {};
+    const mockedCardsList = allCardsList ?? {};
+    Object.keys(mockedCardsList)
+        .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceId}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
+        .forEach((key) => {
+            const feedCards = mockedCardsList?.[key];
+            if (feedCards && Object.keys(feedCards).length > 0) {
+                Object.keys(feedCards).forEach((feedCardKey) => {
+                    if (feedCards?.[feedCardKey].accountID !== accountID) {
+                        return;
+                    }
+                    cards[feedCardKey] = feedCards[feedCardKey];
+                });
+            }
+        });
+    return cards;
 }
 
 export {
@@ -222,5 +262,7 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    shouldExpensifyCardToggleBeDisabled,
     getCardDetailsImage,
+    getMemberCards,
 };
