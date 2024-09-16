@@ -35,7 +35,11 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${encodeURIComponent(query)}` as const,
+    },
+    SEARCH_SAVED_SEARCH_RENAME: {
+        route: 'search/saved-search/rename',
+        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -53,9 +57,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
-    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
-    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
-
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: (reportID: string, reportActionID?: string) => {
@@ -976,6 +977,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
     },
+    WORKSPACE_COMPANY_CARD_DETAILS: {
+        route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',
+        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}`, backTo),
+    },
+    WORKSPACE_COMPANY_CARD_NAME: {
+        route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/name` as const,
+    },
+    WORKSPACE_COMPANY_CARD_EXPORT: {
+        route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
+        getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
@@ -1240,6 +1253,10 @@ const ROUTES = {
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
+    },
+    MISSING_PERSONAL_DETAILS: {
+        route: 'missing-personal-details/workspace/:policyID',
+        getRoute: (policyID: string) => `missing-personal-details/workspace/${policyID}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
