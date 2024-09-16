@@ -43,7 +43,7 @@ function ReportVirtualCardFraudPage({
     const {translate} = useLocalize();
 
     const virtualCard = cardList?.[cardID];
-    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
+    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 

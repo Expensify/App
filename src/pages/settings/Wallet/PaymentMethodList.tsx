@@ -126,9 +126,15 @@ type PaymentMethodItem = PaymentMethod & {
     errors?: Errors;
     iconRight?: React.FC<SvgProps>;
     isMethodActive?: boolean;
+    cardID?: number;
 } & BankIcon;
 
-function dismissError(item: PaymentMethod) {
+function dismissError(item: PaymentMethodItem) {
+    if (item.cardID) {
+        PaymentMethods.clearDeletePaymentMethodError(ONYXKEYS.CARD_LIST, item.cardID);
+        return;
+    }
+
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? item.accountData?.bankAccountID ?? '' : item.accountData?.fundID ?? '';
@@ -226,6 +232,7 @@ function PaymentMethodList({
                         key: card.cardID.toString(),
                         title: card.bank,
                         description: getDescriptionForPolicyDomainCard(card.domainName),
+                        cardID: card.cardID,
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,
@@ -258,6 +265,7 @@ function PaymentMethodList({
                     title: card?.nameValuePairs?.cardTitle || card.bank,
                     description: getDescriptionForPolicyDomainCard(card.domainName),
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: true,
