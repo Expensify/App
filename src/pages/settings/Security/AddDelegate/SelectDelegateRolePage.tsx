@@ -41,7 +41,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
             <SelectionList
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={4}
-                initiallyFocusedOptionKey={roleOptions.find((role) => role.value === route.params.role)?.value}
+                initiallyFocusedOptionKey={route.params.role}
                 headerContent={
                     <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <>
