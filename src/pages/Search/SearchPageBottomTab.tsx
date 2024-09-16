@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,21 +26,12 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
-
-    const {queryJSON, policyID, isCustomQuery} = useMemo(() => {
-        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyID: undefined, isCustomQuery: undefined};
-        }
-
-        const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-        const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-
-        return {
-            queryJSON: parsedQuery,
-            policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
-            isCustomQuery: searchParams.isCustomQuery,
-        };
-    }, [activeCentralPaneRoute]);
+    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
+    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
+    const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
+    const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
@@ -61,11 +52,9 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
+                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
                         />
-                        <SearchTypeMenu
-                            isCustomQuery={isCustomQuery}
-                            queryJSON={queryJSON}
-                        />
+                        <SearchTypeMenu queryJSON={queryJSON} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -76,12 +65,7 @@ function SearchPageBottomTab() {
                         }}
                     />
                 )}
-                {shouldUseNarrowLayout && queryJSON && (
-                    <Search
-                        queryJSON={queryJSON}
-                        isCustomQuery={isCustomQuery}
-                    />
-                )}
+                {shouldUseNarrowLayout && queryJSON && <Search queryJSON={queryJSON} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

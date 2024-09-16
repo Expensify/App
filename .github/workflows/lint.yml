@@ -28,6 +28,11 @@ jobs:
         env:
           CI: true
 
+      - name: Run ESLint with stricter checks on changed files
+        run: |
+          # shellcheck disable=SC2046
+          npx eslint --config ./.eslintrc.pr.js $(git diff --diff-filter=AM --name-only main -- "*.js" "*.ts" "*.tsx")
+
       - name: Verify there's no Prettier diff
         run: |
           npm run prettier -- --loglevel silent
