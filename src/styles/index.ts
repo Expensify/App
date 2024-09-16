@@ -5199,6 +5199,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        colorGreenSuccess: {
+            color: colors.green400,
+        },
+
+        bgPaleGreen: {
+            backgroundColor: colors.green100,
+        },
+
         importColumnCard: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,

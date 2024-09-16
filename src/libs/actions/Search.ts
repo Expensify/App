@@ -51,6 +51,17 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
+function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
+    const saveSearchName = name ?? queryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName});
+}
+
+function deleteSavedSearch(hash: number) {
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -145,7 +156,12 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+function dismissSavedSearchRenameTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, true);
+}
+
 export {
+    saveSearch,
     search,
     createTransactionThread,
     deleteMoneyRequestOnSearch,
@@ -155,4 +171,6 @@ export {
     updateAdvancedFilters,
     clearAllFilters,
     clearAdvancedFilters,
+    deleteSavedSearch,
+    dismissSavedSearchRenameTooltip,
 };

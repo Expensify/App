@@ -1412,6 +1412,9 @@ type ExpenseRule = {
     id?: string;
 };
 
+/** The name of the category or tag */
+type CategoryOrTagName = string;
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1586,13 +1589,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         taxRates?: TaxRatesWithDefault;
 
         /** A set of rules related to the workpsace */
-        rules?: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        rules?: {
             /** A set of rules related to the workpsace approvals */
             approvalRules?: ApprovalRule[];
 
             /** A set of rules related to the workpsace expenses */
             expenseRules?: ExpenseRule[];
-        }>;
+        };
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
@@ -1683,6 +1686,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
+
+        /** Information about rules being updated */
+        pendingRulesUpdates?: Record<
+            CategoryOrTagName,
+            {
+                /** Indicates whether the approval rule is updated for the given category or tag */
+                approvalRule: OnyxCommon.PendingAction;
+
+                /** Indicates whether the expense rule is updated for the given category or tag */
+                expenseRule: OnyxCommon.PendingAction;
+            }
+        >;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
