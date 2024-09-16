@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
