@@ -1,5 +1,4 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
-import AmexBlueCompanyCards from '@assets/images/companyCards/card-amex-blue.svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
@@ -241,7 +240,6 @@ export {
     MasterCardCompanyCards,
     VisaCompanyCards,
     CompanyCardsPendingState,
-    AmexBlueCompanyCards,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
