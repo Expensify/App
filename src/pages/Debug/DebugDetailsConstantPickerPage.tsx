@@ -46,8 +46,9 @@ function DebugDetailsConstantPickerPage({
                             isSelected: value === fieldValue,
                             searchText: value,
                         } satisfies ListItem),
-                ),
-        [fieldName, fieldValue],
+                )
+                .filter(({searchText}) => searchText.includes(searchValue)),
+        [fieldName, fieldValue, searchValue],
     );
     const onSubmit = (item: ListItem) => {
         const value = item.text === fieldValue ? '' : item.text ?? '';
