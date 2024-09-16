@@ -152,7 +152,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
             return baseMenuItem;
         },
-        [hash, styles, getOverflowMenu, translate, shouldHideSavedSearchRenameTooltip],
+        [hash, styles, getOverflowMenu, translate, shouldHideSavedSearchRenameTooltip, personalDetails, cardList, reports, taxRates],
     );
 
     const savedSearchesMenuItems = () => {
