@@ -19,6 +19,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -126,6 +127,7 @@ function buildOptimisticTransaction(
     currency: string,
     reportID: string,
     comment = '',
+    attendees: Attendee[] = [],
     created = '',
     source = '',
     originalTransactionID = '',
@@ -171,6 +173,7 @@ function buildOptimisticTransaction(
         taxAmount,
         billable,
         reimbursable,
+        attendees,
     };
 }
 
@@ -197,6 +200,10 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
+}
+
+function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
+    return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
@@ -293,6 +300,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
+    if (Object.hasOwn(transactionChanges, 'attendees')) {
+        updatedTransaction.modifiedAttendees = transactionChanges?.attendees;
+    }
+
     if (
         shouldUpdateReceiptState &&
         shouldStopSmartscan &&
@@ -316,6 +327,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'attendees') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -418,7 +430,14 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
- * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ * Return the list of modified attendees if present otherwise list of attendees
+ */
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
+}
+
+/**
+ * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
 function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
@@ -1096,6 +1115,7 @@ export {
     isManualRequest,
     isScanRequest,
     getAmount,
+    getAttendees,
     getTaxAmount,
     getTaxCode,
     getCurrency,
@@ -1160,6 +1180,7 @@ export {
     removeSettledAndApprovedTransactions,
     getCardName,
     hasReceiptSource,
+    shouldShowAttendees,
 };
 
 export type {TransactionChanges};

@@ -1901,6 +1901,7 @@ function getSendInvoiceInformation(
         currency,
         optimisticInvoiceReport.reportID,
         trimmedComment,
+        [],
         created,
         '',
         '',
@@ -2022,6 +2023,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    attendees?: Attendee[],
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -2081,6 +2083,7 @@ function getMoneyRequestInformation(
         currency,
         iouReport.reportID,
         comment,
+        attendees,
         created,
         '',
         '',
@@ -2318,6 +2321,7 @@ function getTrackExpenseInformation(
         currency,
         shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
         comment,
+        [],
         created,
         '',
         '',
@@ -2478,6 +2482,7 @@ function getUpdateMoneyRequestParams(
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
+    violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -2721,7 +2726,19 @@ function getUpdateMoneyRequestParams(
         }
     }
 
-    // Clear out the error fields and loading states on success
+    const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
+    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multpiply limit by attende count
+    if ('attendees' in transactionChanges && !!overLimitViolation) {
+        const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
+        if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(TransactionUtils.getAmount(transaction))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
+            });
+        }
+    }
+
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3045,11 +3062,12 @@ function updateMoneyRequestAttendees(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>,
 ) {
     const transactionChanges: TransactionChanges = {
         attendees,
     };
-    const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true, violations);
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
 }
@@ -3572,6 +3590,7 @@ function requestMoney(
         payeeEmail,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
+        attendees,
     );
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -3980,6 +3999,7 @@ function createSplitsAndOnyxData(
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
+        [],
         created,
         '',
         '',
@@ -4217,6 +4237,7 @@ function createSplitsAndOnyxData(
             currency,
             oneOnOneIOUReport.reportID,
             comment,
+            [],
             created,
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
@@ -4564,6 +4585,7 @@ function startSplitBill({
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
+        [],
         '',
         '',
         '',
@@ -4970,6 +4992,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             currency ?? '',
             oneOnOneIOUReport?.reportID ?? '-1',
             updatedTransaction?.comment?.comment,
+            [],
             updatedTransaction?.modifiedCreated,
             CONST.IOU.TYPE.SPLIT,
             transactionID,

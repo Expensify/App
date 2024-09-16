@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -30,7 +31,6 @@ type IOURequestStepAttendeesOnyxProps = {
 type IOURequestStepAttendeesProps = IOURequestStepAttendeesOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
 
 function IOURequestStepAttendees({
-    route,
     route: {
         params: {transactionID, reportID, iouType, backTo, action},
     },
@@ -38,11 +38,12 @@ function IOURequestStepAttendees({
     policyTags,
     policyCategories,
 }: IOURequestStepAttendeesProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(transaction?.attendees ?? []);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
+    const [attendees, setAttendees] = useState<Attendee[]>(TransactionUtils.getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -51,12 +52,12 @@ function IOURequestStepAttendees({
         if (!lodashIsEqual(previousAttendees, attendees)) {
             IOU.setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                IOU.updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories);
+                IOU.updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, violations);
             }
         }
 
         Navigation.goBack(backTo);
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID]);
+    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, violations]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
