@@ -39,6 +39,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
@@ -63,6 +64,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 Policy.enablePolicyRules(policyID, true, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
+                Policy.enableCompanyCards(policyID, true);
                 break;
             default:
         }
