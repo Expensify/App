@@ -83,6 +83,10 @@ export default {
         marginVertical: 20,
     },
 
+    mv6: {
+        marginVertical: 24,
+    },
+
     mhv5: {
         marginVertical: -20,
     },
@@ -425,6 +429,10 @@ export default {
         paddingVertical: 20,
     },
 
+    pv6: {
+        paddingVertical: 24,
+    },
+
     pv10: {
         paddingVertical: 40,
     },
@@ -545,6 +553,10 @@ export default {
         paddingLeft: 24,
     },
 
+    pt9: {
+        paddingTop: 36,
+    },
+
     pl10: {
         paddingLeft: 40,
     },
@@ -659,6 +671,10 @@ export default {
 
     gap5: {
         gap: 20,
+    },
+
+    gap6: {
+        gap: 24,
     },
 
     gap7: {
