@@ -3112,7 +3112,7 @@ export default {
                 emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
                 pendingFeedTitle: `Estamos revisando tu solicitud...`,
                 pendingFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de`,
-                giveItNameInstruction: 'Dale a la tarjeta un nombre que la distinga de las demás.',
+                giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
                 noAccountsFoundDescription: (connection: string) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
