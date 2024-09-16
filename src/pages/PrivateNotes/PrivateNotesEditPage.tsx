@@ -5,7 +5,7 @@ import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -46,9 +46,10 @@ type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
         report: Report;
     };
 
-function PrivateNotesEditPage({route, personalDetailsList, report, session}: PrivateNotesEditPageProps) {
+function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotesEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(
