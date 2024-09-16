@@ -55,4 +55,4 @@ You can add additional payment methods to your [Wallet](https://help.expensify.c
 You will be prompted to choose a payment method when paying future invoices. 
 {% include faq-end.md %}
 
-</div>
+{% include faq-end.md %}
