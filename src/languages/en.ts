@@ -869,7 +869,7 @@ export default {
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             receiptFailureMessage: "The receipt didn't upload.",
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
-            saveFileMessage: 'Download the file ',
+            saveFileMessage: ' Download the file ',
             loseFileMessage: 'or dismiss this error and lose it.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
