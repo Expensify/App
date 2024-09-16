@@ -87,6 +87,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 primaryColor: theme.spinner,
                 secondaryColor: `${theme.spinner}33`,
             },
+            loadingIndicatorContainer: {},
         };
 
         if (excludeStyles.length) {
