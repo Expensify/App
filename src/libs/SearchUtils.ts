@@ -453,7 +453,7 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    const regexp = /[<>,:= ]/g;
+    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
     if (regexp.test(str)) {
         return `"${str}"`;
     }
@@ -699,7 +699,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 
 function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        return PersonalDetailsUtils.createDisplayName(personalDetails[filter]?.login ?? '', personalDetails[filter]);
+        return PersonalDetailsUtils.createDisplayName(personalDetails?.[filter]?.login ?? '', personalDetails?.[filter]);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         return cardList[filter].bank;
