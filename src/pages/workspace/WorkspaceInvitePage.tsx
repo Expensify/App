@@ -38,7 +38,6 @@ import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
-import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
@@ -77,7 +76,6 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     });
 
     useEffect(() => {
-        setSearchTerm(SearchInputManager.searchInput);
         return () => {
             Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
@@ -338,7 +336,6 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
-                        SearchInputManager.searchInput = value;
                         setSearchTerm(value);
                     }}
                     headerMessage={headerMessage}
