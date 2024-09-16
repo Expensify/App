@@ -44,10 +44,15 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
         return (
             <PressableWithoutFocus
                 style={styles.noOutline}
-                onPress={() => navigateToAvatarPage(icon)}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                onPress={() => navigateToAvatarPage(icons[0])}
+                accessibilityRole={CONST.ROLE.BUTTON}
+<<<<<<< HEAD
                 accessibilityLabel={icon.name ?? ''}
                 disabled={icon.source === Expensicons.FallbackAvatar}
+=======
+                accessibilityLabel={icons[0].name ?? ''}
+                disabled={icons[0].source === Expensicons.FallbackAvatar}
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
             >
                 <Avatar
                     source={icon.source}
@@ -82,7 +87,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                         <PressableWithoutFocus
                             style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
                             disabled={icon.source === Expensicons.FallbackAvatar}
                         >

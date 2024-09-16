@@ -3,11 +3,10 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -164,7 +163,6 @@ function ReportActionsList({
 
     const {isOffline} = useNetwork();
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
-    const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
@@ -285,8 +283,15 @@ function ReportActionsList({
             return;
         }
 
+<<<<<<< HEAD
         const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
-        if (mostRecentReportActionCreated <= unreadMarkerTime) {
+=======
+        const mostRecentReportActionCreated = sortedVisibleReportActions[0]?.created ?? '';
+<<<<<<< HEAD
+>>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+        if (mostRecentReportActionCreated === unreadMarkerTime) {
             return;
         }
 
@@ -306,14 +311,6 @@ function ReportActionsList({
     const isLastPendingActionIsDelete = sortedReportActions?.at(0)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-    const animatedStyles = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-    }));
-
-    useEffect(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        opacity.value = withTiming(1, {duration: 100});
-    }, [opacity]);
 
     useEffect(() => {
         if (
@@ -339,11 +336,11 @@ function ReportActionsList({
         }
 
         if (ReportUtils.isUnread(report)) {
-            // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
+            // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -353,7 +350,7 @@ function ReportActionsList({
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, report.reportID]);
+    }, [report.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -658,7 +655,7 @@ function ReportActionsList({
                 isActive={(isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
+            <View style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
@@ -684,7 +681,7 @@ function ReportActionsList({
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
-            </Animated.View>
+            </View>
         </>
     );
 }

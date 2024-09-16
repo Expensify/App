@@ -21,8 +21,6 @@ To pay an invoice,
 4. Click **Add Bank Account** or **Add debit or credit card** to issue payment. 
 {% include end-option.html %}
 
-You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
-
 {% include option.html value="mobile" %}
 1. Tap the link in the email or text notification they receive from Expensify.
 2. Tap **Pay**.
@@ -30,6 +28,11 @@ You can also view all unpaid invoices by searching for the sender’s email or p
 4. Tap **Add Bank Account** or **Add debit or credit card** to issue payment.
 {% include end-option.html %}
 
+{% include end-selector.html %}
+
+You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
+
+{% include faq-begin.md %}
 # FAQ
 
 **Can someone else pay an invoice besides the person who received it?**
@@ -51,6 +54,6 @@ You will need to work with the vendor to discuss alternative payment options. Yo
 You can add additional payment methods to your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet). Click **Account Settings** > **Wallet** > click **Add Bank Account**.
 
 You will be prompted to choose a payment method when paying future invoices. 
-
+{% include faq-end.md %}
 
 </div>

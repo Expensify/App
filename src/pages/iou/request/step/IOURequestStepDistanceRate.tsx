@@ -54,7 +54,6 @@ function IOURequestStepDistanceRate({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
 
     const policy = policyReal ?? policyDraft;
-    const rates = DistanceRequestUtils.getMileageRates(policy);
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -64,6 +63,8 @@ function IOURequestStepDistanceRate({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+
+    const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -77,6 +78,7 @@ function IOURequestStepDistanceRate({
             alternateText: rate.name ? rateForDisplay : '',
             keyForList: rate.customUnitRateID,
             value: rate.customUnitRateID,
+            isDisabled: !rate.enabled,
             isSelected: currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE,
         };
     });

@@ -338,6 +338,14 @@ function getPersonalDetailsLength() {
     return personalDetails.length;
 }
 
+function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
+    const userDetails = getPersonalDetailByEmail(email);
+    if (userDetails) {
+        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
+    }
+    return email;
+}
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -355,4 +363,5 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
     getPersonalDetailsLength,
+    getUserNameByEmail,
 };

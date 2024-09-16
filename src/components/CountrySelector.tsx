@@ -75,7 +75,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
             description={translate('common.country')}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRouteWithoutParams();
+                const activeRoute = Navigation.getActiveRoute();
                 didOpenContrySelector.current = true;
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
             }}

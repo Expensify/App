@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-
 /* eslint-disable rulesdir/prefer-at */
 import * as WorkflowUtils from '@src/libs/WorkflowUtils';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -15,6 +14,7 @@ const personalDetailsByEmail: PersonalDetailsList = {};
 function buildPolicyEmployee(accountID: number, policyEmployee: Partial<PolicyEmployee> = {}): PolicyEmployee {
     return {
         email: `${accountID}@example.com`,
+        pendingAction: 'add',
         ...policyEmployee,
     };
 }
@@ -33,7 +33,6 @@ function buildApprover(accountID: number, approver: Partial<Approver> = {}): App
         forwardsTo: undefined,
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         displayName: `${accountID}@example.com User`,
-        isInMultipleWorkflows: false,
         isCircularReference: false,
         ...approver,
     };
@@ -203,9 +202,9 @@ describe('WorkflowUtils', () => {
             const employees: PolicyEmployeeList = {};
             const defaultApprover = '1@example.com';
 
-            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
-            expect(workflows).toEqual([]);
+            expect(approvalWorkflows).toEqual([]);
         });
 
         it('Should transform all users into one default workflow', () => {
@@ -223,9 +222,9 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
-            expect(workflows).toEqual([buildWorkflow([1, 2], [1], {isDefault: true})]);
+            expect(approvalWorkflows).toEqual([buildWorkflow([1, 2], [1], {isDefault: true})]);
         });
 
         it('Should transform all users into two workflows', () => {
@@ -253,9 +252,9 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
-            expect(workflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
+            expect(approvalWorkflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
         });
 
         it('Should sort the workflows (first the default and then based on the first approver display name)', () => {
@@ -288,9 +287,9 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
-            expect(workflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
+            expect(approvalWorkflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
         });
 
         it('Should mark approvers that are used in multiple workflows', () => {
@@ -318,21 +317,16 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
             defaultWorkflow.approvers[0].forwardsTo = '3@example.com';
             defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
-            defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
-            defaultWorkflow.approvers[1].isInMultipleWorkflows = true;
-            defaultWorkflow.approvers[2].isInMultipleWorkflows = true;
             const secondWorkflow = buildWorkflow([1], [2, 3, 4]);
             secondWorkflow.approvers[0].forwardsTo = '3@example.com';
             secondWorkflow.approvers[1].forwardsTo = '4@example.com';
-            secondWorkflow.approvers[1].isInMultipleWorkflows = true;
-            secondWorkflow.approvers[2].isInMultipleWorkflows = true;
 
-            expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
+            expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
 
         it('Should build multiple workflows with many approvers', () => {
@@ -370,13 +364,13 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
             secondWorkflow.approvers[0].forwardsTo = '5@example.com';
             secondWorkflow.approvers[1].forwardsTo = '6@example.com';
-            expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
+            expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
     });
 
@@ -388,7 +382,7 @@ describe('WorkflowUtils', () => {
                 isDefault: true,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: 'create'});
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com'}),
@@ -403,7 +397,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: 'create'});
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com'}),
@@ -422,15 +416,15 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: 'remove'});
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: ''}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: ''}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: ''}),
-                '4@example.com': buildPolicyEmployee(4, {submitsTo: ''}),
-                '5@example.com': buildPolicyEmployee(5, {submitsTo: ''}),
-                '6@example.com': buildPolicyEmployee(6, {submitsTo: ''}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update'}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update'}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update'}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update'}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update'}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update'}),
             });
         });
     });

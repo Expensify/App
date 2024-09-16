@@ -2,14 +2,13 @@ import React from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import SortableHeaderText from './SortableHeaderText';
 
 type SearchColumnConfig = {
@@ -86,18 +85,12 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
-function getSearchColumns(type: SearchDataTypes): SearchColumnConfig[] {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return expenseHeaders;
-        default:
-            return expenseHeaders;
-    }
-}
+const SearchColumns = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.CHAT]: null,
+};
 
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
@@ -112,19 +105,22 @@ type SearchTableHeaderProps = {
 function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-    const type = SearchUtils.getSearchType(metadata);
 
-    if (displayNarrowVersion || !type) {
+    if (SearchColumns[metadata.type] === null) {
+        return;
+    }
+
+    if (displayNarrowVersion) {
         return;
     }
 
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
-                {getSearchColumns(type).map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                {SearchColumns[metadata.type]?.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
                     }

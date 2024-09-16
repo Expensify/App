@@ -156,11 +156,16 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
+function shouldUseTransactionDraft(action: IOUAction | undefined) {
+    return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
+}
+
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
+    shouldUseTransactionDraft,
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
