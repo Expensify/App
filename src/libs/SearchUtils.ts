@@ -808,6 +808,10 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
 }
 
+function isCorrectSearchUserName(displayName?: string) {
+    return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
+}
+
 export {
     buildQueryStringFromFilterValues,
     buildSearchQueryJSON,
@@ -830,4 +834,5 @@ export {
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
     getOverflowMenu,
+    isCorrectSearchUserName,
 };
