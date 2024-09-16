@@ -71,6 +71,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
+        /** The filename of the avatar */
+        avatarFileName?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -277,9 +280,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
-
-        /** The filename of the avatar */
-        avatarFileName?: string;
 
         /** The trip data for a trip room */
         tripData?: {
