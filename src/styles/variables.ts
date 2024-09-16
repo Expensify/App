@@ -249,6 +249,9 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
+
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
