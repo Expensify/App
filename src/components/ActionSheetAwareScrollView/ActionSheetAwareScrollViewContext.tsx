@@ -98,7 +98,6 @@ const STATE_MACHINE = {
     },
     [States.KEYBOARD_POPOVER_OPEN]: {
         [Actions.MEASURE_POPOVER]: States.KEYBOARD_POPOVER_OPEN,
-        [Actions.MEASURE_COMPOSER]: States.KEYBOARD_POPOVER_OPEN,
         [Actions.CLOSE_POPOVER]: States.KEYBOARD_CLOSED_POPOVER,
     },
     [States.CALL_POPOVER_WITH_KEYBOARD_OPEN]: {
