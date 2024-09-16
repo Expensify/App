@@ -98,6 +98,7 @@ const REPORT_ACTION_NUMBER_PROPERTIES: Array<keyof ReportAction> = [
     'childMoneyRequestCount',
     'delegateAccountID',
     'adminAccountID',
+    'reportActionTimestamp',
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
