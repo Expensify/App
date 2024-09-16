@@ -1,72 +1,65 @@
 import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import variables from '@styles/variables';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     return (
         <ConnectionLayout
+            policyID={policyID}
             displayName={QuickbooksChartOfAccountsPage.displayName}
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbo.accountsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID))}
         >
-            <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <View style={styles.flex1}>
-                    <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                    <Switch
-                        accessibilityLabel={translate('workspace.accounting.accounts')}
-                        isOn
-                        disabled
-                        onToggle={() => {}}
-                    />
-                </View>
-            </View>
+            <ToggleSettingOptionRow
+                title={translate('workspace.accounting.import')}
+                switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                shouldPlaceSubtitleBelowSwitch
+                isActive
+                onToggle={() => {}}
+                disabled
+                showLockIcon
+            />
             <MenuItemWithTopDescription
                 interactive={false}
                 title={translate('workspace.common.categories')}
                 description={translate('workspace.common.displayedAs')}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
             />
             <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
-            <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <View style={styles.flex1}>
-                    <Text fontSize={variables.fontSizeNormal}>{translate('workspace.common.enabled')}</Text>
-                </View>
-                <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
-                    <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                        <Switch
-                            accessibilityLabel={translate('workspace.accounting.accounts')}
-                            isOn={!!enableNewCategories}
-                            onToggle={() => QuickbooksOnline.updateQuickbooksOnlineEnableNewCategories(policyID, !enableNewCategories)}
-                        />
-                    </View>
-                </OfflineWithFeedback>
-            </View>
-            <View style={styles.flex1}>
-                <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
-            </View>
+            <ToggleSettingOptionRow
+                title={translate('workspace.common.enabled')}
+                subtitle={translate('workspace.qbo.accountsSwitchDescription')}
+                switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                shouldPlaceSubtitleBelowSwitch
+                isActive={!!qboConfig?.enableNewCategories}
+                onToggle={() => QuickbooksOnline.updateQuickbooksOnlineEnableNewCategories(policyID, !qboConfig?.enableNewCategories)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES], qboConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}
+                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}
+            />
         </ConnectionLayout>
     );
 }
