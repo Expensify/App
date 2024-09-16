@@ -57,7 +57,6 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
@@ -110,7 +109,6 @@ import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
-import * as OnboardingFlow from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -2690,15 +2688,6 @@ function openReportFromDeepLink(url: string) {
 
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
-                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
-
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        if (!hasCompletedGuidedSetupFlow) {
-                            Welcome.isOnboardingFlowCompleted({
-                                onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
-                            });
-                            return;
-                        }
 
                         if (isOnboardingFlowName(currentFocusedRoute?.name)) {
                             Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
