@@ -99,26 +99,30 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [showDeleteModal],
     );
 
-    const createSavedSearchMenuItem = useCallback(
-        (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+        let title = item.name;
+        if (title === item.query) {
+            const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+            title = SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
+        }
             if (!threeDotsMenuContainerRef.current?.[key]) {
                 threeDotsMenuContainerRef.current = {...threeDotsMenuContainerRef.current, [key]: createRef()};
             }
 
-            const baseMenuItem: SavedSearchMenuItem = {
-                key,
-                title: item.name,
-                hash: key,
-                query: item.query,
-                shouldShowRightComponent: true,
-                focused: Number(key) === hash,
-                onPress: () => {
-                    SearchActions.clearAllFilters();
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
-                },
-                rightComponent: (
+        const baseMenuItem: SavedSearchMenuItem = {
+            key,
+            title,
+            hash: key,
+            query: item.query,
+            shouldShowRightComponent: true,
+            focused: Number(key) === hash,
+            onPress: () => {
+                SearchActions.clearAllFilters();
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
+            },
+            rightComponent: (
                     <View ref={threeDotsMenuContainerRef?.current?.[key]}>
-                        <ThreeDotsMenu
+                    <ThreeDotsMenu
                             onIconPress={() => {
                                 threeDotsMenuContainerRef.current[key].current?.measureInWindow((x, y, width, height) => {
                                     setThreeDotsMenuPosition({
@@ -127,49 +131,47 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                     });
                                 });
                             }}
-                            menuItems={getOverflowMenu(item.name, Number(key), item.query)}
-                            anchorPosition={threeDotsMenuPosition}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
-                        />
+                        menuItems={getOverflowMenu(item.name, Number(key), item.query)}
+                        anchorPosition={threeDotsMenuPosition}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                    />
                     </View>
-                ),
-                styles: [styles.alignItemsCenter],
+            ),
+            styles: [styles.alignItemsCenter],
+        };
+
+        if (!isNarrow) {
+            return {
+                ...baseMenuItem,
+                shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
+                tooltipAnchorAlignment: {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                },
+                tooltipShiftHorizontal: -32,
+                tooltipShiftVertical: 15,
+                tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                renderTooltipContent: () => {
+                    SearchActions.dismissSavedSearchRenameTooltip();
+                    return (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Expensicons.Lightbulb
+                                width={16}
+                                height={16}
+                                fill={styles.colorGreenSuccess.color}
+                            />
+                            <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
+                        </View>
+                    );
+                },
             };
+        }
 
-            if (!isNarrow) {
-                return {
-                    ...baseMenuItem,
-                    shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
-                    tooltipAnchorAlignment: {
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    },
-                    tooltipShiftHorizontal: -32,
-                    tooltipShiftVertical: 15,
-                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    renderTooltipContent: () => {
-                        SearchActions.dismissSavedSearchRenameTooltip();
-                        return (
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Expensicons.Lightbulb
-                                    width={16}
-                                    height={16}
-                                    fill={styles.colorGreenSuccess.color}
-                                />
-                                <Text style={[styles.ml1, styles.textLabel]}>{translate('search.saveSearchTooltipText')}</Text>
-                            </View>
-                        );
-                    },
-                };
-            }
-
-            return baseMenuItem;
-        },
-        [hash, styles, getOverflowMenu, translate, shouldHideSavedSearchRenameTooltip],
-    );
+        return baseMenuItem;
+    };
 
     const savedSearchesMenuItems = () => {
         if (!savedSearches) {
