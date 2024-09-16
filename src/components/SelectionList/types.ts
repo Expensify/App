@@ -4,6 +4,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
+import type {OnboardingIcon} from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -11,6 +12,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
+import type OnboardingListItem from './OnboardingListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
 import type TransactionListItem from './Search/TransactionListItem';
@@ -286,6 +288,8 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type OnboardingListItemProps<TItem extends ListItem> = ListItemProps<TItem & {onboardingIcon: OnboardingIcon}>;
+
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -305,7 +309,8 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof ReportListItem
-    | typeof ChatListItem;
+    | typeof ChatListItem
+    | typeof OnboardingListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -592,4 +597,5 @@ export type {
     ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
+    OnboardingListItemProps,
 };

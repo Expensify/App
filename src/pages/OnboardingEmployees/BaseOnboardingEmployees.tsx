@@ -6,8 +6,8 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import OnboardingListItem from '@components/SelectionList/OnboardingListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -78,7 +78,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
                     onBackButtonPress={OnboardingFlow.goBack}
                 />
-                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mh5]}>
+                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.employees.title')}</Text>
                     </View>
@@ -90,7 +90,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         setError('');
                     }}
                     shouldUpdateFocusedIndex
-                    ListItem={UserListItem}
+                    ListItem={OnboardingListItem}
                     footerContent={footerContent}
                 />
             </View>

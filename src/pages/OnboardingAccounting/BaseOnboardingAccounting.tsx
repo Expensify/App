@@ -6,90 +6,97 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import OnboardingListItem from '@components/SelectionList/OnboardingListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {} from '@src/types/onyx/Bank';
+import type {OnboardingIcon} from '@src/types/onyx/Onboarding';
 import type {BaseOnboardingAccountingProps} from './types';
+
+type OnboardingListItemData = ListItem & {
+    onboardingIcon: OnboardingIcon;
+};
 
 function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [userReportedIntegration, setUserReportedIntegration] = useState<string | null | undefined>(null);
+    const [userReportedIntegration, setUserReportedIntegration] = useState<string | null | undefined>(undefined);
     const [error, setError] = useState('');
 
-    const accountingOptions: ListItem[] = useMemo(() => {
-        const policyAccountingOptions: ListItem[] = Object.values(CONST.POLICY.CONNECTIONS.NAME).map((connectionName): ListItem => {
+    const accountingOptions: OnboardingListItemData[] = useMemo(() => {
+        const policyAccountingOptions: OnboardingListItemData[] = Object.values(CONST.POLICY.CONNECTIONS.NAME).map((connectionName): OnboardingListItemData => {
             let text;
-            let icons: Icon[];
+            let onboardingIcon: OnboardingIcon;
             switch (connectionName) {
                 case CONST.POLICY.CONNECTIONS.NAME.QBO: {
                     text = translate('workspace.accounting.qbo');
-                    icons = [
-                        {
-                            source: Expensicons.QBOCircle,
-                            type: 'avatar',
-                        },
-                    ];
+                    onboardingIcon = {
+                        icon: Expensicons.QBOCircle,
+                        iconWidth: 40,
+                        iconHeight: 40,
+                    };
                     break;
                 }
                 case CONST.POLICY.CONNECTIONS.NAME.XERO: {
                     text = translate('workspace.accounting.xero');
-                    icons = [
-                        {
-                            source: Expensicons.XeroCircle,
-                            type: 'avatar',
-                        },
-                    ];
+                    onboardingIcon = {
+                        icon: Expensicons.XeroCircle,
+                        iconWidth: 40,
+                        iconHeight: 40,
+                    };
                     break;
                 }
                 case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
                     text = translate('workspace.accounting.netsuite');
-                    icons = [
-                        {
-                            source: Expensicons.NetSuiteSquare,
-                            type: 'avatar',
-                        },
-                    ];
+                    onboardingIcon = {
+                        icon: Expensicons.NetSuiteSquare,
+                        iconWidth: 40,
+                        iconHeight: 40,
+                        iconStyles: [StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)],
+                    };
                     break;
                 }
                 default: {
                     text = translate('workspace.accounting.intacct');
-                    icons = [
-                        {
-                            source: Expensicons.IntacctSquare,
-                            type: 'avatar',
-                        },
-                    ];
+                    onboardingIcon = {
+                        icon: Expensicons.IntacctSquare,
+                        iconWidth: 40,
+                        iconHeight: 40,
+                        iconStyles: [StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)],
+                    };
                     break;
                 }
             }
             return {
                 keyForList: connectionName,
                 text,
-                icons,
+                onboardingIcon,
+                isSelected: userReportedIntegration === connectionName,
             };
         });
-        const noneAccountingOption: ListItem = {
+        const noneAccountingOption: OnboardingListItemData = {
             text: translate('onboarding.accounting.noneOfAbove'),
             keyForList: null,
-            icons: [
-                {
-                    source: Expensicons.Close,
-                    type: 'avatar',
-                },
-            ],
+            onboardingIcon: {
+                icon: Expensicons.Clear,
+                iconFill: theme.success,
+            },
+            isSelected: userReportedIntegration === null,
         };
         return [...policyAccountingOptions, noneAccountingOption];
-    }, [translate]);
+    }, [StyleUtils, theme.success, translate, userReportedIntegration]);
 
     const footerContent = (
         <>
@@ -130,7 +137,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     progressBarPercentage={75}
                     onBackButtonPress={OnboardingFlow.goBack}
                 />
-                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mh5]}>
+                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.accounting.title')}</Text>
                     </View>
@@ -141,10 +148,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                         setUserReportedIntegration(item.keyForList);
                     }}
                     shouldUpdateFocusedIndex
-                    ListItem={UserListItem}
+                    ListItem={OnboardingListItem}
                     footerContent={footerContent}
                     shouldShowTooltips={false}
                     headerMessage={translate('onboarding.accounting.description')}
+                    headerMessageStyle={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 />
             </View>
         </ScreenWrapper>

@@ -4511,6 +4511,18 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        onboardingItemWrapper: {
+            alignItems: 'center',
+            flexDirection: 'row',
+        },
+
+        onboardingIconWrapper: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,
