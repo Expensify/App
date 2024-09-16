@@ -1,12 +1,14 @@
-import React, {useCallback} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {TextStyle, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -165,8 +167,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const renderSavedSearchesSection = useCallback(
         (menuItems: MenuItemWithLink[]) => (
-            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                <Text style={[styles.sectionTitle, styles.pb1]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+            <View style={[styles.pb4, styles.mh3]}>
                 <MenuItemList
                     menuItems={menuItems}
                     wrapperStyle={styles.sectionMenuItem}
@@ -198,6 +199,29 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         );
     }
 
+    const route = useRoute();
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    useLayoutEffect(() => {
+        const scrollOffset = getScrollOffset(route);
+        if (!scrollOffset || !scrollViewRef.current) {
+            return;
+        }
+        scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
+    }, [getScrollOffset, route]);
+
     return (
         <>
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
@@ -227,7 +251,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             </View>
             {savedSearches && Object.keys(savedSearches).length > 0 && (
                 <>
-                    <ScrollView>{renderSavedSearchesSection(savedSearchesMenuItems())}</ScrollView>
+                    <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+                    <ScrollView
+                        onScroll={onScroll}
+                        ref={scrollViewRef}
+                    >
+                        {renderSavedSearchesSection(savedSearchesMenuItems())}
+                    </ScrollView>
                     <DeleteConfirmModal />
                 </>
             )}
