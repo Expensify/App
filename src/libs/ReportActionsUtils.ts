@@ -1686,7 +1686,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const assigneeAccountID = (reportAction?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
 
-    const assignee = shouldRenderHTML ? `<mention-user accountID=${assigneeAccountID}></mention-user>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
+    const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
     const link = shouldRenderHTML
         ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
