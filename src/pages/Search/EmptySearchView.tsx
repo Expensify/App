@@ -94,6 +94,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
                     buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1')),
+                    canEmptyViewBeScrolled: true,
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:

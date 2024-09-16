@@ -26,6 +26,7 @@ function EmptyStateComponent({
     headerStyles,
     headerContentStyles,
     minModalHeight = 400,
+    canEmptyViewBeScrolled = false,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -79,7 +80,10 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}>
+        <ScrollView
+            contentContainerStyle={[!canEmptyViewBeScrolled && styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}
+            style={[canEmptyViewBeScrolled && {flex: 1}]}
+        >
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled

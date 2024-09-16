@@ -23,6 +23,7 @@ type SharedProps<T> = {
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     minModalHeight?: number;
+    canEmptyViewBeScrolled?: boolean;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
