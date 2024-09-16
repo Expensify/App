@@ -36,7 +36,6 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
-import ShortcutManager from '@libs/ShortcutManager';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
@@ -206,7 +205,6 @@ function hasAuthToken(): boolean {
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
-    ShortcutManager.removeAllDynamicShortcuts();
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
         if (NativeModules.HybridAppModule && killHybridApp) {
