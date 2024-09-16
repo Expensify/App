@@ -1,4 +1,4 @@
-import React, {createRef, useCallback, useRef, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,7 +10,6 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,7 +19,6 @@ import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
-import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -30,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SearchItemPopover from './SearchItemPopover';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SavedSearchMenuItem = MenuItemBaseProps & {
@@ -59,8 +58,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [shouldHideSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, {initialValue: true});
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const threeDotsMenuContainerRef = useRef({});
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -105,9 +102,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
             title = SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
         }
-        if (!threeDotsMenuContainerRef.current?.[key]) {
-            threeDotsMenuContainerRef.current = {...threeDotsMenuContainerRef.current, [key]: createRef()};
-        }
 
         const baseMenuItem: SavedSearchMenuItem = {
             key,
@@ -120,26 +114,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 SearchActions.clearAllFilters();
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
             },
-            rightComponent: (
-                <View ref={threeDotsMenuContainerRef?.current?.[key]}>
-                    <ThreeDotsMenu
-                        onIconPress={() => {
-                            threeDotsMenuContainerRef.current[key].current?.measureInWindow((x, y, width, height) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y + height,
-                                });
-                            });
-                        }}
-                        menuItems={getOverflowMenu(item.name, Number(key), item.query)}
-                        anchorPosition={threeDotsMenuPosition}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                        }}
-                    />
-                </View>
-            ),
+            rightComponent: <SearchItemPopover menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
             styles: [styles.alignItemsCenter],
         };
 
