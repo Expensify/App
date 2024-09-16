@@ -26,6 +26,12 @@ type PressableWithFeedbackProps = PressableProps & {
      */
     hoverDimmingValue?: number;
 
+    /**
+     * The duration of the dimming animation
+     * @default variables.dimAnimationDuration
+     */
+    dimAnimationDuration?: number;
+
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
 
@@ -40,6 +46,7 @@ function PressableWithFeedback(
         needsOffscreenAlphaCompositing = false,
         pressDimmingValue = variables.pressDimValue,
         hoverDimmingValue = variables.hoverDimValue,
+        dimAnimationDuration,
         ...rest
     }: PressableWithFeedbackProps,
     ref: PressableRef,
@@ -51,6 +58,7 @@ function PressableWithFeedback(
         <OpacityView
             shouldDim={!!(!rest.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
+            dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >

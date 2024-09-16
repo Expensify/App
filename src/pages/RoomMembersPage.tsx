@@ -223,7 +223,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 (isPolicyExpenseChat && isAdmin) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID;
+                details.accountID === report.ownerAccountID ||
+                details.isOptimisticPersonalDetail;
 
             result.push({
                 keyForList: String(accountID),

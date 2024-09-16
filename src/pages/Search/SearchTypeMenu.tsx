@@ -243,7 +243,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             iconHeight={variables.iconSizeNormal}
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
-                            hoverAndPressStyle={styles.hoveredComponentBG}
                             onPress={onPress}
                             isPaneMenu
                         />
