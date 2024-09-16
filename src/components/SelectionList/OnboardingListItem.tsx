@@ -5,10 +5,10 @@ import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
 import type {ListItem, OnboardingListItemProps} from './types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function OnboardingListItem<TItem extends ListItem>({
     item,

@@ -14,10 +14,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type {} from '@src/types/onyx/Bank';
 import type {OnboardingIcon} from '@src/types/onyx/Onboarding';
 import type {BaseOnboardingAccountingProps} from './types';
@@ -26,7 +24,7 @@ type OnboardingListItemData = ListItem & {
     onboardingIcon: OnboardingIcon;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -111,13 +109,15 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 success
                 large
                 text={translate('common.confirm')}
+                // eslint-disable-next-line rulesdir/prefer-early-return
                 onPress={() => {
                     if (!userReportedIntegration) {
                         setError(translate('onboarding.purpose.errorSelection'));
+                        // eslint-disable-next-line no-useless-return
                         return;
                     }
-                    // Welcome.setOnboardingCompanySize(userReportedIntegration);
-                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+
+                    // TODO: call CompleOnboarding API after the back-end PR is complete
                 }}
                 pressOnEnter
             />

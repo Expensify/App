@@ -1639,7 +1639,6 @@ export default {
         },
         employees: {
             title: 'How many empleados do you have?',
-            description: `Don't worry, you can change this later.`,
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 empleados',
