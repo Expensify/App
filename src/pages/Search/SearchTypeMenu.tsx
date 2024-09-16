@@ -105,9 +105,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
             title = SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
         }
-            if (!threeDotsMenuContainerRef.current?.[key]) {
-                threeDotsMenuContainerRef.current = {...threeDotsMenuContainerRef.current, [key]: createRef()};
-            }
+        if (!threeDotsMenuContainerRef.current?.[key]) {
+            threeDotsMenuContainerRef.current = {...threeDotsMenuContainerRef.current, [key]: createRef()};
+        }
 
         const baseMenuItem: SavedSearchMenuItem = {
             key,
@@ -121,16 +121,16 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
             },
             rightComponent: (
-                    <View ref={threeDotsMenuContainerRef?.current?.[key]}>
+                <View ref={threeDotsMenuContainerRef?.current?.[key]}>
                     <ThreeDotsMenu
-                            onIconPress={() => {
-                                threeDotsMenuContainerRef.current[key].current?.measureInWindow((x, y, width, height) => {
-                                    setThreeDotsMenuPosition({
-                                        horizontal: x + width,
-                                        vertical: y + height,
-                                    });
+                        onIconPress={() => {
+                            threeDotsMenuContainerRef.current[key].current?.measureInWindow((x, y, width, height) => {
+                                setThreeDotsMenuPosition({
+                                    horizontal: x + width,
+                                    vertical: y + height,
                                 });
-                            }}
+                            });
+                        }}
                         menuItems={getOverflowMenu(item.name, Number(key), item.query)}
                         anchorPosition={threeDotsMenuPosition}
                         anchorAlignment={{
@@ -138,7 +138,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                         }}
                     />
-                    </View>
+                </View>
             ),
             styles: [styles.alignItemsCenter],
         };
