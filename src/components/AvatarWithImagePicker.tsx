@@ -376,7 +376,7 @@ function AvatarWithImagePicker({
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, avatarStyle]}
+                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
                                                     ref={anchorRef}
                                                 >
                                                     <OfflineWithFeedback pendingAction={pendingAction}>
