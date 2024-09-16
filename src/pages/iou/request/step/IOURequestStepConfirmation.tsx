@@ -121,6 +121,7 @@ function IOURequestStepConfirmation({
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
+    const [isConfirmed, setIsConfirmed] = useState(false);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -304,9 +305,22 @@ function IOURequestStepConfirmation({
                 transaction.actionableWhisperReportActionID,
                 transaction.linkedTrackedExpenseReportAction,
                 transaction.linkedTrackedExpenseReportID,
+                customUnitRateID,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, action],
+        [
+            report,
+            transaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            transactionTaxCode,
+            transactionTaxAmount,
+            policy,
+            policyTags,
+            policyCategories,
+            action,
+            customUnitRateID,
+        ],
     );
 
     const createDistanceRequest = useCallback(
@@ -343,6 +357,7 @@ function IOURequestStepConfirmation({
 
     const createTransaction = useCallback(
         (selectedParticipants: Participant[], locationPermissionGranted = false) => {
+            setIsConfirmed(true);
             let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
@@ -545,11 +560,13 @@ function IOURequestStepConfirmation({
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                setIsConfirmed(true);
                 IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                setIsConfirmed(true);
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
@@ -635,6 +652,7 @@ function IOURequestStepConfirmation({
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
                         shouldPlaySound={false}
+                        isConfirmed={isConfirmed}
                     />
                 </View>
             )}

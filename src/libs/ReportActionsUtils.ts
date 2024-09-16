@@ -404,6 +404,7 @@ function getCombinedReportActions(
     transactionThreadReportID: string | null,
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
+    shouldFilterIOUAction = true,
 ): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
@@ -431,7 +432,7 @@ function getCombinedReportActions(
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        if (!isMoneyRequestAction(action)) {
+        if (!isMoneyRequestAction(action) || !shouldFilterIOUAction) {
             return true;
         }
         const actionType = getOriginalMessage(action)?.type ?? '';
@@ -1648,11 +1649,19 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
 }
 
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
-    const initialMessage = getOriginalMessage(reportAction);
+    const originalMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
-        oldName: initialMessage?.oldName ?? '',
-        newName: initialMessage?.newName ?? '',
+        oldName: originalMessage?.oldName ?? '',
+        newName: originalMessage?.newName ?? '',
     });
+}
+
+function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
+    const originalMessage = getOriginalMessage(reportAction);
+    const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? -1).map(
+        ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
+    );
+    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames});
 }
 
 export {
@@ -1681,6 +1690,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getParentReportAction,
+    getRemovedFromApprovalChainMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,

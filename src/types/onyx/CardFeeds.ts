@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 /** Card feed data */
 type CardFeedData = {
     /** Whether any actions are pending */
@@ -31,4 +34,32 @@ type CardFeeds = {
     companyCardNicknames: Record<string, string>;
 };
 
+/** Data required to be sent to add a new card */
+type AddNewCardFeedData = {
+    /** The email address of the cardholder */
+    assigneeEmail: string;
+
+    /** Card type */
+    cardType: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+
+    /** Name of the card */
+    cardTitle: string;
+};
+
+/** Issue new card flow steps */
+type AddNewCardFeedStep = ValueOf<typeof CONST.COMPANY_CARDS.STEP>;
+
+/** Model of Issue new card flow */
+type AddNewCompanyCardFeed = {
+    /** The current step of the flow */
+    currentStep: AddNewCardFeedStep;
+
+    /** Data required to be sent to issue a new card */
+    data: AddNewCardFeedData;
+
+    /** Whether the user is editing step */
+    isEditing: boolean;
+};
+
 export default CardFeeds;
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData};
