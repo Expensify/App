@@ -22,24 +22,27 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         setScreenIndex(prevScreenIndex);
     }, [screenIndex]);
 
-    const nextScreen = useCallback(() => {
-        if (isEditing.current) {
-            isEditing.current = false;
+    const nextScreen = useCallback(
+        (data: unknown) => {
+            if (isEditing.current) {
+                isEditing.current = false;
 
-            setScreenIndex(bodyContent.length - 1);
+                setScreenIndex(bodyContent.length - 1);
 
-            return;
-        }
+                return;
+            }
 
-        const nextScreenIndex = screenIndex + 1;
+            const nextScreenIndex = screenIndex + 1;
 
-        if (nextScreenIndex === bodyContent.length) {
-            onFinished();
-        } else {
-            onNextSubStep();
-            setScreenIndex(nextScreenIndex);
-        }
-    }, [screenIndex, bodyContent.length, onFinished, onNextSubStep]);
+            if (nextScreenIndex === bodyContent.length) {
+                onFinished(data);
+            } else {
+                onNextSubStep();
+                setScreenIndex(nextScreenIndex);
+            }
+        },
+        [screenIndex, bodyContent.length, onFinished, onNextSubStep],
+    );
 
     const moveTo = useCallback((step: number) => {
         isEditing.current = true;
