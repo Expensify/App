@@ -108,9 +108,8 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         }
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
-            moveTo(0);
         }
-    }, [moveTo, redirectedFromPlaidToManual, setupType, values]);
+    }, [redirectedFromPlaidToManual, setupType, values]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
