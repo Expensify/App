@@ -40,8 +40,8 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames[lastSelectedFeed] ?? '';
-    const liabilityType = cardFeeds?.companyCards[lastSelectedFeed]?.liabilityType;
+    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
+    const liabilityType = cardFeeds?.companyCards?.[lastSelectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {
