@@ -1886,12 +1886,6 @@ function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
     return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
 }
 
-function getWorkspaceAvatar(report: OnyxEntry<Report>): AvatarSource {
-    const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-    const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL ?? '';
-    return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
-}
-
 /**
  * Helper method to return the default avatar associated with the given reportID
  */
@@ -1959,19 +1953,18 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
     const workspaceName = getPolicyName(report, false, policy);
     const cacheKey = report?.policyID ?? workspaceName;
     const iconFromCache = workSpaceIconsCache.get(cacheKey);
-    const avatarURL = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL;
-
-    const isSameAvatarURL = iconFromCache?.icon?.source === avatarURL;
-    const isDefaultWorkspaceAvatar = !avatarURL && typeof iconFromCache?.icon?.source !== 'string';
-    const hasWorkSpaceNameChanged = iconFromCache?.name !== workspaceName;
-    if (iconFromCache && (isSameAvatarURL || isDefaultWorkspaceAvatar) && !hasWorkSpaceNameChanged) {
-        return iconFromCache.icon;
-    }
     // disabling to protect against empty strings
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyAvatarURL = report?.policyAvatar || allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyExpenseChatAvatarSource = policyAvatarURL || getDefaultWorkspaceAvatar(workspaceName);
+
+    const isSameAvatarURL = iconFromCache?.icon?.source === policyExpenseChatAvatarSource;
+    const hasWorkSpaceNameChanged = iconFromCache?.name !== workspaceName;
+
+    if (iconFromCache && (isSameAvatarURL || report?.policyAvatar === undefined) && !hasWorkSpaceNameChanged) {
+        return iconFromCache.icon;
+    }
 
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
@@ -7968,7 +7961,6 @@ export {
     getTransactionsWithReceipts,
     getUserDetailTooltipText,
     getWhisperDisplayNames,
-    getWorkspaceAvatar,
     getWorkspaceChats,
     getWorkspaceIcon,
     goBackToDetailsPage,
