@@ -47,6 +47,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             <AvatarWithDelegateAvatar
                 delegateEmail={delegateEmail}
                 isSelected={isSelected}
+                containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
             />
         );
     } else if (emojiStatus) {
