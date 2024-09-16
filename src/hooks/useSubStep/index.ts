@@ -23,7 +23,7 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     }, [screenIndex]);
 
     const nextScreen = useCallback(
-        (data?: unknown) => {
+        (finishData?: unknown) => {
             if (isEditing.current) {
                 isEditing.current = false;
 
@@ -35,7 +35,7 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
             const nextScreenIndex = screenIndex + 1;
 
             if (nextScreenIndex === bodyContent.length) {
-                onFinished(data);
+                onFinished(finishData);
             } else {
                 onNextSubStep();
                 setScreenIndex(nextScreenIndex);
