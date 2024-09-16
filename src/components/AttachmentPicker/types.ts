@@ -1,5 +1,4 @@
 import type {ReactNode} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';

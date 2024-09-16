@@ -40,7 +40,6 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
                         onLongPress={(event) => {
-                            console.log(111, 0);
                             onShowContextMenu(() => {
                                 if (isDisabled) {
                                     return;

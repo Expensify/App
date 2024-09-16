@@ -40,7 +40,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
-    const openEmojiPicker = (e) => {
+    const openEmojiPicker = (e: GestureResponderEvent | KeyboardEvent) => {
         if (!isFocused) {
             return;
         }

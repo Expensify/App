@@ -146,6 +146,7 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
         'worklet';
 
         log('RESET STATE MACHINE');
+        // eslint-disable-next-line react-compiler/react-compiler
         currentState.value = initialState;
     }, [currentState, initialState, log]);
 

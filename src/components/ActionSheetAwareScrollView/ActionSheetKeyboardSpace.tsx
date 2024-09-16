@@ -32,8 +32,10 @@ const useAnimatedKeyboard = () => {
         {
             onStart: (e) => {
                 'worklet';
+
                 // save the last keyboard height
                 if (e.height !== 0) {
+                    // eslint-disable-next-line react-compiler/react-compiler
                     heightWhenOpened.value = e.height;
                     height.value = 0;
                 }
@@ -43,10 +45,12 @@ const useAnimatedKeyboard = () => {
             },
             onMove: (e) => {
                 'worklet';
+
                 height.value = e.height;
             },
             onEnd: (e) => {
                 'worklet';
+
                 state.value = e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED;
                 height.value = e.height;
             },
@@ -87,6 +91,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
             if (lastState === syncLocalWorkletStateL.lastState) {
                 return;
             }
+            // eslint-disable-next-line react-compiler/react-compiler
             syncLocalWorkletStateL.value = lastState;
 
             if (lastState === KeyboardState.OPEN) {
@@ -110,7 +115,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         const keyboardHeight = keyboard.height.value === 0 ? 0 : keyboard.height.value - safeArea.bottom;
         // sometimes we need to know the last keyboard height
         const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom;
-        const {popoverHeight = 0, fy, height, composerHeight = 0} = current.payload ?? {};
+        const {popoverHeight = 0, fy, height} = current.payload ?? {};
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
         const elementOffset = fy !== undefined && height !== undefined && popoverHeight !== undefined ? fy + safeArea.top + height - (windowHeight - popoverHeight) : 0;
         // when the sate is not idle we know for sure we have previous state

@@ -336,12 +336,6 @@ function ReportActionCompose({
     );
 
     useEffect(() => {
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: isMenuVisible ? ActionSheetAwareScrollView.Actions.SHOW_ATTACHMENTS_POPOVER : ActionSheetAwareScrollView.Actions.CLOSE_ATTACHMENTS_POPOVER,
-        });
-    }, [actionSheetAwareScrollViewContext, isMenuVisible]);
-
-    useEffect(() => {
         const unsubscribe = navigation.addListener('blur', () => {
             setShouldHideEducationalTooltip(true);
         });
