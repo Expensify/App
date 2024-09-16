@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
@@ -27,26 +27,7 @@ function SearchRouter() {
         setCurrentQuery(undefined);
     };
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            if (!currentQuery) {
-                return;
-            }
-
-            const query = SearchUtils.buildSearchQueryString(currentQuery);
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-
-            closeSearchRouter();
-            clearUserQuery();
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: false,
-        },
-    );
-
-    const onSearch = debounce((userQuery: string) => {
+    const onSearchChange = debounce((userQuery: string) => {
         if (!userQuery) {
             clearUserQuery();
             return;
@@ -64,7 +45,35 @@ function SearchRouter() {
         }
     }, SEARCH_DEBOUNCE_DELAY);
 
-    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.POPOVER;
+    const onSearchSubmit = useCallback(() => {
+        const query = SearchUtils.buildSearchQueryString(currentQuery);
+        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+
+        closeSearchRouter();
+        clearUserQuery();
+    }, [currentQuery, closeSearchRouter]);
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ENTER,
+        () => {
+            if (!currentQuery) {
+                return;
+            }
+
+            onSearchSubmit();
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: false,
+        },
+    );
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
+        closeSearchRouter();
+        clearUserQuery();
+    });
+
+    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.POPOVER;
     const isFullWidth = isSmallScreenWidth;
 
     return (
@@ -79,7 +88,8 @@ function SearchRouter() {
                 <View style={[styles.flex1, styles.p3]}>
                     <SearchRouterInput
                         isFullWidth={isFullWidth}
-                        onSearch={onSearch}
+                        onChange={onSearchChange}
+                        onSubmit={onSearchSubmit}
                     />
                 </View>
             </FocusTrapForModal>
