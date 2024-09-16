@@ -4622,7 +4622,7 @@ const CONST = {
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
                         '\n' +
-                        '*Here’s how to setup tags:*\n' +
+                        '*Here’s how to set up tags:*\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
                         '2. Go to Workspaces.\n' +
