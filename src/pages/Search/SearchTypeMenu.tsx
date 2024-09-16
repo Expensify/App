@@ -98,9 +98,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+            const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
             const baseMenuItem: SavedSearchMenuItem = {
                 key,
-                title: item.name,
+                title: SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates),
                 hash: key,
                 query: item.query,
                 shouldShowRightComponent: true,
