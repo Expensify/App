@@ -183,7 +183,6 @@ function WorkspaceReportFieldsPage({
         return (
             <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 <Button
-                    medium
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                     icon={Expensicons.Plus}
