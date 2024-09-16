@@ -199,6 +199,8 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
+    ANIMATION_PAY_BUTTON_DURATION: 200,
+    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -2218,6 +2220,7 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
+            MAKE_AUDITOR: 'makeAuditor',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -2350,6 +2353,8 @@ const CONST = {
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
                 NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
+                NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
+                NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
@@ -2498,6 +2503,90 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
+        EXPORT_CARD_TYPES: {
+            /**
+             * Name of Card NVP for QBO custom export accounts
+             */
+            NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT: 'quickbooks_online_export_account',
+            NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT: 'quickbooks_online_export_account_debit',
+
+            /**
+             * Name of Card NVP for NetSuite custom export accounts
+             */
+            NVP_NETSUITE_EXPORT_ACCOUNT: 'netsuite_export_payable_account',
+
+            /**
+             * Name of Card NVP for NetSuite custom vendors
+             */
+            NVP_NETSUITE_EXPORT_VENDOR: 'netsuite_export_vendor',
+
+            /**
+             * Name of Card NVP for Xero custom export accounts
+             */
+            NVP_XERO_EXPORT_BANK_ACCOUNT: 'xero_export_bank_account',
+
+            /**
+             * Name of Card NVP for Intacct custom export accounts
+             */
+            NVP_INTACCT_EXPORT_CHARGE_CARD: 'intacct_export_charge_card',
+
+            /**
+             * Name of card NVP for Intacct custom vendors
+             */
+            NVP_INTACCT_EXPORT_VENDOR: 'intacct_export_vendor',
+
+            /**
+             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             */
+            NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT: 'quickbooks_desktop_export_account_credit',
+
+            /**
+             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             */
+            NVP_FINANCIALFORCE_EXPORT_VENDOR: 'financialforce_export_vendor',
+        },
+        EXPORT_CARD_POLICY_TYPES: {
+            /**
+             * Name of Card NVP for QBO custom export accounts
+             */
+            NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_POLICY_ID: 'quickbooks_online_export_account_policy_id',
+            NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT_POLICY_ID: 'quickbooks_online_export_account_debit_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom export accounts
+             */
+            NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID: 'netsuite_export_payable_account_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom vendors
+             */
+            NVP_NETSUITE_EXPORT_VENDOR_POLICY_ID: 'netsuite_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Xero custom export accounts
+             */
+            NVP_XERO_EXPORT_BANK_ACCOUNT_POLICY_ID: 'xero_export_bank_account_policy_id',
+
+            /**
+             * Name of Card NVP for Intacct custom export accounts
+             */
+            NVP_INTACCT_EXPORT_CHARGE_CARD_POLICY_ID: 'intacct_export_charge_card_policy_id',
+
+            /**
+             * Name of card NVP for Intacct custom vendors
+             */
+            NVP_INTACCT_EXPORT_VENDOR_POLICY_ID: 'intacct_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             */
+            NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT_POLICY_ID: 'quickbooks_desktop_export_account_credit_policy_id',
+
+            /**
+             * Name of Card NVP for QuickBooks Desktop custom export accounts
+             */
+            NVP_FINANCIALFORCE_EXPORT_VENDOR_POLICY_ID: 'financialforce_export_vendor_policy_id',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2554,10 +2643,8 @@ const CONST = {
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
-
         EMPTY_COMMENT: /^(\s)*$/,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
-
         FIRST_SPACE: /.+?(?=\s)/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
@@ -2575,33 +2662,24 @@ const CONST = {
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
-
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
             REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
         },
-
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
-
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
-
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
-
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
-
         PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
-
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
-
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
-
         REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+        DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
             return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
