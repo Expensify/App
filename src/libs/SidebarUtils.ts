@@ -234,6 +234,7 @@ function getOrderedReportIDs(
  */
 function getOptionData({
     report,
+    iouReport,
     reportActions,
     personalDetails,
     preferredLocale,
@@ -245,6 +246,7 @@ function getOptionData({
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
+    iouReport: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
@@ -389,7 +391,7 @@ function getOptionData({
 
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
+        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, iouReport, lastActorDetails, policy);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.

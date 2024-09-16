@@ -588,7 +588,7 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
+function getLastMessageTextForReport(report: OnyxEntry<Report>, iouReport: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const reportID = report?.reportID ?? '-1';
     const lastReportAction = lastVisibleReportActions[reportID] ?? null;
 
@@ -623,15 +623,15 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '-1']?.find(
+        const iouReportValue = iouReport ?? ReportUtils.getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        const lastIOUMoneyReportAction = allSortedReportActions[iouReportValue?.reportID ?? '-1']?.find(
             (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
         const reportPreviewMessage = ReportUtils.getReportPreviewMessage(
-            !isEmptyObject(iouReport) ? iouReport : null,
+            !isEmptyObject(iouReportValue) ? iouReportValue : null,
             lastIOUMoneyReportAction,
             true,
             ReportUtils.isChatReport(report),
@@ -766,7 +766,7 @@ function createOption(
 
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? -1] ?? null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, undefined, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = lastVisibleReportActions[report.reportID];

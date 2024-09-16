@@ -132,6 +132,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const iouReportIDOfLastAction = OptionsListUtils.getIOUReportIDOfLastAction(itemFullReport);
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
+            const itemIouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportIDOfLastAction}`];
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
             const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)
@@ -162,7 +163,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy);
+            const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(itemFullReport, itemIouReport, lastActorDetails, itemPolicy);
 
             return (
                 <OptionRowLHNData
@@ -171,6 +172,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     iouReportReportActions={itemIouReportReportActions}
+                    iouReport={itemIouReport}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
