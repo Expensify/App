@@ -24,10 +24,6 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
-}
-
 function canUseCompanyCardFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMPANY_CARD_FEEDS) || canUseAllBetas(betas);
 }
@@ -62,7 +58,6 @@ export default {
     canUseDupeDetection,
     canUseP2PDistanceRequests,
     canUseSpotnanaTravel,
-    canUseWorkspaceFeeds,
     canUseCompanyCardFeeds,
     canUseNetSuiteUSATax,
     canUseNewDotCopilot,
