@@ -47,6 +47,7 @@ describe('PersistedRequests', () => {
     });
 
     it('when onyx persist the request, it should remove from the list the ongoing request', () => {
+        expect(PersistedRequests.getAll().length).toBe(1);
         const request2: Request = {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],

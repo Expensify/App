@@ -214,6 +214,8 @@ function push(newRequest: OnyxRequest) {
             PersistedRequests.save(newRequest);
         } else if (conflictAction.type === 'replace') {
             PersistedRequests.update(conflictAction.index, newRequest);
+        } else {
+            Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
         }
     } else {
         // Add request to Persisted Requests so that it can be retried if it fails

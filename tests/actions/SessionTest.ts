@@ -7,6 +7,7 @@ import HttpUtils from '@libs/HttpUtils';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribePushNotification';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
@@ -105,4 +106,41 @@ describe('Session', () => {
         TestHelper.signInWithTestUser()
             .then(TestHelper.signOutTestUser)
             .then(() => expect(PushNotification.deregister).toBeCalled()));
+
+    test('ReconnectApp should push request to the queue', () => {
+        return TestHelper.signInWithTestUser()
+            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
+            .then(() => {
+                App.confirmReadyToOpenApp();
+                App.reconnectApp();
+            })
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                expect(PersistedRequests.getAll().length).toBe(1);
+                Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+            })
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                expect(PersistedRequests.getAll().length).toBe(0);
+            });
+    });
+    test('ReconnectApp should replace same requests from the queue', () => {
+        return TestHelper.signInWithTestUser()
+            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
+            .then(() => {
+                App.confirmReadyToOpenApp();
+                App.reconnectApp();
+                App.reconnectApp();
+                App.reconnectApp();
+                App.reconnectApp();
+            })
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                expect(PersistedRequests.getAll().length).toBe(1);
+            })
+            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => {
+                expect(PersistedRequests.getAll().length).toBe(0);
+            });
+    });
 });
