@@ -61,7 +61,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
         [translate],
     );
 
-    const hasbankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -90,7 +90,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
                 defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
-                shouldUseDefaultValue={hasbankAccountData}
+                shouldUseDefaultValue={hasBankAccountData}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -102,7 +102,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
                 defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
-                shouldUseDefaultValue={hasbankAccountData}
+                shouldUseDefaultValue={hasBankAccountData}
             />
         </FormProvider>
     );
