@@ -91,3 +91,5 @@ When invoicing is disabled, all previously created invoice rooms and historical 
 We can only accept a private domain website to ensure the security of your business. If you receive an error when entering your website, it is likely because the domain is not recognized as private. Make sure you are using a business email with a private domain. If you continue to experience issues, contact our support team at concierge@expensify.com for further assistance.
 
 {% include faq-end.md %}
+
+</div>
