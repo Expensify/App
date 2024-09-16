@@ -1,15 +1,15 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import BaseTextInput from '@components/TextInput/BaseTextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
+    isFullWidth: boolean;
     onSearch: (searchTerm: string) => void;
 };
 
-function SearchRouterInput({onSearch}: SearchRouterInputProps) {
+function SearchRouterInput({isFullWidth, onSearch}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
     const [value, setValue] = useState('');
@@ -19,17 +19,17 @@ function SearchRouterInput({onSearch}: SearchRouterInputProps) {
         onSearch(text);
     };
 
+    const modalWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
+
     return (
-        <View style={[]}>
-            <BaseTextInput
-                value={value}
-                onChangeText={onChangeText}
-                hideFocusedState
-                textInputContainerStyles={[{borderBottomWidth: 0, width: variables.popoverWidth}]}
-                inputStyle={[styles.searchInputStyle, styles.searchRouterInputStyle, styles.ph2]}
-                role={CONST.ROLE.PRESENTATION}
-            />
-        </View>
+        <BaseTextInput
+            value={value}
+            onChangeText={onChangeText}
+            autoFocus
+            textInputContainerStyles={[{borderBottomWidth: 0}, modalWidth]}
+            inputStyle={[styles.searchInputStyle, styles.searchRouterInputStyle, styles.ph2]}
+            role={CONST.ROLE.PRESENTATION}
+        />
     );
 }
 

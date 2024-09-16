@@ -308,7 +308,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             icon={headerIcon}
             subtitleStyles={subtitleStyles}
         >
-            <SearchButton />
             {headerButtonsOptions.length > 0 ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
