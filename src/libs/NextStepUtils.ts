@@ -196,14 +196,14 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'asdasdsa',
+                        text: nextApproverDisplayName,
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'approve ee',
+                        text: 'approve',
                     },
                     {
                         text: ' %expenses.',
