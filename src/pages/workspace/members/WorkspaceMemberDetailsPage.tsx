@@ -103,14 +103,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
                 isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.ADMIN,
             },
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
-                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
             },
         ],
         [member?.role, translate],
@@ -256,7 +265,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                        title={translate(`workspace.common.roleName`, member?.role)}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}
