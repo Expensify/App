@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {createRef, useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -20,6 +20,7 @@ import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -58,6 +59,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [shouldHideSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, {initialValue: true});
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
+    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
+    const threeDotsMenuContainerRef = useRef({});
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -98,6 +101,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+            if (!threeDotsMenuContainerRef.current?.[key]) {
+                threeDotsMenuContainerRef.current = {...threeDotsMenuContainerRef.current, [key]: createRef()};
+            }
+
             const baseMenuItem: SavedSearchMenuItem = {
                 key,
                 title: item.name,
@@ -110,14 +117,24 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
                 },
                 rightComponent: (
-                    <ThreeDotsMenu
-                        menuItems={getOverflowMenu(item.name, Number(key), item.query)}
-                        anchorPosition={{horizontal: 0, vertical: 380}}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                        }}
-                    />
+                    <View ref={threeDotsMenuContainerRef?.current?.[key]}>
+                        <ThreeDotsMenu
+                            onIconPress={() => {
+                                threeDotsMenuContainerRef.current[key].current?.measureInWindow((x, y, width, height) => {
+                                    setThreeDotsMenuPosition({
+                                        horizontal: x + width,
+                                        vertical: y + height,
+                                    });
+                                });
+                            }}
+                            menuItems={getOverflowMenu(item.name, Number(key), item.query)}
+                            anchorPosition={threeDotsMenuPosition}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                        />
+                    </View>
                 ),
                 styles: [styles.alignItemsCenter],
             };
