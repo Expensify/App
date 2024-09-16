@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import React, {useEffect, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -54,7 +54,7 @@ type AccessOrNotFoundWrapperOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
+type AccessOrNotFoundWrapperProps = {
     /** The children to render */
     children: ((props: AccessOrNotFoundWrapperOnyxProps) => React.ReactNode) | React.ReactNode;
 
@@ -103,12 +103,15 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
 }
 
 function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
-    const {policy, policyID, report, iouType, allPolicies, featureName, isLoadingReportData} = props;
+    const {policyID, reportID, iouType, allPolicies, featureName} = props;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
-    const pendingField = featureName ? props.policy?.pendingFields?.[featureName] : undefined;
+    const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -160,19 +163,9 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         );
     }
 
-    return callOrReturn(props.children, props);
+    return callOrReturn(props.children, {report, policy, isLoadingReportData});
 }
 
 export type {AccessVariant};
 
-export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOnyxProps>({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    isLoadingReportData: {
-        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    },
-})(AccessOrNotFoundWrapper);
+export default AccessOrNotFoundWrapper;
