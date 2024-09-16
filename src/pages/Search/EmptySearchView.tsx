@@ -24,6 +24,10 @@ type EmptySearchViewProps = {
     type: SearchDataTypes;
 };
 
+type TripsFeaturesProps = FeatureListItem & {
+    title: string;
+};
+
 function EmptySearchView({type}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -33,14 +37,16 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const subtitleComponent = useMemo(() => {
-        const tripsFeatures: FeatureListItem[] = [
+        const tripsFeatures: TripsFeaturesProps[] = [
             {
                 icon: Illustrations.PiggyBank,
                 translationKey: 'travel.features.saveMoney',
+                title: translate('travel.features.saveMoney'),
             },
             {
                 icon: Illustrations.Alert,
                 translationKey: 'travel.features.alerts',
+                title: translate('travel.features.alerts'),
             },
         ];
 
@@ -58,14 +64,14 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     {translate('travel.toLearnMore')}
                 </Text>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
-                    {tripsFeatures.map(({translationKey, icon}) => (
+                    {tripsFeatures.map((tripsFeature) => (
                         <View
-                            key={translationKey}
+                            key={tripsFeature.translationKey}
                             style={styles.w100}
                         >
                             <MenuItem
-                                title={translate(translationKey)}
-                                icon={icon}
+                                title={tripsFeature.title}
+                                icon={tripsFeature.icon}
                                 iconWidth={variables.menuIconSize}
                                 iconHeight={variables.menuIconSize}
                                 interactive={false}
