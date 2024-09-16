@@ -82,6 +82,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
     const companyCards = CardUtils.getMemberCards(policy, allCardsList, accountID);
 
+    // TODO: for now enabled for testing purposes. Change this to check for the actual multiple feeds when API is ready
     const hasMultipleFeeds = policy?.areCompanyCardsEnabled;
 
     const memberCards = useMemo(() => {
@@ -291,7 +292,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onRoleChange={changeRole}
                                         onClose={() => setIsRoleSelectionModalVisible(false)}
                                     />
-                                    {policy?.areExpensifyCardsEnabled && (
+                                    {(policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && (
                                         <>
                                             <View style={[styles.ph5, styles.pv3]}>
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
