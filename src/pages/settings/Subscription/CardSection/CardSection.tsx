@@ -180,7 +180,6 @@ function CardSection() {
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
                         onPress={viewPurchases}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
 
