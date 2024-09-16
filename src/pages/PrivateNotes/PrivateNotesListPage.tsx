@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,10 +39,9 @@ type NoteListItem = {
     accountID: string;
 };
 
-function PrivateNotesListPage({report, personalDetailsList}: PrivateNotesListPageProps) {
+function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
 
     /**
