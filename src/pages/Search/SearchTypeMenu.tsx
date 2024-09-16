@@ -158,6 +158,29 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         return baseMenuItem;
     };
 
+    const route = useRoute();
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    useLayoutEffect(() => {
+        const scrollOffset = getScrollOffset(route);
+        if (!scrollOffset || !scrollViewRef.current) {
+            return;
+        }
+        scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
+    }, [getScrollOffset, route]);
+
     const savedSearchesMenuItems = () => {
         if (!savedSearches) {
             return [];
@@ -198,29 +221,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             />
         );
     }
-
-    const route = useRoute();
-    const scrollViewRef = useRef<RNScrollView>(null);
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
-    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
-        (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
-            // We should ignore this case.
-            if (e.nativeEvent.layoutMeasurement.height === 0) {
-                return;
-            }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [route, saveScrollOffset],
-    );
-
-    useLayoutEffect(() => {
-        const scrollOffset = getScrollOffset(route);
-        if (!scrollOffset || !scrollViewRef.current) {
-            return;
-        }
-        scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
-    }, [getScrollOffset, route]);
 
     return (
         <>
