@@ -337,6 +337,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     onPress={() =>
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
                     }
+                    brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={getErrorForField('customUnitRateID')}
                 />
             </OfflineWithFeedback>
         </>
