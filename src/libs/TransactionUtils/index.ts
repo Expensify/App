@@ -19,6 +19,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -199,6 +200,10 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
+}
+
+function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
+    return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
@@ -424,6 +429,9 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
+/**
+ * Return the list of modified attendees if present otherwise list of attendees
+ */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
     return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
 }
@@ -1172,6 +1180,7 @@ export {
     removeSettledAndApprovedTransactions,
     getCardName,
     hasReceiptSource,
+    shouldShowAttendees,
 };
 
 export type {TransactionChanges};
