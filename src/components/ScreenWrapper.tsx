@@ -22,6 +22,7 @@ import CustomDevMenu from './CustomDevMenu';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
+import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -285,12 +286,22 @@ function ScreenWrapper(
                                                       })
                                                     : children
                                             }
-                                            {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                            {isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                                <>
+                                                    <OfflineIndicator style={offlineIndicatorStyle} />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                    <ImportedStateIndicator />
+                                                </>
+                                            )}
                                             {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
-                                                <OfflineIndicator
-                                                    containerStyles={[]}
-                                                    style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
-                                                />
+                                                <>
+                                                    <OfflineIndicator
+                                                        containerStyles={[]}
+                                                        style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                                    />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                    <ImportedStateIndicator />
+                                                </>
                                             )}
                                         </ScreenWrapperStatusContext.Provider>
                                     </PickerAvoidingView>

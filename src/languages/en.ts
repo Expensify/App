@@ -1096,6 +1096,7 @@ export default {
             importOnyxState: 'Import Onyx state',
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset to original state',
+            usingImportedState: 'You are using imported state. Press here to clear it.',
         },
         debugConsole: {
             saveLog: 'Save log',

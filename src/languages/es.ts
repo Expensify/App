@@ -1100,6 +1100,7 @@ export default {
             importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
             resetToOriginalState: 'Restablecer al estado original',
+            usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

@@ -13,6 +13,7 @@ import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -82,6 +83,9 @@ type ReportActionComposeOnyxProps = {
 
     /** Whether the composer input should be shown */
     shouldShowComposeInput: OnyxEntry<boolean>;
+
+    /** Whether user is currently using the imported state */
+    isUsingImportedState: OnyxEntry<boolean>;
 };
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
@@ -137,6 +141,7 @@ function ReportActionCompose({
     shouldShowEducationalTooltip,
     onComposerFocus,
     onComposerBlur,
+    isUsingImportedState,
 }: ReportActionComposeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -577,6 +582,11 @@ function ReportActionCompose({
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
                 </OfflineWithFeedback>
+                {isUsingImportedState && !isSmallScreenWidth && (
+                    <View style={[styles.mln5, styles.mrn5]}>
+                        <ImportedStateIndicator />
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -591,6 +601,9 @@ export default withCurrentUserPersonalDetails(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        isUsingImportedState: {
+            key: ONYXKEYS.IS_USING_IMPORTED_STATE,
         },
     })(memo(ReportActionCompose)),
 );

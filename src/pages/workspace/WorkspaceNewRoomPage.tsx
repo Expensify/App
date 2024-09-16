@@ -10,6 +10,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
@@ -242,7 +243,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
             />
-            {isSmallScreenWidth && <OfflineIndicator />}
+            {isSmallScreenWidth && (
+                <>
+                    <OfflineIndicator />
+                    <ImportedStateIndicator />
+                </>
+            )}
         </>
     );
 
@@ -336,7 +342,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 />
                             </View>
                         </FormProvider>
-                        {isSmallScreenWidth && <OfflineIndicator />}
+                        {isSmallScreenWidth && (
+                            <>
+                                <OfflineIndicator />
+                                <ImportedStateIndicator />
+                            </>
+                        )}
                     </KeyboardAvoidingView>
                 )
             }

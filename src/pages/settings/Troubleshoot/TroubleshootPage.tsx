@@ -30,6 +30,7 @@ import {setShouldForceOffline} from '@libs/actions/Network';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
+import {clearOnyxAndResetApp} from '@userActions/App';
 import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -167,13 +168,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState, isUsingImported
                                 isVisible={isConfirmationModalVisible}
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
-                                    Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
-                                        // If using imported state, we should stop forcing offline mode so that the app can re-fetch the network
-                                        if (isUsingImportedState) {
-                                            setShouldForceOffline(false);
-                                        }
-                                        App.openApp();
-                                    });
+                                    clearOnyxAndResetApp();
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}
                                 prompt={translate('initialSettingsPage.troubleshoot.confirmResetDescription')}
