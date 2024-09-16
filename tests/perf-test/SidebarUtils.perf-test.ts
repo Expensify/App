@@ -102,6 +102,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                iouReport: undefined,
                 reportActions,
                 personalDetails,
                 preferredLocale,
