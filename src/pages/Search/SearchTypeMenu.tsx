@@ -203,7 +203,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 />
             </View>
         ),
-        [styles, translate],
+        [styles],
     );
 
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
