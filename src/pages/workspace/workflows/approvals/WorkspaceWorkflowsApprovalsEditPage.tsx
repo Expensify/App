@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -46,8 +47,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // We need to remove members and approvers that are no longer in the updated workflow
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
-        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove);
+        const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
+        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
         Navigation.dismissModal();
     }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
@@ -56,10 +59,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        // Remove the approval workflow using the initial data as it could be already edited
-        Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            // Remove the approval workflow using the initial data as it could be already edited
+            Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
+        });
     }, [initialApprovalWorkflow, route.params.policyID]);
 
     const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {

@@ -2,12 +2,12 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
-import {getSortedTagKeys} from '@libs/PolicyUtils';
+import {getCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
@@ -165,9 +165,8 @@ const ViolationsUtils = {
     getViolationsOnyxData(
         updatedTransaction: Transaction,
         transactionViolations: TransactionViolation[],
-        policyRequiresTags: boolean,
+        policy: Policy,
         policyTagList: PolicyTagLists,
-        policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
         hasDependentTags: boolean,
     ): OnyxUpdate {
@@ -183,6 +182,7 @@ const ViolationsUtils = {
         let newTransactionViolations = [...transactionViolations];
 
         // Calculate client-side category violations
+        const policyRequiresCategories = !!policy.requiresCategory;
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
@@ -211,11 +211,16 @@ const ViolationsUtils = {
         }
 
         // Calculate client-side tag violations
+        const policyRequiresTags = !!policy.requiresTag;
         if (policyRequiresTags) {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
                     ? getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList)
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
+        }
+
+        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
         }
 
         return {

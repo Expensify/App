@@ -95,6 +95,10 @@ type ReportArchiveReasonsPolicyDeletedParams = {
     policyName: string;
 };
 
+type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
+    policyName: string;
+};
+
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
@@ -103,7 +107,6 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
-    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
@@ -204,13 +207,13 @@ type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: strin
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
-type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+type SetTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; newAmountToDisplay: string};
 
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
-type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
@@ -316,6 +319,8 @@ type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
+type AccountOwnerParams = {accountOwnerEmail: string};
+
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type IntegrationsMessageParams = {
@@ -359,6 +364,11 @@ type IssueVirtualCardParams = {
 type ApprovalWorkflowErrorParams = {
     name1: string;
     name2: string;
+};
+
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
 };
 
 export type {
@@ -419,6 +429,7 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
@@ -426,7 +437,7 @@ export type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
@@ -443,7 +454,7 @@ export type {
     TranslationFlatObject,
     TranslationPaths,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -475,6 +486,7 @@ export type {
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
+    AccountOwnerParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
@@ -485,4 +497,5 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
+    AssignCardParams,
 };
