@@ -6723,7 +6723,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -11505,20 +11505,48 @@ const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
 async function run() {
     try {
         const inputTag = core.getInput('TAG', { required: true });
-        const isProductionDeploy = (0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
+        const isProductionDeploy = !!(0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+        let priorTag;
+        let foundCurrentRelease = false;
+        await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.repos.listReleases, {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            workflow_id: 'platformDeploy.yml',
-            status: 'completed',
-            event: isProductionDeploy ? 'release' : 'push',
-        })).data.workflow_runs;
-        const priorTag = completedDeploys[0].head_branch;
+            per_page: 100,
+        }, ({ data }, done) => {
+            // For production deploys, look only at other production deploys.
+            // staging deploys can be compared with other staging deploys or production deploys.
+            // The reason is that the final staging release in each deploy cycle will BECOME a production release
+            const filteredData = isProductionDeploy ? data.filter((release) => !release.prerelease) : data;
+            // Release was in the last page, meaning the previous release is the first item in this page
+            if (foundCurrentRelease) {
+                priorTag = data.at(0)?.tag_name;
+                done();
+                return filteredData;
+            }
+            // Search for the index of input tag
+            const indexOfCurrentRelease = filteredData.findIndex((release) => release.tag_name === inputTag);
+            // If it happens to be at the end of this page, then the previous tag will be in the next page.
+            // Set a flag showing we found it so we grab the first release of the next page
+            if (indexOfCurrentRelease === filteredData.length - 1) {
+                foundCurrentRelease = true;
+                return filteredData;
+            }
+            // If it's anywhere else in this page, the the prior release is the next item in the page
+            if (indexOfCurrentRelease >= 0) {
+                priorTag = filteredData.at(indexOfCurrentRelease + 1)?.tag_name;
+                done();
+            }
+            // Release not in this page (or we're done)
+            return filteredData;
+        });
+        if (!priorTag) {
+            throw new Error('Something went wrong and the prior tag could not be found.');
+        }
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
+        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     }
@@ -11616,7 +11644,22 @@ const CONST = {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
+    ACTIONS: {
+        CREATED: 'created',
+        EDIT: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    OPENAI_ROLES: {
+        USER: 'user',
+        ASSISTANT: 'assistant',
+    },
+    PROPOSAL_KEYWORD: 'Proposal',
+    OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -11624,6 +11667,9 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    NO_ACTION: 'NO_ACTION',
+    OPENAI_POLL_RATE: 1500,
+    OPENAI_POLL_TIMEOUT: 90000,
 };
 exports["default"] = CONST;
 
@@ -11665,7 +11711,66 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
-const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
+const VersionUpdater = __importStar(__nccwpck_require__(8982));
+/**
+ * Check if a tag exists locally or in the remote.
+ */
+function tagExists(tag) {
+    try {
+        // Check if the tag exists locally
+        (0, child_process_1.execSync)(`git show-ref --tags ${tag}`, { stdio: 'ignore' });
+        return true; // Tag exists locally
+    }
+    catch (error) {
+        // Tag does not exist locally, check in remote
+        let shouldRetry = true;
+        let needsRepack = false;
+        let doesTagExist = false;
+        while (shouldRetry) {
+            try {
+                if (needsRepack) {
+                    // We have seen some scenarios where this fixes the git fetch.
+                    // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                    (0, child_process_1.execSync)('git repack -d', { stdio: 'inherit' });
+                }
+                (0, child_process_1.execSync)(`git ls-remote --exit-code --tags origin ${tag}`, { stdio: 'ignore' });
+                doesTagExist = true;
+                shouldRetry = false;
+            }
+            catch (e) {
+                if (!needsRepack) {
+                    console.log('Attempting to repack and retry...');
+                    needsRepack = true;
+                }
+                else {
+                    console.error("Repack didn't help, giving up...");
+                    shouldRetry = false;
+                }
+            }
+        }
+        return doesTagExist;
+    }
+}
+/**
+ * This essentially just calls getPreviousVersion in a loop, until it finds a version for which a tag exists.
+ * It's useful if we manually perform a version bump, because in that case a tag may not exist for the previous version.
+ *
+ * @param tag the current tag
+ * @param level the Semver level to step backward by
+ */
+function getPreviousExistingTag(tag, level) {
+    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let tagExistsForPreviousVersion = false;
+    while (!tagExistsForPreviousVersion) {
+        if (tagExists(previousVersion)) {
+            tagExistsForPreviousVersion = true;
+            break;
+        }
+        console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
+        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+    }
+    return previousVersion;
+}
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
@@ -11708,8 +11813,8 @@ function fetchTag(tag, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
@@ -11730,6 +11835,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
+                console.log('code: ', code);
                 return reject(new Error(`${stderr}`));
             }
             resolve(stdout);
@@ -11781,6 +11887,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
     return pullRequestNumbers;
 }
 exports["default"] = {
+    getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsMergedBetween,
 };
@@ -11831,13 +11938,11 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
-     * Initialize internal octokit
-     *
-     * @private
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
      */
-    static initOctokit() {
+    static initOctokitWithToken(token) {
         const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
-        const token = core.getInput('GITHUB_TOKEN', { required: true });
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {
@@ -11856,6 +11961,15 @@ class GithubUtils {
                 },
             },
         }));
+    }
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = core.getInput('GITHUB_TOKEN', { required: true });
+        this.initOctokitWithToken(token);
     }
     /**
      * Either give an existing instance of Octokit rest or create a new one
@@ -12152,12 +12266,6 @@ class GithubUtils {
             .then((response) => response.data.workflow_runs[0]?.id);
     }
     /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
-    }
-    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
@@ -12212,12 +12320,31 @@ class GithubUtils {
             .then((events) => events.filter((event) => event.event === 'closed'))
             .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
-    static getArtifactByName(artefactName) {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName) {
+        return this.octokit.actions
+            .listArtifactsForRepo({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            per_page: 100,
-        }).then((artifacts) => artifacts.find((artifact) => artifact.name === artefactName));
+            per_page: 1,
+            name: artifactName,
+        })
+            .then((response) => response.data.artifacts[0]);
+    }
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId) {
+        return this.octokit.actions
+            .downloadArtifact({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            artifact_id: artifactId,
+            archive_format: 'zip',
+        })
+            .then((response) => response.url);
     }
 }
 exports["default"] = GithubUtils;
@@ -12264,7 +12391,7 @@ exports["default"] = sanitizeStringForJSONParse;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
@@ -12274,6 +12401,10 @@ const SEMANTIC_VERSION_LEVELS = {
 exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
 const MAX_INCREMENTS = 99;
 exports.MAX_INCREMENTS = MAX_INCREMENTS;
+function isValidSemverLevel(str) {
+    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
+}
+exports.isValidSemverLevel = isValidSemverLevel;
 /**
  * Transforms a versions string into a number
  */
@@ -12392,14 +12523,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12421,6 +12544,14 @@ module.exports = require("child_process");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 

@@ -14,6 +14,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TimezoneInitialPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -23,6 +24,8 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
 
     const {translate} = useLocalize();
 
+    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
+
     /**
      * Updates setting for automatic timezone selection.
      * Note: If we are updating automatically, we'll immediately calculate the user's timezone.
@@ -30,7 +33,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const updateAutomaticTimezone = (isAutomatic: boolean) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
-            selected: isAutomatic ? (Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone) : timezone.selected,
+            selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
         });
     };
 

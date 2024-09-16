@@ -40,9 +40,9 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
 
         if (values[dobInputID]) {
             if (!ValidationUtils.isValidPastDate(values[dobInputID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[dobInputID])) {
-                errors[dobInputID] = 'bankAccount.error.dob';
+                errors[dobInputID] = translate('bankAccount.error.dob');
             } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[dobInputID])) {
-                errors[dobInputID] = 'bankAccount.error.age';
+                errors[dobInputID] = translate('bankAccount.error.age');
             }
         }
 
@@ -62,11 +62,10 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
-            {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
-            <InputWrapper<unknown>
+            <InputWrapper
                 InputComponent={DatePicker}
                 inputID={dobInputID}
                 label={translate('common.dob')}

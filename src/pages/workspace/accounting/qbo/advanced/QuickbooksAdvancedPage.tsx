@@ -1,177 +1,197 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
+const reimbursementOrCollectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
+const collectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
+
+function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errorFields} = qboConfig ?? {};
-    const isSyncReimbursedSwitchOn = !!collectionAccountID;
-    const selectedAccount = '92345'; // TODO: use fake selected account temporarily.
+    const {bankAccounts, creditCards, otherCurrentAssetAccounts, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
 
-    const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
+    const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
+    const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+
+    const isSyncReimbursedSwitchOn = !!qboConfig?.collectionAccountID;
+
+    const reimbursementAccountID = qboConfig?.reimbursementAccountID;
+    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
+    const collectionAccountID = qboConfig?.collectionAccountID;
+
+    const selectedInvoiceCollectionAccountName = useMemo(
+        () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
+        [invoiceAccountCollectionOptions, collectionAccountID],
+    );
+
+    const sectionMenuItems = [
         {
-            title: translate('workspace.qbo.advancedConfig.autoSync'),
+            title: selectedQboAccountName,
+            description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount'),
+            onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
+            subscribedSettings: reimbursementOrCollectionAccountIDs,
+            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(reimbursementOrCollectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: PolicyUtils.settingsPendingAction(reimbursementOrCollectionAccountIDs, qboConfig?.pendingFields),
+        },
+        {
+            title: selectedInvoiceCollectionAccountName,
+            description: translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount'),
+            onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID))),
+            subscribedSettings: collectionAccountIDs,
+            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(collectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: PolicyUtils.settingsPendingAction(collectionAccountIDs, qboConfig?.pendingFields),
+        },
+    ];
+
+    const syncReimbursedSubMenuItems = () => (
+        <View style={[styles.mt3]}>
+            {sectionMenuItems.map((item) => (
+                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        title={item.title}
+                        description={item.description}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        onPress={item.onPress}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                    />
+                </OfflineWithFeedback>
+            ))}
+        </View>
+    );
+
+    const qboToggleSettingItems = [
+        {
+            title: translate('workspace.accounting.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: Boolean(autoSync?.enabled),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
+            isActive: !!qboConfig?.autoSync?.enabled,
             onToggle: () =>
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
-                    enabled: !autoSync?.enabled,
-                }),
-            pendingAction: pendingFields?.autoSync,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC),
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
+                    {
+                        enabled: !qboConfig?.autoSync?.enabled,
+                    },
+                    {
+                        enabled: qboConfig?.autoSync?.enabled,
+                    },
+                ),
+            subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLED),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLED], qboConfig?.pendingFields),
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
-            isActive: Boolean(syncPeople),
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
-            pendingAction: pendingFields?.syncPeople,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
+            isActive: !!qboConfig?.syncPeople,
+            onToggle: () =>
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE, !qboConfig?.syncPeople, qboConfig?.syncPeople),
+            subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE], qboConfig?.pendingFields),
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
-            isActive: Boolean(autoCreateVendor),
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
-            pendingAction: pendingFields?.autoCreateVendor,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
+            isActive: !!qboConfig?.autoCreateVendor,
+            onToggle: (isOn: boolean) => {
+                const nonReimbursableVendorUpdateValue = isOn
+                    ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                    : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+                const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+
+                QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(
+                    policyID,
+                    {
+                        [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
+                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorUpdateValue,
+                    },
+                    {
+                        [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: !!qboConfig?.autoCreateVendor,
+                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorCurrentValue,
+                    },
+                );
+            },
+            subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR], qboConfig?.pendingFields),
+        },
+        {
+            title: translate('workspace.accounting.reimbursedReports'),
+            subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
+            isActive: isSyncReimbursedSwitchOn,
+            onToggle: () =>
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
+                    qboConfig?.collectionAccountID,
+                ),
+            subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields),
         },
     ];
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={QuickbooksAdvancedPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
-
-                        <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                            {qboToggleSettingItems.map((item) => (
-                                <ToggleSettingOptionRow
-                                    key={item.title}
-                                    errors={item.errors}
-                                    onCloseError={item.onCloseError}
-                                    title={item.title}
-                                    subtitle={item.subtitle}
-                                    shouldPlaceSubtitleBelowSwitch
-                                    wrapperStyle={styles.mv3}
-                                    isActive={item.isActive}
-                                    onToggle={item.onToggle}
-                                    pendingAction={item.pendingAction}
-                                />
-                            ))}
-
-                            <View style={styles.mv3}>
-                                <SpacerView
-                                    shouldShow
-                                    style={[styles.chatItemComposeBoxColor]}
-                                />
-                            </View>
-
-                            <ToggleSettingOptionRow
-                                title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
-                                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
-                                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
-                                subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
-                                shouldPlaceSubtitleBelowSwitch
-                                wrapperStyle={styles.mv3}
-                                pendingAction={pendingFields?.collectionAccountID}
-                                isActive={isSyncReimbursedSwitchOn}
-                                onToggle={() =>
-                                    Connections.updatePolicyConnectionConfig(
-                                        policyID,
-                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                        CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                                        isSyncReimbursedSwitchOn ? '' : selectedAccount,
-                                    )
-                                }
-                            />
-
-                            {!!collectionAccountID && (
-                                <>
-                                    <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
-                                        <MenuItemWithTopDescription
-                                            shouldShowRightIcon
-                                            title="Croissant Co Payroll Account" // TODO: set to the current selected value
-                                            description={translate('workspace.qbo.advancedConfig.qboAccount')}
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
-                                            brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        />
-                                    </OfflineWithFeedback>
-
-                                    <View style={styles.mv3}>
-                                        <SpacerView
-                                            shouldShow
-                                            style={[styles.chatItemComposeBoxColor]}
-                                        />
-                                    </View>
-
-                                    <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
-                                        <MenuItem
-                                            title={translate('workspace.qbo.advancedConfig.collectionAccount')}
-                                            description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
-                                            shouldShowBasicTitle
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            interactive={false}
-                                        />
-                                        <MenuItemWithTopDescription
-                                            title="Croissant Co Money in Clearing" // TODO: set to the current selected value
-                                            shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
-                                            brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        />
-                                    </OfflineWithFeedback>
-                                </>
-                            )}
-                        </ScrollView>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <ConnectionLayout
+            displayName={QuickbooksAdvancedPage.displayName}
+            headerTitle="workspace.accounting.advanced"
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+        >
+            {qboToggleSettingItems.map((item) => (
+                <ToggleSettingOptionRow
+                    key={item.title}
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={styles.mv3}
+                    isActive={item.isActive}
+                    onToggle={item.onToggle}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    onCloseError={() => clearQBOErrorField(policyID, item.subscribedSetting)}
+                />
+            ))}
+            {isSyncReimbursedSwitchOn && syncReimbursedSubMenuItems()}
+        </ConnectionLayout>
     );
 }
 
 QuickbooksAdvancedPage.displayName = 'QuickbooksAdvancedPage';
 
-export default withPolicy(QuickbooksAdvancedPage);
+export default withPolicyConnections(QuickbooksAdvancedPage);

@@ -41,6 +41,11 @@ function title {
   printf "\n%s%s%s\n" "$TITLE" "$1" "$RESET"
 }
 
+# Function to clear the last printed line
+clear_last_line() {
+  echo -ne "\033[1A\033[K"
+}
+
 function assert_equal {
   if [[ "$1" != "$2" ]]; then
     error "Assertion failed: $1 is not equal to $2"
@@ -102,4 +107,18 @@ get_abs_path() {
     abs_path=${abs_path/#\/\//\/}
 
     echo "$abs_path"
+}
+
+# Function to read lines from standard input into an array using a temporary file.
+# This is a bash 3 polyfill for readarray.
+# Arguments:
+#   $1: Name of the array variable to store the lines
+# Usage:
+#   read_lines_into_array array_name
+read_lines_into_array() {
+  local array_name="$1"
+  local line
+  while IFS= read -r line || [ -n "$line" ]; do
+    eval "$array_name+=(\"$line\")"
+  done
 }

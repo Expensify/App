@@ -11,13 +11,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
@@ -72,6 +72,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
+        /** Whether to include safe area padding bottom or not */
+        includeSafeAreaPaddingBottom?: boolean;
+
+        /** Makes firstRender ref display loading page before isLoading is change to true */
+        showLoadingAsFirstRender?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
@@ -82,8 +88,17 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
+        /** Content to be added to the header */
+        headerContent?: ReactNode;
+
+        /** TestID of the component */
+        testID?: string;
+
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
+
+        /** Callback to be called when the back button is pressed */
+        onBackButtonPress?: () => void;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -103,30 +118,35 @@ function WorkspacePageWithSections({
     headerText,
     policy,
     policyDraft,
-    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     route,
     shouldUseScrollView = false,
-    shouldSkipVBBACall = false,
+    showLoadingAsFirstRender = true,
+    shouldSkipVBBACall = true,
     shouldShowBackButton = false,
     user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
+    includeSafeAreaPaddingBottom = false,
     shouldShowNonAdmin = false,
+    headerContent,
+    testID,
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
+    onBackButtonPress,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '';
+    const policyID = route.params?.policyID ?? '-1';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state ?? '';
+    const achState = reimbursementAccount?.achData?.state ?? '-1';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const firstRender = useRef(true);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
 
@@ -152,15 +172,15 @@ function WorkspacePageWithSections({
             (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) ||
             (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy))
         );
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin]);
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={WorkspacePageWithSections.displayName}
+            testID={testID ?? WorkspacePageWithSections.displayName}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
@@ -173,11 +193,13 @@ function WorkspacePageWithSections({
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
-                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
+                    onBackButtonPress={() => (onBackButtonPress ? onBackButtonPress() : Navigation.goBack(backButtonRoute))}
+                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
-                />
+                >
+                    {headerContent}
+                </HeaderWithBackButton>
                 {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (

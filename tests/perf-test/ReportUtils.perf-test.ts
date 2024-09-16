@@ -42,8 +42,10 @@ describe('ReportUtils', () => {
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+    });
 
-        Onyx.multiSet({
+    beforeEach(async () => {
+        await Onyx.multiSet({
             ...mockedPoliciesMap,
             ...mockedReportsMap,
         });
@@ -55,13 +57,17 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] findLastAccessedReport on 2k reports and policies', async () => {
         const ignoreDomainRooms = true;
-        const isFirstTimeNewExpensifyUser = true;
         const reports = getMockedReports(2000);
         const policies = getMockedPolicies(2000);
         const openOnAdminRoom = true;
 
+        await Onyx.multiSet({
+            [ONYXKEYS.COLLECTION.REPORT]: reports,
+            [ONYXKEYS.COLLECTION.POLICY]: policies,
+        });
+
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom));
+        await measureFunction(() => ReportUtils.findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
@@ -136,13 +142,13 @@ describe('ReportUtils', () => {
     test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
         const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
-        const isInGSDMode = true;
+        const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
         const policies = getMockedPolicies();
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInGSDMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
         );
     });
 
@@ -161,13 +167,6 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipants));
-    });
-
-    test('[ReportUtils] getWorkspaceAvatar on 1k policies', async () => {
-        const report = createRandomReport(1);
-
-        await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.getWorkspaceAvatar(report));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {

@@ -42,6 +42,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-text-label': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-text-label',
+                mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
                 mixedUAStyles: {whiteSpace: 'pre'},
@@ -77,8 +82,28 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
                 contentModel: HTMLContentModel.textual,
             }),
+            blockquote: HTMLElementModel.fromCustomModel({
+                tagName: 'blockquote',
+                contentModel: HTMLContentModel.block,
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.isemojisonly === undefined) {
+                        return;
+                    }
+                    return styles.onlyEmojisTextLineHeight;
+                },
+            }),
         }),
-        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough],
+        [
+            styles.formError,
+            styles.mb0,
+            styles.colorMuted,
+            styles.textLabelSupporting,
+            styles.lh16,
+            styles.textSupporting,
+            styles.textLineThrough,
+            styles.mutedNormalTextLabel,
+            styles.onlyEmojisTextLineHeight,
+        ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -91,7 +116,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={Object.values(FontUtils.fontFamily.single)}
+            systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
             }}

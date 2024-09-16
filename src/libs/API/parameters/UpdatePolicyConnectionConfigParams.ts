@@ -2,7 +2,7 @@ type UpdatePolicyConnectionConfigParams = {
     policyID: string;
     connectionName: string;
     settingName: string;
-    settingValue?: string;
+    settingValue: string;
     idempotencyKey: string;
 };
 

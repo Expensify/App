@@ -4,7 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -24,12 +24,13 @@ import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/onyx';
+import type {AccountData, BankAccountList, CardList} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -45,7 +46,7 @@ type PaymentMethodListOnyxProps = {
     cardList: OnyxEntry<CardList>;
 
     /** List of user's cards */
-    fundList: OnyxEntry<FundList>;
+    // fundList: OnyxEntry<FundList>;
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: OnyxEntry<boolean>;
@@ -97,6 +98,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** Whether the empty list message should be shown when the list is empty */
     shouldShowEmptyListMessage?: boolean;
 
+    /** Whether the right icon should be shown in PaymentMethodItem */
+    shouldShowRightIcon?: boolean;
+
     /** What to do when a menu item is pressed */
     onPress: (
         event?: GestureResponderEvent | KeyboardEvent,
@@ -113,6 +117,7 @@ type PaymentMethodItem = PaymentMethod & {
     title?: string;
     description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    isGroupedCardDomain?: boolean;
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
@@ -171,7 +176,8 @@ function PaymentMethodList({
     bankAccountList = {},
     buttonRef = () => {},
     cardList = {},
-    fundList = {},
+    // Temporarily disabled because P2P debit cards are disabled.
+    // fundList = {},
     filterType = '',
     listHeaderComponent,
     isLoadingPaymentMethods = true,
@@ -186,51 +192,92 @@ function PaymentMethodList({
     shouldEnableScroll = true,
     style = {},
     listItemStyle = {},
+    shouldShowRightIcon = true,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+
+    const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+        // A domain name containing a policyID indicates that this is a workspace feed
+        const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+        if (policyID) {
+            const policy = PolicyUtils.getPolicy(policyID.toUpperCase());
+            return policy?.name ?? domainName;
+        }
+        return domainName;
+    };
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(cardList ?? {})
-                // Filter by physical, active cards associated with a domain
-                .filter((card) => !card.nameValuePairs?.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
-
-            const numberPhysicalExpensifyCards = assignedCards.filter((card) => CardUtils.isExpensifyCard(card.cardID)).length;
-
+                // Filter by active cards associated with a domain
+                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
             const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
 
-            return assignedCardsSorted.map((card) => {
-                const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
+            const assignedCardsGrouped: PaymentMethodItem[] = [];
+            assignedCardsSorted.forEach((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
 
-                // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
-                const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
-                const cartTitle = card.lastFourPAN ? `${card.bank} - ${card.lastFourPAN}` : card.bank;
-                return {
+                if (!CardUtils.isExpensifyCard(card.cardID)) {
+                    assignedCardsGrouped.push({
+                        key: card.cardID.toString(),
+                        title: card.bank,
+                        description: getDescriptionForPolicyDomainCard(card.domainName),
+                        shouldShowRightIcon: false,
+                        interactive: false,
+                        canDismissError: false,
+                        errors: card.errors,
+                        brickRoadIndicator:
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined,
+                        ...icon,
+                    });
+                    return;
+                }
+
+                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
+
+                // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
+                    const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
+                    assignedCardsGrouped[domainGroupIndex].errors = {...assignedCardsGrouped[domainGroupIndex].errors, ...card.errors};
+                    if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        assignedCardsGrouped[domainGroupIndex].brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    }
+                    return;
+                }
+
+                // The card shouldn't be grouped or it's domain group doesn't exist yet
+                assignedCardsGrouped.push({
                     key: card.cardID.toString(),
-                    title: isExpensifyCard ? expensifyCardDescription : cartTitle,
-                    description: card.domainName,
-                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '')) : () => {},
-                    shouldShowRightIcon: isExpensifyCard,
-                    interactive: isExpensifyCard,
-                    canDismissError: isExpensifyCard,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
+                    description: getDescriptionForPolicyDomainCard(card.domainName),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
+                    shouldShowRightIcon: true,
+                    interactive: true,
+                    canDismissError: true,
                     errors: card.errors,
                     brickRoadIndicator:
                         card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     ...icon,
-                };
+                });
             });
+            return assignedCardsGrouped;
         }
 
-        const paymentCardList = fundList ?? {};
-
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
+        // All payment cards are temporarily disabled for use as a payment method
+        // const paymentCardList = fundList ?? {};
+        // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
+        const filteredCardList = {};
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, filteredCardList, styles);
 
         if (filterType !== '') {
@@ -265,12 +312,11 @@ function PaymentMethodList({
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
+                shouldShowRightIcon,
             };
         });
-
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
+    }, [shouldShowAssignedCards, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, shouldShowRightIcon, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -284,12 +330,12 @@ function PaymentMethodList({
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                hoverAndPressStyle={styles.hoveredComponentBG}
                 ref={buttonRef}
+                disabled={!isUserValidated}
             />
         ),
 
-        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
+        [onPress, translate, styles.paymentMethod, listItemStyle, buttonRef, isUserValidated],
     );
 
     /**
@@ -318,7 +364,6 @@ function PaymentMethodList({
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}
-                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID.toString() === item.methodID?.toString()}
@@ -329,7 +374,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
@@ -378,9 +423,10 @@ export default withOnyx<PaymentMethodListProps, PaymentMethodListOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
+    // Temporarily disabled - used for P2P debit cards
+    // fundList: {
+    //     key: ONYXKEYS.FUND_LIST,
+    // },
     isLoadingPaymentMethods: {
         key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
     },

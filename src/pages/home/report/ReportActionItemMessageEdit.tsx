@@ -1,12 +1,15 @@
-import {PortalHost} from '@gorhom/portal';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {findNodeHandle, InteractionManager, Keyboard, View} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
+import {useOnyx} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
+import Composer from '@components/Composer';
+import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
@@ -18,18 +21,19 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
@@ -37,17 +41,15 @@ import * as ComposerActions from '@userActions/Composer';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
-import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
+import getCursorPosition from './ReportActionCompose/getCursorPosition';
+import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
-
-const {RNTextInputReset} = NativeModules;
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -59,8 +61,8 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string;
 
-    /** If current composer is connected with report from group policy */
-    isGroupPolicyReport: boolean;
+    /** PolicyID of the policy the report belongs to */
+    policyID?: string;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;
@@ -68,39 +70,38 @@ type ReportActionItemMessageEditProps = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
 
-    /** Stores user's preferred skin tone */
-    preferredSkinTone?: OnyxEntry<string | number>;
+    /** Whether report is from group policy */
+    isGroupPolicyReport: boolean;
 };
 
 // native ids
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
-const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
+// video source -> video attributes
+const draftMessageVideoAttributeCache = new Map<string, string>();
+
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, isGroupPolicyReport, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
+    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef, isActiveSuggestions} = useSuggestionsContext();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const prevDraftMessage = usePrevious(draftMessage);
-
-    const getInitialSelection = () => {
-        if (isMobileSafari) {
-            return {start: 0, end: 0};
-        }
-
-        const length = draftMessage.length;
-        return {start: length, end: length};
-    };
+    const suggestionsRef = useRef<SuggestionsRef>(null);
+    const mobileInputScrollPosition = useRef(0);
+    const cursorPositionValue = useSharedValue({x: 0, y: 0});
+    const tag = useSharedValue(-1);
+    const isInitialMount = useRef(true);
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
@@ -108,7 +109,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>(getInitialSelection);
+    const [selection, setSelection] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -119,31 +120,22 @@ function ReportActionItemMessageEdit(
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
-    const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
-    const containerRef = useRef<View>(null);
-    const suggestionsRef = useRef<SuggestionsRef>(null);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        const parser = new ExpensiMark();
-        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
-        if (
-            ReportActionsUtils.isDeletedAction(action) ||
-            Boolean(action.message && draftMessage === originalMessage) ||
-            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
-        ) {
+        draftMessageVideoAttributeCache.clear();
+
+        const originalMessage = Parser.htmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), {
+            cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
+        });
+        if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
         setDraft(draftMessage);
     }, [draftMessage, action, prevDraftMessage]);
-
-    useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-    }, [isFocused]);
 
     useEffect(() => {
         InputFocus.composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxFocused);
@@ -153,7 +145,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setModal(modalArg);
@@ -163,7 +155,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxFocused = onyxSubscribe({
             key: ONYXKEYS.INPUT_FOCUSED,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setOnyxFocused(modalArg);
@@ -181,50 +173,60 @@ function ReportActionItemMessageEdit(
         [action.reportActionID],
     );
 
-    useEffect(() => {
-        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-        // so we need to ensure that it is only updated after focus.
-        if (isMobileSafari) {
-            setDraft((prevDraft: string) => {
-                setSelection({
-                    start: prevDraft.length,
-                    end: prevDraft.length,
-                });
-                return prevDraft;
-            });
+    /**
+     * Focus the composer text input
+     * @param shouldDelay - Impose delay before focusing the composer
+     */
+    const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection) => {
+        focusComposerWithDelay(textInputRef.current)(shouldDelay, forcedSelectionRange);
+    }, []);
 
-            // Scroll content of textInputRef to bottom
-            if (textInputRef.current) {
-                textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
-            }
-        }
+    // Take over focus priority
+    const setUpComposeFocusManager = useCallback(() => {
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+        }, true);
+    }, [focus]);
 
-        return () => {
-            InputFocus.callback(() => setIsFocused(false));
-            InputFocus.inputFocusChange(false);
+    useEffect(
+        // Remove focus callback on unmount to avoid stale callbacks
+        () => () => {
+            ReportActionComposeFocusManager.clear(true);
+        },
+        [],
+    );
 
-            // Skip if the current report action is not active
-            if (!isActive()) {
+    useEffect(
+        () => {
+            if (isInitialMount.current) {
+                isInitialMount.current = false;
                 return;
             }
 
-            if (EmojiPickerAction.isActive(action.reportActionID)) {
-                EmojiPickerAction.clearActive();
-            }
-            if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
-                ReportActionContextMenu.clearActiveReportAction();
-            }
-            if (isActiveSuggestions(action.reportActionID)) {
-                clearActiveSuggestionsRef();
-            }
+            return () => {
+                InputFocus.callback(() => setIsFocused(false));
+                InputFocus.inputFocusChange(false);
 
-            // Show the main composer when the focused message is deleted from another client
-            // to prevent the main composer stays hidden until we swtich to another chat.
-            setShouldShowComposeInputKeyboardAware(true);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
-    }, [action.reportActionID]);
+                // Skip if the current report action is not active
+                if (!isActive()) {
+                    return;
+                }
+
+                if (EmojiPickerAction.isActive(action.reportActionID)) {
+                    EmojiPickerAction.clearActive();
+                }
+                if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
+                    ReportActionContextMenu.clearActiveReportAction();
+                }
+
+                // Show the main composer when the focused message is deleted from another client
+                // to prevent the main composer stays hidden until we switch to another chat.
+                setShouldShowComposeInputKeyboardAware(true);
+            };
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
+        [action.reportActionID],
+    );
 
     // show the composer after editing is complete for devices that hide the composer during editing.
     useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
@@ -252,19 +254,6 @@ function ReportActionItemMessageEdit(
     );
 
     /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
-        () =>
-            lodashDebounce(() => {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
-                insertedEmojis.current = [];
-            }, 1000),
-        [],
-    );
-
-    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} newDraftInput
@@ -273,23 +262,17 @@ function ReportActionItemMessageEdit(
         (newDraftInput: string) => {
             const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
-            if (emojis?.length > 0) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis?.length > 0) {
-                    suggestionsRef.current?.resetSuggestions();
-                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-            }
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
+                    positionX: 0,
+                    positionY: 0,
                 });
             }
 
@@ -299,12 +282,12 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
@@ -314,8 +297,9 @@ function ReportActionItemMessageEdit(
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
-            ReportActionComposeFocusManager.clear();
-            ReportActionComposeFocusManager.focus();
+            ReportActionComposeFocusManager.clear(true);
+            // Wait for report action compose re-mounting on mWeb
+            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -333,7 +317,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -345,7 +329,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -356,6 +340,8 @@ function ReportActionItemMessageEdit(
         const newSelection = {
             start: selection.start + emoji.length + CONST.SPACE_LENGTH,
             end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            positionX: 0,
+            positionY: 0,
         };
         setSelection(newSelection);
 
@@ -367,6 +353,21 @@ function ReportActionItemMessageEdit(
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
+    const hideSuggestionMenu = useCallback(() => {
+        if (!suggestionsRef.current) {
+            return;
+        }
+        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+    }, [suggestionsRef]);
+    const onSaveScrollAndHideSuggestionMenu = useCallback(
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+
+            hideSuggestionMenu();
+        },
+        [hideSuggestionMenu],
+    );
+
     /**
      * Key event handlers that short cut to saving/canceling.
      *
@@ -374,14 +375,21 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            if (suggestionsRef.current?.triggerHotkeyActions(e as KeyboardEvent)) {
-                return;
-            }
-
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
             const keyEvent = e as KeyboardEvent;
+            const isSuggestionsMenuVisible = suggestionsRef.current?.getIsSuggestionsMenuVisible();
+
+            if (isSuggestionsMenuVisible) {
+                suggestionsRef.current?.triggerHotkeyActions(keyEvent);
+                return;
+            }
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && isSuggestionsMenuVisible) {
+                e.preventDefault();
+                hideSuggestionMenu();
+                return;
+            }
             if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
                 e.preventDefault();
                 publishDraft();
@@ -390,15 +398,8 @@ function ReportActionItemMessageEdit(
                 deleteDraft();
             }
         },
-        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+        [deleteDraft, hideSuggestionMenu, isKeyboardShown, shouldUseNarrowLayout, publishDraft],
     );
-
-    const resetKeyboardInput = useCallback(() => {
-        if (!RNTextInputReset) {
-            return;
-        }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
 
     const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
         if (!containerRef.current) {
@@ -407,43 +408,65 @@ function ReportActionItemMessageEdit(
         containerRef.current.measureInWindow(callback);
     }, []);
 
-    /**
-     * Focus the composer text input
-     */
-    const focus = focusComposerWithDelay(textInputRef.current);
+    const measureParentContainerAndReportCursor = useCallback(
+        (callback: MeasureParentContainerAndCursorCallback) => {
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            measureContainer((x, y, width, height) => {
+                callback({
+                    x,
+                    y,
+                    width,
+                    height,
+                    scrollValue,
+                    cursorCoordinates: {x: xPosition, y: yPosition},
+                });
+            });
+        },
+        [cursorPositionValue.value, measureContainer, selection],
+    );
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
+        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
 
-    /**
-     * Listen scrolling event
-     */
+        // eslint-disable-next-line react-compiler/react-compiler
+        tag.value = findNodeHandle(textInputRef.current) ?? -1;
+    }, [tag]);
+    useFocusedInputHandler(
+        {
+            onSelectionChange: (event) => {
+                'worklet';
+
+                if (event.target === tag.value) {
+                    cursorPositionValue.value = {
+                        x: event.selection.end.x,
+                        y: event.selection.end.y,
+                    };
+                }
+            },
+        },
+        [],
+    );
+
     useEffect(() => {
-        if (!isFocused || !suggestionsRef.current) {
-            return () => {};
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
+
+    useEffect(() => {
+        // required for keeping last state of isFocused variable
+        isFocusedRef.current = isFocused;
+
+        if (!isFocused) {
+            hideSuggestionMenu();
         }
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
-            if (scrolling) {
-                suggestionsRef?.current?.resetSuggestions();
-                return;
-            }
-            // Reopen the suggestion after scroll has end
-            suggestionsRef?.current?.updateShouldShowSuggestionMenuAfterScrolling();
-        });
-
-        return () => {
-            scrollingListener.remove();
-        };
-    }, [isFocused]);
+    }, [isFocused, hideSuggestionMenu]);
 
     return (
         <>
             <View
-                ref={containerRef}
                 style={[styles.chatItemMessage, styles.flexRow]}
+                ref={containerRef}
             >
-                <PortalHost name={`suggestions_${action.reportActionID}`} />
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -474,7 +497,7 @@ function ReportActionItemMessageEdit(
                         </Tooltip>
                     </View>
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
-                        <ComposerWithSuggestionsEdit
+                        <Composer
                             multiline
                             ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
@@ -489,12 +512,18 @@ function ReportActionItemMessageEdit(
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
-                            maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
+                            maxLines={shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                reportScrollManager.scrollToIndex(index, true);
+                                InteractionManager.runAfterInteractions(() => {
+                                    requestAnimationFrame(() => {
+                                        reportScrollManager.scrollToIndex(index, true);
+                                    });
+                                });
                                 setShouldShowComposeInputKeyboardAware(false);
+                                // The last composer that had focus should re-gain focus
+                                setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
                                 if (!EmojiPickerAction.isActive(action.reportActionID)) {
@@ -503,44 +532,47 @@ function ReportActionItemMessageEdit(
                                 if (!ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
-
-                                updateCurrentActiveSuggestionsRef(suggestionsRef.current, action.reportActionID);
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
-                                // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                suggestionsRef.current?.resetSuggestions();
-                                clearActiveSuggestionsRef();
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
+                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
                             selection={selection}
-                            onSelectionChange={(e) => {
-                                suggestionsRef.current?.onSelectionChange?.(e);
-                                setSelection(e.nativeEvent.selection);
-                            }}
-                            setValue={setDraft}
-                            setSelection={setSelection}
-                            isComposerFocused={!!textInputRef.current && textInputRef.current.isFocused()}
-                            resetKeyboardInput={resetKeyboardInput}
-                            suggestionsRef={suggestionsRef}
-                            updateDraft={updateDraft}
-                            measureParentContainer={measureContainer}
+                            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
+                            shouldCalculateCaretPosition
+                            onScroll={onSaveScrollAndHideSuggestionMenu}
                         />
                     </View>
+
+                    <Suggestions
+                        ref={suggestionsRef}
+                        isComposerFocused={textInputRef.current?.isFocused()}
+                        updateComment={updateDraft}
+                        measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                        isGroupPolicyReport={isGroupPolicyReport}
+                        policyID={policyID}
+                        value={draft}
+                        selection={selection}
+                        setSelection={setSelection}
+                    />
+
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
                             onModalHide={() => {
-                                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+                                ReportActionComposeFocusManager.focus();
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
+                            onPress={setUpComposeFocusManager}
                         />
                     </View>
 

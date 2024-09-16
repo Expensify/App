@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -6,12 +6,13 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmModal from '@components/ConfirmModal';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
@@ -51,11 +52,13 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const styles = useThemeStyles();
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
+    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
+    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
-    if (!reportField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !report || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -71,32 +74,31 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         );
     }
 
-    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
-
-    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
+    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
+            Navigation.goBack();
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
         }
-
-        Navigation.dismissModal(report?.reportID);
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
-        Navigation.dismissModal(report?.reportID);
+        setIsDeleteModalVisible(false);
+        Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
     };
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
 
-    const menuItems: ThreeDotsMenuItem[] = [];
+    const menuItems: PopoverMenuItem[] = [];
 
     const isReportFieldDeletable = reportField.deletable && !isReportFieldTitle;
 
     if (isReportFieldDeletable) {
-        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true)});
+        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true), shouldCallAfterModalHide: true});
     }
 
     const fieldName = Str.UCFirst(reportField.name);
@@ -123,6 +125,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
 
             {(reportField.type === 'text' || isReportFieldTitle) && (
@@ -130,7 +133,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                     fieldName={Str.UCFirst(reportField.name)}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
-                    isRequired={!reportField.deletable}
+                    isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
                 />
             )}
@@ -147,7 +150,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
             {reportField.type === 'dropdown' && (
                 <EditReportFieldDropdown
-                    policyID={report.policyID ?? ''}
+                    policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions[index])}

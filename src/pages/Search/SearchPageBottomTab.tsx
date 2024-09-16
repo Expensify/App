@@ -1,64 +1,72 @@
 import React from 'react';
-import {View} from 'react-native';
-import MenuItem from '@components/MenuItem';
+import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useActiveRoute from '@hooks/useActiveRoute';
-import useSingleExecution from '@hooks/useSingleExecution';
+import Search from '@components/Search';
+import {useSearchContext} from '@components/Search/SearchContext';
+import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Expensicons from '@src/components/Icon/Expensicons';
-import CONST from '@src/CONST';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
+import * as SearchUtils from '@libs/SearchUtils';
+import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
-
-type SearchMenuItem = {
-    title: string;
-    icon: IconAsset;
-    action: () => void;
-};
+import SCREENS from '@src/SCREENS';
+import SearchTypeMenu from './SearchTypeMenu';
 
 function SearchPageBottomTab() {
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
-    const activeRoute = useActiveRoute();
-    const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
+    const {clearSelectedTransactions} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
+    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
+    const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
+    const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
-    const searchMenuItems: SearchMenuItem[] = [
-        {
-            title: 'All',
-            icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL))),
-        },
-        {
-            title: 'Sent',
-            icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SENT))),
-        },
-        {
-            title: 'Drafts',
-            icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS))),
-        },
-    ];
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
     return (
-        <ScreenWrapper testID={SearchPageBottomTab.displayName}>
-            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                {searchMenuItems.map((item) => (
-                    <MenuItem
-                        key={item.title}
-                        disabled={false}
-                        interactive
-                        title={item.title}
-                        icon={item.icon}
-                        onPress={item.action}
-                        wrapperStyle={styles.sectionMenuItem}
-                        focused={item.title.toLowerCase() === currentQuery}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
-                        isPaneMenu
+        <ScreenWrapper
+            testID={SearchPageBottomTab.displayName}
+            style={styles.pv0}
+            offlineIndicatorStyle={styles.mtAuto}
+        >
+            <FullPageNotFoundView
+                shouldShow={!queryJSON}
+                onBackButtonPress={handleOnBackButtonPress}
+                shouldShowLink={false}
+            >
+                {!selectionMode?.isEnabled && queryJSON ? (
+                    <>
+                        <TopBar
+                            activeWorkspaceID={policyID}
+                            breadcrumbLabel={translate('common.search')}
+                            shouldDisplaySearch={false}
+                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
+                        />
+                        <SearchTypeMenu queryJSON={queryJSON} />
+                    </>
+                ) : (
+                    <HeaderWithBackButton
+                        title={translate('common.selectMultiple')}
+                        onBackButtonPress={() => {
+                            clearSelectedTransactions();
+                            turnOffMobileSelectionMode();
+                        }}
                     />
-                ))}
-            </View>
+                )}
+                {shouldUseNarrowLayout && queryJSON && <Search queryJSON={queryJSON} />}
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

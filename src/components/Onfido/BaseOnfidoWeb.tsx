@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -27,12 +27,14 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         customUI: {
-            fontFamilyTitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
-            fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
-            fontFamilyBody: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            // Font styles are commented out until Onfido fixes it on their side, more info here - https://github.com/Expensify/App/issues/44570
+            // For now we will use Onfido default font which is better than random serif font which it started defaulting to
+            // fontFamilyTitle: `${FontUtils.fontFamily.platform.EXP_NEUE.fontFamily}, -apple-system, serif`,
+            // fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE.fontFamily}, -apple-system, serif`,
+            // fontFamilyBody: `${FontUtils.fontFamily.platform.EXP_NEUE.fontFamily}, -apple-system, serif`,
             fontSizeTitle: `${variables.fontSizeLarge}px`,
             fontWeightTitle: Number(FontUtils.fontWeight.bold),
-            fontWeightSubtitle: 400,
+            fontWeightSubtitle: Number(FontUtils.fontWeight.normal),
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
             colorContentTitle: theme.text,
             colorContentSubtitle: theme.text,
@@ -92,9 +94,9 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error) => {
+        onError: (error: OnfidoError) => {
             const errorType = error.type;
-            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
+            const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
             if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
                 onUserExit();
@@ -140,7 +142,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     return (

@@ -21,18 +21,25 @@ type BaseClientSideLoggingToolMenuOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
 };
 
+type File = {
+    path: string;
+    newFileName: string;
+    size: number;
+};
 type BaseClientSideLoggingToolProps = {
     /** Locally created file */
-    file?: {path: string; newFileName: string; size: number};
+    file?: File;
     /** Action to run when pressing Share button */
     onShareLogs?: () => void;
     /** Action to run when disabling the switch */
     onDisableLogging: (logs: Log[]) => void;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
+    /** Path used to display location of saved file */
+    displayPath?: string;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
-function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging}: BaseClientSideLoggingToolProps) {
+function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, displayPath}: BaseClientSideLoggingToolProps) {
     const {translate} = useLocalize();
 
     const onToggle = () => {
@@ -70,7 +77,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
             </TestToolRow>
             {!!file && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${file.path}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
                         <Button
                             small
@@ -94,3 +101,4 @@ export default withOnyx<BaseClientSideLoggingToolProps, BaseClientSideLoggingToo
         key: ONYXKEYS.SHOULD_STORE_LOGS,
     },
 })(BaseClientSideLoggingToolMenu);
+export type {File};

@@ -11,7 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -26,6 +26,7 @@
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](contributingGuides/CLA.md)
+* [React StrictMode](contributingGuides/STRICT_MODE.md)
 
 ----
 
@@ -60,6 +61,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
@@ -140,14 +142,14 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.
 4. Close the emulator.
 
-Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
+**Note:** If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
 
 #### Android Flow
 1. Run `npm run setupNewDotWebForEmulators android`
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
 
-Note - If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
+**Note:** If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
 
 
 Possible Scenario:
@@ -229,19 +231,20 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
     ```jsx
     npm i && npm run pod-install
     ```
-7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
-8. Upon completion, the generated source map can be found at:
+4. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+5. Upon completion, the generated source map can be found at:
   Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
   IOS: `main.jsbundle.map`
+  web: `dist/merged-source-map.js.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
 2. Launch the app in production mode.
-2. Navigate to the feature you wish to profile.
-3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
-4. Close the menu and interact with the app.
-5. After completing your interactions, tap with four fingers again and select to stop profiling.
-6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+3. Navigate to the feature you wish to profile.
+4. Initiate the profiling session by tapping with four fingers (on mobile) or `cmd+d` (on web) to open the menu and selecting **`Use Profiling`**.
+5. Close the menu and interact with the app.
+6. After completing your interactions, tap with four fingers or `cmd+d` again and select to stop profiling.
+7. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
 
 Build info:
 ```jsx
@@ -264,6 +267,7 @@ Build info:
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
 IOS: `npm run symbolicate-release:ios`
+web: `npm run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
@@ -388,7 +392,7 @@ In most cases, the code written for this repo should be platform-independent. In
 - Web => `index.website.js`
 - Desktop => `index.desktop.js`
 
-Note that `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
+**Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
 
 `index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
 
@@ -662,7 +666,38 @@ Sometimes it might be beneficial to generate a local production version instead 
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
 #### Local production build of the MacOS desktop app
-In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
+The commands used to compile a production or staging desktop build are `npm run desktop-build` and `npm run desktop-build-staging`, respectively. These will product an app in the `dist/Mac` folder named NewExpensify.dmg that you can install like a normal app.
+
+HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
+
+```diff
+diff --git a/config/electronBuilder.config.js b/config/electronBuilder.config.js
+index e4ed685f65..4c7c1b3667 100644
+--- a/config/electronBuilder.config.js
++++ b/config/electronBuilder.config.js
+@@ -42,9 +42,6 @@ module.exports = {
+         entitlements: 'desktop/entitlements.mac.plist',
+         entitlementsInherit: 'desktop/entitlements.mac.plist',
+         type: 'distribution',
+-        notarize: {
+-            teamId: '368M544MTT',
+-        },
+     },
+     dmg: {
+         title: 'New Expensify',
+diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
+index 791f59d733..526306eec1 100755
+--- a/scripts/build-desktop.sh
++++ b/scripts/build-desktop.sh
+@@ -35,4 +35,4 @@ npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
+ title "Building Desktop App Archive Using Electron"
+ info ""
+ shift 1
+-npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
++npx electron-builder --config config/electronBuilder.config.js --publish never "$@"
+```
+
+There may be some cases where you need to test a signed and published build, such as when testing the update flows. Instructions on setting that up can be found in [Testing Electron Auto-Update](https://github.com/Expensify/App/blob/main/desktop/README.md#testing-electron-auto-update). Good luck 🙃
 
 #### Local production build the iOS app
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.

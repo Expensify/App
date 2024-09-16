@@ -1,5 +1,6 @@
-import type {ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
 type AddressLineParams = {
@@ -10,10 +11,6 @@ type CharacterLimitParams = {
     limit: number;
 };
 
-type MaxParticipantsReachedParams = {
-    count: number;
-};
-
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -22,7 +19,7 @@ type LoggedInAsParams = {
     email: string;
 };
 
-type NewFaceEnterMagicCodeParams = {
+type SignUpNewFaceCodeParams = {
     login: string;
 };
 
@@ -44,15 +41,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: ReportAction | null;
+    action: OnyxInputOrEntry<ReportAction>;
 };
 
 type DeleteActionParams = {
-    action: ReportAction | null;
+    action: OnyxInputOrEntry<ReportAction>;
 };
 
 type DeleteConfirmationParams = {
-    action: ReportAction | null;
+    action: OnyxInputOrEntry<ReportAction>;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -98,6 +95,10 @@ type ReportArchiveReasonsPolicyDeletedParams = {
     policyName: string;
 };
 
+type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
+    policyName: string;
+};
+
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
@@ -116,15 +117,19 @@ type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: string};
+type UserSplitParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
 
+type CompanyCardFeedNameParams = {feedName: string};
+
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
+
+type ForwardedAmountParams = {amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
 
@@ -202,13 +207,13 @@ type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: strin
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
-type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+type SetTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; newAmountToDisplay: string};
 
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
-type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
@@ -225,6 +230,8 @@ type ViolationsInvoiceMarkupParams = {invoiceMarkup?: number};
 type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
+
+type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
@@ -302,19 +309,82 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type ConfirmHoldExpenseParams = {transactionCount: number};
+
+type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
+
+type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+
+type ChangeTypeParams = {oldType: string; newType: string};
+
+type DelegateSubmitParams = {delegateUser: string; originalManager: string};
+
+type AccountOwnerParams = {accountOwnerEmail: string};
+
+type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
+
+type IntegrationsMessageParams = {
+    label: string;
+    result: {
+        code?: number;
+        messages?: string[];
+        title?: string;
+        link?: {
+            url: string;
+            text: string;
+        };
+    };
+};
+
+type MarkedReimbursedParams = {amount: string; currency: string};
+
+type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
+
+type ShareParams = {to: string};
+
+type UnshareParams = {to: string};
+
+type StripePaidParams = {amount: string; currency: string};
+
+type UnapprovedParams = {amount: string; currency: string};
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
+
+type DeleteExpenseTranslationParams = {
+    count: number;
+};
+
+type IssueVirtualCardParams = {
+    assignee: string;
+    link: string;
+};
+
+type ApprovalWorkflowErrorParams = {
+    name1: string;
+    name2: string;
+};
+
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
+};
+
 export type {
-    AdminCanceledRequestParams,
-    ApprovedAmountParams,
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
-    AmountEachParams,
+    ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    CompanyCardFeedNameParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,
@@ -326,15 +396,18 @@ export type {
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
+    LogSizeParams,
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
-    NewFaceEnterMagicCodeParams,
+    SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -344,16 +417,19 @@ export type {
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ParentNavigationSummaryParams,
+    PaySomeoneParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
@@ -361,7 +437,7 @@ export type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
@@ -378,15 +454,18 @@ export type {
     TranslationFlatObject,
     TranslationPaths,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
+    UserSplitParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -397,14 +476,26 @@ export type {
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
-    UsePlusButtonParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
-    LogSizeParams,
-    HeldRequestParams,
-    PaySomeoneParams,
-    ReimbursementRateParams,
+    ChangeFieldParams,
+    ChangePolicyParams,
+    ChangeTypeParams,
+    ExportedToIntegrationParams,
+    DelegateSubmitParams,
+    AccountOwnerParams,
+    IntegrationsMessageParams,
+    MarkedReimbursedParams,
+    MarkReimbursedFromIntegrationParams,
+    ShareParams,
+    UnshareParams,
+    StripePaidParams,
+    UnapprovedParams,
+    RemoveMembersWarningPrompt,
+    DeleteExpenseTranslationParams,
+    ApprovalWorkflowErrorParams,
+    AssignCardParams,
 };

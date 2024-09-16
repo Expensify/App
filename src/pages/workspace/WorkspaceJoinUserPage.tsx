@@ -6,9 +6,10 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import * as PolicyAction from '@userActions/Policy';
+import * as MemberAction from '@userActions/Policy/Member';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -42,14 +43,14 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
         if (isUnmounted.current || isJoinLinkUsed) {
             return;
         }
-        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending) {
+        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !PolicyUtils.isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(undefined, false, true);
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? ''));
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? '-1'));
             });
             return;
         }
-        PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
+        MemberAction.inviteMemberToWorkspace(policyID, inviterEmail);
         isJoinLinkUsed = true;
         Navigation.isNavigationReady().then(() => {
             if (isUnmounted.current) {

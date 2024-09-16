@@ -7,6 +7,7 @@ import {ShowContextMenuContext, showContextMenuForReport} from '@components/Show
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
@@ -40,20 +41,24 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <PressableWithoutFeedback
                     style={[style, isOffline && styles.cursorDefault]}
                     onPress={() => {
-                        if (isDownloading || isOffline) {
+                        if (isDownloading || isOffline || !sourceID) {
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
-                    // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) => {
+                        if (isDisabled) {
+                            return;
+                        }
+                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                    }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
@@ -61,8 +66,9 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     <AttachmentView
                         source={sourceURLWithAuth}
                         file={{name: displayName}}
-                        shouldShowDownloadIcon={!isOffline}
+                        shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
+                        isUsedAsChatAttachment
                     />
                 </PressableWithoutFeedback>
             )}

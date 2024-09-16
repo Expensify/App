@@ -1,5 +1,4 @@
 import type {NavigationState} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -17,15 +16,6 @@ type CurrentReportIDContextProviderProps = {
 
 const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
 
-// TODO: Remove when depended components are migrated to TypeScript.
-const withCurrentReportIDPropTypes = {
-    /** Function to update the state */
-    updateCurrentReportID: PropTypes.func.isRequired,
-
-    /** The top most report id */
-    currentReportID: PropTypes.string,
-};
-
 const withCurrentReportIDDefaultProps = {
     currentReportID: '',
 };
@@ -39,7 +29,17 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      */
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
-            setCurrentReportID(Navigation.getTopmostReportId(state) ?? '');
+            const reportID = Navigation.getTopmostReportId(state) ?? '-1';
+
+            /*
+             * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
+             * This helps prevent unnecessary re-renders.
+             */
+            const params = state?.routes?.[state.index]?.params;
+            if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
+                return;
+            }
+            setCurrentReportID(reportID);
         },
         [setCurrentReportID],
     );
@@ -85,5 +85,5 @@ export default function withCurrentReportID<TProps extends CurrentReportIDContex
     return forwardRef(WithCurrentReportID);
 }
 
-export {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
+export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
 export type {CurrentReportIDContextValue};

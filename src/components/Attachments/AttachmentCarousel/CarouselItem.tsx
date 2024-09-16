@@ -58,7 +58,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ROLE.BUTTON}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
             >
@@ -71,9 +71,10 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1]}>
+            <View style={[styles.imageModalImageCenterContainer]}>
                 <AttachmentView
                     source={item.source}
+                    previewSource={item.previewSource}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     onPress={onPress}
@@ -82,7 +83,6 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
-                    isUsedInCarousel
                 />
             </View>
 

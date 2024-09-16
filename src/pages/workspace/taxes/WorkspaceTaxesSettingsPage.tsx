@@ -10,9 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -55,40 +53,37 @@ function WorkspaceTaxesSettingsPage({
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
-                >
-                    <ScreenWrapper
-                        testID={WorkspaceTaxesSettingsPage.displayName}
-                        style={styles.defaultModalContainer}
-                    >
-                        <ScrollView contentContainerStyle={styles.flexGrow1}>
-                            <HeaderWithBackButton title={translate('common.settings')} />
-                            <View style={styles.flex1}>
-                                {menuItems.map((item) => (
-                                    <OfflineWithFeedback
-                                        key={item.description}
-                                        pendingAction={item.pendingAction}
-                                    >
-                                        <MenuItemWithTopDescription
-                                            shouldShowRightIcon
-                                            title={item.title}
-                                            description={item.description}
-                                            style={[styles.moneyRequestMenuItem]}
-                                            titleStyle={styles.flex1}
-                                            onPress={item.action}
-                                        />
-                                    </OfflineWithFeedback>
-                                ))}
-                            </View>
-                        </ScrollView>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        >
+            <ScreenWrapper
+                testID={WorkspaceTaxesSettingsPage.displayName}
+                style={styles.defaultModalContainer}
+            >
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <View style={styles.flex1}>
+                        {menuItems.map((item) => (
+                            <OfflineWithFeedback
+                                key={item.description}
+                                pendingAction={item.pendingAction}
+                            >
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={item.title}
+                                    description={item.description}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    onPress={item.action}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

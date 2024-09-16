@@ -33,7 +33,7 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
 
             if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
                 webViewRef.current.stopLoading();
-                Report.navigateToConciergeChat();
+                Report.navigateToConciergeChat(true);
             }
 
             if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {

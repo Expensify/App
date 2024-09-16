@@ -1,9 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
-import React, {useCallback, useRef} from 'react';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -12,6 +13,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -34,20 +36,38 @@ type NewContactMethodPageOnyxProps = {
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
-    const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
-    const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
-    const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
-
-    User.addNewContactMethodAndNavigate(submitDetail);
-};
-
 function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const contactMethod = account?.primaryLogin ?? '';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
+    const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
+    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
+
+    const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
+
+    const handleValidateMagicCode = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+        const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+        const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
+        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+        User.addPendingContactMethod(submitDetail);
+        setIsValidateCodeActionModalVisible(true);
+    }, []);
+
+    const addNewContactMethod = useCallback(
+        (magicCode: string) => {
+            User.addNewContactMethod(pendingContactAction?.contactMethod ?? '', magicCode);
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        },
+        [pendingContactAction?.contactMethod],
+    );
+
+    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -57,15 +77,15 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
             const errors = {};
 
             if (!values.phoneOrEmail) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
             }
 
             if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
             if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
             }
 
             return errors;
@@ -73,8 +93,8 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
         // We don't need `loginList` because when submitting this form
         // the loginList gets updated, causing this function to run again.
         // https://github.com/Expensify/App/issues/20610
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [translate],
     );
 
     const onBackButtonPress = useCallback(() => {
@@ -99,10 +119,9 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                 validate={validate}
-                onSubmit={addNewContactMethod}
+                onSubmit={handleValidateMagicCode}
                 submitButtonText={translate('common.add')}
                 style={[styles.flexGrow1, styles.mh5]}
-                enabledWhenOffline
             >
                 <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                 <View style={styles.mb6}>
@@ -119,7 +138,23 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
+                {hasFailedToSendVerificationCode && (
+                    <DotIndicatorMessage
+                        messages={ErrorUtils.getLatestErrorField(pendingContactAction, 'actionVerified')}
+                        type="error"
+                    />
+                )}
             </FormProvider>
+            <ValidateCodeActionModal
+                validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
+                validateError={validateLoginError}
+                handleSubmitForm={addNewContactMethod}
+                clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                isVisible={isValidateCodeActionModalVisible}
+                title={contactMethod}
+                description={translate('contacts.enterMagicCode', {contactMethod})}
+            />
         </ScreenWrapper>
     );
 }

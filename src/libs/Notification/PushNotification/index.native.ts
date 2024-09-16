@@ -2,15 +2,17 @@ import type {PushPayload} from '@ua/react-native-airship';
 import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import ShortcutManager from '@libs/ShortcutManager';
 import * as PushNotificationActions from '@userActions/PushNotification';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
-import type {NotificationData} from './NotificationType';
+import type {PushNotificationData} from './NotificationType';
 import NotificationType from './NotificationType';
+import parsePushNotificationPayload from './parsePushNotificationPayload';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
 
-type NotificationEventActionCallback = (data: NotificationData) => Promise<void>;
+type NotificationEventActionCallback = (data: PushNotificationData) => Promise<void>;
 
 type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
 
@@ -27,14 +29,8 @@ const notificationEventActionMap: NotificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType: EventType, notification: PushPayload) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
-    let payload = notification.extras.payload;
 
-    // On Android, some notification payloads are sent as a JSON string rather than an object
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
-    }
-
-    const data = payload as NotificationData;
+    const data = parsePushNotificationPayload(notification.extras.payload);
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 
@@ -130,7 +126,7 @@ const register: Register = (notificationID) => {
             // Refresh notification opt-in status NVP for the new user.
             refreshNotificationOptInStatus();
         })
-        .catch((error) => {
+        .catch((error: Record<string, unknown>) => {
             Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
         });
 };
@@ -144,6 +140,7 @@ const deregister: Deregister = () => {
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
     ForegroundNotifications.disableForegroundNotifications();
+    ShortcutManager.removeAllDynamicShortcuts();
 };
 
 /**

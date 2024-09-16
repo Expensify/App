@@ -23,8 +23,9 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
-    persistedRequests.push(requestToPersist);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
+    const requests = [...persistedRequests, requestToPersist];
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(() => {
         Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
     });
 }
@@ -41,7 +42,9 @@ function remove(requestToRemove: Request) {
     }
     requests.splice(index, 1);
     persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(() => {
+        Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`);
+    });
 }
 
 function update(oldRequestIndex: number, newRequest: Request) {

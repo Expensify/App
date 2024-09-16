@@ -71,11 +71,11 @@ function LongTermsForm() {
                 <View style={[styles.longTermsRow]}>
                     <View style={[styles.flex4]}>
                         <Text>{section.title}</Text>
-                        {Boolean(section.subTitle) && <Text style={[styles.textMicroSupporting, styles.mt1]}>{section.subTitle}</Text>}
+                        {!!section.subTitle && <Text style={[styles.textMicroSupporting, styles.mt1]}>{section.subTitle}</Text>}
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
                         <Text style={[styles.textStrong, styles.textAlignRight]}>{section.rightText}</Text>
-                        {Boolean(section.subRightText) && <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>{section.subRightText}</Text>}
+                        {!!section.subRightText && <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>{section.subRightText}</Text>}
                     </View>
                 </View>
                 <Text style={[styles.textLabelSupporting, styles.mt2]}>{section.details}</Text>
@@ -84,7 +84,12 @@ function LongTermsForm() {
 
     return (
         <>
-            <CollapsibleSection title={translate('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
+            <CollapsibleSection
+                title={translate('termsStep.longTermsForm.listOfAllFees')}
+                shouldShowSectionBorder
+            >
+                {getLongTermsSections()}
+            </CollapsibleSection>
 
             <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
                 {translate('termsStep.longTermsForm.fdicInsuranceBancorp', {amount: CurrencyUtils.convertToDisplayString(25000000, 'USD')})} {CONST.TERMS.FDIC_PREPAID}{' '}

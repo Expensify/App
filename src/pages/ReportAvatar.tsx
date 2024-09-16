@@ -20,10 +20,11 @@ type ReportAvatarOnyxProps = {
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
+function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true}: ReportAvatarProps) {
+    const policyID = route.params.policyID ?? '-1';
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyName = ReportUtils.getPolicyName(report, false, policy);
-    const avatarURL = ReportUtils.getWorkspaceAvatar(report);
+    const avatarURL = ReportUtils.getWorkspaceIcon(report).source;
 
     return (
         <AttachmentModal
@@ -31,11 +32,12 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={() => {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
             }}
             isWorkspaceAvatar
             maybeIcon
-            originalFileName={policy?.originalFileName ?? policyName}
+            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
+            originalFileName={policy?.originalFileName ?? policy?.id ?? report?.policyID}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
@@ -46,7 +48,7 @@ ReportAvatar.displayName = 'ReportAvatar';
 
 export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? ''}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
     },
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,

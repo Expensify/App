@@ -56,7 +56,7 @@ Below are some examples to illustrate the writing style that covers this:
 - Bug: A blank page is shown for an archived room with a message in it
 - Proposed Test Steps:
   - Create a workspace if you don't have any
-  - Go to members page and remove the other admin ( Expensify setup specialist )
+  - Go to members page and remove the other admin (Expensify setup specialist)
   - Search the announce room and send a message
   - Pin the room and delete the workspace
   - Wait for a few seconds (Reload if the chat is still visible)

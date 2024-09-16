@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
@@ -43,8 +44,8 @@ function SignInPageLayout(
     const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
     const scrollViewRef = useRef<RNScrollView>(null);
     const prevPreferredLocale = usePrevious(preferredLocale);
-    const {windowHeight, isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
     const {containerStyles, contentContainerStyles} = useMemo(
         () => ({
@@ -144,7 +145,15 @@ function SignInPageLayout(
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(backgroundImageHeight), StyleUtils.getSignInBgStyles(theme)]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexColumn,
+                            Browser.isMobileSafari() ? styles.overflowHidden : {},
+                            StyleUtils.getMinimumHeight(backgroundImageHeight),
+                            StyleUtils.getSignInBgStyles(theme),
+                        ]}
+                    >
                         <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen

@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
@@ -14,8 +13,8 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,7 +22,7 @@ import type {Route} from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -40,10 +39,6 @@ export {
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
-
-type ReimbursementAccountStep = BankAccountStep | '';
-
-type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
@@ -64,14 +59,14 @@ type PersonalAddress = {
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
-    return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
+    return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }
 
 function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
-function setPlaidEvent(eventName: OnyxEntry<string>) {
+function setPlaidEvent(eventName: string | null) {
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, eventName);
 }
 
@@ -88,10 +83,9 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 }
 
 /**
- * TODO: remove the previous function and rename this function to openPersonalBankAccountSetupView after migrating to the new flow
- * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * Open the personal bank account setup flow using Plaid, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
+function openPersonalBankAccountSetupWithPlaid(exitReportID?: string) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
@@ -130,14 +124,14 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
+function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData {
     return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    isLoading: true,
+                    isLoading: shouldShowLoading,
                     errors: null,
                 },
             },
@@ -164,7 +158,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -233,6 +227,13 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                     shouldShowSuccess: true,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    currentStep: CONST.WALLET.STEP.ADDITIONAL_DETAILS,
+                },
+            },
         ],
         failureData: [
             {
@@ -240,7 +241,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -293,7 +294,7 @@ function updatePersonalInformationForBankAccount(bankAccountID: number, params: 
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR, isConfirmPage),
     );
 }
 
@@ -330,6 +331,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.validationAmounts'),
                 },
             },
         ],
@@ -405,7 +407,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
             policyID,
             confirm: isConfirmPage,
         },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY, isConfirmPage),
     );
 }
 
@@ -467,7 +469,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
-        policyID: policyID ?? '',
+        policyID: policyID ?? '-1',
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
@@ -533,7 +535,7 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     const errorFields: FormInputErrors<AccountFormValues> = {};
 
     if (!values.selectedPlaidAccountID) {
-        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
+        errorFields.selectedPlaidAccountID = Localize.translateLocal('bankAccount.error.youNeedToSelectAnOption');
     }
 
     return errorFields;
@@ -563,7 +565,7 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
-    openPersonalBankAccountSetupViewRefactor,
+    openPersonalBankAccountSetupWithPlaid,
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,

@@ -14,8 +14,11 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
+import {Close} from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 type ConfirmContentProps = {
     /** Title of the modal */
@@ -51,14 +54,35 @@ type ConfirmContentProps = {
     /** Icon to display above the title */
     iconSource?: IconAsset;
 
+    /** Fill color for the Icon */
+    iconFill?: string | false;
+
+    /** Icon width */
+    iconWidth?: number;
+
+    /** Icon height */
+    iconHeight?: number;
+
+    /** Should the icon be centered? */
+    shouldCenterIcon?: boolean;
+
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
+
+    /** Whether to show the dismiss icon */
+    shouldShowDismissIcon?: boolean;
 
     /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
 
+    /** Whether to reverse the order of the stacked buttons */
+    shouldReverseStackedButtons?: boolean;
+
     /** Styles for title */
     titleStyles?: StyleProp<TextStyle>;
+
+    /** Styles for title container */
+    titleContainerStyles?: StyleProp<ViewStyle>;
 
     /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
@@ -85,13 +109,20 @@ function ConfirmContent({
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
     iconSource,
+    iconFill,
     shouldCenterContent = false,
     shouldStackButtons = true,
     titleStyles,
     promptStyles,
     contentStyles,
     iconAdditionalStyles,
+    iconWidth = variables.appModalAppIconSize,
+    iconHeight = variables.appModalAppIconSize,
+    shouldCenterIcon = false,
+    shouldShowDismissIcon = false,
     image,
+    titleContainerStyles,
+    shouldReverseStackedButtons = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -116,19 +147,35 @@ function ConfirmContent({
             )}
 
             <View style={[styles.m5, contentStyles]}>
+                {shouldShowDismissIcon && (
+                    <View style={styles.alignItemsEnd}>
+                        <Tooltip text={translate('common.close')}>
+                            <PressableWithoutFeedback
+                                onPress={onCancel}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                            >
+                                <Icon
+                                    fill={theme.icon}
+                                    src={Close}
+                                />
+                            </PressableWithoutFeedback>
+                        </Tooltip>
+                    </View>
+                )}
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                    {typeof iconSource === 'function' && (
-                        <View style={[styles.flexRow, styles.mb3]}>
+                    {iconSource && (
+                        <View style={[shouldCenterIcon ? styles.justifyContentCenter : null, styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={iconSource}
-                                fill={theme.icon}
-                                width={variables.appModalAppIconSize}
-                                height={variables.appModalAppIconSize}
+                                fill={iconFill === false ? undefined : iconFill ?? theme.icon}
+                                width={iconWidth}
+                                height={iconHeight}
                                 additionalStyles={iconAdditionalStyles}
                             />
                         </View>
                     )}
-                    <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
+                    <View style={[styles.flexRow, isCentered ? {} : styles.mb4, titleContainerStyles]}>
                         <Header
                             title={title}
                             textStyles={titleStyles}
@@ -139,17 +186,25 @@ function ConfirmContent({
 
                 {shouldStackButtons ? (
                     <>
+                        {shouldShowCancelButton && shouldReverseStackedButtons && (
+                            <Button
+                                style={[styles.mt4, styles.noSelect]}
+                                onPress={onCancel}
+                                large
+                                text={cancelText || translate('common.no')}
+                            />
+                        )}
                         <Button
                             success={success}
                             danger={danger}
-                            style={[styles.mt4]}
+                            style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
                             pressOnEnter
                             large
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                         />
-                        {shouldShowCancelButton && (
+                        {shouldShowCancelButton && !shouldReverseStackedButtons && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={onCancel}
@@ -165,7 +220,6 @@ function ConfirmContent({
                                 style={[styles.noSelect, styles.flex1]}
                                 onPress={onCancel}
                                 text={cancelText || translate('common.no')}
-                                medium
                             />
                         )}
                         <Button
@@ -176,7 +230,6 @@ function ConfirmContent({
                             pressOnEnter
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
-                            medium
                         />
                     </View>
                 )}

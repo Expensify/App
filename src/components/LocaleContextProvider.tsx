@@ -2,7 +2,6 @@ import React, {createContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -51,7 +50,7 @@ type LocaleContextProps = {
     toLocaleDigit: (digit: string) => string;
 
     /** Formats a number into its localized ordinal representation */
-    toLocaleOrdinal: (number: number) => string;
+    toLocaleOrdinal: (number: number, returnWords?: boolean) => string;
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
@@ -73,7 +72,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
-function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
+function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, children}: LocaleContextProviderProps) {
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
@@ -102,7 +101,12 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => LocaleDigitUtils.toLocaleDigit(locale, digit), [locale]);
 
-    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(() => (number) => LocaleDigitUtils.toLocaleOrdinal(locale, number), [locale]);
+    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(
+        () =>
+            (number, writtenOrdinals = false) =>
+                LocaleDigitUtils.toLocaleOrdinal(locale, number, writtenOrdinals),
+        [locale],
+    );
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 
@@ -125,18 +129,17 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 
-const Provider = compose(
+const Provider = withCurrentUserPersonalDetails(
     withOnyx<LocaleContextProviderProps, LocaleContextProviderOnyxProps>({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             selector: (preferredLocale) => preferredLocale,
         },
-    }),
-    withCurrentUserPersonalDetails,
-)(LocaleContextProvider);
+    })(LocaleContextProvider),
+);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
 
-export {Provider as LocaleContextProvider, LocaleContext};
+export {LocaleContext, Provider as LocaleContextProvider};
 
-export type {LocaleContextProps, Locale};
+export type {Locale, LocaleContextProps};

@@ -1,6 +1,9 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import {NativeModules} from 'react-native';
 import type {PublicScreensParamList} from '@navigation/types';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
+import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -21,7 +24,7 @@ function PublicScreens() {
             <RootStack.Screen
                 name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={SignInPage}
+                component={NativeModules.HybridAppModule ? SessionExpiredPage : SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
@@ -32,6 +35,11 @@ function PublicScreens() {
                 name={SCREENS.VALIDATE_LOGIN}
                 options={defaultScreenOptions}
                 component={ValidateLoginPage}
+            />
+            <RootStack.Screen
+                name={SCREENS.CONNECTION_COMPLETE}
+                options={defaultScreenOptions}
+                component={ConnectionCompletePage}
             />
             <RootStack.Screen
                 name={SCREENS.UNLINK_LOGIN}

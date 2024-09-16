@@ -49,7 +49,8 @@ const test = (config: NativeConfig) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Chat opening',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 })
                     .then(() => {
                         console.debug('[E2E] Done with chat opening, exiting…');
@@ -64,7 +65,8 @@ const test = (config: NativeConfig) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Chat TTI',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 })
                     .then(() => {
                         console.debug('[E2E] Done with chat TTI tracking, exiting…');

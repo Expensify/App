@@ -30,24 +30,30 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
     return (
         <View style={styles.flex1}>
             {thumbnailUrl && (
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, {borderRadius: variables.componentBorderRadiusNormal}, styles.overflowHidden]}>
                     <Image
                         source={{uri: thumbnailUrl}}
                         style={styles.flex1}
-                        isAuthTokenRequired
+                        // The auth header is required except for static images on Cloudfront, which makes them fail to load
+                        isAuthTokenRequired={!CONST.CLOUDFRONT_DOMAIN_REGEX.test(thumbnailUrl)}
                     />
                 </View>
             )}
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, action, checkIfContextMenuActive}) => (
+                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                     <PressableWithoutFeedback
                         style={[styles.videoThumbnailContainer]}
                         accessibilityLabel={accessibilityLabel}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityRole={CONST.ROLE.BUTTON}
                         onPress={onPress}
                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                        onLongPress={(event) => {
+                            if (isDisabled) {
+                                return;
+                            }
+                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                        }}
                         shouldUseHapticsOnLongPress
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>

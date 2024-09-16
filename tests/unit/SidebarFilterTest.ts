@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
@@ -12,7 +12,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -45,11 +44,8 @@ xdescribe('Sidebar', () => {
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
-    // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        cleanup();
-        return Onyx.clear();
-    });
+    // clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => Onyx.clear());
 
     describe('in default (most recent) mode', () => {
         it('excludes a report with no participants', () => {
@@ -283,6 +279,40 @@ xdescribe('Sidebar', () => {
             );
         });
 
+        it('filter paycheck and bill report', () => {
+            const report1: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+            };
+            const report2: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                errorFields: {
+                    notFound: {
+                        error: 'Report not found',
+                    },
+                },
+            };
+            const report3: Report = LHNTestUtils.getFakeReport();
+            LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+            };
+            return (
+                waitForBatchedUpdates()
+                    .then(() => Onyx.multiSet(reportCollectionDataSet))
+
+                    // Then the reports 1 and 2 are hidden and 3 is not
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        expect(optionRows).toHaveLength(1);
+                    })
+            );
+        });
+
         // NOTE: This is also for #focus mode, should we move this test block?
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
@@ -323,7 +353,7 @@ xdescribe('Sidebar', () => {
                 const boolArr: boolean[] = [];
                 for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
                     // eslint-disable-next-line no-bitwise
-                    boolArr.push(Boolean(i & (1 << j)));
+                    boolArr.push(!!(i & (1 << j)));
                 }
 
                 // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
@@ -365,7 +395,7 @@ xdescribe('Sidebar', () => {
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                     expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                     expect(displayNames).toHaveLength(1);
-                                    expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                                    expect(screen.getByText('One, Two')).toBeOnTheScreen();
                                 } else {
                                     // Both reports visible
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -410,8 +440,9 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
+
+                        expect(screen.getByText('One, Two')).toBeOnTheScreen();
+                        expect(screen.getByText('Three, Four')).toBeOnTheScreen();
                     })
 
                     // When report3 becomes unread
@@ -484,8 +515,9 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
+
+                        expect(screen.getByText('One, Two')).toBeOnTheScreen();
+                        expect(screen.getByText('Three, Four')).toBeOnTheScreen();
                     })
             );
         });
@@ -667,7 +699,7 @@ xdescribe('Sidebar', () => {
             const boolArr: boolean[] = [];
             for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
                 // eslint-disable-next-line no-bitwise
-                boolArr.push(Boolean(i & (1 << j)));
+                boolArr.push(!!(i & (1 << j)));
             }
 
             // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
@@ -711,7 +743,7 @@ xdescribe('Sidebar', () => {
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
-                                expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                                expect(screen.getByText('One, Two')).toBeOnTheScreen();
                             } else {
                                 // Both reports visible
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');

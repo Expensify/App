@@ -63,6 +63,8 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
                     filterType={walletTransfer?.filterPaymentMethodType}
                     selectedMethodID={walletTransfer?.selectedAccountID}
                     shouldShowAddPaymentMethodButton={false}
+                    shouldShowAddBankAccount={false}
+                    shouldShowRightIcon={false}
                 />
             </View>
             <MenuItem

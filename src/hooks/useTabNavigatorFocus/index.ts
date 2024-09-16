@@ -40,7 +40,7 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
         // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
         // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
         // STOP!!!!!!! This is not a pattern to be followed! We are conditionally rendering this hook becase when used in the edit flow we'll never be inside a tab navigator.
-        // eslint-disable-next-line react-hooks/rules-of-hooks
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/rules-of-hooks
         tabPositionAnimation = useTabAnimation();
     } catch (error) {
         tabPositionAnimation = null;
@@ -64,7 +64,6 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
         // We need to get the position animation value on component initialization to determine
         // if the tab is focused or not. Since it's an Animated.Value the only synchronous way
         // to retrieve the value is to use a private method.
-        // @ts-expect-error -- __getValue is a private method
         // eslint-disable-next-line no-underscore-dangle
         const initialTabPositionValue = tabPositionAnimation.__getValue();
 

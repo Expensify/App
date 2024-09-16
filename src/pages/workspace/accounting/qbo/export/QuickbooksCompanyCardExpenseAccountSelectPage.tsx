@@ -1,109 +1,117 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, Section} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ConnectionUtils from '@libs/ConnectionUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
-    value: string;
+    value: Account;
 };
-type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
-type Card = {name: string};
 
-function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const policyID = policy?.id ?? '-1';
+    const {creditCards, accountPayable, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
-    const {exportCompanyCard, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-
-    const defaultCards = useMemo<Card[]>(
-        () => [
-            {
-                name: translate(`workspace.qbo.creditCard`),
-            },
-            {
-                name: translate(`workspace.qbo.debitCard`),
-            },
-            {
-                name: translate(`workspace.qbo.vendorBill`),
-            },
-        ],
-        [translate],
-    );
-    const cards = useMemo<Card[]>(() => {
-        if (creditCards?.length) {
-            return creditCards;
+    const data: CardListItem[] = useMemo(() => {
+        let accounts: Account[];
+        switch (qboConfig?.nonReimbursableExpensesExportDestination) {
+            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
+                accounts = creditCards ?? [];
+                break;
+            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
+                accounts = bankAccounts ?? [];
+                break;
+            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+                accounts = accountPayable ?? [];
+                break;
+            default:
+                accounts = [];
         }
-        return isLocationEnabled ? defaultCards.slice(0, -1) : defaultCards;
-    }, [creditCards, isLocationEnabled, defaultCards]);
 
-    const data = useMemo<CardListItem[]>(
-        () =>
-            cards.map((card) => ({
-                value: card.name,
-                text: card.name,
-                keyForList: card.name,
-                isSelected: card.name === exportCompanyCard,
-            })),
-        [cards, exportCompanyCard],
-    );
+        return accounts.map((card) => ({
+            value: card,
+            text: card.name,
+            keyForList: card.name,
+            isSelected: card.name === qboConfig?.nonReimbursableExpensesAccount?.name,
+        }));
+    }, [qboConfig?.nonReimbursableExpensesAccount, creditCards, bankAccounts, qboConfig?.nonReimbursableExpensesExportDestination, accountPayable]);
 
-    const sections = useMemo<CardsSection[]>(() => [{data}], [data]);
-    const policyID = policy?.id ?? '';
-
-    const onSelectRow = useCallback(
+    const selectExportAccount = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportCompanyCard) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD, row.value);
+            if (row.value.id !== qboConfig?.nonReimbursableExpensesAccount?.id) {
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT,
+                    row.value,
+                    qboConfig?.nonReimbursableExpensesAccount,
+                );
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [exportCompanyCard, policyID],
+        [qboConfig?.nonReimbursableExpensesAccount, policyID],
     );
 
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
+    );
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            >
-                <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}>
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
-                    <View style={styles.flex1}>
-                        <SelectionList
-                            containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
-                            sections={sections}
-                            ListItem={RadioListItem}
-                            onSelectRow={onSelectRow}
-                            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                            footerContent={
-                                isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>
-                            }
-                        />
-                    </View>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <SelectionScreen
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
+            headerTitleAlreadyTranslated={ConnectionUtils.getQBONonReimbursableExportAccountType(qboConfig?.nonReimbursableExpensesExportDestination)}
+            headerContent={
+                qboConfig?.nonReimbursableExpensesExportDestination ? (
+                    <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}AccountDescription`)}</Text>
+                ) : null
+            }
+            sections={data.length ? [{data}] : []}
+            listItem={RadioListItem}
+            onSelectRow={selectExportAccount}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            listEmptyContent={listEmptyContent}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT], qboConfig?.pendingFields)}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
+        />
     );
 }
 
 QuickbooksCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectPage';
 
-export default withPolicy(QuickbooksCompanyCardExpenseAccountSelectPage);
+export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectPage);

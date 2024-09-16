@@ -1,10 +1,13 @@
-import React from 'react';
-import {Animated, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
+import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+
+const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
 type TabSelectorItemProps = {
     /** Function to call when onPress */
@@ -31,28 +34,30 @@ type TabSelectorItemProps = {
 
 function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false}: TabSelectorItemProps) {
     const styles = useThemeStyles();
+    const [isHovered, setIsHovered] = useState(false);
+
     return (
-        <PressableWithFeedback
+        <AnimatedPressableWithFeedback
             accessibilityLabel={title}
-            style={[styles.tabSelectorButton]}
+            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
+            onHoverIn={() => setIsHovered(true)}
+            onHoverOut={() => setIsHovered(false)}
+            role={CONST.ROLE.BUTTON}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            {({hovered}) => (
-                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isActive, backgroundColor)]}>
-                    <TabIcon
-                        icon={icon}
-                        activeOpacity={styles.tabOpacity(hovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(hovered, isActive, inactiveOpacity, activeOpacity).opacity}
-                    />
-                    <TabLabel
-                        title={title}
-                        activeOpacity={styles.tabOpacity(hovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(hovered, isActive, inactiveOpacity, activeOpacity).opacity}
-                    />
-                </Animated.View>
-            )}
-        </PressableWithFeedback>
+            <TabIcon
+                icon={icon}
+                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+            />
+            <TabLabel
+                title={title}
+                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+            />
+        </AnimatedPressableWithFeedback>
     );
 }
 

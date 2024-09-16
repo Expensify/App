@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4.64</string>
+	<string>9.0.36</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -40,7 +40,14 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.4.64.3</string>
+	<string>9.0.36.0</string>
+	<key>FullStory</key>
+	<dict>
+		<key>OrgId</key>
+		<string>o-1WN56P-na1</string>
+		<key>RecordOnStart</key>
+		<false/>
+	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>

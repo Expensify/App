@@ -1,13 +1,20 @@
+import type FocusTrap from 'focus-trap-react';
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+type FocusTrapOptions = Exclude<FocusTrap.Props['focusTrapOptions'], undefined>;
 
 type PopoverAnchorPosition = {
     top?: number;
     right?: number;
     bottom?: number;
     left?: number;
+};
+
+type WindowState = {
+    shouldGoBack: boolean;
 };
 
 type BaseModalProps = Partial<ModalProps> & {
@@ -69,6 +76,9 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
     shouldUseCustomBackdrop?: boolean;
 
+    /** unique id for the modal */
+    modalId?: number;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -77,7 +87,13 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
+
+    /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
+    shouldUseModalPaddingStyle?: boolean;
+
+    /** Used to set the element that should receive the initial focus */
+    initialFocus?: FocusTrapOptions['initialFocus'];
 };
 
 export default BaseModalProps;
-export type {PopoverAnchorPosition};
+export type {PopoverAnchorPosition, WindowState};

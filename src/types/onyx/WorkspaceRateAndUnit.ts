@@ -1,5 +1,7 @@
+/** Units of distance */
 type Unit = 'mi' | 'km';
 
+/** Model of workspace distance rate */
 type WorkspaceRateAndUnit = {
     /** policyID of the Workspace */
     policyID: string;
@@ -7,7 +9,7 @@ type WorkspaceRateAndUnit = {
     /** Unit of the Workspace */
     unit?: Unit;
 
-    /** Unit of the Workspace */
+    /** Distance rate of the Workspace */
     rate?: string;
 };
 

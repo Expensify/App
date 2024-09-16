@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -31,7 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ACHData, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
@@ -40,7 +40,6 @@ import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountOnyxProps = {
@@ -145,7 +144,7 @@ function ReimbursementAccountPage({
     */
     const achData = reimbursementAccount?.achData;
 
-    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHData, T> {
+    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHDataReimbursementAccount, T> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
@@ -200,19 +199,25 @@ function ReimbursementAccountPage({
     /**
         When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
         Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
-        it relies on complete data. Thus, we should wait to calculate it until we have received
+        it relies on incomplete data. Thus, we should wait to calculate it until we have received
         the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps);
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
-    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(true);
+    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(() => {
+        // By default return true (loading), if there are already loaded data we can skip the loading state
+        if (hasACHDataBeenLoaded && typeof reimbursementAccount?.isLoading === 'boolean' && !reimbursementAccount?.isLoading) {
+            return false;
+        }
+        return true;
+    });
 
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '';
+    const policyIDParam = route.params?.policyID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -224,8 +229,9 @@ function ReimbursementAccountPage({
     /**
      * Retrieve verified business bank account currently being set up.
      * @param ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
+     * @param ignoreLocalSubStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    function fetchData(ignoreLocalCurrentStep?: boolean) {
+    function fetchData(ignoreLocalCurrentStep?: boolean, ignoreLocalSubStep?: boolean) {
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
         BankAccounts.setReimbursementAccountLoading(true);
 
@@ -234,12 +240,22 @@ function ReimbursementAccountPage({
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData?.subStep ?? '';
         const localCurrentStep = achData?.currentStep ?? '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
+        BankAccounts.openReimbursementAccountPage(stepToOpen, ignoreLocalSubStep ? '' : subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
     }
 
     useEffect(() => {
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        if (!isReimbursementAccountLoading) {
+            return;
+        }
+
+        // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
+        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
+        if (isStepToOpenEmpty) {
+            BankAccounts.setBankAccountSubStep(null);
+            BankAccounts.setPlaidEvent(null);
+        }
+        fetchData(false, isStepToOpenEmpty);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
@@ -257,7 +273,7 @@ function ReimbursementAccountPage({
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && isReimbursementAccountLoading === false) {
+                if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isReimbursementAccountLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
@@ -305,7 +321,7 @@ function ReimbursementAccountPage({
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
@@ -463,7 +479,7 @@ function ReimbursementAccountPage({
         return (
             <RequestorStep
                 ref={requestorStepRef}
-                shouldShowOnfido={Boolean(shouldShowOnfido)}
+                shouldShowOnfido={!!shouldShowOnfido}
                 onBackButtonPress={goBack}
             />
         );

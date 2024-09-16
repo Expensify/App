@@ -1,20 +1,21 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -22,23 +23,14 @@ type SelectorType = ListItem & {
     value: string;
 };
 
-// TODO: remove once UI is approved
-const DRAFT = [
-    {name: 'Croissant Co Payroll Account', id: 'Croissant Co Payroll Account'},
-    {name: 'Croissant Co Money in Clearing', id: 'Croissant Co Money in Clearing'},
-    {name: 'Croissant Co Debts and Loans', id: 'Croissant Co Debts and Loans'},
-];
-
-function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const selectedAccount = DRAFT[0].id; // selected
-
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = useMemo(() => DRAFT || [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -46,14 +38,14 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: selectedAccount === id,
+                isSelected: qboConfig?.reimbursementAccountID === id,
             })),
-        [selectedAccount, accountOptions],
+        [qboConfig?.reimbursementAccountID, accountOptions],
     );
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -63,39 +55,50 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
 
     const saveSelection = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value, qboConfig?.reimbursementAccountID);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
         },
-        [policyID],
+        [policyID, qboConfig?.reimbursementAccountID],
+    );
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        testID={QuickbooksAccountSelectPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
-
-                        <SelectionList
-                            sections={[{data: qboOnlineSelectorOptions}]}
-                            ListItem={RadioListItem}
-                            headerContent={listHeaderComponent}
-                            onSelectRow={saveSelection}
-                            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <SelectionScreen
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={QuickbooksAccountSelectPage.displayName}
+            sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
+            listItem={RadioListItem}
+            headerContent={listHeaderComponent}
+            onSelectRow={saveSelection}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            listEmptyContent={listEmptyContent}
+            title="workspace.qbo.advancedConfig.qboBillPaymentAccount"
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID], qboConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errorRowStyles={[styles.ph5, styles.mv3]}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+        />
     );
 }
 
 QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
 
-export default withPolicy(QuickbooksAccountSelectPage);
+export default withPolicyConnections(QuickbooksAccountSelectPage);

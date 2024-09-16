@@ -30,7 +30,7 @@ function HeaderWithBackButton({
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
-    report = null,
+    report,
     policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
@@ -53,6 +53,8 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    threeDotsMenuIcon,
+    threeDotsMenuIconFill,
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlayDots = false,
@@ -158,9 +160,9 @@ function HeaderWithBackButton({
                                 }
                             }}
                             style={[styles.touchableButtonImage]}
-                            role="button"
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
-                            nativeID={CONST.BACK_BUTTON_NATIVE_ID}
+                            id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
@@ -182,6 +184,7 @@ function HeaderWithBackButton({
                         containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
                         source={policyAvatar?.source}
                         name={policyAvatar?.name}
+                        avatarID={policyAvatar?.id}
                         type={policyAvatar?.type}
                     />
                 )}
@@ -233,6 +236,8 @@ function HeaderWithBackButton({
                     {shouldShowPinButton && !!report && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
+                            icon={threeDotsMenuIcon}
+                            iconFill={threeDotsMenuIconFill}
                             disabled={shouldDisableThreeDotsButton}
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}

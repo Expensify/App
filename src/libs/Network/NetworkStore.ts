@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
-let credentials: Credentials | null = null;
-let authToken: string | null = null;
+let credentials: Credentials | null | undefined;
+let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
 let offline = false;
@@ -62,7 +62,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val;
+        credentials = val ?? null;
         checkRequiredData();
     },
 });
@@ -81,11 +81,11 @@ Onyx.connect({
             triggerReconnectCallback();
         }
 
-        offline = Boolean(network.shouldForceOffline) || !!network.isOffline;
+        offline = !!network.shouldForceOffline || !!network.isOffline;
     },
 });
 
-function getCredentials(): Credentials | null {
+function getCredentials(): Credentials | null | undefined {
     return credentials;
 }
 
@@ -93,12 +93,12 @@ function isOffline(): boolean {
     return offline;
 }
 
-function getAuthToken(): string | null {
+function getAuthToken(): string | null | undefined {
     return authToken;
 }
 
 function isSupportRequest(command: string): boolean {
-    return [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
+    return [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, READ_COMMANDS.SEARCH].some((cmd) => cmd === command);
 }
 
 function isSupportAuthToken(): boolean {

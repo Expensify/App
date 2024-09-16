@@ -8,13 +8,13 @@ function BaseAttachmentViewPdf({
     file,
     encryptedSourceUrl,
     isFocused,
-    isUsedInCarousel,
     onPress: onPressProp,
     onScaleChanged: onScaleChangedProp,
     onToggleKeyboard,
     onLoadComplete,
-    errorLabelStyles,
     style,
+    isUsedAsChatAttachment,
+    onLoadError,
 }: AttachmentViewPdfProps) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
@@ -24,7 +24,7 @@ function BaseAttachmentViewPdf({
             return;
         }
         attachmentCarouselPagerContext.onScaleChanged(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     /**
@@ -39,11 +39,11 @@ function BaseAttachmentViewPdf({
             }
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (isUsedInCarousel && attachmentCarouselPagerContext) {
+            if (attachmentCarouselPagerContext?.pagerRef) {
                 attachmentCarouselPagerContext.onScaleChanged(newScale);
             }
         },
-        [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp],
+        [attachmentCarouselPagerContext, onScaleChangedProp],
     );
 
     /**
@@ -75,7 +75,8 @@ function BaseAttachmentViewPdf({
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
-            errorLabelStyles={errorLabelStyles}
+            isUsedAsChatAttachment={isUsedAsChatAttachment}
+            onLoadError={onLoadError}
         />
     );
 }

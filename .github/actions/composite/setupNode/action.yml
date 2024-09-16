@@ -9,12 +9,16 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Remove E/App version from package-lock.json
+      shell: bash
+      run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
         cache: npm
         cache-dependency-path: |
-          package-lock.json
+          normalized-package-lock.json
           desktop/package-lock.json
 
     - id: cache-node-modules
@@ -31,7 +35,7 @@ runs:
 
     - name: Install root project node packages
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      uses: nick-fields/retry@v2
+      uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
       with:
         timeout_minutes: 30
         max_attempts: 3
@@ -39,7 +43,7 @@ runs:
 
     - name: Install node packages for desktop submodule
       if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
-      uses: nick-fields/retry@v2
+      uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
       with:
         timeout_minutes: 30
         max_attempts: 3

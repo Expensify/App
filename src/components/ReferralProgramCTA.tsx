@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -19,7 +19,7 @@ type ReferralProgramCTAProps = {
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
 };
 
@@ -54,7 +54,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             }}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
             accessibilityLabel="referral"
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
         >
             <Text>
                 {translate(`referralProgram.${referralContentType}.buttonText1`)}
@@ -72,7 +72,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                         e.preventDefault();
                     }}
                     style={[styles.touchableButtonImage]}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                 >
                     <Icon

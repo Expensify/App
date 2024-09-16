@@ -11,9 +11,9 @@ import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
@@ -105,13 +105,14 @@ function clearSelectedValue(value: string, selection: {start: number; end: numbe
 
 function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: TimePickerProps, ref: ForwardedRef<MinuteHourRefs>) {
     const {numberFormat, translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
@@ -129,11 +130,20 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
 
     const validate = useCallback(
         (time: string) => {
-            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minutes} ${amPmValue}`, dateTimeString: defaultValue});
+            const timeString = time || `${hours}:${minutes} ${amPmValue}`;
+            const [hourStr] = timeString.split(/[:\s]+/);
+            const hour = parseInt(hourStr, 10);
+            if (hour === 0) {
+                setError(true);
+                setErrorMessage(translate('common.error.invalidTimeRange'));
+                return false;
+            }
+            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
             setError(!isValid);
+            setErrorMessage(translate('common.error.invalidTimeShouldBeFuture'));
             return isValid;
         },
-        [hours, minutes, amPmValue, defaultValue],
+        [hours, minutes, amPmValue, defaultValue, translate],
     );
 
     const resetHours = () => {
@@ -345,7 +355,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 handleMinutesChange(insertAtPosition(minutes, trimmedKey, selectionMinute.start, selectionMinute.end));
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [minutes, hours, selectionMinute, selectionHour],
     );
 
@@ -371,7 +381,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 focusHourInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [selectionHour, selectionMinute],
     );
     const arrowRightCallback = useCallback(
@@ -384,7 +394,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 focusMinuteInputOnFirstCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [selectionHour, selectionMinute],
     );
 
@@ -399,7 +409,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             e.preventDefault();
             focusHourInputOnLastCharacter();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [selectionMinute.start, selectionMinute.end, focusHourInputOnLastCharacter],
     );
 
@@ -420,7 +430,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
 
     useEffect(() => {
         onInputChange(`${hours}:${minutes} ${amPmValue}`);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hours, minutes, amPmValue]);
 
     const handleSubmit = () => {
@@ -453,12 +463,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                                 // eslint-disable-next-line no-param-reassign
                                 ref.current = {hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current};
                             }
+                            // eslint-disable-next-line react-compiler/react-compiler
                             hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
                         }}
-                        style={styles.timePickerInput}
+                        style={[styles.iouAmountTextInput, styles.timePickerInput]}
+                        containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionHour}
                     />
@@ -484,7 +496,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
                         }}
-                        style={styles.timePickerInput}
+                        style={[styles.iouAmountTextInput, styles.timePickerInput]}
+                        containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionMinute}
                     />
@@ -521,8 +534,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
-                    message="common.error.invalidTimeShouldBeFuture"
-                    style={styles.pl5}
+                    message={errorMessage}
+                    style={[styles.ph5]}
                 />
             ) : (
                 <View style={styles.formHelperMessage} />

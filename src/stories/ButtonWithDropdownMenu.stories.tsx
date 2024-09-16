@@ -25,7 +25,7 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: ButtonWithDropdownMenuStory = Template.bind({});
 Default.args = {
-    customText: 'Pay using Expensify',
+    customText: 'Pay with Expensify',
     onPress: (e, item) => {
         alert(`Button ${item as string} is pressed.`);
     },
