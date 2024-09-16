@@ -15,6 +15,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -174,7 +175,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         filters[fieldName]
     ) {
         const filterArray = filters[fieldName] ?? [];
-        return filterArray.join(', ');
+        return filterArray.sort(localeCompare).join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
