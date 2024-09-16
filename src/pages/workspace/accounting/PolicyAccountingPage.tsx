@@ -484,8 +484,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         <TextLink
                                             onPress={() => {
                                                 // Go to Expensify Classic.
-                                                const policyURL = `policy?param={"policyID":"${policyID}"}`;
-                                                Link.openOldDotLink(policyURL);
+                                                Link.openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
                                             }}
                                         >
                                             {translate('workspace.accounting.goToODToFix')}
