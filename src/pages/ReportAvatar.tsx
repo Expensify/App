@@ -32,6 +32,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
         return {
             source: UserUtils.getFullSizeAvatar(ReportUtils.getWorkspaceAvatar(report), 0),
             headerTitle: ReportUtils.getPolicyName(report, false, policy),
+            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
             isWorkspaceAvatar: true,
         };
@@ -47,7 +48,6 @@ function ReportAvatar({route}: ReportAvatarProps) {
             }}
             isWorkspaceAvatar={attachment.isWorkspaceAvatar}
             maybeIcon
-            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName={attachment.originalFileName}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
