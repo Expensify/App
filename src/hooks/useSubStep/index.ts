@@ -23,7 +23,7 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     }, [screenIndex]);
 
     const nextScreen = useCallback(
-        (data: unknown) => {
+        (data?: unknown) => {
             if (isEditing.current) {
                 isEditing.current = false;
 
