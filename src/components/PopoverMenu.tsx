@@ -1,14 +1,20 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useLayoutEffect, useState} from 'react';
+import React, {Fragment, useLayoutEffect, useState} from 'react';
+<<<<<<< HEAD
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+=======
+import {StyleSheet} from 'react-native';
+import type {View} from 'react-native';
+>>>>>>> main
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -44,6 +50,9 @@ type PopoverMenuItem = MenuItemProps & {
      *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
      */
     shouldCallAfterModalHide?: boolean;
+
+    /** Whether to close all modals */
+    shouldCloseAllModals?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -140,9 +149,10 @@ function PopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
+    const {windowHeight} = useWindowDimensions();
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
-    const WrapComponent = shouldUseScrollView ? ScrollView : View;
+    const WrapComponent = shouldUseScrollView ? ScrollView : Fragment;
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems[index];
@@ -153,9 +163,13 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
             onItemSelected(selectedItem, index);
-            Modal.close(() => {
-                selectedItem.onSelected?.();
-            });
+            Modal.close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -258,7 +272,7 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {} : styles.createMenuContainer, containerStyle]}>
+                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyle]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     <WrapComponent>
