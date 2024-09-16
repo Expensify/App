@@ -522,6 +522,8 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    let expenseFilter = '';
+    let statusFilter = '';
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
         if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -534,10 +536,10 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
             return `${value}`;
         }
         if (filterKey === FILTER_KEYS.TYPE && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizeString(filterValue as string)}`;
+            expenseFilter = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizeString(filterValue as string)}`;
         }
         if (filterKey === FILTER_KEYS.STATUS && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeString(filterValue as string)}`;
+            statusFilter = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeString(filterValue as string)}`;
         }
         if (
             (filterKey === FILTER_KEYS.CATEGORY ||
@@ -567,6 +569,15 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
 
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
+
+    // Ensure consistent filters order with expense and status filters at the beginning of the query
+    // To maintain hashes consistency for saved searches
+    if (statusFilter) {
+        filtersString.unshift(statusFilter);
+    }
+    if (expenseFilter) {
+        filtersString.unshift(expenseFilter);
+    }
 
     return filtersString.filter(Boolean).join(' ');
 }
