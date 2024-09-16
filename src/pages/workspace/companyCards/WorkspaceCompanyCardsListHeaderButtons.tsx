@@ -32,16 +32,17 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     // TODO: use data form onyx instead of mocked one when API is implemented
     // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const cardFeeds = mockedFeeds ?? {};
+    const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     return (
-        <View style={[styles.w100, styles.ph5, !shouldUseNarrowLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
+        <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
             <PressableWithFeedback
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldUseNarrowLayout && styles.mb3]}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldChangeLayout && styles.mb3]}
                 accessibilityLabel={cardFeeds?.companyCardNicknames?.[selectedFeed]}
             >
                 <Icon
@@ -59,20 +60,18 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
 
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
-                    medium
                     success
                     // TODO: navigate to Assign card flow when it's implemented
                     onPress={() => {}}
                     icon={Expensicons.Plus}
                     text={translate('workspace.companyCards.assignCard')}
-                    style={shouldUseNarrowLayout && styles.flex1}
+                    style={shouldChangeLayout && styles.flex1}
                 />
                 <Button
-                    medium
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={shouldUseNarrowLayout && styles.flex1}
+                    style={shouldChangeLayout && styles.flex1}
                 />
             </View>
         </View>
