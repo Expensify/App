@@ -119,7 +119,7 @@ function SecuritySettingsPage() {
             description: personalDetail?.displayName ? formattedEmail : '',
             badgeText: translate('delegate.role', role),
             avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
+            icon: personalDetail?.avatar ?? FallbackAvatar,
             iconType: CONST.ICON_TYPE_AVATAR,
             numberOfLinesDescription: 1,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
