@@ -412,6 +412,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
+                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
