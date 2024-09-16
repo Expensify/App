@@ -33,7 +33,6 @@ import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults'
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import SearchButton from './SearchRouter/SearchButton';
 import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
