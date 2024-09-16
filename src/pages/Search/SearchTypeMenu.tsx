@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {MenuItemBaseProps} from '@components/MenuItem';
