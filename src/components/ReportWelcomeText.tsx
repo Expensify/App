@@ -36,14 +36,15 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminRoom = ReportUtils.isAdminRoom(report);
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
     const isDomainRoom = ReportUtils.isDomainRoom(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
+    const isSpecialRoom = isAdminRoom || isAnnounceRoom || isDomainRoom || isInvoiceRoom;
+    const isChatRoom = ReportUtils.isChatRoom(report) && !isSpecialRoom;
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat || isSpecialRoom);
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const currentUserAccountID = getCurrentUserAccountID();
