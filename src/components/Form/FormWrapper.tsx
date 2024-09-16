@@ -189,10 +189,4 @@ function FormWrapper({
 
 FormWrapper.displayName = 'FormWrapper';
 
-export default withOnyx<FormWrapperProps, FormWrapperOnyxProps>({
-    formState: {
-        // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we need to cast the keys to any
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-        key: (props) => props.formID as any,
-    },
-})(FormWrapper);
+export default FormWrapper;
