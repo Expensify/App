@@ -162,7 +162,7 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
-    const successData: OnyxUpdate[] = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRYNEWDOT,
@@ -174,12 +174,25 @@ function completeHybridAppOnboarding() {
         },
     ];
 
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRYNEWDOT,
+            value: {
+                classicRedirect: {
+                    completedHybridAppOnboarding: false,
+                },
+            },
+        },
+    ];
+
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {successData}).then((response) => {
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData}).then((response) => {
         if (!response) {
             return;
         }
 
+        // if the call succeeded HybridApp onboarding is finished, otherwise it's not
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === 200});
         NativeModules.HybridAppModule.completeOnboarding(response?.jsonCode === 200);
     });
