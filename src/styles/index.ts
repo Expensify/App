@@ -3616,8 +3616,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
-        searchTopBarStyle: {
-            backgroundColor: theme.appBG,
+        zIndex10: {
             zIndex: 10,
         },
 

@@ -1,8 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {clamp, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -45,27 +44,24 @@ function SearchPageBottomTab() {
         zIndex: 9,
     }));
 
-    const expandTopBar = () => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
-    };
-
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const {contentOffset, layoutMeasurement, contentSize} = event.nativeEvent;
-        if (windowHeight > contentSize.height) {
-            return;
-        }
-        const currentOffset = contentOffset.y;
-        const isScrollingDown = currentOffset > scrollOffset.value;
-        if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            const {contentOffset, layoutMeasurement, contentSize} = event;
+            if (windowHeight > contentSize.height) {
+                return;
+            }
+            const currentOffset = contentOffset.y;
+            const isScrollingDown = currentOffset > scrollOffset.value;
             const distanceScrolled = currentOffset - scrollOffset.value;
-            topBarOffset.value = clamp(topBarOffset.value - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight);
-        } else if (!isScrollingDown && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTNACE) {
-            expandTopBar();
-        }
-
-        scrollOffset.value = currentOffset;
-    };
+            if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                topBarOffset.value = clamp(topBarOffset.value - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight);
+            } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTNACE) {
+                topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+            }
+            scrollOffset.value = currentOffset;
+        },
+    });
 
     const {queryJSON, policyID} = useMemo(() => {
         if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
@@ -106,8 +102,8 @@ function SearchPageBottomTab() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             {!selectionMode?.isEnabled ? (
-                <View>
-                    <View style={[styles.searchTopBarStyle]}>
+                <View style={styles.zIndex10}>
+                    <View style={[styles.zIndex10, styles.appBG]}>
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
@@ -120,7 +116,9 @@ function SearchPageBottomTab() {
                             <SearchStatusBar
                                 type={queryJSON.type}
                                 status={queryJSON.status}
-                                onStatusChange={expandTopBar}
+                                onStatusChange={() => {
+                                    topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                                }}
                             />
                         )}
                     </Animated.View>
@@ -131,8 +129,8 @@ function SearchPageBottomTab() {
             {shouldUseNarrowLayout && (
                 <Search
                     queryJSON={queryJSON}
-                    onSearchListScroll={handleScroll}
-                    contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentMargin : undefined}
+                    onSearchListScroll={scrollHandler}
+                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentMargin] : undefined}
                 />
             )}
         </ScreenWrapper>

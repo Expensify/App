@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +13,7 @@ type SearchRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 const barHeight = 8;
@@ -30,14 +32,14 @@ const centralPanePadding = 40;
 // 80 is the width of the button on the right side
 const rightButtonWidth = 80;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.mt3, styles.flex1]}>
+            <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
                     itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
                     itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}

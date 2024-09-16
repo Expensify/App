@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -27,21 +27,20 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
         };
     }, []);
 
+    const defaultOnScroll = () => {
+        // Only dismiss the keyboard whenever the user scrolls the screen
+        if (!isScreenTouched) {
+            return;
+        }
+        Keyboard.dismiss();
+    };
+
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScroll={(event) => {
-                if (onScroll) {
-                    onScroll(event);
-                }
-                // Only dismiss the keyboard whenever the user scrolls the screen
-                if (!isScreenTouched) {
-                    return;
-                }
-                Keyboard.dismiss();
-            }}
+            onScroll={onScroll ?? defaultOnScroll}
         />
     );
 }

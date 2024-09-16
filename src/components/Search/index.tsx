@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -175,7 +176,12 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
     if (shouldShowLoadingState) {
-        return <SearchRowSkeleton shouldAnimate />;
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={styles.searchListContentMargin}
+            />
+        );
     }
 
     if (searchResults === undefined) {
@@ -191,7 +197,11 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
     if (shouldShowEmptyState) {
-        return <EmptySearchView type={type} />;
+        return (
+            <View style={styles.searchListContentMargin}>
+                <EmptySearchView type={type} />
+            </View>
+        );
     }
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
@@ -336,6 +346,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                 ) : undefined
             }
             contentContainerStyle={contentContainerStyle}
+            scrollEventThrottle={1}
         />
     );
 }
