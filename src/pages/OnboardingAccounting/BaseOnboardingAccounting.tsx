@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import OnboardingListItem from '@components/SelectionList/OnboardingListItem';
@@ -29,7 +30,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [userReportedIntegration, setUserReportedIntegration] = useState<string | null | undefined>(undefined);
     const [error, setError] = useState('');
 
@@ -154,6 +155,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     headerMessage={translate('onboarding.accounting.description')}
                     headerMessageStyle={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 />
+                {shouldUseNarrowLayout && <OfflineIndicator />}
             </View>
         </ScreenWrapper>
     );

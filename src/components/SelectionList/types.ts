@@ -288,7 +288,7 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
-type OnboardingListItemProps<TItem extends ListItem> = ListItemProps<TItem & {onboardingIcon: OnboardingIcon}>;
+type OnboardingListItemProps<TItem extends ListItem> = ListItemProps<TItem & {onboardingIcon?: OnboardingIcon}>;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
