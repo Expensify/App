@@ -24,6 +24,9 @@ const run = (): boolean => {
 
 =======
         const measurement = regressionOutput.countChanged[i];
+<<<<<<< HEAD
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
         const baseline: MeasureEntry = measurement.baseline;
         const current: MeasureEntry = measurement.current;

@@ -92,10 +92,14 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                         [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
 =======
                         [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa

@@ -137,6 +137,7 @@ describe('Sidebar', () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Email Two');
@@ -145,6 +146,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Email Two');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Email Two');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');
@@ -202,6 +208,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Two'); // this has `hasDraft` flag enabled so it will be on top
                         expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -210,6 +217,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Four');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Two'); // this has `hasDraft` flag enabled so it will be on top
+                        expect(displayNames[1]).toHaveTextContent('Email Four');
+                        expect(displayNames[2]).toHaveTextContent('Email Three');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Two'); // this has `hasDraft` flag enabled so it will be on top
                         expect(displayNames[1]).toHaveTextContent('Email Four');
@@ -265,6 +277,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Two');
                         expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -273,6 +286,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Four');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Two');
+                        expect(displayNames[1]).toHaveTextContent('Email Four');
+                        expect(displayNames[2]).toHaveTextContent('Email Three');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Two');
                         expect(displayNames[1]).toHaveTextContent('Email Four');
@@ -340,7 +358,10 @@ describe('Sidebar', () => {
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Two');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -415,6 +436,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Four owes $100.00');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -422,12 +444,17 @@ describe('Sidebar', () => {
 =======
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Four owes $100.00');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Two');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -507,6 +534,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email One');
                         expect(displayNames.at(1)).toHaveTextContent('Workspace-Test-001 owes $100.00');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -514,12 +542,17 @@ describe('Sidebar', () => {
 =======
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         expect(displayNames[0]).toHaveTextContent('Email One');
                         expect(displayNames[1]).toHaveTextContent('Workspace-Test-001 owes $100.00');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Two');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -580,6 +613,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Three');
                         expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Two');
@@ -588,6 +622,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Four');
                         expect(displayNames[2]).toHaveTextContent('Email Two');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Three');
+                        expect(displayNames[1]).toHaveTextContent('Email Four');
+                        expect(displayNames[2]).toHaveTextContent('Email Two');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Three');
                         expect(displayNames[1]).toHaveTextContent('Email Four');
@@ -760,6 +799,7 @@ describe('Sidebar', () => {
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Two');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -767,12 +807,17 @@ describe('Sidebar', () => {
 =======
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Two');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Five');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -826,6 +871,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Email Two');
@@ -834,6 +880,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Email Two');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Email Two');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');
@@ -851,6 +902,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Five');
                         expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -858,12 +910,17 @@ describe('Sidebar', () => {
 =======
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         expect(displayNames[0]).toHaveTextContent('Email Five');
                         expect(displayNames[1]).toHaveTextContent('Email Four');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Two');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -920,6 +977,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Email Two');
@@ -928,6 +986,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Email Two');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Email Two');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');
@@ -952,6 +1015,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Five');
                         expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -959,12 +1023,17 @@ describe('Sidebar', () => {
 =======
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         expect(displayNames[0]).toHaveTextContent('Email Five');
                         expect(displayNames[1]).toHaveTextContent('Email Four');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Two');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -1020,6 +1089,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Report (archived)');
@@ -1028,6 +1098,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Report (archived)');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');
@@ -1075,6 +1150,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Email Two');
@@ -1083,6 +1159,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Email Two');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Email Two');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');
@@ -1127,6 +1208,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Email Two');
@@ -1135,6 +1217,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Email Two');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Email Two');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');
@@ -1152,6 +1239,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(4);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Five');
                         expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
@@ -1159,12 +1247,17 @@ describe('Sidebar', () => {
 =======
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         expect(displayNames[0]).toHaveTextContent('Email Five');
                         expect(displayNames[1]).toHaveTextContent('Email Four');
                         expect(displayNames[2]).toHaveTextContent('Email Three');
                         expect(displayNames[3]).toHaveTextContent('Email Two');
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     })
@@ -1219,6 +1312,7 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         expect(displayNames.at(0)).toHaveTextContent('Email Four');
                         expect(displayNames.at(1)).toHaveTextContent('Email Three');
                         expect(displayNames.at(2)).toHaveTextContent('Report (archived)');
@@ -1227,6 +1321,11 @@ describe('Sidebar', () => {
                         expect(displayNames[1]).toHaveTextContent('Email Three');
                         expect(displayNames[2]).toHaveTextContent('Report (archived)');
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+                        expect(displayNames[0]).toHaveTextContent('Email Four');
+                        expect(displayNames[1]).toHaveTextContent('Email Three');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
                         expect(displayNames[0]).toHaveTextContent('Email Four');
                         expect(displayNames[1]).toHaveTextContent('Email Three');

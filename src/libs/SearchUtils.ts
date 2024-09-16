@@ -719,7 +719,10 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[], deli
 =======
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
             filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;

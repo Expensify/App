@@ -305,8 +305,11 @@ function getOptionData({
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
 =======
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
     const personalDetail = participantPersonalDetailList[0] ?? {};

@@ -175,7 +175,10 @@ function ButtonWithDropdownMenu<IValueType>({
 =======
                     onPress={(event) => onPress(event, options[0].value)}
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
 =======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}

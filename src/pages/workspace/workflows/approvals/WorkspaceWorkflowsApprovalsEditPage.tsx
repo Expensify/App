@@ -60,17 +60,23 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Remove the approval workflow using the initial data as it could be already edited
         Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
 =======
+=======
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
             Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
         });
+<<<<<<< HEAD
+>>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+=======
 >>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
     }, [initialApprovalWorkflow, route.params.policyID]);
 
