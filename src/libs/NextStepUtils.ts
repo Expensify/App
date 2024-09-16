@@ -40,11 +40,13 @@ function parseMessage(messages: Message[] | undefined) {
 
     messages?.forEach((part) => {
         const isEmail = Str.isValidEmail(part.text);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        if (isEmail) {
+        if (currentUserEmail === part.text) {
+            tagType = 'strong';
+            content = 'You';
+        } else if (isEmail) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
@@ -194,14 +196,14 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: nextApproverDisplayName,
+                        text: 'asdasdsa',
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'approve',
+                        text: 'approve ee',
                     },
                     {
                         text: ' %expenses.',
