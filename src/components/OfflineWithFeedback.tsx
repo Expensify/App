@@ -57,6 +57,12 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
     /** Whether we can dismiss the error message */
     canDismissError?: boolean;
+
+    /** Whether we should render the error message above the children */
+    shouldDisplayErrorAbove?: boolean;
+
+    /** Whether we should force opacity */
+    shouldForceOpacity?: boolean;
 };
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
@@ -74,6 +80,8 @@ function OfflineWithFeedback({
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
     style,
+    shouldDisplayErrorAbove = false,
+    shouldForceOpacity = false,
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
@@ -85,7 +93,7 @@ function OfflineWithFeedback({
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-    const needsOpacity = !shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError);
+    const needsOpacity = (!shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError)) || shouldForceOpacity;
     const needsStrikeThrough = !shouldDisableStrikeThrough && isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = shouldHideOnDelete && !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = rest.children;
@@ -124,15 +132,23 @@ function OfflineWithFeedback({
     }
     return (
         <View style={style}>
+            {shouldShowErrorMessages && shouldDisplayErrorAbove && (
+                <ErrorMessageRow
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
+                    onClose={onClose}
+                    canDismissError={canDismissError}
+                />
+            )}
             {!hideChildren && (
                 <View
-                    style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
+                    style={[needsOpacity ? styles.offlineFeedback.pending : styles.offlineFeedback.default, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
                     <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
-            {shouldShowErrorMessages && (
+            {shouldShowErrorMessages && !shouldDisplayErrorAbove && (
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}

@@ -11,7 +11,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -19,19 +18,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
 
-const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
-
 function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const completeEngagement = useCallback(
@@ -80,11 +78,11 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
             <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
                 <HeaderWithBackButton
                     shouldShowBackButton
-                    progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                    onBackButtonPress={Navigation.goBack}
+                    progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
+                    onBackButtonPress={OnboardingFlow.goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
                     footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
@@ -96,7 +94,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     shouldValidateOnChange
                     shouldTrimValues={false}
                 >
-                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
                     </View>
                     <View style={styles.mb4}>
@@ -111,7 +109,6 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                             shouldSaveDraft
                             maxLength={CONST.TITLE_CHARACTER_LIMIT}
                             spellCheck={false}
-                            autoFocus
                         />
                     </View>
                 </FormProvider>

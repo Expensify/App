@@ -187,7 +187,7 @@ function FloatingActionButtonAndPopover(
     const {isOffline} = useNetwork();
 
     const {canUseSpotnanaTravel} = usePermissions();
-    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
+    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -262,16 +262,13 @@ function FloatingActionButtonAndPopover(
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, false), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                selectOption(
-                    () => Task.clearOutTaskInfoAndNavigate(isValidReport ? quickActionReportID : '', isValidReport ? quickActionReport : undefined, quickAction.targetAccountID ?? -1, true),
-                    false,
-                );
+                selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
@@ -405,32 +402,6 @@ function FloatingActionButtonAndPopover(
                                 ),
                             ),
                     },
-                    {
-                        icon: Expensicons.Transfer,
-                        text: translate('iou.splitExpense'),
-                        onSelected: () =>
-                            interceptAnonymousUser(() =>
-                                IOU.startMoneyRequest(
-                                    CONST.IOU.TYPE.SPLIT,
-                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                    // for all of the routes in the creation flow.
-                                    ReportUtils.generateReportID(),
-                                ),
-                            ),
-                    },
-                    {
-                        icon: getIconForAction(CONST.IOU.TYPE.SEND),
-                        text: translate('iou.paySomeone', {}),
-                        onSelected: () =>
-                            interceptAnonymousUser(() =>
-                                IOU.startMoneyRequest(
-                                    CONST.IOU.TYPE.PAY,
-                                    // When starting to pay someone from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                    // for all of the routes in the creation flow.
-                                    ReportUtils.generateReportID(),
-                                ),
-                            ),
-                    },
                     ...(canSendInvoice
                         ? [
                               {
@@ -448,11 +419,6 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    {
-                        icon: Expensicons.Task,
-                        text: translate('newTaskPage.assignTask'),
-                        onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                    },
                     ...(canUseSpotnanaTravel
                         ? [
                               {

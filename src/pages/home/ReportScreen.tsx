@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -50,6 +50,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import HeaderView from './HeaderView';
+import ReportActionsListItemRenderer from './report/ReportActionsListItemRenderer';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
@@ -195,7 +196,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             isWaitingOnBankAccount: reportOnyx?.isWaitingOnBankAccount,
             iouReportID: reportOnyx?.iouReportID,
             isOwnPolicyExpenseChat: reportOnyx?.isOwnPolicyExpenseChat,
-            notificationPreference: reportOnyx?.notificationPreference,
             isPinned: reportOnyx?.isPinned,
             chatReportID: reportOnyx?.chatReportID,
             visibility: reportOnyx?.visibility,
@@ -208,6 +208,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             avatarUrl: reportOnyx?.avatarUrl,
             permissions,
             invoiceReceiver: reportOnyx?.invoiceReceiver,
+            policyAvatar: reportOnyx?.policyAvatar,
         }),
         [
             reportOnyx?.lastReadTime,
@@ -238,7 +239,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.isWaitingOnBankAccount,
             reportOnyx?.iouReportID,
             reportOnyx?.isOwnPolicyExpenseChat,
-            reportOnyx?.notificationPreference,
             reportOnyx?.isPinned,
             reportOnyx?.chatReportID,
             reportOnyx?.visibility,
@@ -250,6 +250,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.avatarUrl,
             permissions,
             reportOnyx?.invoiceReceiver,
+            reportOnyx?.policyAvatar,
         ],
     );
 
@@ -259,13 +260,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
     const {reportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(report.reportID, reportActionIDFromRoute);
-
-    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
-    // If we have cached reportActions, they will be shown immediately.
-    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
-    useLayoutEffect(() => {
-        setIsLinkingToMessage(!!reportActionIDFromRoute);
-    }, [route, reportActionIDFromRoute]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -528,10 +522,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     useEffect(() => {
         // Call OpenReport only if we are not linking to a message or the report is not available yet
-        if (isLoadingReportOnyx || (reportActionIDFromRoute && report.reportID && isLinkedMessagePageReady)) {
+        if (isLoadingReportOnyx || reportActionIDFromRoute) {
             return;
         }
-
         fetchReportIfNeeded();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingReportOnyx]);
@@ -555,7 +548,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             !isFocused ||
             prevIsFocused ||
             !ReportUtils.isChatThread(report) ||
-            report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
+            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
             isSingleTransactionView
         ) {
             return;
@@ -565,7 +558,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report.notificationPreference, isFocused, isSingleTransactionView]);
+    }, [prevIsFocused, report.participants, isFocused, isSingleTransactionView]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -726,6 +719,21 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
+    const mostRecentReportAction = reportActions[0];
+    const shouldShowMostRecentReportAction =
+        !!mostRecentReportAction &&
+        !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
+        !ReportActionsUtils.isDeletedAction(mostRecentReportAction);
+
+    const lastRoute = usePrevious(route);
+    const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
+    // If we have cached reportActions, they will be shown immediately.
+    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
+    if ((lastRoute !== route || lastReportActionIDFromRoute !== reportActionIDFromRoute) && isLinkingToMessage !== !!reportActionIDFromRoute) {
+        setIsLinkingToMessage(!!reportActionIDFromRoute);
+        return null;
+    }
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -794,7 +802,28 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
+                                {shouldShowSkeleton && (
+                                    <>
+                                        <ReportActionsSkeletonView />
+                                        {shouldShowMostRecentReportAction && (
+                                            <ReportActionsListItemRenderer
+                                                reportAction={mostRecentReportAction}
+                                                reportActions={reportActions}
+                                                parentReportAction={parentReportAction}
+                                                parentReportActionForTransactionThread={undefined}
+                                                transactionThreadReport={undefined}
+                                                index={0}
+                                                report={report}
+                                                displayAsGroup={false}
+                                                shouldHideThreadDividerLine
+                                                shouldDisplayNewMarker={false}
+                                                shouldDisplayReplyDivider={false}
+                                                isFirstVisibleReportAction
+                                                shouldUseThreadDividerLine={false}
+                                            />
+                                        )}
+                                    </>
+                                )}
 
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter

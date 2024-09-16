@@ -36,8 +36,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
+import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceProfilePageOnyxProps = {
@@ -196,7 +196,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             disabledStyle={styles.cursorDefault}
                             errorRowStyles={styles.mt3}
                         />
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
@@ -229,7 +229,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             </OfflineWithFeedback>
                         )}
                         <OfflineWithFeedback
-                            pendingAction={policy?.pendingFields?.generalSettings}
+                            pendingAction={policy?.pendingFields?.outputCurrency}
                             errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             errorRowStyles={[styles.mt2]}
@@ -249,7 +249,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             </View>
                         </OfflineWithFeedback>
                         {canUseSpotnanaTravel && shouldShowAddress && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedAddress}
@@ -270,7 +270,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
                                     onPress={onPressShare}
-                                    medium
                                     icon={Expensicons.QrCode}
                                 />
                                 {isOwner && (
@@ -279,7 +278,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
-                                        medium
                                         icon={Expensicons.Trashcan}
                                     />
                                 )}

@@ -179,6 +179,7 @@ function AttachmentModal({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
+    const isPDFLoadError = useRef(false);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
@@ -245,13 +246,14 @@ function AttachmentModal({
         }
 
         if (typeof sourceURL === 'string') {
-            fileDownload(sourceURL, file?.name ?? '');
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? FileUtils.getFileName(`${sourceURL}`) : file?.name;
+            fileDownload(sourceURL, fileName ?? '');
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, sourceState, file]);
+    }, [isAuthTokenRequiredState, sourceState, file, type]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -288,23 +290,34 @@ function AttachmentModal({
         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
     }, [transaction, report]);
 
-    const isValidFile = useCallback((fileObject: FileObject) => {
-        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-            setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
-            return false;
-        }
+    const isValidFile = useCallback(
+        (fileObject: FileObject) =>
+            FileUtils.validateImageForCorruption(fileObject)
+                .then(() => {
+                    if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
+                        setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+                        return false;
+                    }
 
-        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-            setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
-            return false;
-        }
+                    if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
+                        setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
+                        return false;
+                    }
 
-        return true;
-    }, []);
+                    return true;
+                })
+                .catch(() => {
+                    setIsAttachmentInvalid(true);
+                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    return false;
+                }),
+        [],
+    );
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
@@ -329,34 +342,35 @@ function AttachmentModal({
                 return;
             }
 
-            if (!isValidFile(fileObject)) {
-                return;
-            }
-
-            if (fileObject instanceof File) {
-                /**
-                 * Cleaning file name, done here so that it covers all cases:
-                 * upload, drag and drop, copy-paste
-                 */
-                let updatedFile = fileObject;
-                const cleanName = FileUtils.cleanFileName(updatedFile.name);
-                if (updatedFile.name !== cleanName) {
-                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+            isValidFile(fileObject).then((isValid) => {
+                if (!isValid) {
+                    return;
                 }
-                const inputSource = URL.createObjectURL(updatedFile);
-                updatedFile.uri = inputSource;
-                const inputModalType = getModalType(inputSource, updatedFile);
-                setIsModalOpen(true);
-                setSourceState(inputSource);
-                setFile(updatedFile);
-                setModalType(inputModalType);
-            } else if (fileObject.uri) {
-                const inputModalType = getModalType(fileObject.uri, fileObject);
-                setIsModalOpen(true);
-                setSourceState(fileObject.uri);
-                setFile(fileObject);
-                setModalType(inputModalType);
-            }
+                if (fileObject instanceof File) {
+                    /**
+                     * Cleaning file name, done here so that it covers all cases:
+                     * upload, drag and drop, copy-paste
+                     */
+                    let updatedFile = fileObject;
+                    const cleanName = FileUtils.cleanFileName(updatedFile.name);
+                    if (updatedFile.name !== cleanName) {
+                        updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+                    }
+                    const inputSource = URL.createObjectURL(updatedFile);
+                    updatedFile.uri = inputSource;
+                    const inputModalType = getModalType(inputSource, updatedFile);
+                    setIsModalOpen(true);
+                    setSourceState(inputSource);
+                    setFile(updatedFile);
+                    setModalType(inputModalType);
+                } else if (fileObject.uri) {
+                    const inputModalType = getModalType(fileObject.uri, fileObject);
+                    setIsModalOpen(true);
+                    setSourceState(fileObject.uri);
+                    setFile(fileObject);
+                    setModalType(inputModalType);
+                }
+            });
         },
         [isValidFile, getModalType, isDirectoryCheck],
     );
@@ -422,13 +436,20 @@ function AttachmentModal({
                 onSelected: () => downloadAttachment(),
             });
         }
-        if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEditReceipt && !TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (
+            !TransactionUtils.hasEReceipt(transaction) &&
+            TransactionUtils.hasReceipt(transaction) &&
+            !TransactionUtils.isReceiptBeingScanned(transaction) &&
+            canEditReceipt &&
+            !TransactionUtils.hasMissingSmartscanFields(transaction)
+        ) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
                 onSelected: () => {
                     setIsDeleteReceiptConfirmModalVisible(true);
                 },
+                shouldCallAfterModalHide: true,
             });
         }
         return menuItems;
@@ -440,7 +461,7 @@ function AttachmentModal({
     let headerTitleNew = headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
-    if (!isEmptyObject(report)) {
+    if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
@@ -475,6 +496,12 @@ function AttachmentModal({
                 onModalHide={() => {
                     onModalHide();
                     setShouldLoadAttachment(false);
+                    if (isPDFLoadError.current) {
+                        isPDFLoadError.current = false;
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+                        setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    }
                 }}
                 propagateSwipe
                 initialFocus={() => {
@@ -536,6 +563,10 @@ function AttachmentModal({
                                             isAuthTokenRequired={isAuthTokenRequiredState}
                                             file={file}
                                             onToggleKeyboard={setIsConfirmButtonDisabled}
+                                            onPDFLoadError={() => {
+                                                isPDFLoadError.current = true;
+                                                setIsModalOpen(false);
+                                            }}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
                                             fallbackSource={fallbackSource}

@@ -1,12 +1,10 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -14,7 +12,6 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +21,6 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
-import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,52 +38,19 @@ const menuIcons = {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
-    const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
-    const [onboardingPurposeSelected, onboardingPurposeSelectedResult] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
-    const PurposeFooterInstance = <OfflineIndicator />;
-
-    useEffect(() => {
-        setSelectedPurpose(onboardingPurposeSelected ?? undefined);
-    }, [onboardingPurposeSelected]);
-
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+    const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const paddingHorizontal = isMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
-
-    const selectedCheckboxIcon = useMemo(
-        () => (
-            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                <Icon
-                    src={Expensicons.Checkmark}
-                    fill={theme.success}
-                />
-            </View>
-        ),
-        [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
-    );
-
-    const saveAndNavigate = useCallback(() => {
-        if (selectedPurpose === undefined) {
-            return;
-        }
-
-        if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
-    }, [selectedPurpose, route]);
-
-    const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
+    const menuItems: MenuItemProps[] = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
-        const isSelected = selectedPurpose === choice;
         return {
             key: translationKey,
             title: translate(translationKey),
@@ -96,48 +59,46 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconWidth: variables.menuIconSize,
             iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
-            wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
-            hoverAndPressStyle: [styles.purposeMenuItemSelected],
-            rightComponent: selectedCheckboxIcon,
-            shouldShowRightComponent: isSelected,
+            wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 Welcome.setOnboardingErrorMessage('');
+
+                if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
+                    return;
+                }
+                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
-            focused: isSelected,
         };
     });
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        if (!selectedPurpose) {
-            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
-        } else {
-            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorContinue'));
-        }
-    }, [selectedPurpose, translate]);
+        Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
+    }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
-    if (isLoadingOnyxValue(onboardingPurposeSelectedResult, onboardingErrorMessageResult)) {
+    if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
     }
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
-                    <View style={isMediumOrLargerScreenWidth && styles.mh3}>
+                    <View style={onboardingIsMediumOrLargerScreenWidth && styles.mh3}>
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
                             progressBarPercentage={25}
                         />
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
-                            <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                            <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                                 <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
                             </View>
                             <MenuItemList
@@ -146,22 +107,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             />
                         </View>
                     </ScrollView>
-                    <FormAlertWithSubmitButton
-                        enabledWhenOffline
-                        footerContent={isSmallScreenWidth && PurposeFooterInstance}
-                        buttonText={translate('common.continue')}
-                        onSubmit={() => {
-                            if (!selectedPurpose) {
-                                Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
-                                return;
-                            }
-                            Welcome.setOnboardingErrorMessage('');
-                            saveAndNavigate();
-                        }}
-                        message={onboardingErrorMessage}
-                        isAlertVisible={!!onboardingErrorMessage}
-                        containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
-                    />
+                    <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
+                        <FormHelpMessage message={onboardingErrorMessage} />
+                    </View>
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </View>
             )}
         </SafeAreaConsumer>

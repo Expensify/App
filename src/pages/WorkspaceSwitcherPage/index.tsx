@@ -46,6 +46,7 @@ function WorkspaceSwitcherPage() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
@@ -104,7 +105,7 @@ function WorkspaceSwitcherPage() {
         }
 
         return Object.values(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline) && !policy?.isJoinRequestPending)
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id ?? '-1',
@@ -123,7 +124,7 @@ function WorkspaceSwitcherPage() {
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
                 isSelected: activeWorkspaceID === policy?.id,
             }));
-    }, [policies, isOffline, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
+    }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
@@ -191,7 +192,8 @@ function WorkspaceSwitcherPage() {
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
-                        listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
+                        listEmptyContent={WorkspaceCardCreateAWorkspaceInstance}
+                        shouldShowListEmptyContent={shouldShowCreateWorkspace}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                     />
