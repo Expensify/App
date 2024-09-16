@@ -56,7 +56,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     </Text>
                 }
                 onSelectRow={(option) => {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(login, option.value));
+                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
                 }}
                 sections={[{data: roleOptions}]}
                 ListItem={RadioListItem}
