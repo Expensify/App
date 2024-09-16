@@ -42,7 +42,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={4}
                 initiallyFocusedOptionKey={roleOptions.find((role) => role.isSelected)?.keyForList}
-                shouldUpdateFocusedIndex={true}
+                shouldUpdateFocusedIndex
                 headerContent={
                     <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <>
