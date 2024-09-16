@@ -1024,12 +1024,10 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                 const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
                 const policy = PolicyUtils.getPolicy(report?.policyID);
                 const differentValues = getDifferentValues(transactions, keys);
-                const hasValidTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name).length;
+                const validTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name);
 
-                if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) || !hasValidTaxes) {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                } else {
-                    processChanges(fieldName, transactions, keys);
+                if (!areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) && validTaxes.length > 1) {
+                    change[fieldName] = validTaxes;
                 }
             } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
