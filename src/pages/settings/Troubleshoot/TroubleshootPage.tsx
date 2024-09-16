@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
@@ -26,10 +26,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
-import {setShouldForceOffline} from '@libs/actions/Network';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
-import * as App from '@userActions/App';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
@@ -46,12 +44,11 @@ type BaseMenuItem = {
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
     shouldMaskOnyxState: boolean;
-    isUsingImportedState: OnyxEntry<boolean>;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState, isUsingImportedState}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -192,8 +189,5 @@ export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldMaskOnyxState: {
         key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
         selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
-    },
-    isUsingImportedState: {
-        key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     },
 })(TroubleshootPage);
