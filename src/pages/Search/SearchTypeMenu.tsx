@@ -96,63 +96,65 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [showDeleteModal],
     );
 
-    const createSavedSearchMenuItem = useCallback(
-        (item: SaveSearchItem, key: string, isNarrow: boolean) => {
-            const baseMenuItem: SavedSearchMenuItem = {
-                key,
-                title: item.name,
-                hash: key,
-                query: item.query,
-                shouldShowRightComponent: true,
-                focused: Number(key) === hash,
-                onPress: () => {
-                    SearchActions.clearAllFilters();
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
-                },
-                rightComponent: (
-                    <ThreeDotsMenu
-                        menuItems={getOverflowMenu(item.name, Number(key), item.query)}
-                        anchorPosition={{horizontal: 0, vertical: 380}}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                        }}
-                    />
-                ),
-                styles: [styles.alignItemsCenter],
-            };
-
-            if (!isNarrow) {
-                return {
-                    ...baseMenuItem,
-                    shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
-                    tooltipAnchorAlignment: {
+    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+        let title = item.name;
+        if (title === item.query) {
+            const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+            title = SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
+        }
+        const baseMenuItem: SavedSearchMenuItem = {
+            key,
+            title,
+            hash: key,
+            query: item.query,
+            shouldShowRightComponent: true,
+            focused: Number(key) === hash,
+            onPress: () => {
+                SearchActions.clearAllFilters();
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
+            },
+            rightComponent: (
+                <ThreeDotsMenu
+                    menuItems={getOverflowMenu(item.name, Number(key), item.query)}
+                    anchorPosition={{horizontal: 0, vertical: 380}}
+                    anchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    },
-                    tooltipShiftHorizontal: -32,
-                    tooltipShiftVertical: 15,
-                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    renderTooltipContent: () => {
-                        SearchActions.dismissSavedSearchRenameTooltip();
-                        return (
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Expensicons.Lightbulb
-                                    width={16}
-                                    height={16}
-                                    fill={styles.colorGreenSuccess.color}
-                                />
-                                <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
-                            </View>
-                        );
-                    },
-                };
-            }
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                />
+            ),
+            styles: [styles.alignItemsCenter],
+        };
 
-            return baseMenuItem;
-        },
-        [hash, styles, getOverflowMenu, translate, shouldHideSavedSearchRenameTooltip],
-    );
+        if (!isNarrow) {
+            return {
+                ...baseMenuItem,
+                shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
+                tooltipAnchorAlignment: {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                },
+                tooltipShiftHorizontal: -32,
+                tooltipShiftVertical: 15,
+                tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                renderTooltipContent: () => {
+                    SearchActions.dismissSavedSearchRenameTooltip();
+                    return (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Expensicons.Lightbulb
+                                width={16}
+                                height={16}
+                                fill={styles.colorGreenSuccess.color}
+                            />
+                            <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
+                        </View>
+                    );
+                },
+            };
+        }
+
+        return baseMenuItem;
+    };
 
     const savedSearchesMenuItems = () => {
         if (!savedSearches) {
