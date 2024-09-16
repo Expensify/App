@@ -43,9 +43,6 @@ function readFileInChunks(fileUri: string, chunkSize = 1024 * 1024) {
 
                 return fileContent;
             });
-        })
-        .catch((error) => {
-            throw error;
         });
 }
 

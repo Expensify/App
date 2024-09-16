@@ -9,7 +9,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
-    const dataCopy = data;
+    const dataCopy = {...data};
     if (typeof dataCopy !== 'object' || dataCopy === null) {
         return dataCopy;
     }
