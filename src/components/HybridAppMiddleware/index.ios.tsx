@@ -11,18 +11,13 @@ type HybridAppMiddlewareProps = {
     children: React.ReactNode;
 };
 
-/*
- * HybridAppMiddleware is responsible for handling BootSplash visibility correctly.
- * It is crucial to make transitions between OldDot and NewDot look smooth.
- * The middleware assumes that the entry point for HybridApp is the /transition route.
- */
 function HybridAppMiddleware({children}: HybridAppMiddlewareProps) {
     const {setSplashScreenState} = useSplashScreenStateContext();
 
     // In iOS, the HybridApp defines the `onReturnToOldDot` event.
     // If we frequently transition from OldDot to NewDot during a single app lifecycle,
     // we need to artificially display the bootsplash since the app is booted only once.
-    // Therefore, isSplashHidden needs to be updated at the appropriate time.
+    // Therefore, splashScreenState needs to be updated at the appropriate time.
     useEffect(() => {
         if (!NativeModules.HybridAppModule) {
             return;
