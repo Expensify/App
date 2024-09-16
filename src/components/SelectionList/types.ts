@@ -73,6 +73,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to wrap the alternate text up to 2 lines */
     isAlternateTextMultilineSupported?: boolean;
 
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
+
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
 
@@ -499,6 +502,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap the alternate text up to 2 lines */
     isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);

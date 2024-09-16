@@ -12,6 +12,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
@@ -124,6 +126,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
@@ -133,7 +139,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const {status, type} = queryJSON;
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
 
-    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON);
+    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
     const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
     const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
 
@@ -281,6 +287,12 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         return null;
     }
 
+    const onPress = () => {
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        SearchActions.updateAdvancedFilters(values);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    };
+
     return (
         <>
             <HeaderWrapper
@@ -289,7 +301,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 icon={headerIcon}
                 subtitleStyles={subtitleStyles}
             >
-                {headerButtonsOptions.length > 0 && (
+                {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         shouldAlwaysShowDropdownMenu
@@ -298,14 +310,15 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                         options={headerButtonsOptions}
                         isSplitButton={false}
+                        shouldUseStyleUtilityForAnchorPosition
+                    />
+                ) : (
+                    <Button
+                        text={translate('search.filtersHeader')}
+                        icon={Expensicons.Filters}
+                        onPress={onPress}
                     />
                 )}
-                <Button
-                    text={translate('search.filtersHeader')}
-                    icon={Expensicons.Filters}
-                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
-                    medium
-                />
             </HeaderWrapper>
             <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -63,19 +63,12 @@ function SearchPageBottomTab() {
         },
     });
 
-    const {queryJSON, policyID} = useMemo(() => {
-        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyID: undefined};
-        }
-
-        const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-        const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-
-        return {
-            queryJSON: parsedQuery,
-            policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
-        };
-    }, [activeCentralPaneRoute]);
+    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
+    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
+    const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
+    const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
@@ -108,6 +101,7 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
+                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
                         />
                     </View>
                     <Animated.View style={[styles.appBG, topBarAnimatedStyle]}>

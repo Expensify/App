@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
@@ -152,6 +154,8 @@ function SearchStatusBar({type, status, onStatusChange}: SearchStatusBarProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const options = getOptions(type);
+    const scrollRef = useRef<RNScrollView>(null);
+    const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
 
     if (shouldShowStatusBarLoading) {
@@ -161,6 +165,7 @@ function SearchStatusBar({type, status, onStatusChange}: SearchStatusBarProps) {
     return (
         <ScrollView
             style={[styles.flexRow, styles.mb2, styles.overflowScroll, styles.flexGrow0]}
+            ref={scrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
         >
@@ -176,6 +181,13 @@ function SearchStatusBar({type, status, onStatusChange}: SearchStatusBarProps) {
                 return (
                     <Button
                         key={item.key}
+                        onLayout={(e) => {
+                            if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
+                                return;
+                            }
+                            isScrolledRef.current = true;
+                            scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                        }}
                         text={translate(item.text)}
                         onPress={onPress}
                         icon={item.icon}
@@ -187,7 +199,6 @@ function SearchStatusBar({type, status, onStatusChange}: SearchStatusBarProps) {
                         textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
                         // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
                         style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
-                        medium
                     />
                 );
             })}
