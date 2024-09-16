@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
