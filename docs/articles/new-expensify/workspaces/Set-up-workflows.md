@@ -44,3 +44,5 @@ The payments section is where you’ll set up your business bank account for pay
 **If I have delayed submission and an approver, what should I expect with a report?**
 
 When Add Approver is enabled with Delay Submission, expense reports go from Open > Processing > Approved. If delayed submission is disabled, expense reports go from Processing > Approved.
+
+{% include faq-end.md %}
