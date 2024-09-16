@@ -281,7 +281,8 @@ function Search({queryJSON}: SearchProps) {
     };
 
     const openReport = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-        let reportID = SearchUtils.isTransactionListItemType(item) && !item.isFromOneTransactionReport ? item.transactionThreadReportID : item.reportID;
+        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
+        let reportID = SearchUtils.isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
 
         if (!reportID) {
             return;

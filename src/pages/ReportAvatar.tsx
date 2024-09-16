@@ -30,7 +30,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
         }
 
         return {
-            source: UserUtils.getFullSizeAvatar(ReportUtils.getWorkspaceAvatar(report), 0),
+            source: ReportUtils.getWorkspaceIcon(report).source,
             headerTitle: ReportUtils.getPolicyName(report, false, policy),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
