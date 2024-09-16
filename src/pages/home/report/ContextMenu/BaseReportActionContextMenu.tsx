@@ -20,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuEnterShortcut';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -259,7 +260,7 @@ function BaseReportActionContextMenu({
             menuItemRefs.current[focusedIndex]?.triggerPressAndUpdateSuccess?.();
             setFocusedIndex(-1);
         },
-        {isActive: shouldEnableArrowNavigation, shouldPreventDefault: false},
+        {isActive: shouldEnableArrowNavigation && shouldEnableContextMenuEnterShortcut, shouldPreventDefault: false},
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {

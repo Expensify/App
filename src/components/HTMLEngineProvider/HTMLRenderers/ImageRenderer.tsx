@@ -80,7 +80,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
+            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -93,8 +93,11 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID);
                                 Navigation.navigate(route);
                             }}
-                            onLongPress={(event) =>
-                                onShowContextMenu(() =>
+                            onLongPress={(event) => {
+                                if (isDisabled) {
+                                    return;
+                                }
+                                return onShowContextMenu(() =>
                                     showContextMenuForReport(
                                         event,
                                         anchor,
@@ -103,8 +106,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                         checkIfContextMenuActive,
                                         ReportUtils.isArchivedRoom(report, reportNameValuePairs),
                                     ),
-                                )
-                            }
+                                );
+                            }}
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}

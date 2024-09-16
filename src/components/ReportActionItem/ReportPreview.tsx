@@ -1,5 +1,5 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -12,7 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import SettlementButton from '@components/SettlementButton';
+import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -140,6 +141,7 @@ function ReportPreview({
         [transactions, iouReportID, action],
     );
 
+    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
@@ -200,6 +202,7 @@ function ReportPreview({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
+    const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type) {
             return;
@@ -211,6 +214,8 @@ function ReportPreview({
         } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
+            setIsPaidAnimationRunning(true);
+            HapticFeedback.longPress();
             if (ReportUtils.isInvoiceReport(iouReport)) {
                 IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
             } else {
@@ -310,7 +315,10 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
+    const shouldShowPayButton = useMemo(
+        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
+        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
+    );
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
@@ -477,7 +485,9 @@ function ReportPreview({
                                     </View>
                                 </View>
                                 {shouldShowSettlementButton && (
-                                    <SettlementButton
+                                    <AnimatedSettlementButton
+                                        isPaidAnimationRunning={isPaidAnimationRunning}
+                                        onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
@@ -517,7 +527,6 @@ function ReportPreview({
                                 )}
                                 {shouldShowSubmitButton && (
                                     <Button
-                                        medium
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}

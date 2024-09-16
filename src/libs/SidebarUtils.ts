@@ -240,6 +240,7 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
+    lastMessageTextFromReport: lastMessageTextFromReportProp,
     transactionViolations,
     invoiceReceiverPolicy,
 }: {
@@ -250,6 +251,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
+    lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
@@ -384,7 +386,11 @@ function getOptionData({
     }
 
     const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
+
+    let lastMessageTextFromReport = lastMessageTextFromReportProp;
+    if (!lastMessageTextFromReport) {
+        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
+    }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
@@ -426,6 +432,8 @@ function getOptionData({
             result.alternateText = ReportUtils.getWorkspaceNameUpdatedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
+        } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {
+            result.alternateText = ReportActionsUtils.getCardIssuedMessage(lastAction);
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {

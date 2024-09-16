@@ -2,13 +2,15 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -21,6 +23,7 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
@@ -43,6 +46,9 @@ type PopoverMenuItem = MenuItemProps & {
      *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
      */
     shouldCallAfterModalHide?: boolean;
+
+    /** Whether to close all modals */
+    shouldCloseAllModals?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -135,6 +141,7 @@ function PopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
+    const {windowHeight} = useWindowDimensions();
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
@@ -147,9 +154,13 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
             onItemSelected(selectedItem, index);
-            Modal.close(() => {
-                selectedItem.onSelected?.();
-            });
+            Modal.close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -252,10 +263,8 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View
-                    onLayout={onLayout}
-                    style={isSmallScreenWidth ? {} : styles.createMenuContainer}
-                >
+                <ScrollView onLayout={onLayout}
+                style={isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
@@ -277,7 +286,9 @@ function PopoverMenu({
                             focused={focusedIndex === menuIndex}
                             displayInDefaultIconColor={item.displayInDefaultIconColor}
                             shouldShowRightIcon={item.shouldShowRightIcon}
+                            shouldShowRightComponent={item.shouldShowRightComponent}
                             iconRight={item.iconRight}
+                            rightComponent={item.rightComponent}
                             shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                             label={item.label}
                             style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
@@ -301,7 +312,7 @@ function PopoverMenu({
                             badgeText={item.badgeText}
                         />
                     ))}
-                </View>
+                </ScrollView>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
