@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -141,32 +140,25 @@ function Search({queryJSON}: SearchProps) {
         const previousTransactionsLength = previousTransactions && Object.keys(previousTransactions).length;
         const transactionsLength = transactions && Object.keys(transactions).length;
 
-        if (!previousTransactionsLength || !transactionsLength || previousTransactionsLength === transactionsLength) {
+        // Return early if search block was already triggered or there's no change in transactions length
+        if (searchTriggeredRef.current || previousTransactionsLength === transactionsLength) {
             return;
         }
 
-        // Check if the search block was already triggered
-        if (!searchTriggeredRef.current && transactionsLength > previousTransactionsLength) {
-            // A transaction was added, trigger the action again
+        // Checking if length exists (we check if previousTransactionsLength is number because
+        // if we check for existance and initially it's 0 then the check will fail)
+        if (transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength) {
+            // A new transaction was added, trigger the action
             SearchActions.search({queryJSON, offset});
-            searchTriggeredRef.current = true; // Set the flag to true to prevent further triggers
+            // Set the flag to true to prevent further triggers
+            searchTriggeredRef.current = true;
         }
+
+        // Reset the flag when transactions are updated
+        return () => {
+            searchTriggeredRef.current = false;
+        };
     }, [transactions, previousTransactions, queryJSON, offset]);
-
-    // Reset the flag using InteractionManager after the search action
-    useEffect(() => {
-        if (!searchTriggeredRef.current) {
-            return;
-        }
-
-        // Schedule a task to reset the flag after all current interactions have completed
-        const interactionHandle = InteractionManager.runAfterInteractions(() => {
-            searchTriggeredRef.current = false; // Reset the flag after interactions
-        });
-
-        // Cleanup the interaction handle if the component unmounts or effect reruns
-        return () => interactionHandle.cancel();
-    }, [transactions]);
 
     const handleOnCancelConfirmModal = () => {
         setDeleteExpensesConfirmModalVisible(false);
@@ -233,6 +225,12 @@ function Search({queryJSON}: SearchProps) {
 
         const previousKeys = Object.keys(previousSearchResults);
         const currentKeys = Object.keys(searchResults.data);
+
+        const isTransactionKey = (key: string) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+        // When previousKeys is empty (no transactions), find the first transaction key in currentKeys
+        if (previousKeys.length === 0) {
+            return currentKeys.find(isTransactionKey);
+        }
 
         return currentKeys.find((key) => !previousKeys.includes(key));
     }, [searchResults, previousSearchResults]);
