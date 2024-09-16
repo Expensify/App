@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {requestValidationCode, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -56,6 +57,8 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     </Text>
                 }
                 onSelectRow={(option) => {
+                    requestValidationCode();
+                    updateDelegateRoleOptimistically(login, option.value);
                     Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
                 }}
                 sections={[{data: roleOptions}]}

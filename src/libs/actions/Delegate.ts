@@ -468,4 +468,45 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate, removeDelegate, updateDelegateRole};
+function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
+    if (!delegatedAccess?.delegates) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    delegates: delegatedAccess.delegates.map((delegate) =>
+                        delegate.email === email
+                            ? {
+                                  ...delegate,
+                                  role,
+                                  errorFields: {updateDelegateRole: null},
+                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                              }
+                            : delegate,
+                    ),
+                },
+            },
+        },
+    ];
+
+    Onyx.update(optimisticData);
+}
+
+export {
+    connect,
+    disconnect,
+    clearDelegatorErrors,
+    addDelegate,
+    requestValidationCode,
+    clearAddDelegateErrors,
+    removePendingDelegate,
+    removeDelegate,
+    updateDelegateRole,
+    updateDelegateRoleOptimistically,
+};
