@@ -172,7 +172,7 @@ function IOURequestStepConfirmation({
         if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
         }
-    }, [isOffline, participants, policy?.pendingAction, transaction?.billable]);
+    }, [isOffline, participants, policy?.pendingAction]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
