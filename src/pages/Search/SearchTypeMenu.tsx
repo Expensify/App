@@ -97,10 +97,14 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     );
 
     const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean) => {
-        const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+        let title = item.name;
+        if (title === item.query) {
+            const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+            title = SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates);
+        }
         const baseMenuItem: SavedSearchMenuItem = {
             key,
-            title: SearchUtils.getSearchHeaderTitle(jsonQuery, personalDetails, cardList, reports, taxRates),
+            title,
             hash: key,
             query: item.query,
             shouldShowRightComponent: true,
