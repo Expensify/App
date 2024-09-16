@@ -2871,7 +2871,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            value: {[report.parentReportActionID]: {childReportNotificationPreference: ReportUtils.getReportNotificationPreference(report)}},
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: ReportUtils.getReportNotificationPreference(report, false)}},
         });
     }
 

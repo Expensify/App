@@ -4324,10 +4324,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
-        purposeMenuItemSelected: {
-            backgroundColor: theme.activeComponentBG,
-        },
-
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -5194,6 +5190,14 @@ const styles = (theme: ThemeColors) =>
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
+        },
+
+        colorGreenSuccess: {
+            color: colors.green400,
+        },
+
+        bgPaleGreen: {
+            backgroundColor: colors.green100,
         },
 
         importColumnCard: {

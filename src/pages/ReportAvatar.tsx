@@ -24,7 +24,7 @@ function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = tr
     const policyID = route.params.policyID ?? '-1';
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyName = ReportUtils.getPolicyName(report, false, policy);
-    const avatarURL = ReportUtils.getWorkspaceAvatar(report);
+    const avatarURL = ReportUtils.getWorkspaceIcon(report).source;
 
     return (
         <AttachmentModal

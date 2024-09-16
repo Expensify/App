@@ -146,7 +146,6 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                     {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && (
                         <Button
                             style={[styles.mt2, styles.alignSelfStart]}
-                            medium
                             success
                             text={translate('workspace.invoices.paymentMethods.addBankAccount')}
                             onPress={openWorkspaceInvoicesPage}
