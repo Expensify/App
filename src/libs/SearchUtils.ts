@@ -453,7 +453,7 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    const regexp = /[<>,:= ]/g;
+    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
     if (regexp.test(str)) {
         return `"${str}"`;
     }
