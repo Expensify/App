@@ -270,6 +270,17 @@ function clearContactMethod(contactMethod: string) {
 }
 
 /**
+ * Clears error for a sepcific field on validate action code.
+ */
+function clearValidateCodeActionError(fieldName: string) {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        errorFields: {
+            [fieldName]: null,
+        },
+    });
+}
+
+/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -306,6 +317,16 @@ function clearUnvalidatedNewContactMethodAction() {
         validateCodeSent: null,
         pendingFields: null,
         errorFields: null,
+    });
+}
+
+/**
+ * When user adds a new contact method, they need to verify the magic code first
+ * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
+ */
+function addPendingContactMethod(contactMethod: string) {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        contactMethod,
     });
 }
 
@@ -391,6 +412,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
+                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
@@ -470,6 +492,63 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 }
 
 /**
+ * Requests a magic code to verify current user
+ */
+function requestValidateCodeAction() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                isLoading: true,
+                pendingFields: {
+                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                errorFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: true,
+                isLoading: false,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+                isLoading: false,
+                errorFields: {
+                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+}
+
+/**
  * Validates a login given an accountID and validation code
  */
 function validateLogin(accountID: number, validateCode: string) {
@@ -539,7 +618,10 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: false},
+            value: {
+                isLoading: false,
+                validated: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -678,11 +760,10 @@ const isChannelMuted = (reportId: string) =>
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
+                const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
                 resolve(
-                    !report?.notificationPreference ||
-                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ||
-                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    !notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                 );
             },
         });
@@ -1230,6 +1311,10 @@ function dismissWorkspaceTooltip() {
     Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
 }
 
+function dismissGBRTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, true);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1269,4 +1354,8 @@ export {
     requestRefund,
     saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
+    requestValidateCodeAction,
+    addPendingContactMethod,
+    clearValidateCodeActionError,
+    dismissGBRTooltip,
 };
