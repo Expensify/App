@@ -1,13 +1,8 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {Fragment, useLayoutEffect, useState} from 'react';
-<<<<<<< HEAD
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-=======
-import {StyleSheet} from 'react-native';
-import type {View} from 'react-native';
->>>>>>> main
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
