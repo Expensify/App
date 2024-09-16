@@ -169,6 +169,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** Should play sound on confirmation */
     shouldPlaySound?: boolean;
+
+    /** Whether the expense is confirmed or not */
+    isConfirmed?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
@@ -213,6 +216,7 @@ function MoneyRequestConfirmationList({
     currencyList,
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
+    isConfirmed,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -309,7 +313,7 @@ function MoneyRequestConfirmationList({
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
-    const [didConfirm, setDidConfirm] = useState(false);
+    const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
@@ -429,6 +433,10 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
+    useEffect(() => {
+        setDidConfirm(isConfirmed);
+    }, [isConfirmed]);
+
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
         if (isTypeInvoice) {
@@ -492,8 +500,14 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        // Amounts should be bigger than 0 for the split bill creator (yourself)
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+            setFormError('iou.error.invalidSplitYourself');
+            return;
+        }
+
         setFormError('');
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -779,7 +793,6 @@ function MoneyRequestConfirmationList({
                 if (shouldPlaySound) {
                     playSound(SOUNDS.DONE);
                 }
-                setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -788,9 +801,6 @@ function MoneyRequestConfirmationList({
                 if (formError) {
                     return;
                 }
-
-                setDidConfirm(true);
-
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney?.(paymentMethod);
             }
@@ -846,6 +856,7 @@ function MoneyRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
+                shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -909,7 +920,7 @@ function MoneyRequestConfirmationList({
             action={action}
             canUseP2PDistanceRequests={canUseP2PDistanceRequests}
             currency={currency}
-            didConfirm={didConfirm}
+            didConfirm={!!didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
             formattedAmountPerAttendee={formattedAmountPerAttendee}
