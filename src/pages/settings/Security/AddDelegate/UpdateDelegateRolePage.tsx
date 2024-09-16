@@ -41,6 +41,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
             <SelectionList
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={4}
+                initiallyFocusedOptionKey={route.params.currentRole}
                 headerContent={
                     <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <>
