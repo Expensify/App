@@ -1,3 +1,4 @@
+import differenceInMilliseconds from 'date-fns/differenceInMilliseconds';
 import React from 'react';
 import {useErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
@@ -23,8 +24,26 @@ function GenericErrorPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
     const {resetBoundary} = useErrorBoundary();
+
+    const refresh = () => {
+        const lastRefreshTimestamp = JSON.parse(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP) ?? 'null') as string;
+
+        if (lastRefreshTimestamp === null || differenceInMilliseconds(Date.now(), Number(lastRefreshTimestamp)) > CONST.ERROR_WINDOW_RELOAD_TIMEOUT) {
+            resetBoundary();
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP, Date.now().toString());
+
+            return;
+        }
+
+        window.location.reload();
+        sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP);
+    };
+
+    const refreshAndSignOut = () => {
+        Session.signOutAndRedirectToSignIn();
+        refresh();
+    };
 
     return (
         <SafeAreaConsumer>
@@ -59,16 +78,13 @@ function GenericErrorPage() {
                                 <View style={[styles.flex1, styles.flexRow]}>
                                     <Button
                                         success
-                                        onPress={resetBoundary}
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
+                                        onPress={refresh}
                                     />
                                     <Button
-                                        onPress={() => {
-                                            Session.signOutAndRedirectToSignIn();
-                                            resetBoundary();
-                                        }}
                                         text={translate('initialSettingsPage.signOut')}
+                                        onPress={refreshAndSignOut}
                                     />
                                 </View>
                             </View>
