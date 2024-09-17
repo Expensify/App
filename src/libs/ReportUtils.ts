@@ -1536,8 +1536,8 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  * the parentReportAction is a transaction.
  */
 function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
-    if (isThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (isThread(report) && report?.parentReportID && report.parentReportActionID) {
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
@@ -1549,8 +1549,8 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
  * the parentReportAction is a transaction.
  */
 function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
-    if (isThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (isThread(report) && report?.parentReportID && report.parentReportActionID) {
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isIOUReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
