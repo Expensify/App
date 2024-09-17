@@ -101,8 +101,24 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         return items;
     }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu, currentSavedSearch]);
 
-    const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems.at(activeItemIndex)?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
-    const menuTitle = useMemo(() => title ?? popoverMenuItems.at(activeItemIndex)?.text, [activeItemIndex, popoverMenuItems, title]);
+    const menuIconAndTitle = useMemo(() => {
+        if (title) {
+            return {
+                icon: Expensicons.Filters,
+                title: title
+            };
+        }
+        
+        const item = popoverMenuItems.at(activeItemIndex);
+        return {
+            icon: item?.icon ?? Expensicons.Receipt,
+            title: item?.text
+        };
+    }, [activeItemIndex, popoverMenuItems, title]);
+    
+    const menuIcon = menuIconAndTitle.icon;
+    const menuTitle = menuIconAndTitle.title;
+    
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 
     const savedSearchItems = savedSearchesMenuItems.map((item) => ({
