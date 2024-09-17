@@ -527,8 +527,8 @@ function MoneyRequestConfirmationListFooter({
         },
     ];
 
-    const primaryFields: JSX.Element[] = [];
-    const supplementaryFields: JSX.Element[] = [];
+    const primaryFields: React.JSX.Element[] = [];
+    const supplementaryFields: React.JSX.Element[] = [];
 
     classifiedFields.forEach((field) => {
         if (field.shouldShow && !field.isSupplementary) {
