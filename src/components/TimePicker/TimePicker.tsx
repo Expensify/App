@@ -80,9 +80,9 @@ function insertAtPosition(originalString: string, newSubstring: string, from: nu
  *
  * @returns - the modified string with the range (from, to) replaced with zeros
  */
-function replaceRangeWithZeros(originalString: string, from: number, to: number): string {
+function replaceRangeWithZeros(originalString: string, from: number, to: number, numOfDigits = 2): string {
     const normalizedFrom = Math.max(from, 0);
-    const normalizedTo = Math.min(to, 3);
+    const normalizedTo = Math.min(to, numOfDigits);
     const replacement = '0'.repeat(normalizedTo - normalizedFrom);
     return `${originalString.slice(0, normalizedFrom)}${replacement}${originalString.slice(normalizedTo)}`;
 }
@@ -95,16 +95,22 @@ function replaceRangeWithZeros(originalString: string, from: number, to: number)
  * @param setValue - the function that modifies the value of the input
  * @param setSelection - the function that modifies the selection of the input
  */
-function clearSelectedValue(value: string, selection: {start: number; end: number}, setValue: (value: string) => void, setSelection: (value: {start: number; end: number}) => void) {
+function clearSelectedValue(
+    value: string,
+    selection: {start: number; end: number},
+    setValue: (value: string) => void,
+    setSelection: (value: {start: number; end: number}) => void,
+    numOfDigits?: number,
+) {
     let newValue;
     let newCursorPosition;
 
     if (selection.start !== selection.end) {
-        newValue = replaceRangeWithZeros(value, selection.start, selection.end);
+        newValue = replaceRangeWithZeros(value, selection.start, selection.end, numOfDigits);
         newCursorPosition = selection.start;
     } else {
         const positionBeforeSelection = Math.max(selection.start - 1, 0);
-        newValue = replaceRangeWithZeros(value, positionBeforeSelection, selection.start);
+        newValue = replaceRangeWithZeros(value, positionBeforeSelection, selection.start, numOfDigits);
         newCursorPosition = positionBeforeSelection;
     }
 
@@ -557,7 +563,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         return;
                     }
 
-                    clearSelectedValue(miliseconds, selectionMilisecond, setMiliseconds, setSelectionMilisecond);
+                    clearSelectedValue(miliseconds, selectionMilisecond, setMiliseconds, setSelectionMilisecond, 3);
                 }
                 return;
             }
