@@ -15,12 +15,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {User} from '@src/types/onyx';
 
 type SetupMethodOnyxProps = {
-    /** The user's data */
-    user: OnyxEntry<User>;
-
     /** Whether Plaid is disabled */
     isPlaidDisabled: OnyxEntry<boolean>;
 };
@@ -29,7 +25,7 @@ type SetupMethodProps = SetupMethodOnyxProps;
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
 
-function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
+function SetupMethod({isPlaidDisabled}: SetupMethodProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -52,7 +48,7 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
                     icon={Expensicons.Bank}
                     text={translate('bankAccount.addBankAccount')}
                     onPress={() => BankAccounts.openPersonalBankAccountSetupWithPlaid()}
-                    isDisabled={!!isPlaidDisabled || !user?.validated}
+                    isDisabled={!!isPlaidDisabled}
                     style={[styles.mt4, styles.mb2]}
                     iconStyles={styles.buttonCTAIcon}
                     shouldShowRightIcon
@@ -69,8 +65,5 @@ SetupMethod.displayName = 'SetupMethod';
 export default withOnyx<SetupMethodProps, SetupMethodOnyxProps>({
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-    user: {
-        key: ONYXKEYS.USER,
     },
 })(SetupMethod);
