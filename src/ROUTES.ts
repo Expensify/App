@@ -422,20 +422,20 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     SETTINGS_CATEGORIES_ROOT: {
-        route: 'settings/:policyID/category',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category`, backTo),
+        route: 'settings/:policyID/categories',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories`, backTo),
     },
     SETTINGS_CATEGORY_SETTINGS: {
         route: 'settings/:policyID/category/:categoryName',
         getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}`, backTo),
     },
     SETTINGS_CATEGORIES_SETTINGS: {
-        route: 'settings/:policyID/category/settings',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/settings`, backTo),
+        route: 'settings/:policyID/categories/settings',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/settings`, backTo),
     },
     SETTINGS_CATEGORY_CREATE: {
-        route: 'settings/:policyID/category/new',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/new`, backTo),
+        route: 'settings/:policyID/categories/new',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
     },
     SETTINGS_CATEGORY_EDIT: {
         route: 'settings/:policyID/category/:categoryName/edit',
