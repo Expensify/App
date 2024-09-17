@@ -37,10 +37,10 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
 
     if (icons.length === 1) {
         const icon = icons.at(0);
-
         if (!icon) {
             return;
         }
+
         return (
             <PressableWithoutFocus
                 style={styles.noOutline}

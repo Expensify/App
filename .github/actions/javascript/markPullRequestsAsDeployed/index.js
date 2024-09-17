@@ -12733,7 +12733,10 @@ async function run() {
             labels: CONST_1.default.LABELS.STAGING_DEPLOY,
             state: 'closed',
         });
-        const previousChecklistID = deployChecklists.at(0)?.number ?? 0;
+        const previousChecklistID = deployChecklists.at(0)?.number;
+        if (!previousChecklistID) {
+            throw new Error('Could not find the previous checklist ID');
+        }
         // who closed the last deploy checklist?
         const deployer = await GithubUtils_1.default.getActorWhoClosedIssue(previousChecklistID);
         // Create comment on each pull request (one at a time to avoid throttling issues)

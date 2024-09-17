@@ -54,7 +54,6 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
     }
 
     const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name].at(0);
-
     if (!centralPaneName) {
         return;
     }
