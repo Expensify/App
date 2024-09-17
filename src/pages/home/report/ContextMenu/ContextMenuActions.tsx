@@ -428,7 +428,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(ReportUtils.getWorkspaceNameUpdatedMessage(reportAction));
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, reportID, false));
@@ -446,7 +446,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction);
+                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
+                    Clipboard.setString(displayMessage);
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+                    const displayMessage = ReportUtils.getRejectedReportMessage();
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
@@ -473,6 +476,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', label, errorMessage));
+                } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
+                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

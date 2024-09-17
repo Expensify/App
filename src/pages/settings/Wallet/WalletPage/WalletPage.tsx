@@ -3,7 +3,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,12 +34,13 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as Modal from '@userActions/Modal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type {FormattedSelectedPaymentMethodIcon, WalletPageOnyxProps, WalletPageProps} from './types';
+import type {FormattedSelectedPaymentMethodIcon, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
@@ -56,7 +57,14 @@ type PaymentMethodState = {
     selectedPaymentMethodType: string;
 };
 
-function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadingPaymentMethods = true, shouldListenForResize = false, userWallet, walletTerms = {}}: WalletPageProps) {
+function WalletPage({shouldListenForResize = false}: WalletPageProps) {
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}});
+    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -477,7 +485,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                                 title={translate('common.transferBalance')}
                                                                 icon={Expensicons.Transfer}
                                                                 onPress={triggerKYCFlow}
-                                                                hoverAndPressStyle={styles.hoveredComponentBG}
                                                                 shouldShowRightIcon
                                                                 disabled={network.isOffline}
                                                                 wrapperStyle={[
@@ -522,7 +529,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                             disabled={network.isOffline}
                                                             title={translate('walletPage.enableWallet')}
                                                             icon={Expensicons.Wallet}
-                                                            hoverAndPressStyle={styles.hoveredComponentBG}
                                                             wrapperStyle={[
                                                                 styles.transferBalance,
                                                                 shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
@@ -576,27 +582,27 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 <MenuItem
                                     title={translate('common.delete')}
                                     icon={Expensicons.Trashcan}
-                                    onPress={() => setShowConfirmDeleteModal(true)}
+                                    onPress={() => Modal.close(() => setShowConfirmDeleteModal(true))}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                 />
                             </View>
                         )}
-                        <ConfirmModal
-                            isVisible={showConfirmDeleteModal}
-                            onConfirm={() => {
-                                deletePaymentMethod();
-                                hideDefaultDeleteMenu();
-                            }}
-                            onCancel={hideDefaultDeleteMenu}
-                            title={translate('walletPage.deleteAccount')}
-                            prompt={translate('walletPage.deleteConfirmation')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            shouldShowCancelButton
-                            danger
-                            onModalHide={resetSelectedPaymentMethodData}
-                        />
                     </Popover>
+                    <ConfirmModal
+                        isVisible={showConfirmDeleteModal}
+                        onConfirm={() => {
+                            deletePaymentMethod();
+                            hideDefaultDeleteMenu();
+                        }}
+                        onCancel={hideDefaultDeleteMenu}
+                        title={translate('walletPage.deleteAccount')}
+                        prompt={translate('walletPage.deleteConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        shouldShowCancelButton
+                        danger
+                        onModalHide={resetSelectedPaymentMethodData}
+                    />
                 </ScreenWrapper>
             )}
             <AddPaymentMethodMenu
@@ -616,26 +622,4 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
 WalletPage.displayName = 'WalletPage';
 
-export default withOnyx<WalletPageProps, WalletPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-    },
-})(WalletPage);
+export default WalletPage;

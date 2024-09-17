@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -132,14 +133,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
-    useEffect(() => {
-        if (isEmptyObject(loginData)) {
-            return;
-        }
-        User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -202,10 +195,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 />
 
                 {isFailedAddContactMethod && (
-                    <DotIndicatorMessage
-                        style={[themeStyles.mh5, themeStyles.mv3]}
-                        messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
-                        type="error"
+                    <ErrorMessageRow
+                        errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                        errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
+                        onClose={() => {
+                            User.clearContactMethod(contactMethod);
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        }}
+                        canDismissError
                     />
                 )}
 
@@ -234,7 +231,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     >
                         <MenuItem
                             title={translate('contacts.setAsDefault')}
-                            icon={Expensicons.Profile}
+                            icon={Expensicons.Star}
                             onPress={setAsDefault}
                         />
                     </OfflineWithFeedback>
