@@ -83,8 +83,8 @@ function ReportActionItemSingle({
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
-
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -94,6 +94,7 @@ function ReportActionItemSingle({
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
+    const managerID = iouReport?.managerID ?? action?.childManagerAccountID;
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
 
@@ -130,7 +131,7 @@ function ReportActionItemSingle({
             };
         } else {
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
+            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? managerID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
             const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
 
@@ -165,9 +166,25 @@ function ReportActionItemSingle({
               {
                   type: 'TEXT',
                   text: displayName,
+                  accountID: actorAccountID,
               },
           ]
-        : action?.person;
+        : action?.person ?? [];
+
+    if (displayAllActors && secondaryAvatar.name) {
+        personArray.push(
+            {
+                type: 'TEXT',
+                text: ' & ',
+                accountID: -1,
+            },
+            {
+                type: 'TEXT',
+                text: secondaryAvatar.name ?? '',
+                accountID: parseInt(secondaryAvatar?.id?.toString() ?? '-1', 10) ?? -1,
+            },
+        );
+    }
 
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
@@ -231,6 +248,7 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -261,18 +279,21 @@ function ReportActionItemSingle({
                             accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
-                            {personArray?.map((fragment, index) => (
-                                <ReportActionItemFragment
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={actorAccountID ?? -1}
-                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
-                                    isSingleLine
-                                    actorIcon={icon}
-                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                />
-                            ))}
+                            <View style={[styles.flexRow]}>
+                                {personArray?.map((fragment, index) => (
+                                    <ReportActionItemFragment
+                                        style={[styles.flex1]}
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`person-${action?.reportActionID}-${index}`}
+                                        accountID={fragment?.accountID ?? -1}
+                                        fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
+                                        delegateAccountID={action?.delegateAccountID}
+                                        // isSingleLine
+                                        // actorIcon={icon}
+                                        moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                    />
+                                ))}
+                            </View>
                         </PressableWithoutFeedback>
                         {!!hasEmojiStatus && (
                             <Tooltip text={statusTooltipText}>
@@ -290,7 +311,6 @@ function ReportActionItemSingle({
         </View>
     );
 }
-
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default ReportActionItemSingle;
