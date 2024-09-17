@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -21,9 +22,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function ChooseTransferAccountPage() {
-    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     /**
@@ -49,7 +52,7 @@ function ChooseTransferAccountPage() {
     };
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-
+    const selectedAccountID = walletTransfer?.selectedAccountID;
     const data = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount) => {
             const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
@@ -76,7 +79,11 @@ function ChooseTransferAccountPage() {
             };
         });
         return options;
-    }, [bankAccountsList, walletTransfer?.selectedAccountID, styles, translate]);
+    }, [bankAccountsList, selectedAccountID, styles, translate]);
+
+    if (isLoadingOnyxValue(walletTransferResult)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper testID={ChooseTransferAccountPage.displayName}>
