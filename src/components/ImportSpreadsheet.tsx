@@ -65,7 +65,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         }
 
         if ((file?.size ?? 0) <= 0) {
-            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
             return false;
         }
         return true;
@@ -75,15 +75,15 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         if (!validateFile(file)) {
             return;
         }
-        if (!file.uri) {
+        let fileURI = file.uri ?? URL.createObjectURL(file);
+        if (!fileURI) {
             return;
         }
-        let filePath = file.uri;
         if (Platform.OS === 'ios') {
-            filePath = filePath.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
+            fileURI = fileURI.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
 
-        fetch(filePath)
+        fetch(fileURI)
             .then((data) => {
                 setIsReadingFIle(true);
                 return data.arrayBuffer();
@@ -102,6 +102,9 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             })
             .finally(() => {
                 setIsReadingFIle(false);
+                if (fileURI && !file.uri) {
+                    URL.revokeObjectURL(fileURI);
+                }
             });
     };
 
@@ -129,7 +132,6 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
                 {({openPicker}) => (
                     <Button
-                        medium
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
@@ -164,7 +166,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
-                            title={translate('common.importSpreadsheet')}
+                            title={translate('spreadsheet.importSpreadsheet')}
                             onBackButtonPress={() => Navigation.navigate(backTo)}
                         />
 
@@ -189,7 +191,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                                         />
                                         <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
-                                        <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{translate('common.dropMessage')}</Text>
+                                        <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
                                     </View>
                                 </View>
                             </DragAndDropConsumer>

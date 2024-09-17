@@ -22,6 +22,8 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 type IOURequestStepCurrencyOnyxProps = {
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
+    /** List of recently used currencies */
+    recentlyUsedCurrencies: OnyxEntry<string[]>;
 };
 
 type IOURequestStepCurrencyProps = IOURequestStepCurrencyOnyxProps & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY>;
@@ -31,6 +33,7 @@ function IOURequestStepCurrency({
         params: {backTo, iouType, pageIndex, reportID, transactionID, action, currency: selectedCurrency = ''},
     },
     draftTransaction,
+    recentlyUsedCurrencies,
 }: IOURequestStepCurrencyProps) {
     const {translate} = useLocalize();
     const {currency: originalCurrency = ''} = ReportUtils.getTransactionDetails(draftTransaction) ?? {};
@@ -75,6 +78,7 @@ function IOURequestStepCurrency({
         >
             {({didScreenTransitionEnd}) => (
                 <CurrencySelectionList
+                    recentlyUsedCurrencies={recentlyUsedCurrencies ?? []}
                     searchInputLabel={translate('common.search')}
                     onSelect={(option: CurrencyListItem) => {
                         if (!didScreenTransitionEnd) {
@@ -97,6 +101,9 @@ const IOURequestStepCurrencyWithOnyx = withOnyx<IOURequestStepCurrencyProps, IOU
             const transactionID = route?.params?.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
+    },
+    recentlyUsedCurrencies: {
+        key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
     },
 })(IOURequestStepCurrency);
 
