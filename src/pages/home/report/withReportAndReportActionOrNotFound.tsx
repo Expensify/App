@@ -53,6 +53,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '-1'}`);
         const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+        const [betas] = useOnyx(ONYXKEYS.BETAS);
         const getReportAction = useCallback(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
 
@@ -81,7 +82,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // Perform all the loading checks
         const isLoadingReport = isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(props.reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !ReportUtils.canAccessReport(report, props.policies, props.betas));
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !ReportUtils.canAccessReport(report, props.policies, betas));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
