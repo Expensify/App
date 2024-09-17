@@ -1,6 +1,6 @@
-type ExportMemberssSpreadsheetParams = {
+type ExportMembersSpreadsheetParams = {
     /** ID of the policy */
     policyID: string;
 };
 
-export default ExportMemberssSpreadsheetParams;
+export default ExportMembersSpreadsheetParams;
