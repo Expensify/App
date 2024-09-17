@@ -5424,6 +5424,7 @@ const CONST = {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
     },
 
     RESERVATION_TYPE: {
@@ -5753,6 +5754,9 @@ const CONST = {
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
     },
+
+    // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
+    ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
