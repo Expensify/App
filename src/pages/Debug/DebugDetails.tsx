@@ -19,8 +19,8 @@ import Debug from '@userActions/Debug';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys} from './const';
-import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS} from './const';
+import type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys, DetailsDisabledKeys} from './const';
+import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
 
@@ -157,6 +157,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                                 numberOfLines={numberOfLines}
                                 multiline={numberOfLines > 1}
                                 defaultValue={value}
+                                disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
                             />
                         );
                     })}
@@ -173,6 +174,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             forceActiveLabel
                             label={key}
                             defaultValue={String(value)}
+                            disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
                         />
                     ))}
                     {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
