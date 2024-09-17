@@ -133,14 +133,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
-    useEffect(() => {
-        if (isEmptyObject(loginData)) {
-            return;
-        }
-        User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
