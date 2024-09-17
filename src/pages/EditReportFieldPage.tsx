@@ -6,8 +6,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmModal from '@components/ConfirmModal';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,11 +65,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 shouldEnableMaxHeight
                 testID={EditReportFieldPage.displayName}
             >
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => {}}
-                    onLinkPress={() => {}}
-                />
+                <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
         );
     }
@@ -93,12 +89,12 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
 
-    const menuItems: ThreeDotsMenuItem[] = [];
+    const menuItems: PopoverMenuItem[] = [];
 
     const isReportFieldDeletable = reportField.deletable && !isReportFieldTitle;
 
     if (isReportFieldDeletable) {
-        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true)});
+        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true), shouldCallAfterModalHide: true});
     }
 
     const fieldName = Str.UCFirst(reportField.name);
