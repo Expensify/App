@@ -132,7 +132,7 @@ function SecuritySettingsPage() {
 
     const delegateMenuItems: MenuItemProps[] = delegates
         .filter((d) => !d.optimisticAccountID)
-        .map(({email, role, pendingAction, errorFields}) => {
+        .map(({email, role, pendingAction, errorFields, pendingFields}) => {
             const personalDetail = getPersonalDetailByEmail(email);
 
             const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
@@ -144,6 +144,10 @@ function SecuritySettingsPage() {
                 }
                 if (!role) {
                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
+                    return;
+                }
+                if (pendingFields?.role && !pendingFields?.email) {
+                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));

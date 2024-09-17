@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -20,6 +20,7 @@ type UpdateDelegateRolePageProps = StackScreenProps<SettingsNavigatorParamList, 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
+    const [currentRole, setCurrentRole] = useState(route.params.currentRole);
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -27,7 +28,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         text: translate('delegate.role', role),
         keyForList: role,
         alternateText: translate('delegate.roleDescription', role),
-        isSelected: role === route.params.currentRole,
+        isSelected: role === currentRole,
     }));
 
     return (
@@ -42,7 +43,8 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
             <SelectionList
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={4}
-                initiallyFocusedOptionKey={route.params.currentRole}
+                initiallyFocusedOptionKey={currentRole}
+                shouldUpdateFocusedIndex
                 headerContent={
                     <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
                         <>
@@ -58,7 +60,8 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                 }
                 onSelectRow={(option) => {
                     requestValidationCode();
-                    updateDelegateRoleOptimistically(login, option.value);
+                    updateDelegateRoleOptimistically(login ?? '', option.value);
+                    setCurrentRole(option.value);
                     Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
                 }}
                 sections={[{data: roleOptions}]}

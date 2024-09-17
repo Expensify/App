@@ -55,7 +55,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
                         title={translate('delegate.makeSureItIsYou')}
                         onBackButtonPress={onBackButtonPress}
                     />
-                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
+                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
                     <ValidateCodeForm
                         ref={validateCodeFormRef}
                         delegate={login}

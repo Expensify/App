@@ -5300,11 +5300,13 @@ export default {
                     return '';
             }
         },
-        removeCopilot: 'Remove copilot',
-        removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
-        changeAccessLevel: 'Change access level',
+        removeCopilot: 'Eliminar copiloto',
+        removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
+        changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
+        enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
         notAllowedMessageHyperLinked: ' copiloto con acceso',
