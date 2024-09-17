@@ -60,10 +60,10 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
  * Clear the registered focus callback
  */
 function clear(isPriorityCallback = false) {
+    editComposerRef.current = null;
     if (isPriorityCallback) {
         priorityFocusCallback = null;
     } else {
-        editComposerRef.current = null;
         focusCallback = null;
     }
 }
