@@ -94,6 +94,7 @@ function ChooseTransferAccountPage() {
                         selectAccountAndNavigateBack(undefined, accountType, accountData);
                     }}
                     shouldSingleExecuteRowSelect
+                    shouldUpdateFocusedIndex
                     initiallyFocusedOptionKey={walletTransfer?.selectedAccountID?.toString()}
                 />
             </View>
