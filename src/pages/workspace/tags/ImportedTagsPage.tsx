@@ -35,8 +35,6 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const isControl = isControlPolicy(policy);
-
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
         roles.push(
@@ -45,7 +43,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
         );
 
-        if (isControl) {
+        if (isControlPolicy(policy)) {
             roles.push({text: translate('workspace.tags.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
