@@ -25,7 +25,6 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
-// let currentRequest: OnyxRequest | null = null;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 
@@ -164,7 +163,6 @@ function flush() {
                 if (NetworkStore.isOffline() || PersistedRequests.getAll().length === 0) {
                     resolveIsReadyPromise?.();
                 }
-                // currentRequest = null;
                 currentRequestPromise = null;
 
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
