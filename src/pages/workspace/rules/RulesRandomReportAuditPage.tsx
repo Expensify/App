@@ -32,8 +32,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const styles = useThemeStyles();
 
     const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
-    const defaultValue = policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE;
-
+    const defaultValue = Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100);
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
