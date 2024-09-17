@@ -377,9 +377,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return [imageViolations, allViolations];
     }, [transactionViolations, translate]);
 
+    const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-    const shouldShowAuditMessage = !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage =
+        !isReceiptBeingScanned && (hasReceipt || receiptRequiredViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -431,7 +434,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowReceiptAudit && (
                     <ReceiptAudit
                         notes={receiptViolations}
-                        shouldShowAuditResult={shouldShowAuditMessage}
+                        shouldShowAuditResult={!!shouldShowAuditMessage}
                     />
                 )}
                 {(hasReceipt || errors) && (
