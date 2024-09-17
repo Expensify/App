@@ -290,7 +290,6 @@ function ComposerWithSuggestions(
     const textInputRef = useRef<TextInput | null>(null);
 
     const shouldInitFocus = useRef<boolean>(true);
-    const isFocusedWhileChangingInputMode = useRef<boolean>(false);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -710,16 +709,6 @@ function ComposerWithSuggestions(
     );
 
     useEffect(() => {
-        if (!showSoftInputOnFocus || !isFocusedWhileChangingInputMode.current) {
-            return;
-        }
-        // On Safari when changing inputMode from none to text, the keyboard will cover the view
-        // We need to re-focus to trigger the keyboard to open below the view
-        isFocusedWhileChangingInputMode.current = false;
-        textInputRef.current?.focus();
-    }, [showSoftInputOnFocus]);
-
-    useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
 
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
@@ -778,12 +767,7 @@ function ComposerWithSuggestions(
                         setUpComposeFocusManager(true);
                         onFocus();
                     }}
-                    onBlur={(e) => {
-                        if (isFocusedWhileChangingInputMode.current) {
-                            return;
-                        }
-                        onBlur(e);
-                    }}
+                    onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
@@ -806,11 +790,6 @@ function ComposerWithSuggestions(
                         if (showSoftInputOnFocus) {
                             return;
                         }
-                        if (Browser.isMobileSafari()) {
-                            isFocusedWhileChangingInputMode.current = true;
-                            textInputRef.current?.blur();
-                        }
-
                         setShowSoftInputOnFocus(true);
                     }}
                     shouldContainScroll={Browser.isMobileSafari()}
