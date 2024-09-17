@@ -213,8 +213,10 @@ function isActionOfType<T extends ReportActionName[]>(
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
+        // eslint-disable-next-line deprecation/deprecation
         return reportAction?.message ?? reportAction?.originalMessage;
     }
+    // eslint-disable-next-line deprecation/deprecation
     return reportAction?.originalMessage;
 }
 
@@ -1752,6 +1754,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    // eslint-disable-next-line deprecation/deprecation
     getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,

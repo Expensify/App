@@ -108,7 +108,7 @@ module.exports = {
         'plugin:you-dont-need-lodash-underscore/all',
         'plugin:prettier/recommended',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'deprecation'],
     ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -254,6 +254,7 @@ module.exports = {
                 },
             },
         ],
+        'deprecation/deprecation': 'off',
     },
 
     overrides: [
