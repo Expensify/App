@@ -5633,12 +5633,12 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     });
 
     if (ReportActionsUtils.getReportActionMessage(updatedReportPreviewAction)) {
-        // eslint-disable-next-line rulesdir/prefer-at
-        if (Array.isArray(updatedReportPreviewAction?.message) && updatedReportPreviewAction.message[0]) {
-            // eslint-disable-next-line rulesdir/prefer-at
-            updatedReportPreviewAction.message[0].text = messageText;
-            // eslint-disable-next-line rulesdir/prefer-at
-            updatedReportPreviewAction.message[0].deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
+        if (Array.isArray(updatedReportPreviewAction?.message)) {
+            const message = updatedReportPreviewAction.message.at(0);
+            if (message) {
+                message.text = messageText;
+                message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
+            }
         } else if (!Array.isArray(updatedReportPreviewAction.message) && updatedReportPreviewAction.message) {
             updatedReportPreviewAction.message.text = messageText;
             updatedReportPreviewAction.message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
@@ -8119,23 +8119,21 @@ function mergeDuplicates(params: TransactionMergeParams) {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: iouActionsToDelete.reduce<Record<string, PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
+            const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : null;
             // eslint-disable-next-line no-param-reassign
             val[reportAction.reportActionID] = {
                 originalMessage: {
                     deleted: deletedTime,
                 },
-                ...(Array.isArray(reportAction.message) &&
-                    // eslint-disable-next-line rulesdir/prefer-at
-                    !!reportAction.message[0] && {
-                        message: [
-                            {
-                                // eslint-disable-next-line rulesdir/prefer-at
-                                ...reportAction.message[0],
-                                deleted: deletedTime,
-                            },
-                            ...reportAction.message.slice(1),
-                        ],
-                    }),
+                ...(firstMessage && {
+                    message: [
+                        {
+                            ...firstMessage,
+                            deleted: deletedTime,
+                        },
+                        ...(Array.isArray(reportAction.message) ? reportAction.message.slice(1) : []),
+                    ],
+                }),
                 ...(!Array.isArray(reportAction.message) && {
                     message: {
                         deleted: deletedTime,

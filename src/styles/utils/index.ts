@@ -272,8 +272,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
-    // eslint-disable-next-line rulesdir/prefer-at
-    return workspaceColorOptions[colorHash];
+    return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
 
 /**
