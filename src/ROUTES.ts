@@ -422,23 +422,23 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     SETTINGS_CATEGORIES_ROOT: {
-        route: 'settings/:policyID/categories',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories`, backTo),
+        route: 'settings/:policyID/category',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category`, backTo),
     },
     SETTINGS_CATEGORY_SETTINGS: {
-        route: 'settings/:policyID/categories/:categoryName',
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/${encodeURIComponent(categoryName)}`, backTo),
+        route: 'settings/:policyID/category/:categoryName',
+        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}`, backTo),
     },
     SETTINGS_CATEGORIES_SETTINGS: {
-        route: 'settings/:policyID/categories/settings',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/settings`, backTo),
+        route: 'settings/:policyID/category/settings',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/settings`, backTo),
     },
     SETTINGS_CATEGORY_CREATE: {
-        route: 'settings/:policyID/categories/new',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
+        route: 'settings/:policyID/category/new',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/new`, backTo),
     },
     SETTINGS_CATEGORY_EDIT: {
-        route: 'settings/:policyID/categories/:categoryName/edit',
+        route: 'settings/:policyID/category/:categoryName/edit',
         getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
