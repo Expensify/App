@@ -1,0 +1,37 @@
+name: Prettier check
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-prettier
+  cancel-in-progress: true
+
+jobs:
+  prettier:
+    name: Prettier check
+    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Verify there's no Prettier diff
+        run: |
+          npm run prettier -- --loglevel silent
+          if ! git diff --name-only --exit-code; then
+            # shellcheck disable=SC2016
+            echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
+            exit 1
+          fi
+
+      - name: Run unused style searcher
+        shell: bash
+        run: ./.github/scripts/findUnusedKeys.sh
