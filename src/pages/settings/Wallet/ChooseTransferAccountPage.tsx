@@ -1,8 +1,7 @@
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -20,17 +19,11 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, WalletTransfer} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
 
-type ChooseTransferAccountPageOnyxProps = {
-    /** Wallet transfer propTypes */
-    walletTransfer: OnyxEntry<WalletTransfer>;
-};
-
-type ChooseTransferAccountPageProps = ChooseTransferAccountPageOnyxProps;
-
-function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountPageProps) {
+function ChooseTransferAccountPage() {
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     /**
@@ -119,8 +112,4 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
 
 ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
 
-export default withOnyx<ChooseTransferAccountPageProps, ChooseTransferAccountPageOnyxProps>({
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-})(ChooseTransferAccountPage);
+export default ChooseTransferAccountPage;
