@@ -121,7 +121,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || -1}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
@@ -132,7 +132,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const prevIsDeletedParentAction = usePrevious(isDeletedParentAction);
 
-    const isLoadingReportOnyx = !reportOnyx || Object.keys(reportOnyx).length === 0 || isLoadingOnyxValue(reportResult);
+    const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     useEffect(() => {
@@ -206,6 +206,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             isOptimisticReport: reportOnyx?.isOptimisticReport,
             lastMentionedTime: reportOnyx?.lastMentionedTime,
             avatarUrl: reportOnyx?.avatarUrl,
+            avatarFileName: reportOnyx?.avatarFileName,
             permissions,
             invoiceReceiver: reportOnyx?.invoiceReceiver,
             policyAvatar: reportOnyx?.policyAvatar,
@@ -248,6 +249,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.isOptimisticReport,
             reportOnyx?.lastMentionedTime,
             reportOnyx?.avatarUrl,
+            reportOnyx?.avatarFileName,
             permissions,
             reportOnyx?.invoiceReceiver,
             reportOnyx?.policyAvatar,
@@ -719,7 +721,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
-    const firstReportAction = reportActions[0];
+    const mostRecentReportAction = reportActions[0];
+    const shouldShowMostRecentReportAction =
+        !!mostRecentReportAction &&
+        !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
+        !ReportActionsUtils.isDeletedAction(mostRecentReportAction);
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
@@ -801,9 +807,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        {!!firstReportAction && (
+                                        {shouldShowMostRecentReportAction && (
                                             <ReportActionsListItemRenderer
-                                                reportAction={firstReportAction}
+                                                reportAction={mostRecentReportAction}
                                                 reportActions={reportActions}
                                                 parentReportAction={parentReportAction}
                                                 parentReportActionForTransactionThread={undefined}

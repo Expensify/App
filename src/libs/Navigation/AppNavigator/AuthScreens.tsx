@@ -29,7 +29,6 @@ import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
-import SearchInputManager from '@pages/workspace/SearchInputManager';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -48,6 +47,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
@@ -151,7 +151,7 @@ Onyx.connect({
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
-        if (timezone?.automatic && timezone?.selected !== currentTimezone) {
+        if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
@@ -198,8 +198,6 @@ const modalScreenListeners = {
         Modal.setModalVisibility(false);
     },
     beforeRemove: () => {
-        // Clear search input (WorkspaceInvitePage) when modal is closed
-        SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
         Modal.willAlertModalBecomeVisible(false);
     },

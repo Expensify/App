@@ -252,7 +252,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
-    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName(report);
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -506,7 +506,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    shouldDisableViewPhoto
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID ?? '-1'))}
                     onImageRemoved={() => {
                         // Calling this without a file will remove the avatar
                         Report.updateGroupChatAvatar(report.reportID ?? '');

@@ -13,6 +13,7 @@ import type {
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {SaveSearchParams} from '@libs/API/parameters';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -210,6 +211,26 @@ type SettingsNavigatorParamList = {
         categoryName: string;
     };
     [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
         policyID: string;
         categoryName: string;
     };
@@ -632,6 +653,19 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
+    [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
+        login: string;
+        role?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
+        login: string;
+        role: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
+        login: string;
+        role: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
@@ -672,6 +706,22 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
+        policyID: string;
+        bank: string;
+        cardID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+        bank: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
+        policyID: string;
+        cardID: string;
+        bank: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
@@ -800,13 +850,14 @@ type ParticipantsNavigatorParamList = {
 };
 
 type RoomMembersNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS_ROOT]: undefined;
-};
-
-type RoomInviteNavigatorParamList = {
-    [SCREENS.ROOM_INVITE_ROOT]: {
+    [SCREENS.ROOM_MEMBERS.ROOT]: {reportID: string};
+    [SCREENS.ROOM_MEMBERS.INVITE]: {
         reportID: string;
         role?: 'accountant';
+    };
+    [SCREENS.ROOM_MEMBERS.DETAILS]: {
+        reportID: string;
+        accountID: string;
     };
 };
 
@@ -1112,7 +1163,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
@@ -1132,6 +1182,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
+    [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1155,6 +1207,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
         policyID: string;
         feed: string;
@@ -1176,7 +1231,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
-        approverIndex?: number;
+        approverIndex: number;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
@@ -1352,8 +1407,18 @@ type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
 };
 
+type SearchSavedSearchParamList = {
+    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
+        policyID: string;
+    };
+};
+
+type MissingPersonalDetailsParamList = {
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: {
         policyID: string;
     };
 };
@@ -1410,7 +1475,6 @@ export type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     RightModalNavigatorParamList,
-    RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
     SettingsNavigatorParamList,
@@ -1429,5 +1493,7 @@ export type {
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
     SearchAdvancedFiltersParamList,
+    SearchSavedSearchParamList,
     RestrictedActionParamList,
+    MissingPersonalDetailsParamList,
 };
