@@ -55,8 +55,9 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
         const [betas] = useOnyx(ONYXKEYS.BETAS);
         const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+        const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false});
         const getReportAction = useCallback(() => {
-            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
+            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {
@@ -64,7 +65,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             }
 
             return reportAction;
-        }, [props.reportActions, props.route.params.reportActionID, props.parentReportAction]);
+        }, [reportActions, props.route.params.reportActionID, props.parentReportAction]);
 
         const reportAction = getReportAction();
 
@@ -82,7 +83,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         // Perform all the loading checks
         const isLoadingReport = isLoadingReportData && !report?.reportID;
-        const isLoadingReportAction = isEmptyObject(props.reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
+        const isLoadingReportAction = isEmptyObject(reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
         const shouldHideReport = !isLoadingReport && (!report?.reportID || !ReportUtils.canAccessReport(report, policies, betas));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
