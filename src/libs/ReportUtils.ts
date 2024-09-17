@@ -1562,8 +1562,8 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  * parentReportAction has type of track.
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
-    if (isThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (isThread(report) && report?.parentReportID && report.parentReportActionID) {
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && ReportActionsUtils.isTrackExpenseAction(parentReportAction);
     }
     return false;
@@ -2211,8 +2211,8 @@ function getIcons(
         };
         return [fallbackIcon];
     }
-    if (isExpenseRequest(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (isExpenseRequest(report) && report?.parentReportID && report.parentReportActionID) {
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
             source: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
@@ -2224,8 +2224,8 @@ function getIcons(
 
         return [memberIcon, workspaceIcon];
     }
-    if (isChatThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (isChatThread(report) && report?.parentReportID && report.parentReportActionID) {
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
         const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
@@ -3106,7 +3106,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const transactionID = moneyRequestReport ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(moneyRequestReport);
+    const parentReportAction = report?.parentReportID && report.parentReportActionID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
     const isRequestIOU = isIOUReport(moneyRequestReport);
     const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID ?? '-1');
@@ -3713,7 +3713,10 @@ function getReportName(
     }
 
     let formattedName: string | undefined;
-    const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
+    let parentReportAction: OnyxEntry<ReportAction> | undefined;
+    if (parentReportActionParam) {
+        parentReportAction = report?.parentReportID && report.parentReportActionID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
+    }
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
@@ -5995,7 +5998,7 @@ function shouldReportBeInOptionList({
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
     // Optionally exclude reports that do not belong to currently active workspace
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = report?.parentReportID && report.parentReportActionID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
     if (
         !report?.reportID ||
