@@ -140,7 +140,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 />
                 <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.accounting.title')}</Text>
+                        <Text style={[styles.textHeadlineH1]}>{translate('onboarding.accounting.title')}</Text>
+                    </View>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text style={[styles.textNormalThemeText, styles.colorMuted]}>{translate('onboarding.accounting.description')}</Text>
                     </View>
                 </View>
                 <SelectionList
@@ -152,8 +155,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     ListItem={OnboardingListItem}
                     footerContent={footerContent}
                     shouldShowTooltips={false}
-                    headerMessage={translate('onboarding.accounting.description')}
-                    headerMessageStyle={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 />
                 {shouldUseNarrowLayout && <OfflineIndicator />}
             </View>
