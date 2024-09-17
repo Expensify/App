@@ -3,7 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry, WithOnyxState} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -49,6 +49,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentType<Omit<TProps & RefAttributes<TRef>, keyof OnyxProps>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
         const getReportAction = useCallback(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
 
@@ -67,7 +68,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!shouldUseNarrowLayout || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
+            if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
@@ -75,9 +76,9 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
         // Perform all the loading checks
-        const isLoadingReport = props.isLoadingReportData && !props.report?.reportID;
+        const isLoadingReport = props.isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
-        const shouldHideReport = !isLoadingReport && (!props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas));
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !ReportUtils.canAccessReport(report, props.policies, props.betas));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
