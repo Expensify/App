@@ -105,20 +105,20 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         if (title) {
             return {
                 icon: Expensicons.Filters,
-                title: title
+                title,
             };
         }
-        
+
         const item = popoverMenuItems.at(activeItemIndex);
         return {
             icon: item?.icon ?? Expensicons.Receipt,
-            title: item?.text
+            title: item?.text,
         };
     }, [activeItemIndex, popoverMenuItems, title]);
-    
+
     const menuIcon = menuIconAndTitle.icon;
     const menuTitle = menuIconAndTitle.title;
-    
+
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 
     const savedSearchItems = savedSearchesMenuItems.map((item) => ({
