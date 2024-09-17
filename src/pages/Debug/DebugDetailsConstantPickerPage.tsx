@@ -47,7 +47,7 @@ function DebugDetailsConstantPickerPage({
                             searchText: value,
                         } satisfies ListItem),
                 )
-                .filter(({searchText}) => searchText.includes(searchValue)),
+                .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
         [fieldName, fieldValue, searchValue],
     );
     const onSubmit = (item: ListItem) => {
