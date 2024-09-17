@@ -29,7 +29,7 @@ function CardNameStep() {
     const data = issueNewCard?.data;
 
     const userName = PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
-    const defaultCardTitle = `${userName}'s Card`;
+    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? `${userName}'s Card` : '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
