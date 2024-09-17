@@ -66,14 +66,15 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             });
         } else {
             const duplicate = findDuplicate(columns);
-            if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+            if (duplicateColumn) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);

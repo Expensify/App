@@ -1,0 +1,32 @@
+name: Changed files ESLint check
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-changed-lint
+  cancel-in-progress: true
+
+jobs:
+  lint-changed:
+    name: Changed files ESLint check
+    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+      
+      - name: Run ESLint to check for deprecation warnings
+        run: |
+          # This will just fetch the latest commit from main
+          git fetch origin main --no-tags --depth=1
+
+          # shellcheck disable=SC2046
+          npm run lint-changed
