@@ -9,6 +9,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -91,7 +92,7 @@ function ChooseTransferAccountPage() {
                 title={translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />
-            <View style={[styles.mt3, styles.flexShrink1, styles.flexBasisAuto]}>
+            <ScrollView>
                 <SelectionList
                     sections={[{data}]}
                     ListItem={RadioListItem}
@@ -104,16 +105,16 @@ function ChooseTransferAccountPage() {
                     shouldUpdateFocusedIndex
                     initiallyFocusedOptionKey={walletTransfer?.selectedAccountID?.toString()}
                 />
-            </View>
-            <MenuItem
-                onPress={navigateToAddPaymentMethodPage}
-                title={
-                    walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
-                        ? translate('paymentMethodList.addNewBankAccount')
-                        : translate('paymentMethodList.addNewDebitCard')
-                }
-                icon={Expensicons.Plus}
-            />
+                <MenuItem
+                    onPress={navigateToAddPaymentMethodPage}
+                    title={
+                        walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
+                            ? translate('paymentMethodList.addNewBankAccount')
+                            : translate('paymentMethodList.addNewDebitCard')
+                    }
+                    icon={Expensicons.Plus}
+                />
+            </ScrollView>
         </ScreenWrapper>
     );
 }
