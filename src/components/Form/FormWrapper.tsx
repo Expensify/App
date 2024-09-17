@@ -60,7 +60,7 @@ function FormWrapper({
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
-    
+
     const [formState] = useOnyx(`${formID}`);
 
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
