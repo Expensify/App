@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import CONST from '@src/CONST';
+import * as PolicyUtils from '@src/libs/PolicyUtils';
 
 function EnabledStep() {
     const theme = useTheme();
@@ -19,6 +20,7 @@ function EnabledStep() {
     const {setStep} = useTwoFactorAuthContext();
 
     const {translate} = useLocalize();
+    const hasXeroConnection = PolicyUtils.hasXeroConnections();
 
     return (
         <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
@@ -35,6 +37,7 @@ function EnabledStep() {
                             icon: Expensicons.Close,
                             iconFill: theme.danger,
                             wrapperStyle: [styles.cardMenuItem],
+                            disabled: hasXeroConnection,
                         },
                     ]}
                     containerStyles={[styles.twoFactorAuthSection]}
