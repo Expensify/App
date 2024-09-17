@@ -7223,7 +7223,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
 
         return [
             CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
-            CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency)
+            CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
         ];
     }
 
