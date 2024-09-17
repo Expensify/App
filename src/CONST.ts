@@ -4040,70 +4040,6 @@ const CONST = {
     },
 
     /**
-     * Acceptable values for the `accessibilityRole` prop on react native components.
-     *
-     * **IMPORTANT:** Do not use with the `role` prop as it can cause errors.
-     *
-     * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
-     */
-    ACCESSIBILITY_ROLE: {
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        BUTTON: 'button',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        LINK: 'link',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        MENUITEM: 'menuitem',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        TEXT: 'text',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        RADIO: 'radio',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        IMAGEBUTTON: 'imagebutton',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        CHECKBOX: 'checkbox',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        SWITCH: 'switch',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        ADJUSTABLE: 'adjustable',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        IMAGE: 'image',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        TEXTBOX: 'textbox',
-    },
-
-    /**
      * Acceptable values for the `role` attribute on react native components.
      *
      * **IMPORTANT:** Not for use with the `accessibilityRole` prop, as it accepts different values, and new components
@@ -4605,6 +4541,25 @@ const CONST = {
                         '7. For more controls like requiring a category for every expense, click *Settings*.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
+                },
+                {
+                    type: 'setupTags',
+                    autoCompleted: false,
+                    title: 'Set up tags (optional)',
+                    description: ({workspaceMoreFeaturesLink}) =>
+                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
+                        '\n' +
+                        '*Here’s how to set up tags:*\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click More features.\n' +
+                        '5. Enable tags.\n' +
+                        '6. Navigate to Tags in the workspace editor.\n' +
+                        '7. In Tags, click + Add tag to make your own.\n' +
+                        '\n' +
+                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
                 },
                 {
                     type: 'addExpenseApprovals',
