@@ -111,16 +111,16 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
                 'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
         },
         {
-            type: 'enableWallet',
+            type: 'addBankAccount',
             autoCompleted: false,
-            title: 'Enable your wallet',
+            title: 'Add personal bank account',
             description:
-                'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
                 '\n' +
-                'Here’s how to set up your wallet:\n' +
+                'Here’s how to set up your bank account:\n' +
                 '\n' +
                 '1. Click your profile picture.\n' +
-                '2. Click *Wallet* > *Enable wallet*.\n' +
+                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
                 'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
@@ -1417,6 +1417,7 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
+    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
         ADMIN: 'admin@expensify.com',
@@ -4716,19 +4717,19 @@ const CONST = {
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
                 {
-                    type: 'enableWallet',
+                    type: 'addBankAccount',
                     autoCompleted: false,
-                    title: 'Enable your wallet',
+                    title: 'Add personal bank account',
                     description:
-                        'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                        'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
                         '\n' +
-                        'Here’s how to enable your wallet:\n' +
+                        'Here’s how to set up your bank account:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. *Click Wallet* > *Enable wallet*.\n' +
-                        '3. Add your bank account.\n' +
+                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                        '3. Connect your bank account.\n' +
                         '\n' +
-                        'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
+                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
                 },
             ],
         },
