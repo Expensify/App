@@ -99,6 +99,7 @@ const REPORT_ACTION_NUMBER_PROPERTIES: Array<keyof ReportAction> = [
     'delegateAccountID',
     'adminAccountID',
     'reportActionTimestamp',
+    'timestamp',
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
@@ -517,7 +518,6 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
     if (REPORT_ACTION_DATE_PROPERTIES.includes(key)) {
         return validateDate(value);
     }
-
     if (key === 'whisperedToAccountIDs') {
         return validateArray(value, 'number');
     }
@@ -529,6 +529,12 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
     }
     if (key === 'errors') {
         return validateObject(value, {});
+    }
+    if (key === 'originalMessage') {
+        return validateObject(value, {});
+    }
+    if (key === 'childRecentReceiptTransactionIDs') {
+        return validateObject(value, {}, 'string');
     }
     validateString(value);
 }

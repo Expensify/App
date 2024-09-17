@@ -262,11 +262,18 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     whisperedToAccountIDs?: number[];
 
     /**
-     * Unix timestamp when the report action was created
+     * Unix timestamp of when the report action was created
      *
      * Note: This is sent by the backend but we don't use it locally
      */
     reportActionTimestamp?: number;
+
+    /**
+     * Unix timestamp of when the report action was created, without the miliseconds (need to multiply by 1000)
+     *
+     * Note: This is sent by the backend but we don't use it locally
+     */
+    timestamp?: number;
 }>;
 
 /**
