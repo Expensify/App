@@ -3646,6 +3646,12 @@ const styles = (theme: ThemeColors) =>
                 horizontal: windowWidth - 355,
             } satisfies AnchorPosition),
 
+        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(70),
+                horizontal: windowWidth - 20,
+            } satisfies AnchorPosition),
+
         iPhoneXSafeArea: {
             backgroundColor: theme.inverse,
             flex: 1,
@@ -4115,11 +4121,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
-        taskCheckbox: {
-            height: 16,
-            width: 16,
-        },
-
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
@@ -4321,10 +4322,6 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
             alignItems: 'center',
             marginBottom: 8,
-        },
-
-        purposeMenuItemSelected: {
-            backgroundColor: theme.activeComponentBG,
         },
 
         willChangeTransform: {
@@ -5188,6 +5185,14 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        colorGreenSuccess: {
+            color: colors.green400,
+        },
+
+        bgPaleGreen: {
+            backgroundColor: colors.green100,
         },
 
         importColumnCard: {
