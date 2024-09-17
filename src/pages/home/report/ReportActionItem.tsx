@@ -670,7 +670,12 @@ function ReportActionItem({
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
-            children = <IssueCardMessage action={action} />;
+            children = (
+                <IssueCardMessage
+                    action={action}
+                    policyID={report.policyID}
+                />
+            );
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
@@ -1040,6 +1045,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
+            prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&

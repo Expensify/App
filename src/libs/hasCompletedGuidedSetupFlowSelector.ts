@@ -6,7 +6,8 @@ function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKE
     if (Array.isArray(onboarding)) {
         return true;
     }
-    return onboarding?.hasCompletedGuidedSetupFlow ?? false;
+
+    return onboarding?.hasCompletedGuidedSetupFlow ?? true;
 }
 
 export default hasCompletedGuidedSetupFlowSelector;

@@ -94,11 +94,10 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mt1]}>
                     <View style={[styles.taskCheckboxWrapper, styles.alignSelfCenter]}>
                         <Checkbox
                             style={[styles.mr2]}
-                            containerStyle={[styles.taskCheckbox]}
                             isChecked={isTaskCompleted}
                             disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
