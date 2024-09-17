@@ -27,14 +27,6 @@ Onyx.connect({
     },
 });
 
-let allCardsLists: OnyxCollection<WorkspaceCardsList>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-    waitForCollectionCallback: true,
-    callback: (value) => (allCardsLists = value),
-});
-
 /**
  * @returns string with a month in MM format
  */
@@ -203,17 +195,6 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
-/** Checks if the Expensify Card toggle should be disabled */
-function shouldExpensifyCardToggleBeDisabled(workspaceAccountID?: number, areExpensifyCardsEnabled?: boolean): boolean {
-    if (!areExpensifyCardsEnabled || !workspaceAccountID) {
-        return false;
-    }
-
-    const cardsList = allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`];
-
-    return !isEmptyObject(cardsList);
-}
-
 function getCardDetailsImage(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
         return Illustrations.MasterCardCompanyCardDetail;
@@ -262,7 +243,6 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
-    shouldExpensifyCardToggleBeDisabled,
     getCardDetailsImage,
     getMemberCards,
 };

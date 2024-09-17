@@ -412,6 +412,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
+                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
@@ -617,7 +618,10 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: false},
+            value: {
+                isLoading: false,
+                validated: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
