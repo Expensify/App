@@ -78,7 +78,7 @@ import type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
@@ -98,7 +98,7 @@ import type {
     UnapprovedParams,
     UnshareParams,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -352,6 +352,7 @@ export default {
         default: 'Default',
         update: 'Update',
         member: 'Member',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Currency',
         rate: 'Rate',
@@ -396,6 +397,7 @@ export default {
         sent: 'Sent',
         links: 'Links',
         days: 'days',
+        rename: 'Rename',
     },
     location: {
         useCurrent: 'Use current location',
@@ -841,11 +843,12 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `the ${valueName} to ${newValueToDisplay}`,
-        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
+        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+            `set the ${translatedChangedField} to ${newMerchant}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
-        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
-            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
+        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+            `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
@@ -2225,6 +2228,21 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            memberAlternateText: 'Members can submit and approve reports.',
+            adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
+            auditorAlternateText: 'Auditors can view and comment on reports.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Admin';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Member';
+                    default:
+                        return 'Member';
+                }
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -3010,6 +3028,20 @@ export default {
                 disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
+                cardDetails: 'Card details',
+                cardNumber: 'Card number',
+                cardholder: 'Cardholder',
+                cardName: 'Card name',
+                integrationExport: (integration: string, type: string) => `${integration} ${type} export`,
+                integrationExportTitleFirstPart: (integration: string) => `Choose the ${integration} account where transactions should be exported. Select a different`,
+                integrationExportTitleLinkPart: 'export option',
+                integrationExportTitleSecondPart: 'to change the available accounts.',
+                lastUpdated: 'Last updated',
+                transactionStartDate: 'Transaction start date',
+                updateCard: 'Update card',
+                unassignCard: 'Unassign card',
+                unassign: 'Unassign',
+                unassignCardDescription: 'Unassign this card will remove all transactions on draft reports from the cardholder’s account.',
                 assignCard: 'Assign card',
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
@@ -3029,6 +3061,10 @@ export default {
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
                 emptyAddedFeedTitle: 'Assign company cards',
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
+                giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
+                updating: 'Updating...',
+                noAccountsFound: 'No accounts found',
+                noAccountsFoundDescription: (connection: string) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
                 title: 'Workflows',
@@ -3216,6 +3252,7 @@ export default {
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
+            makeAuditor: 'Make auditor',
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
@@ -3463,6 +3500,10 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importing vendors';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importing custom lists';
                         case 'netSuiteSyncImportCustomLists':
                             return 'Importing custom lists';
                         case 'netSuiteSyncImportSubsidiaries':
@@ -3984,6 +4025,12 @@ export default {
                 buttonText: 'Book a trip',
             },
         },
+        saveSearch: 'Save search',
+        saveSearchTooltipText: 'You can rename your saved search',
+        deleteSavedSearch: 'Delete saved search',
+        deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
+        searchName: 'Search name',
+        savedSearchesMenuItemTitle: 'Saved',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             delete: 'Delete',
@@ -4371,7 +4418,7 @@ export default {
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
-        customUnitOutOfPolicy: 'Unit no longer valid',
+        customUnitOutOfPolicy: 'Rate not valid for this workspace',
         duplicatedTransaction: 'Duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',

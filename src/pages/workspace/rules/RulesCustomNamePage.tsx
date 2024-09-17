@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +31,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const {inputCallbackRef} = useAutoFocusInput();
     const RULE_EXAMPLE_BULLET_POINTS = [
         translate('workspace.rules.expenseReportRules.customNameEmailPhoneExample'),
         translate('workspace.rules.expenseReportRules.customNameStartDateExample'),
@@ -95,6 +96,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                         label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
+                        ref={inputCallbackRef}
                     />
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
