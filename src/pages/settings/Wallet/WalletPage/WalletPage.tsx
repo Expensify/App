@@ -485,7 +485,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                                 title={translate('common.transferBalance')}
                                                                 icon={Expensicons.Transfer}
                                                                 onPress={triggerKYCFlow}
-                                                                hoverAndPressStyle={styles.hoveredComponentBG}
                                                                 shouldShowRightIcon
                                                                 disabled={network.isOffline}
                                                                 wrapperStyle={[
@@ -530,7 +529,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             disabled={network.isOffline}
                                                             title={translate('walletPage.enableWallet')}
                                                             icon={Expensicons.Wallet}
-                                                            hoverAndPressStyle={styles.hoveredComponentBG}
                                                             wrapperStyle={[
                                                                 styles.transferBalance,
                                                                 shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
