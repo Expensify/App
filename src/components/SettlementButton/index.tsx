@@ -155,7 +155,7 @@ function SettlementButton({
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
-        // Be sure that onPress should be wrapped in a useCallback to prevent unnecessary updates
+        // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         iouReport,
