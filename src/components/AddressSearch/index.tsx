@@ -345,7 +345,6 @@ function AddressSearch(
         ),
         [styles.pv4, theme.spinner],
     );
-    ``;
 
     return (
         /*
