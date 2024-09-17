@@ -15,7 +15,7 @@ type ResolveDuplicatesParams = {
     tag: string;
 
     /** The reportActionID of the dismissed violation action in the kept transaction thread report */
-    optimisticReportActionID: string;
+    dismissedViolationReportActionID: string;
 
     /** The ID list of the hold report actions corresponding to the transactionIDList */
     reportActionIDList: string[];

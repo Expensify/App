@@ -8287,7 +8287,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         ...otherParams,
         reportActionIDList,
         transactionIDList: orderedTransactionIDList,
-        optimisticReportActionID: optimisticReportAction.reportActionID,
+        dismissedViolationReportActionID: optimisticReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
