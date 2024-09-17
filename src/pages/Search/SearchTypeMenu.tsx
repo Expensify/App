@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SearchItemPopover from './SearchItemPopover';
+import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SavedSearchMenuItem = MenuItemBaseProps & {
@@ -114,7 +114,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 SearchActions.clearAllFilters();
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
             },
-            rightComponent: <SearchItemPopover menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
+            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
             styles: [styles.alignItemsCenter],
         };
 

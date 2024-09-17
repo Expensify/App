@@ -4,7 +4,11 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import CONST from '@src/CONST';
 
-function SearchItemPopover({menuItems}: {menuItems: PopoverMenuItem[]}) {
+type SavedSearchItemThreeDotMenuProps = {
+    menuItems: PopoverMenuItem[];
+};
+
+function SavedSearchItemThreeDotMenu({menuItems}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
 
@@ -30,4 +34,4 @@ function SearchItemPopover({menuItems}: {menuItems: PopoverMenuItem[]}) {
     );
 }
 
-export default SearchItemPopover;
+export default SavedSearchItemThreeDotMenu;
