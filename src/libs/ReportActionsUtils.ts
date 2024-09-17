@@ -213,9 +213,9 @@ function isActionOfType<T extends ReportActionName[]>(
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
-        return reportAction?.message ?? getOriginalMessage(reportAction);
+        return reportAction?.message ?? reportAction?.originalMessage;
     }
-    return getOriginalMessage(reportAction);
+    return reportAction?.originalMessage;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
