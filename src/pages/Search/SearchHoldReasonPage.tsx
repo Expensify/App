@@ -15,6 +15,8 @@ import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 type SearchHoldReasonPageRouteParams = {
     /** Link to previous page */
     backTo: Route;
+
+    transactionID: string;
 };
 
 type SearchHoldReasonPageProps = {
@@ -25,12 +27,11 @@ type SearchHoldReasonPageProps = {
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {currentSearchHash, selectedTransactions} = useSearchContext();
-    const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const {backTo = '', transactionID = selectedTransactionIDs} = route.params ?? {};
+    const {currentSearchHash} = useSearchContext();
+    const {backTo = '', transactionID = ''} = route.params ?? {};
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, transactionID, values.comment);
+        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, [transactionID], values.comment);
         Navigation.goBack();
     };
 

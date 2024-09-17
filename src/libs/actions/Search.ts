@@ -94,11 +94,33 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
+        value: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            comment: {
+                hold: CONST.POLICY.ID_FAKE,
+            },
+        },
+    });
+
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
+        value: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            comment: {
+                hold: null,
+            },
+        },
+    });
 
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }

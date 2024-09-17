@@ -16,6 +16,7 @@ import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicon
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import * as SearchActions from '@libs/actions/Search';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
@@ -23,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import * as SearchActions from '@libs/actions/Search';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -3153,7 +3153,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
 
     if (isOnHold) {
         if (currentSearchHash) {
-            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID])
+            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID]);
             return;
         }
         IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
@@ -3165,7 +3165,6 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
-        
     }
 };
 
