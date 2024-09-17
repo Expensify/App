@@ -58,7 +58,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false});
         const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`, {
             selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>): NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null => {
-                const parentReportActionID = props?.report?.parentReportActionID;
+                const parentReportActionID = report?.parentReportActionID;
                 if (!parentReportActionID) {
                     return null;
                 }
