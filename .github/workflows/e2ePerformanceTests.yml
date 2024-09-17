@@ -200,27 +200,50 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: Schedule AWS Device Farm test run on main branch
-        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
-        id: schedule-awsdf-main
-        with:
-          name: App E2E Performance Regression Tests
-          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
-          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease.apk
-          app_type: ANDROID_APP
-          test_type: APPIUM_NODE
-          test_package_file: App.zip
-          test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpec.yml
-          test_spec_type: APPIUM_NODE_TEST_SPEC
-          remote_src: false
-          file_artifacts: |
-            Customer Artifacts.zip
-            Test spec output.txt
-          log_artifacts: debug.log
-          cleanup: true
-          timeout: 7200
+      - name: Schedule AWS Device Farm test run on main branch (retryable)
+        run: |
+          MAX_RETRIES=3
+          RETRY_DELAY=60  # 1 minute delay between retries
+          RETRIES=0
+
+          until [ "$RETRIES" -ge "$MAX_RETRIES" ]
+          do
+            echo "Attempt $((RETRIES+1)) of $MAX_RETRIES..."
+            
+            # Run the AWS Device Farm test
+            gh workflow run realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b \
+              --name "App E2E Performance Regression Tests" \
+              --project_arn ${{ secrets.AWS_PROJECT_ARN }} \
+              --device_pool_arn ${{ secrets.AWS_DEVICE_POOL_ARN }} \
+              --app_file zip/app-e2eRelease.apk \
+              --app_type ANDROID_APP \
+              --test_type APPIUM_NODE \
+              --test_package_file App.zip \
+              --test_package_type APPIUM_NODE_TEST_PACKAGE \
+              --test_spec_file tests/e2e/TestSpec.yml \
+              --test_spec_type APPIUM_NODE_TEST_SPEC \
+              --remote_src false \
+              --file_artifacts "Customer Artifacts.zip, Test spec output.txt" \
+              --log_artifacts debug.log \
+              --cleanup true \
+              --timeout 7200
+
+            TEST_RESULT=$?
+
+            if [ "$TEST_RESULT" -eq 0 ]; then
+              echo "✅ Tests passed!"
+              break
+            else
+              echo "❌ Test failed. Retrying in $RETRY_DELAY seconds..."
+              RETRIES=$((RETRIES+1))
+              sleep $RETRY_DELAY
+            fi
+
+            if [ "$RETRIES" -eq "$MAX_RETRIES" ]; then
+              echo "❌ Tests failed after $MAX_RETRIES attempts."
+              exit 1
+            fi
+          done
 
       - name: Print logs if run failed
         if: failure()
