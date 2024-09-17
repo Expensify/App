@@ -134,7 +134,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             interactive
                                             shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
-                                            hoverAndPressStyle={false}
                                             titleWithTooltips={[]}
                                             brickRoadIndicator={violation ? 'error' : undefined}
                                             errorText={violationTranslation}

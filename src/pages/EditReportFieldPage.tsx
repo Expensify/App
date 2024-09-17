@@ -65,11 +65,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 shouldEnableMaxHeight
                 testID={EditReportFieldPage.displayName}
             >
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => {}}
-                    onLinkPress={() => {}}
-                />
+                <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
         );
     }
