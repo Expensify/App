@@ -92,7 +92,7 @@ function ChooseTransferAccountPage() {
             />
             <View style={[styles.mt3, styles.flexShrink1, styles.flexBasisAuto]}>
                 <SelectionList
-                    sections={[{data}]}
+                    sections={[{data: data}]}
                     ListItem={RadioListItem}
                     onSelectRow={(value) => {
                         const accountType = value?.bankAccount?.accountType;
