@@ -51,6 +51,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '-1'}`);
+        const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
         const getReportAction = useCallback(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
 
@@ -78,7 +79,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && !report?.reportID;
-        const isLoadingReportAction = isEmptyObject(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
+        const isLoadingReportAction = isEmptyObject(props.reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
         const shouldHideReport = !isLoadingReport && (!report?.reportID || !ReportUtils.canAccessReport(report, props.policies, props.betas));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
