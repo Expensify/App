@@ -43,7 +43,7 @@ function parseMessage(messages: Message[] | undefined) {
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        if (currentUserEmail === part.text) {
+        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
             content = 'You';
         } else if (isEmail) {
