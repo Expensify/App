@@ -31,15 +31,7 @@ class ObjectError extends SyntaxError {
     }
 }
 
-type ObjectType = Record<
-    string,
-    | 'string'
-    | 'number'
-    | 'object'
-    | 'array'
-    | 'boolean' // Constant enum
-    | ConstantEnum
->;
+type ObjectType = Record<string, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
 
 type ConstantEnum = Record<string, unknown>;
 
@@ -271,24 +263,7 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
  */
 function validateArray(
     value: string,
-    arrayType:
-        | 'string'
-        | 'number'
-        | 'boolean'
-        // Constant enum
-        | ConstantEnum
-        // Object
-        | Record<
-              string,
-              | 'string'
-              | 'number'
-              | 'object'
-              | 'boolean'
-              | 'array'
-              | PropertyTypes
-              // Constant enum
-              | ConstantEnum
-          >,
+    arrayType: 'string' | 'number' | 'boolean' | ConstantEnum | Record<string, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>,
 ) {
     if (value === 'undefined') {
         return;
@@ -412,6 +387,12 @@ function validateString(value: string) {
     }
 }
 
+/**
+ * Validates if a property of Report is of the expected type
+ *
+ * @param key - property key
+ * @param value - value provided by the user
+ */
 function validateReportDraftProperty(key: keyof Report, value: string) {
     if (REPORT_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
         throw SyntaxError('debug.missingValue');
@@ -493,6 +474,12 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     validateString(value);
 }
 
+/**
+ * Validates if a property of ReportAction is of the expected type
+ *
+ * @param key - property key
+ * @param value - value provided by the user
+ */
 function validateReportActionDraftProperty(key: keyof ReportAction, value: string) {
     if (REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
         throw SyntaxError('debug.missingValue');
@@ -539,6 +526,9 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
     validateString(value);
 }
 
+/**
+ * Validates if the ReportAction JSON that the user provided is of the expected type
+ */
 function validateReportActionJSON(json: string) {
     const parsedReportAction = parseJSON(json) as ReportAction;
     REPORT_ACTION_REQUIRED_PROPERTIES.forEach((key) => {

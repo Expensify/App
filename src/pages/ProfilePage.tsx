@@ -301,7 +301,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 })}
                             />
                         )}
-                        {!isEmptyObject(report) && report.reportID && isDebugModeEnabled && (
+                        {!!report?.reportID && isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
                                 icon={Expensicons.Bug}
