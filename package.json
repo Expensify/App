@@ -132,7 +132,7 @@
     "react-map-gl": "^7.1.3",
     "react-native": "0.75.2",
     "react-native-android-location-enabler": "^2.0.1",
-    "react-native-app-logs": "github:margelo/react-native-app-logs",
+    "react-native-app-logs": "github:margelo/react-native-app-logs#214e8e5",
     "react-native-blob-util": "0.19.4",
     "react-native-collapsible": "^1.6.2",
     "react-native-config": "1.5.0",
