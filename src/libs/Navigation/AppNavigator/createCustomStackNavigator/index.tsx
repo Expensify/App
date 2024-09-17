@@ -71,15 +71,17 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
             // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
             if (lastSearchCentralPane) {
-                return {
-                    stateToRender: {
-                        ...state,
-                        index: 0,
-                        // eslint-disable-next-line rulesdir/prefer-at
-                        routes: [filteredRoutes[0]],
-                    },
-                    searchRoute: lastSearchCentralPane,
-                };
+                const filteredRoute = filteredRoutes.at(0);
+                if (filteredRoute) {
+                    return {
+                        stateToRender: {
+                            ...state,
+                            index: 0,
+                            routes: [filteredRoute],
+                        },
+                        searchRoute: lastSearchCentralPane,
+                    };
+                }
             }
 
             return {

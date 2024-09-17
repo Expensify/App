@@ -32,7 +32,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const mostRecentChecklist = recentDeployChecklists.at(0);
 
         if (!mostRecentChecklist) {
-            return;
+            throw new Error('Could not find the most recent checklist');
         }
 
         const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
@@ -44,7 +44,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         }
 
         if (!previousChecklist) {
-            return;
+            throw new Error('Could not find the previous checklist');
         }
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist

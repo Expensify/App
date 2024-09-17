@@ -71,19 +71,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
                     {
                         [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                         [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
-=======
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                         [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: row.defaultVendor,
                     },
                     {
@@ -108,19 +96,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExportCompanyCard(selection as MenuItem)}
             shouldSingleExecuteRowSelect
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
-=======
-            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}
             listFooterContent={

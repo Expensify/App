@@ -355,7 +355,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 }
 
 function getReportNewestTransactionDate(report: ReportListItemType) {
-    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > max.created ? curr : max), report.transactions[0])?.created;
+    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > (max?.created ?? '') ? curr : max), report.transactions.at(0))?.created;
 }
 
 function getSortedReportData(data: ReportListItemType[]) {
@@ -714,17 +714,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[], deli
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-<<<<<<< HEAD
-        if ((queryFilter.operator === 'eq' && queryFilters.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq')) {
-=======
-        if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+        if ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq')) {
             filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
@@ -755,7 +745,7 @@ function getSearchHeaderTitle(
                 .filter(([, taxRateKeys]) => taxRateKeys.some((taxID) => taxRateIDs.includes(taxID)))
                 .map(([taxRate]) => taxRate);
             displayQueryFilters = taxRateNames.map((taxRate) => ({
-                operator: queryFilter[0].operator,
+                operator: queryFilter.at(0)?.operator ?? 'and',
                 value: taxRate,
             }));
         } else {

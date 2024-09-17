@@ -298,7 +298,6 @@ Onyx.connect({
         // Iterate over the report actions to build the sorted and lastVisible report actions objects
         Object.entries(allReportActions).forEach((reportActions) => {
             const reportID = reportActions[0].split('_').at(1);
-
             if (!reportID) {
                 return;
             }
@@ -316,7 +315,6 @@ Onyx.connect({
             }
 
             const firstReportAction = sortedReportActions.at(0);
-
             if (!firstReportAction) {
                 return;
             }

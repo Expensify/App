@@ -135,7 +135,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         ];
     }, [approversFromWorkflow, isDefault, approverIndex, debouncedSearchTerm, defaultApprover, personalDetails, employeeList, selectedApproverEmail, translate]);
 
-    const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections[0].data.length;
+    const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections.at(0)?.data.length;
 
     const nextStep = useCallback(() => {
         if (selectedApproverEmail) {
@@ -197,54 +197,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     };
 
     const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
 
     const listEmptyContent = useMemo(
         () => (

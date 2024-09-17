@@ -859,18 +859,19 @@ function openReport(
     if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        // eslint-disable-next-line rulesdir/prefer-at
-        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
-        // eslint-disable-next-line rulesdir/prefer-at
-        optimisticData[0].value = {
-            ...optimisticReport,
-            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-            ...newReportObject,
-            pendingFields: {
-                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            isOptimisticReport: true,
-        };
+        const optimisticDataItem = optimisticData.at(0);
+        if (optimisticDataItem) {
+            optimisticDataItem.onyxMethod = Onyx.METHOD.SET;
+            optimisticDataItem.value = {
+                ...optimisticReport,
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                ...newReportObject,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                isOptimisticReport: true,
+            };
+        }
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {

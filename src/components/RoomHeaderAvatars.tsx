@@ -44,18 +44,10 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
         return (
             <PressableWithoutFocus
                 style={styles.noOutline}
-                onPress={() => navigateToAvatarPage(icons[0])}
+                onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
-<<<<<<< HEAD
-<<<<<<< HEAD
                 accessibilityLabel={icon.name ?? ''}
                 disabled={icon.source === Expensicons.FallbackAvatar}
-=======
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-                accessibilityLabel={icons[0].name ?? ''}
-                disabled={icons[0].source === Expensicons.FallbackAvatar}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
             >
                 <Avatar
                     source={icon.source}

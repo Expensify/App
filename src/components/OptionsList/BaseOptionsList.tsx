@@ -141,10 +141,10 @@ function BaseOptionsList(
         if (!flattenedData.current.at(flatDataArrayIndex)) {
             flattenedData.current = buildFlatSectionArray();
         }
-        const targetItem = flattenedData.current.at(flatDataArrayIndex) ?? {length: 0, offset: 0};
+        const targetItem = flattenedData.current.at(flatDataArrayIndex);
         return {
-            length: targetItem?.length,
-            offset: targetItem?.offset,
+            length: targetItem?.length ?? 0,
+            offset: targetItem?.offset ?? 0,
             index: flatDataArrayIndex,
         };
     };

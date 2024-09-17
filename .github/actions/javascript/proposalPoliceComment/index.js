@@ -18026,7 +18026,7 @@ async function run() {
     if (assistantResponse.includes(`[${CONST_1.default.NO_ACTION}]`)) {
         // extract the text after [NO_ACTION] from assistantResponse since this is a
         // bot related action keyword
-        const noActionContext = assistantResponse.split(`[${CONST_1.default.NO_ACTION}] `)?.[1]?.replace('"', '');
+        const noActionContext = assistantResponse.split(`[${CONST_1.default.NO_ACTION}] `)?.at(1)?.replace('"', '');
         console.log('[NO_ACTION] w/ context: ', noActionContext);
         return;
     }
@@ -18047,10 +18047,10 @@ async function run() {
     else if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
         // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
         // bot related action keyword
-        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
+        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ').at(1)?.replace('"', '');
         // format the date like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-        const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
-        extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
+        const formattedDate = `${date.toISOString()?.split('.').at(0)?.replace('T', ' ')} UTC`;
+        extractedNotice = extractedNotice?.replace('{updated_timestamp}', formattedDate);
         console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
         await GithubUtils_1.default.octokit.issues.updateComment({
             ...github_1.context.repo,
@@ -18253,7 +18253,11 @@ class GithubUtils {
             if (data.length > 1) {
                 throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
-            return this.getStagingDeployCashData(data[0]);
+            const issue = data.at(0);
+            if (!issue) {
+                throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+            }
+            return this.getStagingDeployCashData(issue);
         });
     }
     /**
@@ -18331,7 +18335,7 @@ class GithubUtils {
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-')[0].trim(),
+            url: match[2].split('-').at(0)?.trim() ?? '',
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
@@ -18415,7 +18419,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers) {
-        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -18489,7 +18493,7 @@ class GithubUtils {
             repo: CONST_1.default.APP_REPO,
             workflow_id: workflow,
         })
-            .then((response) => response.data.workflow_runs[0]?.id);
+            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -18557,7 +18561,7 @@ class GithubUtils {
             per_page: 1,
             name: artifactName,
         })
-            .then((response) => response.data.artifacts[0]);
+            .then((response) => response.data.artifacts.at(0));
     }
     /**
      * Given an artifact ID, returns the download URL to a zip file containing the artifact.

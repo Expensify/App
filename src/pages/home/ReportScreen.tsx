@@ -719,20 +719,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-
     const mostRecentReportAction = reportActions.at(0);
-=======
-    const mostRecentReportAction = reportActions[0];
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-    const mostRecentReportAction = reportActions[0];
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-    const mostRecentReportAction = reportActions[0];
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
     const shouldShowMostRecentReportAction =
         !!mostRecentReportAction &&
         !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&

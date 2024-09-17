@@ -3868,7 +3868,7 @@ function trackExpense(
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
-    const existingChatReportID = existingSplitChatReportID || (participants.at(0)?.reportID ?? '');
+    const existingChatReportID = existingSplitChatReportID || (participants.at(0)?.reportID ?? '-1');
 
     // Check if the report is available locally if we do have one
     let existingSplitChatReport = existingChatReportID ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`] : null;
@@ -7514,7 +7514,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     const session = SessionUtils.getSession();
 
     const personalDetailsListValues = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
-    const personalDetails = personalDetailsListValues[0] ?? {};
+    const personalDetails = personalDetailsListValues.at(0);
 
     let onboardingPurpose = introSelected.choice;
     if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.IOU.PAYMENT_SELECTED.BBA) {
@@ -7529,8 +7529,8 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose,
         CONST.ONBOARDING_MESSAGES[onboardingPurpose],
         {
-            firstName: personalDetails.firstName ?? '',
-            lastName: personalDetails.lastName ?? '',
+            firstName: personalDetails?.firstName ?? '',
+            lastName: personalDetails?.lastName ?? '',
         },
         paymentSelected,
     );

@@ -1,5 +1,5 @@
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList, CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';
@@ -55,6 +55,10 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
 
     const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name].at(0);
 
+    if (!centralPaneName) {
+        return;
+    }
+
     if (topmostBottomTabRoute.name === SCREENS.SETTINGS.ROOT) {
         // When we go back to the settings tab without switching the workspace id, we want to return to the previously opened screen
         const screen = getAlreadyOpenedSettingsScreen(rootState) ?? centralPaneName;
@@ -62,10 +66,10 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
     }
 
     if (topmostBottomTabRoute.name === SCREENS.HOME) {
-        return {name: centralPaneName ?? ({} as keyof CentralPaneScreensParamList), params: {reportID: getTopMostReportIDFromRHP(state)}};
+        return {name: centralPaneName, params: {reportID: getTopMostReportIDFromRHP(state)}};
     }
 
-    return {name: centralPaneName ?? ({} as keyof CentralPaneScreensParamList)};
+    return {name: centralPaneName};
 }
 
 export default getMatchingCentralPaneRouteForState;

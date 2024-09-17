@@ -209,18 +209,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     if (!event) {
                                         return;
                                     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                                     // Prevent composer blur on left click
                                     event.preventDefault();
                                 }}
@@ -255,23 +243,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             (optionItem.shouldShowSubscript ? (
                                                 <SubscriptAvatar
                                                     backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                                                    mainAvatar={optionItem.icons.at(0)}
+                                                    mainAvatar={optionItem.icons.at(0) ?? fallbackIcon}
                                                     secondaryAvatar={optionItem.icons.at(1)}
-=======
-                                                    mainAvatar={optionItem.icons[0]}
-                                                    secondaryAvatar={optionItem.icons[1]}
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-                                                    mainAvatar={optionItem.icons[0]}
-                                                    secondaryAvatar={optionItem.icons[1]}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-                                                    mainAvatar={optionItem.icons[0]}
-                                                    secondaryAvatar={optionItem.icons[1]}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                 />
                                             ) : (

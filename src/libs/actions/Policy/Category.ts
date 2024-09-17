@@ -1169,7 +1169,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
         newApprover = '';
     } else {
         const indexToUpdate = updatedApprovalRules.indexOf(existingCategoryApproverRule);
-        updatedApprovalRules[indexToUpdate].approver = approver;
+        const approvalRule = updatedApprovalRules.at(indexToUpdate);
+        if (approvalRule) {
+            approvalRule.approver = approver;
+        }
     }
 
     const onyxData: OnyxData = {
@@ -1253,7 +1256,11 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
         });
     } else {
         const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
-        updatedExpenseRules[indexToUpdate].tax.field_id_TAX.externalID = taxID;
+        const expenseRule = updatedExpenseRules.at(indexToUpdate);
+
+        if (expenseRule) {
+            expenseRule.tax.field_id_TAX.externalID = taxID;
+        }
     }
 
     const onyxData: OnyxData = {

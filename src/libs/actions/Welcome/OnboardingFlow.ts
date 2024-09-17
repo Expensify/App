@@ -46,7 +46,7 @@ function adaptOnboardingRouteState() {
     const rootState = navigationRef.getRootState();
     const adaptedState = rootState;
     const lastRouteIndex = (adaptedState?.routes?.length ?? 0) - 1;
-    const onBoardingModalNavigatorState = adaptedState?.routes[lastRouteIndex]?.state;
+    const onBoardingModalNavigatorState = adaptedState?.routes.at(lastRouteIndex)?.state;
     if (!onBoardingModalNavigatorState || onBoardingModalNavigatorState?.routes?.length > 1) {
         return;
     }
@@ -80,7 +80,11 @@ function adaptOnboardingRouteState() {
         } as Readonly<PartialState<NavigationState>>;
     }
 
-    adaptedState.routes[lastRouteIndex].state = adaptedOnboardingModalNavigatorState;
+    const route = adaptedState.routes.at(lastRouteIndex);
+
+    if (route) {
+        route.state = adaptedOnboardingModalNavigatorState;
+    }
     navigationRef.resetRoot(adaptedState);
 }
 

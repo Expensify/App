@@ -144,9 +144,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.')[1];
-        const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-        return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        const decimalPart = numValue.toString().split('.').at(1);
+        if (decimalPart) {
+            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        }
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);

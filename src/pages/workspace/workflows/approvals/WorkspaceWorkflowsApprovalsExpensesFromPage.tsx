@@ -194,54 +194,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         [translate, styles.textSupporting, styles.pb10],
     );
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}

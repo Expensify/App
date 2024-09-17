@@ -132,7 +132,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const cardFeeds = mockedFeeds;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
     const selectedFeed = lastSelectedFeed ?? defaultFeed;
 
     // TODO: use data form onyx instead of mocked one when API is implemented
@@ -196,7 +196,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 {isFeedAdded && (
                     <WorkspaceCompanyCardsListHeaderButtons
                         policyID={policyID}
-                        selectedFeed={selectedFeed}
+                        selectedFeed={selectedFeed ?? ''}
                     />
                 )}
                 {!isFeedAdded && <WorkspaceCompanyCardPageEmptyState route={route} />}

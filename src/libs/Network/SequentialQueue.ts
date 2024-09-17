@@ -81,7 +81,6 @@ function process(): Promise<void> {
     }
 
     const requestToProcess = persistedRequests.at(0);
-
     if (!requestToProcess) {
         return Promise.resolve();
     }

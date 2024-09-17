@@ -112,7 +112,7 @@ function FilePicker({children}: FilePickerProps) {
                 onCanceled.current();
                 return Promise.resolve();
             }
-            const fileData = files[0];
+            const fileData = files.at(0);
 
             if (!fileData) {
                 onCanceled.current();

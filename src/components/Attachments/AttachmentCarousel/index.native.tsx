@@ -73,10 +73,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             setPage(newPageIndex);
             if (item) {
                 setActiveSource(item.source);
-            }
-
-            if (onNavigate && item) {
-                onNavigate(item);
+                if (onNavigate) {
+                    onNavigate(item);
+                }
             }
         },
         [setShouldShowArrows, attachments, onNavigate],

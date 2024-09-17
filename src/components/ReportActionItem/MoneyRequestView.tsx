@@ -42,10 +42,7 @@ import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-// eslint-disable-next-line import/no-duplicates
 import type * as OnyxTypes from '@src/types/onyx';
-// eslint-disable-next-line import/no-duplicates
-import type {TransactionViolation} from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -307,9 +304,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
             // Return violations if there are any
             if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
-                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue) as TransactionViolation[];
-                // eslint-disable-next-line rulesdir/prefer-at
-                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue) as OnyxTypes.TransactionViolation[];
+                const firstViolation = violations.at(0);
+
+                if (firstViolation) {
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                }
             }
 
             return '';
@@ -647,7 +647,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
-                                    violations={getViolationsForField('billable') as TransactionViolation[]}
+                                    violations={getViolationsForField('billable') as OnyxTypes.TransactionViolation[]}
                                     containerStyle={[styles.mt1]}
                                     textStyle={[styles.ph0]}
                                     isLast

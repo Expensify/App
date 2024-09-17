@@ -403,7 +403,7 @@ function ReportActionsView({
             didLoadNewerChats.current = true;
 
             if ((reportActionID && indexOfLinkedAction > -1) || !reportActionID) {
-                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID ?? ''});
+                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID ?? '-1'});
             }
         },
         [

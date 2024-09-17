@@ -166,21 +166,11 @@ function ButtonWithDropdownMenu<IValueType>({
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem.text}
-<<<<<<< HEAD
+                    text={selectedItem?.text}
                     onPress={(event) => {
                         const option = options.at(0);
                         return option ? onPress(event, option.value) : undefined;
                     }}
-=======
-                    onPress={(event) => onPress(event, options[0].value)}
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}

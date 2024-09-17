@@ -74,19 +74,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             listItem={RadioListItem}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
-=======
-            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}

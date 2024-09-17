@@ -715,10 +715,12 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return updatedReportAction;
     }
 
-    // eslint-disable-next-line rulesdir/prefer-at
-    if (Array.isArray(updatedReportAction.message) && updatedReportAction.message[0]) {
-        // eslint-disable-next-line rulesdir/prefer-at
-        updatedReportAction.message[0].html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
+    if (Array.isArray(updatedReportAction.message)) {
+        const message = updatedReportAction.message.at(0);
+
+        if (message) {
+            message.html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
+        }
     }
 
     return updatedReportAction;
@@ -835,7 +837,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
         return '';
     }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
-    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2)?.reportActionID ?? '' : '';
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2)?.reportActionID ?? '-1' : '';
 }
 
 /**

@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';

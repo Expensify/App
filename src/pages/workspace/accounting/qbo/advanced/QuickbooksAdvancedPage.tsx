@@ -152,19 +152,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
                     CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id,
-=======
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
+                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions]?.at(0)?.id,
                     qboConfig?.collectionAccountID,
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,

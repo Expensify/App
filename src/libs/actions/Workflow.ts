@@ -122,17 +122,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousDefaultApprover = policy.approver ?? policy.owner;
-<<<<<<< HEAD
     const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers.at(0)?.email : undefined;
-=======
-    const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers[0].email : undefined;
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 0c618acc8b5a0b77eb27dfa049a18e3135c51c52
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
-=======
->>>>>>> 4a9725c73b9338a3901a9dfdf13d14916f33f4aa
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
         previousEmployeeList,

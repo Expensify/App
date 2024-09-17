@@ -100,11 +100,11 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
 
     if (CONST.REGEX.DISTANCE_MERCHANT.test(newMerchant) && CONST.REGEX.DISTANCE_MERCHANT.test(oldMerchant)) {
         const oldValues = oldMerchant.split('@');
-        const oldDistance = oldValues[0]?.trim() || '';
-        const oldRate = oldValues[1]?.trim() || '';
+        const oldDistance = oldValues.at(0)?.trim() ?? '';
+        const oldRate = oldValues.at(1)?.trim() ?? '';
         const newValues = newMerchant.split('@');
-        const newDistance = newValues[0]?.trim() || '';
-        const newRate = newValues[1]?.trim() || '';
+        const newDistance = newValues.at(0)?.trim() ?? '';
+        const newRate = newValues.at(1)?.trim() ?? '';
 
         if (oldDistance === newDistance && oldRate !== newRate) {
             changedField = 'rate';

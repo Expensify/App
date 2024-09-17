@@ -451,7 +451,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 ...tag,
                                 name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                 pendingFields: {
                                     ...tag.pendingFields,
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,

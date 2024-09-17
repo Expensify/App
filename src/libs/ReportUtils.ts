@@ -4244,10 +4244,11 @@ function buildOptimisticTaskCommentReportAction(
     createdOffset = 0,
 ): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
-    // eslint-disable-next-line rulesdir/prefer-at
-    if (Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message[0]) {
-        // eslint-disable-next-line rulesdir/prefer-at
-        reportAction.reportAction.message[0].taskReportID = taskReportID;
+    if (Array.isArray(reportAction.reportAction.message)) {
+        const message = reportAction.reportAction.message.at(0);
+        if (message) {
+            message.taskReportID = taskReportID;
+        }
     } else if (!Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message) {
         reportAction.reportAction.message.taskReportID = taskReportID;
     }
