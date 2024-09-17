@@ -56,16 +56,26 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [betas] = useOnyx(ONYXKEYS.BETAS);
         const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false});
+        const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`, {
+            selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>): NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null => {
+                const parentReportActionID = props?.report?.parentReportActionID;
+                if (!parentReportActionID) {
+                    return null;
+                }
+                return parentReportActions?.[parentReportActionID] ?? null;
+            },
+            canEvict: false,
+        });
         const getReportAction = useCallback(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {
-                reportAction = props?.parentReportAction ?? undefined;
+                reportAction = parentReportAction ?? undefined;
             }
 
             return reportAction;
-        }, [reportActions, props.route.params.reportActionID, props.parentReportAction]);
+        }, [reportActions, props.route.params.reportActionID, parentReportAction]);
 
         const reportAction = getReportAction();
 
@@ -94,7 +104,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // Perform the access/not found checks
         // Be sure to avoid showing the not-found page while the parent report actions are still being read from Onyx. The parentReportAction will be undefined while it's being read from Onyx
         // and then reportAction will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
-        if (shouldHideReport || (props?.parentReportAction !== undefined && isEmptyObject(reportAction))) {
+        if (shouldHideReport || (parentReportAction !== undefined && isEmptyObject(reportAction))) {
             return <NotFoundPage />;
         }
 
