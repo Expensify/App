@@ -43,12 +43,12 @@ function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
                     fontSize={variables.fontSizeLabel}
                     onPress={() => {
                         const loginName = loginNames?.at(0);
-                        const login = loginList?.[loginName] ?? {};
+                        const login = loginList?.[loginName ?? ''] ?? {};
                         if (!login?.validatedDate && !login?.validateCodeSent) {
-                            User.requestContactMethodValidateCode(loginName);
+                            User.requestContactMethodValidateCode(loginName ?? '');
                         }
 
-                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0], backTo));
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.at(0) ?? '', backTo));
                     }}
                 >
                     {translate('bankAccount.validateAccountError.phrase4')}
