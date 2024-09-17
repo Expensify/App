@@ -81,9 +81,6 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
-    const isViewAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.VIEW;
-    const canModifyReceipt = isViewAction && transactionItem.canDelete;
-
     const filename = getFileName(transactionItem?.receipt?.source ?? '');
     const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
     const isReceiptPDF = Str.isPDF(filename);
@@ -104,7 +101,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={canModifyReceipt ? Expensicons.ReceiptPlus : Expensicons.ReceiptSlash}
+                fallbackIcon={Expensicons.Receipt}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
