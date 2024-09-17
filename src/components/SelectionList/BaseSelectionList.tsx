@@ -83,6 +83,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         isAlternateTextMultilineSupported = false,
+        alternateTextNumberOfLines = 2,
         textInputRef,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
@@ -467,6 +468,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
                     isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
+                    alternateTextNumberOfLines={alternateTextNumberOfLines}
                     onFocus={() => {
                         if (isDisabled) {
                             return;

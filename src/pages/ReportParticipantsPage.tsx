@@ -17,6 +17,7 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -25,6 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -34,7 +36,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import SearchInputManager from './workspace/SearchInputManager';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
@@ -47,6 +48,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const {selectionMode} = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -57,14 +59,18 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     useEffect(
         () => () => {
-            SearchInputManager.searchInput = '';
+            UserSearchPhraseActions.clearUserSearchPhrase();
         },
         [],
     );
+
+    useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
     useEffect(() => {
         if (isFocused) {
@@ -96,12 +102,12 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return;
         }
         if (shouldShowTextInput) {
-            setSearchValue(SearchInputManager.searchInput);
+            setSearchValue(userSearchPhrase ?? '');
         } else {
-            SearchInputManager.searchInput = '';
+            UserSearchPhraseActions.clearUserSearchPhrase();
             setSearchValue('');
         }
-    }, [isFocused, shouldShowTextInput]);
+    }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     const getParticipants = () => {
         let result: MemberOption[] = [];
@@ -186,7 +192,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
      * Open the modal to invite a user
      */
     const inviteUser = useCallback(() => {
-        setSearchValue('');
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID));
     }, [report]);
 
@@ -199,7 +204,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
-        SearchInputManager.searchInput = '';
+        UserSearchPhraseActions.clearUserSearchPhrase();
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -250,8 +255,8 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return header;
         }
 
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, isGroupChat ? styles.mt3 : styles.mt0]}>{header}</View>;
-    }, [styles, translate, isGroupChat, StyleUtils, canSelectMultiple]);
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, shouldShowTextInput ? styles.mt3 : styles.mt0]}>{header}</View>;
+    }, [styles, translate, isGroupChat, shouldShowTextInput, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
@@ -309,7 +314,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
@@ -349,7 +353,11 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
-    const headerMessage = searchValue.trim() && !participants.length ? translate('roomMembersPage.memberNotFound') : '';
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const memberNotFoundMessage = isGroupChat
+        ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
+        : translate('roomMembersPage.memberNotFound');
+    const headerMessage = searchValue.trim() && !participants.length ? memberNotFoundMessage : '';
 
     return (
         <ScreenWrapper
@@ -404,7 +412,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchValue}
                         onChangeText={(value) => {
-                            SearchInputManager.searchInput = value;
                             setSearchValue(value);
                         }}
                         headerMessage={headerMessage}

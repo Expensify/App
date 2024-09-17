@@ -299,7 +299,7 @@ function AmountForm(
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
-                {!errorText && (
+                {!!errorText && (
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
