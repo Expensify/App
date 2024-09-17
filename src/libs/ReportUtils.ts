@@ -16,7 +16,6 @@ import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicon
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import * as SearchActions from '@libs/actions/Search';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
@@ -59,6 +58,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
+import * as SearchActions from './actions/Search';
 import * as SessionUtils from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -3135,7 +3135,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string, currentSearchHash?: number, selectedTransactions?: string[]): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string, currentSearchHash?: number): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }

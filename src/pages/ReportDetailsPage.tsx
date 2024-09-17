@@ -29,8 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -575,7 +574,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID, isDelegateAccessRestricted]);
+    }, [
+        report,
+        moneyRequestAction,
+        canJoin,
+        isExpenseReport,
+        shouldShowHoldAction,
+        canHoldUnholdReportAction.canHoldRequest,
+        transactionThreadReportID,
+        isDelegateAccessRestricted,
+        currentSearchHash,
+    ]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
