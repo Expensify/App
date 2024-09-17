@@ -462,15 +462,14 @@ function AddressSearch(
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
-                            predefinedPlaces?.length === 0 &&
-                            shouldShowCurrentLocationButton && (
+                            predefinedPlaces?.length === 0 && shouldShowCurrentLocationButton ? (
                                 <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={isOffline}
                                     />
                                 </View>
-                            )
+                            ) : undefined
                         }
                         placeholder=""
                         listViewDisplayed
