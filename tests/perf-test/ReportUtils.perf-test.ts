@@ -169,13 +169,6 @@ describe('ReportUtils', () => {
         await measureFunction(() => ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipants));
     });
 
-    test('[ReportUtils] getWorkspaceAvatar on 1k policies', async () => {
-        const report = createRandomReport(1);
-
-        await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.getWorkspaceAvatar(report));
-    });
-
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
         const policyID = '1';
         const accountsID = Array.from({length: 20}, (v, i) => i + 1);

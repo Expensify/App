@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -16,19 +15,15 @@ import ExampleCheckImage from '@pages/ReimbursementAccount/ExampleCheck';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
 
-type ManualOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-};
-
-type ManualProps = ManualOnyxProps & SubStepProps;
+type ManualProps = SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [BANK_INFO_STEP_KEYS.ROUTING_NUMBER, BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER];
 
-function Manual({reimbursementAccount, onNext}: ManualProps) {
+function Manual({onNext}: ManualProps) {
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -61,7 +56,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
         [translate],
     );
 
-    const shouldDisableInputs = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -89,9 +84,8 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
-                disabled={shouldDisableInputs}
                 shouldSaveDraft
-                shouldUseDefaultValue={shouldDisableInputs}
+                shouldUseDefaultValue={hasBankAccountData}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -102,9 +96,8 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
-                disabled={shouldDisableInputs}
                 shouldSaveDraft
-                shouldUseDefaultValue={shouldDisableInputs}
+                shouldUseDefaultValue={hasBankAccountData}
             />
         </FormProvider>
     );
@@ -112,9 +105,4 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
 
 Manual.displayName = 'Manual';
 
-export default withOnyx<ManualProps, ManualOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(Manual);
+export default Manual;
