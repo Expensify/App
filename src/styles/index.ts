@@ -2060,6 +2060,11 @@ const styles = (theme: ThemeColors) =>
             paddingTop: 2,
         },
 
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
+        },
+
         chatItemMessage: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
