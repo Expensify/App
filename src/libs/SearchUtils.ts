@@ -534,12 +534,12 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
     const filtersString: string[] = [];
 
     if (type) {
-        const sanitizedType = sanitizeString(type as string);
+        const sanitizedType = sanitizeString(type);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
     if (status) {
-        const sanitizedStatus = sanitizeString(status as string);
+        const sanitizedStatus = sanitizeString(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
@@ -579,7 +579,7 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
 
             return undefined;
         })
-        .filter((filter): filter is string => Boolean(filter));
+        .filter((filter): filter is string => !!filter);
 
     filtersString.push(...mappedFilters);
 
