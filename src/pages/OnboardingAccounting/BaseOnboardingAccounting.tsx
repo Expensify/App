@@ -139,7 +139,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     onBackButtonPress={OnboardingFlow.goBack}
                 />
                 <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                         <Text style={[styles.textHeadlineH1]}>{translate('onboarding.accounting.title')}</Text>
                     </View>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
