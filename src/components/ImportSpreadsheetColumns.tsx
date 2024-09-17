@@ -36,14 +36,11 @@ type ImportSpreadsheetColumnsProps = {
     // An optional boolean indicating whether the import button is in a loading state.
     isButtonLoading?: boolean;
 
-    // A string representing the header text to be rendered.
-    headerText: string;
-
     // Link to learn more about the file preparation for import.
     learnMoreLink?: string;
 };
 
-function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, headerText, learnMoreLink}: ImportSpreadsheetColumnsProps) {
+function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -55,7 +52,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
             <ScrollView>
                 <View style={styles.mh5}>
                     <Text>
-                        {headerText}
+                        {translate('spreadsheet.importDescription')}
                         <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
                     </Text>
 
