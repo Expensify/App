@@ -4650,6 +4650,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        singleIconListItemStyle: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },

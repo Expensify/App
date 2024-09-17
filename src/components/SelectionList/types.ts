@@ -1,5 +1,6 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -13,6 +14,7 @@ import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
+import type SingleIconListItem from './Search/SingleIconListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -30,7 +32,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     isDisabled?: boolean | null;
 
     /** Whether this item should show Tooltip */
-    showTooltip: boolean;
+    showTooltip?: boolean;
 
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple?: boolean;
@@ -305,7 +307,9 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof ReportListItem
-    | typeof ChatListItem;
+    | typeof ChatListItem
+    | typeof SingleIconListItem
+    | typeof SearchRouterItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
