@@ -60,7 +60,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
-            hoverAndPressStyle: [styles.purposeMenuItemSelected],
             numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
