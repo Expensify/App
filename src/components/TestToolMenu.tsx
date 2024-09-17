@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -17,18 +17,21 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-type TestToolMenuOnyxProps = {
-    /** User object in Onyx */
-    user: OnyxEntry<UserOnyx>;
-};
-
-type TestToolMenuProps = TestToolMenuOnyxProps & {
+type TestToolMenuProps = {
     /** Network object in Onyx */
     network: OnyxEntry<NetworkOnyx>;
 };
-const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
+const USER_DEFAULT: UserOnyx = {
+    shouldUseStagingServer: undefined,
+    isSubscribedToNewsletter: false,
+    validated: false,
+    isFromPublicDomain: false,
+    isUsingExpensifyCard: false,
+    isDebugModeEnabled: false,
+};
 
-function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
+function TestToolMenu({network}: TestToolMenuProps) {
+    const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const isDebugModeEnabled = !!user?.isDebugModeEnabled;
     const styles = useThemeStyles();
@@ -107,10 +110,4 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default withNetwork()(
-    withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    })(TestToolMenu),
-);
+export default withNetwork()(TestToolMenu);
