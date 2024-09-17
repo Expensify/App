@@ -232,7 +232,6 @@ function PaymentMethodList({
                         key: card.cardID.toString(),
                         title: card.bank,
                         description: getDescriptionForPolicyDomainCard(card.domainName),
-                        cardID: card.cardID,
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,
