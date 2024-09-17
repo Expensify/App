@@ -542,9 +542,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
-
-    /** Whether to show RBR in list item */
-    shouldDisplayRBR?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
