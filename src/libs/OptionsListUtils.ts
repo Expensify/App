@@ -1831,7 +1831,7 @@ function getOptions(
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
         const report = option.item;
-        if (option?.private_isArchived) {
+        if (option.private_isArchived) {
             return CONST.DATE.UNIX_EPOCH;
         }
 
