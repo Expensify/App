@@ -1586,7 +1586,7 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
                 }
-                if (!!option.isChatRoom || option?.private_isArchived) {
+                if (!!option.isChatRoom || option.private_isArchived) {
                     return 3;
                 }
                 if (!option.login) {
