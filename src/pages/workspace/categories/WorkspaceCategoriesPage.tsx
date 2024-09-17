@@ -328,7 +328,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline]);
+    }, [policyId, translate, isOffline, hasVisibleCategories]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
