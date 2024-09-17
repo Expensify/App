@@ -494,10 +494,11 @@ function AttachmentModal({
                     setShouldLoadAttachment(true);
                 }}
                 onModalHide={() => {
-                    onModalHide();
+                    if (!isPDFLoadError.current) {
+                        onModalHide();
+                    }
                     setShouldLoadAttachment(false);
                     if (isPDFLoadError.current) {
-                        isPDFLoadError.current = false;
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
                         setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
@@ -621,6 +622,13 @@ function AttachmentModal({
                     prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
+                    onModalHide={() => {
+                        if (!isPDFLoadError.current) {
+                            return;
+                        }
+                        isPDFLoadError.current = false;
+                        onModalHide?.();
+                    }}
                 />
             )}
 
