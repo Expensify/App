@@ -3,6 +3,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -10,6 +11,12 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
+
+type WithFullTransactionOrNotFoundOnyxProps = {
+    /** Indicates whether the report data is loading */
+    transaction: OnyxEntry<Transaction>;
+};
 
 type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.CREATE
@@ -33,13 +40,16 @@ type MoneyRequestRouteName =
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
-type WithFullTransactionOrNotFoundProps<T extends MoneyRequestRouteName> = {route: Route<T>};
+type WithFullTransactionOrNotFoundProps<T extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {
+    route: Route<T>;
+};
 
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithFullTransactionOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const transactionID = props.route.params.transactionID ?? -1;
-        const userAction = 'action' in props.route.params && props.route.params.action ? props.route.params.action : CONST.IOU.ACTION.CREATE;
+    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+        const {route} = props;
+        const transactionID = route.params.transactionID ?? -1;
+        const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
         const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);
 
@@ -58,8 +68,9 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 transaction={shouldUseTransactionDraft ? transactionDraft : transaction}
+                route={props.route}
                 ref={ref}
             />
         );
