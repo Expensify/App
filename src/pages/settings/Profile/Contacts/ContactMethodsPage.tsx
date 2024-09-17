@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -80,7 +81,12 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo))}
+                    onPress={() => {
+                        if (!login?.validatedDate && !login?.validateCodeSent) {
+                            User.requestContactMethodValidateCode(loginName);
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo));
+                    }}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon

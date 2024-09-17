@@ -24,11 +24,24 @@ type OpacityViewProps = {
      */
     dimmingValue?: number;
 
+    /**
+     * The duration of the dimming animation
+     * @default variables.dimAnimationDuration
+     */
+    dimAnimationDuration?: number;
+
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
 };
 
-function OpacityView({shouldDim, children, style = [], dimmingValue = variables.hoverDimValue, needsOffscreenAlphaCompositing = false}: OpacityViewProps) {
+function OpacityView({
+    shouldDim,
+    dimAnimationDuration = variables.dimAnimationDuration,
+    children,
+    style = [],
+    dimmingValue = variables.hoverDimValue,
+    needsOffscreenAlphaCompositing = false,
+}: OpacityViewProps) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -37,11 +50,11 @@ function OpacityView({shouldDim, children, style = [], dimmingValue = variables.
     React.useEffect(() => {
         if (shouldDim) {
             // eslint-disable-next-line react-compiler/react-compiler
-            opacity.value = withTiming(dimmingValue, {duration: 50});
+            opacity.value = withTiming(dimmingValue, {duration: dimAnimationDuration});
         } else {
-            opacity.value = withTiming(1, {duration: 50});
+            opacity.value = withTiming(1, {duration: dimAnimationDuration});
         }
-    }, [shouldDim, dimmingValue, opacity]);
+    }, [shouldDim, dimmingValue, opacity, dimAnimationDuration]);
 
     return (
         <Animated.View
