@@ -5,9 +5,11 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -17,6 +19,7 @@ import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDeta
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
+import Navigation from './Navigation/Navigation';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -53,6 +56,13 @@ const operatorToSignMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
+};
+
+const emptyPersonalDetails = {
+    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+    avatar: '',
+    displayName: undefined,
+    login: undefined,
 };
 
 /**
@@ -174,7 +184,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         .map((key) => {
             const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = data.personalDetailsList?.[transactionItem.managerID];
+            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -222,7 +232,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 }
 
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
-    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID ?? 0];
+    const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
@@ -259,7 +269,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? -1],
-                to: data.personalDetailsList?.[reportItem.managerID ?? -1],
+                to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
@@ -268,7 +278,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = data.personalDetailsList?.[transactionItem.managerID];
+            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -450,7 +460,7 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    const regexp = /[<>,:= ]/g;
+    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
     if (regexp.test(str)) {
         return `"${str}"`;
     }
@@ -696,7 +706,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 
 function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        return PersonalDetailsUtils.createDisplayName(personalDetails[filter]?.login ?? '', personalDetails[filter]);
+        return PersonalDetailsUtils.createDisplayName(personalDetails?.[filter]?.login ?? '', personalDetails?.[filter]);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         return cardList[filter].bank;
@@ -761,6 +771,33 @@ function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.
     return normalizeQuery(`type:${type} status:${status}`);
 }
 
+function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
+    return [
+        {
+            text: translateLocal('common.rename'),
+            onSelected: () => {
+                if (isMobileMenu && closeMenu) {
+                    closeMenu();
+                }
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery}));
+            },
+            icon: Expensicons.Pencil,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+            shouldCallAfterModalHide: true,
+        },
+        {
+            text: translateLocal('common.delete'),
+            onSelected: () => showDeleteModal(hash),
+            icon: Expensicons.Trashcan,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+            shouldCallAfterModalHide: true,
+            shouldCloseAllModals: true,
+        },
+    ];
+}
+
 /**
  * Returns whether a given search query is a Canned query.
  *
@@ -769,6 +806,10 @@ function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
+}
+
+function isCorrectSearchUserName(displayName?: string) {
+    return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
 export {
@@ -792,4 +833,6 @@ export {
     buildCannedSearchQuery,
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getOverflowMenu,
+    isCorrectSearchUserName,
 };
