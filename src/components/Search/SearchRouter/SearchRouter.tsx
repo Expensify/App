@@ -46,10 +46,10 @@ function SearchRouter() {
     }, SEARCH_DEBOUNCE_DELAY);
 
     const onSearchSubmit = useCallback(() => {
+        closeSearchRouter();
+
         const query = SearchUtils.buildSearchQueryString(currentQuery);
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-
-        closeSearchRouter();
         clearUserQuery();
     }, [currentQuery, closeSearchRouter]);
 
