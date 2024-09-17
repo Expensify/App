@@ -1,3 +1,4 @@
+import lodashCloneDeep from 'lodash/cloneDeep';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -24,7 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type NewCustomUnit = {
@@ -410,10 +411,31 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 }
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    const policy = PolicyUtils.getPolicy(policyID);
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
     const tag = tagList.tags?.[policyTag.oldName];
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
+
+    const policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
+
+    // Its related by name, so the corresponding rule has to be updated to handle offline scenario
+    if (policyTagRule) {
+        const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyTagRule.id);
+        policyTagRule.applyWhen = policyTagRule.applyWhen.map((ruleCondition) => {
+            const {value, field, condition} = ruleCondition;
+
+            if (value === policyTag.oldName && field === CONST.POLICY.FIELDS.TAG && condition === CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+                return {...ruleCondition, value: policyTag.newName};
+            }
+
+            return ruleCondition;
+        });
+        updatedApprovalRules[indexToUpdate] = policyTagRule;
+    }
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -435,6 +457,15 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 errors: null,
                             },
                         },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: updatedApprovalRules,
                     },
                 },
             },
@@ -896,11 +927,6 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                     rules: {
                         approvalRules: updatedApprovalRules,
                     },
-                    pendingRulesUpdates: {
-                        [tagRuleUpdateKey]: {
-                            approvalRule: null,
-                        },
-                    },
                 },
             },
         ],
@@ -911,11 +937,6 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                 value: {
                     rules: {
                         approvalRules: prevApprovalRules,
-                    },
-                    pendingRulesUpdates: {
-                        [tagRuleUpdateKey]: {
-                            approvalRule: null,
-                        },
                     },
                 },
             },
