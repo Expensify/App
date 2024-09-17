@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,10 +9,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
-import {importPolicyCategories} from '@libs/actions/Policy/Category';
+import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,15 +21,17 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ImportedCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
-function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
+type ImportedTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
+
+function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [isImportingCategories, setIsImportingCategories] = useState(false);
+    const [isImportingTags, setIsImportingTags] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -41,7 +44,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         );
 
         if (isControlPolicy(policy)) {
-            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
+            roles.push({text: translate('workspace.tags.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
         return roles;
@@ -64,17 +67,16 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             });
         } else {
             const duplicate = findDuplicate(columns);
-            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
-            if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            if (duplicate) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    }, [requiredColumns, spreadsheet?.columns, translate]);
 
-    const importCategories = useCallback(() => {
+    const importTags = useCallback(() => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -82,28 +84,29 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         }
 
         const columns = Object.values(spreadsheet?.columns ?? {});
-        const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
-        const categoriesGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
-        const categoriesEnabledColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ENABLED);
-        const categoriesNames = spreadsheet?.data[categoriesNamesColumn].map((name) => name);
-        const categoriesEnabled = categoriesEnabledColumn !== -1 ? spreadsheet?.data[categoriesEnabledColumn].map((enabled) => enabled) : [];
-        const categoriesGLCode = categoriesGLCodeColumn !== -1 ? spreadsheet?.data[categoriesGLCodeColumn].map((glCode) => glCode) : [];
-        const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
-            const categoryAlreadyExists = policyCategories?.[name];
-            const existingGLCodeOrDefault = categoryAlreadyExists?.['GL Code'] ?? '';
+        const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+        const tagsGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
+        const tagsEnabledColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ENABLED);
+        const tagsNames = spreadsheet?.data[tagsNamesColumn].map((name) => name);
+        const tagsEnabled = tagsEnabledColumn !== -1 ? spreadsheet?.data[tagsEnabledColumn].map((enabled) => enabled) : [];
+        const tagsGLCode = tagsGLCodeColumn !== -1 ? spreadsheet?.data[tagsGLCodeColumn].map((glCode) => glCode) : [];
+        const tags = tagsNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
+            // Right now we support only single-level tags, this check should be updated when we add multi-level support
+            const tagAlreadyExists = policyTagLists[0]?.tags?.[name];
+            const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {
                 name,
-                enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
+                'GL Code': tagsGLCodeColumn !== -1 ? tagsGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
             };
         });
 
-        if (categories) {
-            setIsImportingCategories(true);
-            importPolicyCategories(policyID, categories);
+        if (tags) {
+            setIsImportingTags(true);
+            importPolicyTags(policyID, tags);
         }
-    }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
+    }, [validate, spreadsheet, containsHeader, policyTagLists, policyID]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
@@ -111,28 +114,28 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     }
 
     const closeImportPageAndModal = () => {
-        setIsImportingCategories(false);
+        setIsImportingTags(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     };
 
     return (
         <ScreenWrapper
-            testID={ImportedCategoriesPage.displayName}
+            testID={ImportedTagsPage.displayName}
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
-                title={translate('workspace.categories.importCategories')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))}
+                title={translate('workspace.tags.importTags')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
                 columnNames={columnNames}
-                importFunction={importCategories}
+                importFunction={importTags}
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
-                isButtonLoading={isImportingCategories}
-                learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
+                isButtonLoading={isImportingTags}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
             />
 
             <ConfirmModal
@@ -148,6 +151,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     );
 }
 
-ImportedCategoriesPage.displayName = 'ImportedCategoriesPage';
+ImportedTagsPage.displayName = 'ImportedTagsPage';
 
-export default ImportedCategoriesPage;
+export default ImportedTagsPage;
