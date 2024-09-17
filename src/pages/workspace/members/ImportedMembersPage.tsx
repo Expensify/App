@@ -40,7 +40,7 @@ function findDuplicate(array: string[]): string | null {
             if (frequencyCounter[item]) {
                 return item;
             }
-            frequencyCounter[item] = (frequencyCounter[item] || 0) + 1;
+            frequencyCounter[item] = 1;
         }
     }
 
@@ -64,6 +64,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
+    // checks if all required columns are mapped and no column is mapped more than once
+    // returns found errors or empty object if both conditions are met
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Record<string, string | null> = {};
