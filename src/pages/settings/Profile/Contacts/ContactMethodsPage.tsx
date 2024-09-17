@@ -74,10 +74,10 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
         const NavigateToContactMethodDetails = () => {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo));
-            if (!login?.validatedDate) {
+            if (!login?.validatedDate && !login?.validateCodeSent) {
                 User.requestContactMethodValidateCode(loginName);
             }
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo));
         };
 
         return (

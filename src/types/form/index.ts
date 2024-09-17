@@ -82,3 +82,6 @@ export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
 export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDescriptionHintForm';
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
+export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
+export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
+export type {PersonalDetailsForm} from './PersonalDetailsForm';
