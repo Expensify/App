@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyMembers} from '@libs/actions/Policy/Member';
+import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -17,35 +18,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ImportedMembersPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
-
-function numberToColumn(index: number) {
-    let column = '';
-    let number = index;
-    while (number >= 0) {
-        column = String.fromCharCode((number % 26) + 65) + column;
-        number = Math.floor(number / 26) - 1;
-    }
-    return column;
-}
-
-function generateColumnNames(length: number) {
-    return Array.from({length}, (_, i) => numberToColumn(i));
-}
-
-function findDuplicate(array: string[]): string | null {
-    const frequencyCounter: Record<string, number> = {};
-
-    for (const item of array) {
-        if (item !== CONST.CSV_IMPORT_COLUMNS.IGNORE) {
-            if (frequencyCounter[item]) {
-                return item;
-            }
-            frequencyCounter[item] = 1;
-        }
-    }
-
-    return null;
-}
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
