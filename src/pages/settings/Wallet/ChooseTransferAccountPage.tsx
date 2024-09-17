@@ -52,7 +52,6 @@ function ChooseTransferAccountPage() {
     };
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const selectedAccountID = walletTransfer?.selectedAccountID;
     const data = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount) => {
             const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
@@ -62,7 +61,7 @@ function ChooseTransferAccountPage() {
             return {
                 value: bankAccountID,
                 text: bankAccount.title,
-                leftElement: icon && (
+                leftElement: icon ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
                         <Icon
                             src={icon}
@@ -71,7 +70,7 @@ function ChooseTransferAccountPage() {
                             additionalStyles={iconStyles}
                         />
                     </View>
-                ),
+                ) : null,
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
                 keyForList: bankAccountID?.toString(),
                 isSelected: bankAccountID?.toString() === walletTransfer?.selectedAccountID,
@@ -79,7 +78,7 @@ function ChooseTransferAccountPage() {
             };
         });
         return options;
-    }, [bankAccountsList, selectedAccountID, styles, translate]);
+    }, [bankAccountsList, walletTransfer?.selectedAccountID, styles, translate]);
 
     if (isLoadingOnyxValue(walletTransferResult)) {
         return <FullscreenLoadingIndicator />;
