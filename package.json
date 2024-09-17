@@ -154,7 +154,7 @@
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "2.0.68",
     "react-native-pager-view": "6.4.1",
-    "react-native-pdf": "6.7.5",
+    "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
     "react-native-permissions": "^3.10.0",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#da50d2c5c54e268499047f9cc98b8df4196c1ddf",
