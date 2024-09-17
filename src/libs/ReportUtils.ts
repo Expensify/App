@@ -1536,7 +1536,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  */
 function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportAction = (!report?.parentReportID || !report.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
@@ -1549,7 +1549,7 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportAction = (!report?.parentReportID || !report.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isIOUReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
@@ -1562,7 +1562,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportAction = (!report?.parentReportID || !report.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && ReportActionsUtils.isTrackExpenseAction(parentReportAction);
     }
     return false;
@@ -2211,7 +2211,7 @@ function getIcons(
         return [fallbackIcon];
     }
     if (isExpenseRequest(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportAction = (!report?.parentReportID || !report.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
             source: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
@@ -2224,7 +2224,7 @@ function getIcons(
         return [memberIcon, workspaceIcon];
     }
     if (isChatThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportAction = (!report?.parentReportID || !report.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
         const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
@@ -3105,7 +3105,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const transactionID = moneyRequestReport ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(moneyRequestReport);
+    const parentReportAction = (!moneyRequestReport?.parentReportID || !moneyRequestReport.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`]?.[moneyRequestReport.parentReportActionID];
 
     const isRequestIOU = isIOUReport(moneyRequestReport);
     const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID ?? '-1');
@@ -3712,7 +3712,7 @@ function getReportName(
     }
 
     let formattedName: string | undefined;
-    const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = parentReportActionParam ?? (!report?.parentReportID || !report.parentReportActionID) ?? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
@@ -4248,7 +4248,7 @@ function buildOptimisticTaskCommentReportAction(
 
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
-    reportAction.reportAction.originalMessage = {
+    reportAction.reportAction.message = Message{
         html: ReportActionsUtils.getReportActionHtml(reportAction.reportAction),
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
         whisperedTo: [],
@@ -5989,7 +5989,7 @@ function shouldReportBeInOptionList({
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
     // Optionally exclude reports that do not belong to currently active workspace
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = (!report?.parentReportID || !report.parentReportActionID) ? {} : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
     if (
         !report?.reportID ||
