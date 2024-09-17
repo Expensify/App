@@ -14,7 +14,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -23,7 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, WalletTransfer} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
-import PaymentMethodList from './PaymentMethodList';
 
 type ChooseTransferAccountPageOnyxProps = {
     /** Wallet transfer propTypes */
@@ -60,7 +58,7 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const data = useMemo(() => {
-        const options = Object.values(bankAccountsList || {}).map((bankAccount) => {
+        const options = Object.values(bankAccountsList ?? {}).map((bankAccount) => {
             const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
             const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
@@ -81,7 +79,7 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
                 keyForList: bankAccountID?.toString(),
                 isSelected: bankAccountID?.toString() === walletTransfer?.selectedAccountID,
-                bankAccount: bankAccount,
+                bankAccount,
             };
         });
         return options;
