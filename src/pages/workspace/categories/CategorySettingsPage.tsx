@@ -260,19 +260,15 @@ function CategorySettingsPage({
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <OfflineWithFeedback
-                                        pendingAction={policy?.pendingRulesUpdates?.[PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.CATEGORY)]?.approvalRule}
-                                    >
-                                        <MenuItemWithTopDescription
-                                            title={approverText}
-                                            description={translate('workspace.rules.categoryRules.approver')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                            disabled={approverDisabled}
-                                        />
-                                    </OfflineWithFeedback>
+                                    <MenuItemWithTopDescription
+                                        title={approverText}
+                                        description={translate('workspace.rules.categoryRules.approver')}
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                        }}
+                                        shouldShowRightIcon
+                                        disabled={approverDisabled}
+                                    />
                                     {approverDisabled && (
                                         <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
                                             <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
@@ -286,18 +282,14 @@ function CategorySettingsPage({
                                         </Text>
                                     )}
                                     {policy?.tax?.trackingEnabled && (
-                                        <OfflineWithFeedback
-                                            pendingAction={policy?.pendingRulesUpdates?.[PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.TAX)]?.expenseRule}
-                                        >
-                                            <MenuItemWithTopDescription
-                                                title={defaultTaxRateText}
-                                                description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
-                                                }}
-                                                shouldShowRightIcon
-                                            />
-                                        </OfflineWithFeedback>
+                                        <MenuItemWithTopDescription
+                                            title={defaultTaxRateText}
+                                            description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                            }}
+                                            shouldShowRightIcon
+                                        />
                                     )}
 
                                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>

@@ -995,15 +995,6 @@ function getTagApproverRule(policyID: string, tagName: string) {
     return approverRule;
 }
 
-type PolicyFieldUpdateKeyField = ValueOf<typeof CONST.POLICY.FIELDS>;
-
-/**
- * Get a key for a pending rule field update - we want to differentiate specific field updates to gray out only desired sections
- */
-function getKeyForPendingRuleUpdate(fieldValue: string, fieldName: PolicyFieldUpdateKeyField) {
-    return `${fieldName}_${fieldValue}`;
-}
-
 function getDomainNameForPolicy(policyID?: string): string {
     if (!policyID) {
         return '';
@@ -1126,7 +1117,6 @@ export {
     getTagApproverRule,
     getDomainNameForPolicy,
     getWorkflowApprovalsUnavailable,
-    getKeyForPendingRuleUpdate,
 };
 
 export type {MemberEmailsToAccountIDs};

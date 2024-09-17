@@ -1191,7 +1191,6 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const approvalRules = policy?.rules?.approvalRules ?? [];
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
     const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
-    const categoryRuleUpdateKey = PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.CATEGORY);
 
     let newApprover = approver;
 
@@ -1223,27 +1222,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                     rules: {
                         approvalRules: updatedApprovalRules,
                     },
-                    pendingRulesUpdates: {
-                        [categoryRuleUpdateKey]: {
-                            approvalRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
                 },
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    pendingRulesUpdates: {
-                        [categoryRuleUpdateKey]: {
-                            approvalRule: null,
-                        },
-                    },
-                },
-            },
-        ],
+
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1251,11 +1233,6 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 value: {
                     rules: {
                         approvalRules,
-                    },
-                    pendingRulesUpdates: {
-                        [categoryRuleUpdateKey]: {
-                            approvalRule: null,
-                        },
                     },
                 },
             },
@@ -1272,11 +1249,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 }
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = PolicyUtils.getPolicy(policyID);
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    const categoryRuleUpdateKey = PolicyUtils.getKeyForPendingRuleUpdate(categoryName, CONST.POLICY.FIELDS.TAX);
 
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({
@@ -1308,24 +1284,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                     rules: {
                         expenseRules: updatedExpenseRules,
                     },
-                    pendingRulesUpdates: {
-                        [categoryRuleUpdateKey]: {
-                            expenseRule: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    pendingRulesUpdates: {
-                        [categoryRuleUpdateKey]: {
-                            expenseRule: null,
-                        },
-                    },
                 },
             },
         ],
@@ -1336,11 +1294,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 value: {
                     rules: {
                         expenseRules,
-                    },
-                    pendingRulesUpdates: {
-                        [categoryRuleUpdateKey]: {
-                            expenseRule: null,
-                        },
                     },
                 },
             },

@@ -161,15 +161,13 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={policy.pendingRulesUpdates?.[PolicyUtils.getKeyForPendingRuleUpdate(tagName, CONST.POLICY.FIELDS.TAG)]?.approvalRule}>
-                                <MenuItemWithTopDescription
-                                    title={tagApprover ?? ''}
-                                    description={translate(`workspace.tags.approverDescription`)}
-                                    onPress={navigateToEditTagApprover}
-                                    shouldShowRightIcon
-                                    disabled={approverDisabled}
-                                />
-                            </OfflineWithFeedback>
+                            <MenuItemWithTopDescription
+                                title={tagApprover ?? ''}
+                                description={translate(`workspace.tags.approverDescription`)}
+                                onPress={navigateToEditTagApprover}
+                                shouldShowRightIcon
+                                disabled={approverDisabled}
+                            />
                             {approverDisabled && (
                                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
                                     <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
