@@ -1,12 +1,15 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -16,13 +19,17 @@ import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDeta
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
+import Navigation from './Navigation/Navigation';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
-type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
+type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -49,6 +56,13 @@ const operatorToSignMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
+};
+
+const emptyPersonalDetails = {
+    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+    avatar: '',
+    displayName: undefined,
+    login: undefined,
 };
 
 /**
@@ -170,7 +184,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         .map((key) => {
             const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = data.personalDetailsList?.[transactionItem.managerID];
+            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -200,6 +214,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
+                if (ReportActionsUtils.isDeletedAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
                 reportActionItems.push({
                     ...reportAction,
                     from,
@@ -214,7 +232,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 }
 
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
-    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID ?? 0];
+    const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
@@ -251,7 +269,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? -1],
-                to: data.personalDetailsList?.[reportItem.managerID ?? -1],
+                to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
@@ -260,7 +278,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = data.personalDetailsList?.[transactionItem.managerID];
+            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -307,7 +325,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
 
 function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return data;
+        return getSortedReportActionData(data as ReportActionListItemType[]);
     }
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
@@ -343,7 +361,24 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
+function getReportNewestTransactionDate(report: ReportListItemType) {
+    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > max.created ? curr : max), report.transactions[0])?.created;
+}
+
 function getSortedReportData(data: ReportListItemType[]) {
+    return data.sort((a, b) => {
+        const aNewestTransaction = getReportNewestTransactionDate(a);
+        const bNewestTransaction = getReportNewestTransactionDate(b);
+
+        if (!aNewestTransaction || !bNewestTransaction) {
+            return 0;
+        }
+
+        return bNewestTransaction.toLowerCase().localeCompare(aNewestTransaction);
+    });
+}
+
+function getSortedReportActionData(data: ReportActionListItemType[]) {
     return data.sort((a, b) => {
         const aValue = a?.created;
         const bValue = b?.created;
@@ -370,50 +405,6 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 
 function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
-}
-
-function buildSearchQueryJSON(query: SearchQueryString) {
-    try {
-        const result = searchParser.parse(query) as SearchQueryJSON;
-
-        // Add the full input and hash to the results
-        result.inputQuery = query;
-        result.hash = getQueryHashFromString(query);
-        return result;
-    } catch (e) {
-        console.error(`Error when parsing SearchQuery: "${query}"`, e);
-    }
-}
-
-function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
-    const queryParts: string[] = [];
-    const defaultQueryJSON = buildSearchQueryJSON('');
-
-    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        const existingFieldValue = queryJSON?.[key];
-        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
-
-        if (queryFieldValue) {
-            queryParts.push(`${key}:${queryFieldValue}`);
-        }
-    }
-
-    if (!queryJSON) {
-        return queryParts.join(' ');
-    }
-
-    const filters = getFilters(queryJSON);
-
-    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
-        const queryFilter = filters[filterKey];
-
-        if (queryFilter) {
-            const filterValueString = buildFilterString(filterKey, queryFilter);
-            queryParts.push(filterValueString);
-        }
-    }
-
-    return queryParts.join(' ');
 }
 
 /**
@@ -469,11 +460,11 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    const safeStr = str;
-    if (safeStr.includes(' ') || safeStr.includes(',')) {
-        return `"${safeStr}"`;
+    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
+    if (regexp.test(str)) {
+        return `"${str}"`;
     }
-    return safeStr;
+    return str;
 }
 
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
@@ -488,70 +479,109 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (has) {
-        case CONST.SEARCH.CHAT_TYPES.LINK:
-            return 'search.filters.link';
-        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
-            return 'common.attachment';
+function buildSearchQueryJSON(query: SearchQueryString) {
+    try {
+        const result = searchParser.parse(query) as SearchQueryJSON;
+        const flatFilters = getFilters(result);
+
+        // Add the full input and hash to the results
+        result.inputQuery = query;
+        result.hash = getQueryHashFromString(query);
+        result.flatFilters = flatFilters;
+        return result;
+    } catch (e) {
+        console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
 }
 
-function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (chatStatus) {
-        case CONST.SEARCH.CHAT_STATUS.PINNED:
-            return 'search.filters.pinned';
-        case CONST.SEARCH.CHAT_STATUS.UNREAD:
-            return 'search.filters.unread';
-        case CONST.SEARCH.CHAT_STATUS.DRAFT:
-            return 'search.filters.draft';
+function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
+    const queryParts: string[] = [];
+    const defaultQueryJSON = buildSearchQueryJSON('');
+
+    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        const existingFieldValue = queryJSON?.[key];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+
+        if (queryFieldValue) {
+            queryParts.push(`${key}:${queryFieldValue}`);
+        }
     }
+
+    if (!queryJSON) {
+        return queryParts.join(' ');
+    }
+
+    const filters = queryJSON.flatFilters;
+
+    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+        const queryFilter = filters[filterKey];
+
+        if (queryFilter) {
+            const filterValueString = buildFilterString(filterKey, queryFilter);
+            queryParts.push(filterValueString);
+        }
+    }
+
+    return queryParts.join(' ');
 }
 
 /**
  * Given object with chosen search filters builds correct query string from them
  */
-function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
-        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
-            }
-        }
-        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${filterValue as string}`;
-            }
-        }
+function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    // We separate type and status filters from other filters to maintain hashes consistency for saved searches
+    const {type, status, ...otherFilters} = filterValues;
+    const filtersString: string[] = [];
 
-        if (
-            (filterKey === FILTER_KEYS.CATEGORY ||
-                filterKey === FILTER_KEYS.CARD_ID ||
-                filterKey === FILTER_KEYS.TAX_RATE ||
-                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
-                filterKey === FILTER_KEYS.TAG ||
-                filterKey === FILTER_KEYS.CURRENCY ||
-                filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO ||
-                filterKey === FILTER_KEYS.IN ||
-                filterKey === FILTER_KEYS.HAS ||
-                filterKey === FILTER_KEYS.IS) &&
-            Array.isArray(filterValue) &&
-            filterValue.length > 0
-        ) {
-            const filterValueArray = filterValues[filterKey] ?? [];
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
-            }
-        }
+    if (type) {
+        const sanitizedType = sanitizeString(type);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
+    }
 
-        return undefined;
-    });
+    if (status) {
+        const sanitizedStatus = sanitizeString(status);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    const mappedFilters = Object.entries(otherFilters)
+        .map(([filterKey, filterValue]) => {
+            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+                }
+            }
+
+            if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
+                const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
+                return `${value}`;
+            }
+
+            if (
+                (filterKey === FILTER_KEYS.CATEGORY ||
+                    filterKey === FILTER_KEYS.CARD_ID ||
+                    filterKey === FILTER_KEYS.TAX_RATE ||
+                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                    filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.IN) &&
+                Array.isArray(filterValue) &&
+                filterValue.length > 0
+            ) {
+                const filterValueArray = [...new Set<string>(filterValue)];
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
+                }
+            }
+
+            return undefined;
+        })
+        .filter((filter): filter is string => !!filter);
+
+    filtersString.push(...mappedFilters);
 
     const dateFilter = buildDateFilterQuery(filterValues);
     filtersString.push(dateFilter);
@@ -559,9 +589,14 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
 
-    return filtersString.filter(Boolean).join(' ');
+    return filtersString.join(' ').trim();
 }
 
+/**
+ *
+ * @private
+ * traverses the AST and returns filters as a QueryFilters object
+ */
 function getFilters(queryJSON: SearchQueryJSON) {
     const filters = {} as QueryFilters;
     const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
@@ -613,6 +648,57 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 /**
+ * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
+ */
+function getFiltersFormValues(queryJSON: SearchQueryJSON) {
+    const filters = getFilters(queryJSON);
+    const filterKeys = Object.keys(filters);
+    const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
+    for (const filterKey of filterKeys) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+            filtersForm[filterKey] = filters[filterKey]?.[0]?.value.toString();
+        }
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN
+        ) {
+            filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString());
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filtersForm[filterKey] = filters[filterKey]
+                ?.map((filter) => filter.value.toString())
+                .map((filter) => {
+                    if (filter.includes(' ')) {
+                        return `"${filter}"`;
+                    }
+                    return filter;
+                })
+                .join(' ');
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
+            filtersForm[FILTER_KEYS.DATE_BEFORE] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
+            filtersForm[FILTER_KEYS.DATE_AFTER] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            filtersForm[FILTER_KEYS.LESS_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
+            filtersForm[FILTER_KEYS.GREATER_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
+        }
+    }
+
+    filtersForm[FILTER_KEYS.TYPE] = queryJSON.type;
+    filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
+
+    return filtersForm;
+}
+
+/**
  * Given a SearchQueryJSON this function will try to find the value of policyID filter saved in query
  * and return just the first policyID value from the filter.
  *
@@ -632,12 +718,25 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
     return policyID;
 }
 
-function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
+function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        return PersonalDetailsUtils.createDisplayName(personalDetails?.[filter]?.login ?? '', personalDetails?.[filter]);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return cardList[filter].bank;
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
+    }
+    return filter;
+}
+
+function buildFilterString(filterName: string, queryFilters: QueryFilter[], delimiter = ',') {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
@@ -646,15 +745,37 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     return filterValueString;
 }
 
-function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
+function getSearchHeaderTitle(
+    queryJSON: SearchQueryJSON,
+    PersonalDetails: OnyxTypes.PersonalDetailsList,
+    cardList: OnyxTypes.CardList,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    TaxRates: Record<string, string[]>,
+) {
     const {type, status} = queryJSON;
-    const filters = getFilters(queryJSON) ?? {};
+    const filters = queryJSON.flatFilters ?? {};
 
     let title = `type:${type} status:${status}`;
 
     Object.keys(filters).forEach((key) => {
         const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
-        title += buildFilterString(key, queryFilter);
+        let displayQueryFilters: QueryFilter[] = [];
+        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+            const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
+            const taxRateNames = Object.entries(TaxRates)
+                .filter(([, taxRateKeys]) => taxRateKeys.some((taxID) => taxRateIDs.includes(taxID)))
+                .map(([taxRate]) => taxRate);
+            displayQueryFilters = taxRateNames.map((taxRate) => ({
+                operator: queryFilter[0].operator,
+                value: taxRate,
+            }));
+        } else {
+            displayQueryFilters = queryFilter.map((filter) => ({
+                operator: filter.operator,
+                value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
+            }));
+        }
+        title += buildFilterString(key, displayQueryFilters, ' ');
     });
 
     return title;
@@ -662,6 +783,33 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
 
 function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
     return normalizeQuery(`type:${type} status:${status}`);
+}
+
+function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
+    return [
+        {
+            text: translateLocal('common.rename'),
+            onSelected: () => {
+                if (isMobileMenu && closeMenu) {
+                    closeMenu();
+                }
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery}));
+            },
+            icon: Expensicons.Pencil,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+            shouldCallAfterModalHide: true,
+        },
+        {
+            text: translateLocal('common.delete'),
+            onSelected: () => showDeleteModal(hash),
+            icon: Expensicons.Trashcan,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+            shouldCallAfterModalHide: true,
+            shouldCloseAllModals: true,
+        },
+    ];
 }
 
 /**
@@ -674,12 +822,16 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
 }
 
+function isCorrectSearchUserName(displayName?: string) {
+    return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
+}
+
 export {
-    buildQueryStringFromFilters,
+    buildQueryStringFromFilterValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
-    getFilters,
+    getFiltersFormValues,
     getPolicyIDFromSearchQuery,
     getListItem,
     getSearchHeaderTitle,
@@ -695,6 +847,6 @@ export {
     buildCannedSearchQuery,
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
-    getChatFiltersTranslationKey,
-    getChatStatusTranslationKey,
+    getOverflowMenu,
+    isCorrectSearchUserName,
 };

@@ -25,6 +25,7 @@ function ButtonWithDropdownMenu<IValueType>({
     menuHeaderText = '',
     customText,
     style,
+    disabledStyle,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -39,6 +40,7 @@ function ButtonWithDropdownMenu<IValueType>({
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
     useKeyboardShortcuts = false,
+    shouldUseStyleUtilityForAnchorPosition = false,
     defaultSelectedIndex = 0,
     shouldShowSelectedItemCheck = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
@@ -156,6 +158,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled || !!options[0].disabled}
                     style={[styles.w100, style]}
+                    disabledStyle={disabledStyle}
                     isLoading={isLoading}
                     text={selectedItem.text}
                     onPress={(event) => onPress(event, options[0].value)}
@@ -175,7 +178,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     }}
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
-                    anchorPosition={popoverAnchorPosition}
+                    anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay

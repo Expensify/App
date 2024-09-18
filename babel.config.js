@@ -17,9 +17,9 @@ const defaultPlugins = [
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
-    // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
+    // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
-    'transform-class-properties',
+    '@babel/plugin-transform-class-properties',
 
     // Keep it last
     'react-native-reanimated/plugin',

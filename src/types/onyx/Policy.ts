@@ -1373,6 +1373,51 @@ type PendingJoinRequestPolicy = {
     >;
 };
 
+/** Data informing when a given rule should be applied */
+type ApplyRulesWhen = {
+    /** The condition for applying the rule to the workspace */
+    condition: 'matches';
+
+    /** The target field to which the rule is applied */
+    field: 'category';
+
+    /** The value of the target field */
+    value: string;
+};
+
+/** Approval rule data model */
+type ApprovalRule = {
+    /** The approver's email */
+    approver: string;
+
+    /** Set of conditions under which the approval rule should be applied */
+    applyWhen: ApplyRulesWhen[];
+
+    /** An id of the rule */
+    id?: string;
+};
+
+/** Expense rule data model */
+type ExpenseRule = {
+    /** Object containing information about the tax field id and its external identifier */
+    tax: {
+        /** Object wrapping the external tax id */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        field_id_TAX: {
+            /** The external id of the tax field. */
+            externalID: string;
+        };
+    };
+    /** Set of conditions under which the expense rule should be applied */
+    applyWhen: ApplyRulesWhen[];
+
+    /** An id of the rule */
+    id?: string;
+};
+
+/** The name of the category or tag */
+type CategoryOrTagName = string;
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1546,6 +1591,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
+        /** A set of rules related to the workpsace */
+        rules?: {
+            /** A set of rules related to the workpsace approvals */
+            approvalRules?: ApprovalRule[];
+
+            /** A set of rules related to the workpsace expenses */
+            expenseRules?: ExpenseRule[];
+        };
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -1635,6 +1689,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
+
+        /** Information about rules being updated */
+        pendingRulesUpdates?: Record<
+            CategoryOrTagName,
+            {
+                /** Indicates whether the approval rule is updated for the given category or tag */
+                approvalRule: OnyxCommon.PendingAction;
+
+                /** Indicates whether the expense rule is updated for the given category or tag */
+                expenseRule: OnyxCommon.PendingAction;
+            }
+        >;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -1709,5 +1775,7 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     ACHAccount,
+    ApprovalRule,
+    ExpenseRule,
     NetSuiteConnectionConfig,
 };
