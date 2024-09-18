@@ -89,13 +89,11 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     if (!queryJSON) {
                         return null;
                     }
-
                     if (action.payload.policyID) {
                         queryJSON.policyID = action.payload.policyID;
                     } else {
                         delete queryJSON.policyID;
                     }
-
                     const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
                         ...currentParams,
                         q: SearchUtils.buildSearchQueryString(queryJSON),
