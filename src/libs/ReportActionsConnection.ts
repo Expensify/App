@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -21,4 +21,5 @@ function getAllReportActions() {
     return allReportActions;
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export {getAllReportActions};
