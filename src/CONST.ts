@@ -132,6 +132,8 @@ type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
 
+type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+
 const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
@@ -5788,6 +5790,7 @@ export type {
     FeedbackSurveyOptionID,
     CancellationType,
     OnboardingInviteType,
+    OnboardingAccountingType,
 };
 
 export default CONST;

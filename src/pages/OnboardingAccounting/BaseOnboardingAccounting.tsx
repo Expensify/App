@@ -23,15 +23,14 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
+import type {OnboardingAccountingType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
 import type {OnboardingIcon} from '@src/types/onyx/Onboarding';
 import type {BaseOnboardingAccountingProps} from './types';
 
-type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
-
 type OnboardingListItemData = ListItem & {
-    keyForList: OnboardingAccountingType | null;
+    keyForList: OnboardingAccountingType;
     onboardingIcon: OnboardingIcon;
 };
 function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
@@ -45,7 +44,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
 
-    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccountingType | null | undefined>(undefined);
+    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccountingType | undefined>(undefined);
     const [error, setError] = useState('');
 
     const accountingOptions: OnboardingListItemData[] = useMemo(() => {
