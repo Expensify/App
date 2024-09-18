@@ -6,8 +6,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmModal from '@components/ConfirmModal';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,24 +52,21 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const styles = useThemeStyles();
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
+    const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
-    if (!reportFieldsEnabled || !reportField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 testID={EditReportFieldPage.displayName}
             >
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => {}}
-                    onLinkPress={() => {}}
-                />
+                <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
         );
     }
@@ -93,12 +90,12 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
 
-    const menuItems: ThreeDotsMenuItem[] = [];
+    const menuItems: PopoverMenuItem[] = [];
 
     const isReportFieldDeletable = reportField.deletable && !isReportFieldTitle;
 
     if (isReportFieldDeletable) {
-        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true)});
+        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true), shouldCallAfterModalHide: true});
     }
 
     const fieldName = Str.UCFirst(reportField.name);
@@ -153,7 +150,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                     policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
-                    fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions[index])}
+                    fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions[index])}
                     onSubmit={handleReportFieldChange}
                 />
             )}

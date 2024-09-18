@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -15,7 +16,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -78,8 +81,10 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
-    const isViewAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.VIEW;
-    const canModifyReceipt = isViewAction && transactionItem.canDelete;
+    const filename = getFileName(transactionItem?.receipt?.source ?? '');
+    const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+    const isReceiptPDF = Str.isPDF(filename);
+    const source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
 
     return (
         <View
@@ -91,12 +96,12 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
             ]}
         >
             <ReceiptImage
-                source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
+                source={source}
                 isEReceipt={transactionItem.hasEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={canModifyReceipt ? Expensicons.ReceiptPlus : Expensicons.ReceiptSlash}
+                fallbackIcon={Expensicons.Receipt}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}

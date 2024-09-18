@@ -111,8 +111,7 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
         })
         .then((fileData) => {
             const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
-            const downloadPath = `${RNFS.DownloadDirectoryPath}/Expensify/${finalFileName}`;
-
+            const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
         .then((downloadPath) =>

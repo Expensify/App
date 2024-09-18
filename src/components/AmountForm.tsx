@@ -43,8 +43,10 @@ type AmountFormProps = {
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
 
+    /** Custom label for the TextInput */
     label?: string;
 
+    /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus'>;
@@ -254,6 +256,7 @@ function AmountForm(
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
+                errorText={errorText}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

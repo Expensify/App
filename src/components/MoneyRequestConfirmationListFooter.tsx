@@ -275,8 +275,8 @@ function MoneyRequestConfirmationListFooter({
             report: undefined,
             reportNameValuePairs: undefined,
             action: undefined,
-            transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
+            isDisabled: true,
         }),
         [],
     );

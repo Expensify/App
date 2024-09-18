@@ -1,6 +1,10 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
@@ -56,6 +60,7 @@ import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustra
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
+import CommentBubblesBlue from '@assets/images/simple-illustrations/simple-illustration__commentbubbles_blue.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
@@ -182,6 +187,7 @@ export {
     SmartScan,
     Hourglass,
     CommentBubbles,
+    CommentBubblesBlue,
     TrashCan,
     TeleScope,
     Profile,
@@ -233,5 +239,9 @@ export {
     AmexCompanyCards,
     MasterCardCompanyCards,
     VisaCompanyCards,
+    CompanyCardsPendingState,
+    VisaCompanyCardDetail,
+    MasterCardCompanyCardDetail,
+    AmexCardCompanyCardDetail,
     TurtleInShell,
 };

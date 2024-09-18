@@ -194,14 +194,20 @@ function clearCardListErrors(cardID: number) {
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails> {
+function revealVirtualCardDetails(cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
-        const parameters: RevealExpensifyCardDetailsParams = {cardID};
+        const parameters: RevealExpensifyCardDetailsParams = {cardID, validateCode};
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters)
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.message === 'Incorrect or invalid magic code. Please try again.') {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('validateCodeForm.error.incorrectMagicCode');
+                        return;
+                    }
+
                     // eslint-disable-next-line prefer-promise-reject-errors
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;
@@ -608,8 +614,10 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
         return;
     }
 
+    const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
+    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, {...parameters, domainAccountID});
 }
 
 function openCardDetailsPage(cardID: number) {

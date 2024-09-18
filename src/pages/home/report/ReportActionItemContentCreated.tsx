@@ -74,7 +74,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule],
     );
 
-    const contextMenuValue = useMemo(() => ({...contextValue, shouldOpenContextMenu: false}), [contextValue]);
+    const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
 
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
@@ -151,7 +151,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
         return (
             <OfflineWithFeedback pendingAction={action.pendingAction}>
-                {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
+                {!isEmptyObject(transactionThreadReport?.reportID) ? (
                     <>
                         <MoneyReportView
                             report={report}
