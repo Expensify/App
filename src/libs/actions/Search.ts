@@ -7,11 +7,15 @@ import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {ReportAction} from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
@@ -91,38 +95,83 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
+function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, reportID?: string) {
+    const currentTime = DateUtils.getDBTime();
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
-        value: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            comment: {
-                hold: CONST.POLICY.ID_FAKE,
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
+    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
+    const successData = finallyData;
+    const failureData = finallyData;
+    if (reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                comment: {
+                    hold: CONST.POLICY.ID_FAKE,
+                },
             },
-        },
-    });
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
+            value: {
+                pendingAction: null,
+                comment: {
+                    hold: null,
+                },
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+            },
+        });
+    }
 
-    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, successData, failureData});
 }
 
-function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[], reportID?: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
-        value: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            comment: {
-                hold: null,
+    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
+    const successData = finallyData;
+    const failureData = finallyData;
+    if (reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                comment: {
+                    hold: null,
+                },
             },
-        },
-    });
+        });
 
-    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`,
+            value: {
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
+            },
+        });
+    }
+
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, successData, failureData});
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {

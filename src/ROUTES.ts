@@ -68,10 +68,10 @@ const ROUTES = {
     },
 
     TRANSACTION_HOLD_REASON_RHP: {
-        route: 'search/hold/:transactionID?',
-        getRoute: (transactionID?: string) => {
-            if (transactionID) {
-                return `search/hold/${transactionID}` as const;
+        route: 'search/hold/:transactionID/:reportID?',
+        getRoute: (transactionID?: string, reportID?: string) => {
+            if (transactionID && reportID) {
+                return `search/hold/${transactionID}/${reportID}` as const;
             }
             return `search/hold` as const;
         },

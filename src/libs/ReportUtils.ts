@@ -3153,13 +3153,13 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
 
     if (isOnHold) {
         if (currentSearchHash) {
-            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID], reportAction?.childReportID);
             return;
         }
         IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
     } else {
         if (currentSearchHash) {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(transactionID));
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(transactionID, reportAction?.childReportID));
             return;
         }
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
