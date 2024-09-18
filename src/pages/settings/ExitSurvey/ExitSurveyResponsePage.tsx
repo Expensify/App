@@ -96,27 +96,6 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
             // Minus the top margins on the form
             formTopMarginsStyle.marginTop,
     );
-    const responseInputMaxHeight = NumberUtils.roundDownToLargestMultiple(
-        formMaxHeight -
-            safeAreaInsetsBottomValue -
-            safePaddingBottomStyleValue -
-            formPaddingBottomValue -
-            // Minus the height of the text component
-            headerTitleHeight -
-            // Minus the response input margins (multiplied by 2 to create the effect of margins on top and bottom).
-            // marginBottom does not work in this case because the TextInput is in a ScrollView and will push the button beneath it out of view,
-            // so it's maxHeight is what dictates space between it and the button.
-            baseResponseInputContainerStyle.marginTop * 2 -
-            // Minus the approximate size of a default button
-            variables.componentSizeLarge -
-            // Minus the height above the button for the form error text, accounting for 2 lines max.
-            variables.lineHeightNormal * 2 -
-            // Minus the margin between the button and the form error text
-            styles.mb3.marginBottom,
-
-        // Round down to the largest number of full lines
-        styles.baseTextInput.lineHeight,
-    );
 
     return (
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
