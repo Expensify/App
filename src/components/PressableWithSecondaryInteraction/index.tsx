@@ -20,6 +20,7 @@ function PressableWithSecondaryInteraction(
         preventDefaultContextMenu = true,
         onSecondaryInteraction,
         activeOpacity = 1,
+        opacityAnimationDuration,
         ...rest
     }: PressableWithSecondaryInteractionProps,
     ref: PressableRef,
@@ -100,6 +101,7 @@ function PressableWithSecondaryInteraction(
             wrapperStyle={[StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
+            dimAnimationDuration={opacityAnimationDuration}
             ref={pressableRef}
             style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}

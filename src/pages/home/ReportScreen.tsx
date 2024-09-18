@@ -121,7 +121,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || -1}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
@@ -206,6 +206,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             isOptimisticReport: reportOnyx?.isOptimisticReport,
             lastMentionedTime: reportOnyx?.lastMentionedTime,
             avatarUrl: reportOnyx?.avatarUrl,
+            avatarFileName: reportOnyx?.avatarFileName,
             permissions,
             invoiceReceiver: reportOnyx?.invoiceReceiver,
             policyAvatar: reportOnyx?.policyAvatar,
@@ -248,6 +249,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.isOptimisticReport,
             reportOnyx?.lastMentionedTime,
             reportOnyx?.avatarUrl,
+            reportOnyx?.avatarFileName,
             permissions,
             reportOnyx?.invoiceReceiver,
             reportOnyx?.policyAvatar,
@@ -389,8 +391,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
      */
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+
     const shouldShowSkeleton =
-        (isLinkingToMessage && !isLinkedMessagePageReady) || (!isLinkingToMessage && !isInitialPageReady) || isLoadingReportOnyx || !isCurrentReportLoadedFromOnyx || isLoading;
+        (isLinkingToMessage && !isLinkedMessagePageReady) ||
+        (!isLinkingToMessage && !isInitialPageReady) ||
+        isEmptyObject(reportOnyx) ||
+        isLoadingReportOnyx ||
+        !isCurrentReportLoadedFromOnyx ||
+        isLoading;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =

@@ -1006,12 +1006,14 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed?: () => void) 
         policyID,
     });
 
+    const fileName = 'Categories.csv';
+
     const formData = new FormData();
     Object.entries(finalParameters).forEach(([key, value]) => {
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), 'Categories.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
