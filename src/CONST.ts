@@ -1055,7 +1055,6 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
-            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
