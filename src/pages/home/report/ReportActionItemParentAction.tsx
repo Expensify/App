@@ -130,7 +130,7 @@ function ReportActionItemParentAction({
                             onPress={
                                 ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
                                     ? () => {
-                                          const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
+                                          const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction);
                                           // Pop the thread report screen before navigating to the chat report.
                                           Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
                                           if (isVisibleAction && !isOffline) {

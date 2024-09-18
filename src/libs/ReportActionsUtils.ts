@@ -586,7 +586,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
 /**
  * Checks if a reportAction is deprecated.
  */
-function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
+function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return true;
     }
@@ -612,12 +612,12 @@ const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTy
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
 
-    if (isReportActionDeprecated(reportAction, key)) {
+    if (isReportActionDeprecated(reportAction)) {
         return false;
     }
 
@@ -700,7 +700,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     // If a whisper action is the REPORT_PREVIEW action, we are displaying it.
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        shouldReportActionBeVisible(reportAction) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
         !isResolvedActionTrackExpense(reportAction)
@@ -782,7 +782,7 @@ function getLastVisibleMessage(
  */
 function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions>): ReportAction[] {
     return Object.entries(reportActions ?? {})
-        .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
+        .filter(([, reportAction]) => !isReportActionDeprecated(reportAction))
         .map((entry) => entry[1]);
 }
 
@@ -802,7 +802,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
+            .filter(([, reportAction]) => shouldReportActionBeVisible(reportAction))
             .map(([, reportAction]) => reportAction);
     }
 

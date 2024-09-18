@@ -195,7 +195,7 @@ function ReportActionsList({
                         ReportActionsUtils.isDeletedParentAction(reportAction) ||
                         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
+                    ReportActionsUtils.shouldReportActionBeVisible(reportAction),
             ),
         [sortedReportActions, isOffline],
     );

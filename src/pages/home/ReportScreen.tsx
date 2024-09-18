@@ -377,7 +377,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         ? reportActions.length > 0
         : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
 
-    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
+    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction), [linkedAction]);
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),

@@ -94,8 +94,8 @@ function extractAttachments(
     }
 
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
-    actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
+    actions.forEach((action) => {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
         }
 
