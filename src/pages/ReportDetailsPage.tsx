@@ -465,8 +465,6 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
         shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
-        canModifyTask,
-        isRootGroupChat,
         leaveChat,
         canUnapproveRequest,
         isDebugModeEnabled,

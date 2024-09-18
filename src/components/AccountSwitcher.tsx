@@ -170,7 +170,7 @@ function AccountSwitcher() {
                         </Text>
                         {!!user?.isDebugModeEnabled && (
                             <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                 numberOfLines={1}
                             >
                                 AccountID: {session?.accountID}
