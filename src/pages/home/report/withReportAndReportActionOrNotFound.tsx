@@ -111,7 +111,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...{...props, report, parentReport, reportMetadata, isLoadingReportData, betas, policies, reportActions, parentReportAction}}
                 ref={ref}
             />
         );
@@ -119,41 +119,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '-1'}`,
-        },
-        reportMetadata: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-            canEvict: false,
-        },
-        parentReportAction: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-            selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props?: WithOnyxState<OnyxProps>): NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null => {
-                const parentReportActionID = props?.report?.parentReportActionID;
-                if (!parentReportActionID) {
-                    return null;
-                }
-                return parentReportActions?.[parentReportActionID] ?? null;
-            },
-            canEvict: false,
-        },
-    })(React.forwardRef(WithReportOrNotFound));
+    return React.forwardRef(WithReportOrNotFound);
 }
 
 export type {WithReportAndReportActionOrNotFoundProps};
