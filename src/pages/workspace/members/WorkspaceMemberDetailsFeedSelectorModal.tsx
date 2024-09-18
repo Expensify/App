@@ -96,9 +96,9 @@ function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}:
                   leftElement: (
                       <Icon
                           src={ExpensifyCardImage}
-                          height={variables.iconSizeExtraLarge}
-                          width={variables.iconSizeExtraLarge}
-                          additionalStyles={styles.mr3}
+                          width={variables.cardIconWidth}
+                          height={variables.cardIconHeight}
+                          additionalStyles={[styles.cardIcon, styles.mr3]}
                       />
                   ),
               },
