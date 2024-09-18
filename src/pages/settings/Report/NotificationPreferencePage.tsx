@@ -46,9 +46,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
 
     const updateNotificationPreference = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            if (currentNotificationPreference !== value) {
-                ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
-            }
+            ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
             goBack();
         },
         [report.reportID, currentNotificationPreference, goBack],

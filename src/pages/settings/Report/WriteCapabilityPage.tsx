@@ -50,9 +50,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
 
     const updateWriteCapability = useCallback(
         (newValue: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>) => {
-            if (report.writeCapability !== newValue) {
-                ReportActions.updateWriteCapability(report, newValue);
-            }
+            ReportActions.updateWriteCapability(report, newValue);
             goBack();
         },
         [report, goBack],

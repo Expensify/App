@@ -80,12 +80,7 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
 
     const updatePolicyRoomName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
-            const previousName = report.reportName;
-            const policyRoomName = values.roomName;
-            // No change needed, navigate back
-            if (previousName !== policyRoomName) {
-                ReportActions.updatePolicyRoomName(report, policyRoomName);
-            }
+            ReportActions.updatePolicyRoomName(report, values.roomName);
             goBack();
         },
         [report, goBack],

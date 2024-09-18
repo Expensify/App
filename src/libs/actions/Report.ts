@@ -1709,6 +1709,11 @@ function updateNotificationPreference(
     parentReportID?: string,
     parentReportActionID?: string,
 ) {
+    // No change needed
+    if (previousValue === newValue) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2041,6 +2046,11 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
 }
 
 function updateDescription(reportID: string, previousValue: string, newValue: string) {
+    // No change needed
+    if (previousValue === newValue) {
+        return;
+    }
+
     const parsedDescription = ReportUtils.getParsedComment(newValue, {reportID});
     const optimisticDescriptionUpdatedReportAction = ReportUtils.buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
     const report = ReportUtils.getReport(reportID);
@@ -2106,6 +2116,11 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
 }
 
 function updateWriteCapability(report: Report, newValue: WriteCapability) {
+    // No change needed
+    if (report.writeCapability === newValue) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2293,9 +2308,8 @@ function updatePolicyRoomName(policyRoomReport: Report, policyRoomName: string) 
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
 
-    // No change needed, navigate back
+    // No change needed
     if (previousName === policyRoomName) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
 

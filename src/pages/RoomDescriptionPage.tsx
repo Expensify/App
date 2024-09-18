@@ -58,9 +58,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         const previousValue = report?.description ?? '';
         const newValue = description.trim();
 
-        if (previousValue !== newValue) {
-            Report.updateDescription(report.reportID, previousValue, newValue);
-        }
+        Report.updateDescription(report.reportID, previousValue, newValue);
         goBack();
     }, [report.reportID, report.description, description, goBack]);
 
