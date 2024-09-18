@@ -71,25 +71,11 @@ function SearchRouter() {
 
         closeSearchRouter();
 
-        // Because user input does not support all filters yet, we will merge user typed query with pre-existing search query
-        if (!existingSearchQuery) {
-            const query = SearchUtils.buildSearchQueryString(userSearchQuery);
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-        } else {
-            const topLevelFilters = SearchUtils.getFiltersFormValues(existingSearchQuery);
-            const userFilters = SearchUtils.getFiltersFormValues(userSearchQuery);
-
-            const combinedFilters = {
-                ...topLevelFilters,
-                ...userFilters,
-            };
-
-            const query = SearchUtils.buildQueryStringFromFilterValues(combinedFilters);
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-        }
+        const query = SearchUtils.buildSearchQueryString(userSearchQuery);
+        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
 
         clearUserQuery();
-    }, [closeSearchRouter, existingSearchQuery, userSearchQuery]);
+    }, [closeSearchRouter, userSearchQuery]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         closeSearchRouter();
