@@ -140,9 +140,6 @@ jobs:
           name: android-build-artifact
           path: ./android/app/build/outputs/bundle/productionRelease/app-production-release.aab
 
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: 8398a7/action-slack@v3
@@ -266,9 +263,6 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
       - name: Get iOS native version
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
@@ -380,9 +374,6 @@ jobs:
         run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Verify staging deploy
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
