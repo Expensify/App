@@ -28,12 +28,12 @@ type EmojiPickerButtonProps = {
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number;
 
-    onModalHide?: EmojiPickerAction.OnModalHideValue;
+    onModalHide: EmojiPickerAction.OnModalHideValue;
 
     onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
 };
 
-function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onPress, onModalHide = () => {}, onEmojiSelected}: EmojiPickerButtonProps) {
+function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);

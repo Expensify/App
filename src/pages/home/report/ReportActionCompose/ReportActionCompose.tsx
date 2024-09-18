@@ -208,6 +208,13 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
+    const focus = () => {
+        if (composerRef.current === null) {
+            return;
+        }
+        composerRef.current?.focus(true);
+    };
+
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const isNextModalWillOpenRef = useRef(false);
 
@@ -514,6 +521,12 @@ function ReportActionCompose({
                             {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
+                                    onModalHide={(isNavigating) => {
+                                        if (isNavigating) {
+                                            return;
+                                        }
+                                        focus();
+                                    }}
                                     onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                     emojiPickerID={report?.reportID}
                                     shiftVertical={emojiShiftVertical}
