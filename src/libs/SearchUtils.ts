@@ -58,6 +58,13 @@ const operatorToSignMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
+const emptyPersonalDetails = {
+    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+    avatar: '',
+    displayName: undefined,
+    login: undefined,
+};
+
 /**
  * @private
  */
@@ -177,7 +184,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         .map((key) => {
             const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = data.personalDetailsList?.[transactionItem.managerID];
+            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -225,7 +232,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 }
 
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
-    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID ?? 0];
+    const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
@@ -262,7 +269,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? -1],
-                to: data.personalDetailsList?.[reportItem.managerID ?? -1],
+                to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
@@ -271,7 +278,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = data.personalDetailsList?.[transactionItem.managerID];
+            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -453,7 +460,7 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    const regexp = /[<>,:= ]/g;
+    const regexp = /[^A-Za-z0-9_@./#&+\-\\';,"]/g;
     if (regexp.test(str)) {
         return `"${str}"`;
     }
@@ -522,45 +529,59 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
-        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
-            }
-        }
-        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-            const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
-            return `${value}`;
-        }
-        if (filterKey === FILTER_KEYS.TYPE && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizeString(filterValue as string)}`;
-        }
-        if (filterKey === FILTER_KEYS.STATUS && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeString(filterValue as string)}`;
-        }
-        if (
-            (filterKey === FILTER_KEYS.CATEGORY ||
-                filterKey === FILTER_KEYS.CARD_ID ||
-                filterKey === FILTER_KEYS.TAX_RATE ||
-                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
-                filterKey === FILTER_KEYS.TAG ||
-                filterKey === FILTER_KEYS.CURRENCY ||
-                filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO ||
-                filterKey === FILTER_KEYS.IN) &&
-            Array.isArray(filterValue) &&
-            filterValue.length > 0
-        ) {
-            const filterValueArray = [...new Set<string>(filterValues[filterKey] ?? [])];
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
-            }
-        }
+    // We separate type and status filters from other filters to maintain hashes consistency for saved searches
+    const {type, status, ...otherFilters} = filterValues;
+    const filtersString: string[] = [];
 
-        return undefined;
-    });
+    if (type) {
+        const sanitizedType = sanitizeString(type);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
+    }
+
+    if (status) {
+        const sanitizedStatus = sanitizeString(status);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    const mappedFilters = Object.entries(otherFilters)
+        .map(([filterKey, filterValue]) => {
+            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+                }
+            }
+
+            if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
+                const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
+                return `${value}`;
+            }
+
+            if (
+                (filterKey === FILTER_KEYS.CATEGORY ||
+                    filterKey === FILTER_KEYS.CARD_ID ||
+                    filterKey === FILTER_KEYS.TAX_RATE ||
+                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                    filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.IN) &&
+                Array.isArray(filterValue) &&
+                filterValue.length > 0
+            ) {
+                const filterValueArray = [...new Set<string>(filterValue)];
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
+                }
+            }
+
+            return undefined;
+        })
+        .filter((filter): filter is string => !!filter);
+
+    filtersString.push(...mappedFilters);
 
     const dateFilter = buildDateFilterQuery(filterValues);
     filtersString.push(dateFilter);
@@ -568,7 +589,7 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
 
-    return filtersString.filter(Boolean).join(' ');
+    return filtersString.join(' ').trim();
 }
 
 /**
@@ -699,7 +720,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 
 function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        return PersonalDetailsUtils.createDisplayName(personalDetails[filter]?.login ?? '', personalDetails[filter]);
+        return PersonalDetailsUtils.createDisplayName(personalDetails?.[filter]?.login ?? '', personalDetails?.[filter]);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         return cardList[filter].bank;
@@ -801,6 +822,10 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
 }
 
+function isCorrectSearchUserName(displayName?: string) {
+    return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
+}
+
 export {
     buildQueryStringFromFilterValues,
     buildSearchQueryJSON,
@@ -823,4 +848,5 @@ export {
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
     getOverflowMenu,
+    isCorrectSearchUserName,
 };
