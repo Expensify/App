@@ -98,7 +98,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const nextApproverDisplayName = getNextApproverDisplayName(policy, ownerAccountID, submitToAccountID, report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
-    const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
