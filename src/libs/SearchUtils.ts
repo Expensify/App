@@ -64,6 +64,7 @@ const emptyPersonalDetails = {
     displayName: undefined,
     login: undefined,
 };
+/* Search list and results related */
 
 /**
  * @private
@@ -391,14 +392,6 @@ function getSortedReportActionData(data: ReportActionListItemType[]) {
     });
 }
 
-function getCurrentSearchParams() {
-    const rootState = navigationRef.getRootState() as State<RootStackParamList>;
-
-    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
-
-    return lastSearchRoute ? (lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) : undefined;
-}
-
 function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
@@ -406,6 +399,8 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
+
+/* Search query related */
 
 /**
  * Update string query with all the default params that are set by parser
@@ -781,6 +776,36 @@ function getSearchHeaderTitle(
     return title;
 }
 
+function getSearchRouterInputText(queryJSON: SearchQueryJSON) {
+    const {type, status} = queryJSON;
+    const filters = queryJSON.flatFilters ?? {};
+
+    let title = `type:${type} status:${status}`;
+
+    Object.keys(filters)
+        .filter((filterKey) => {
+            return (
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
+                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY
+            );
+        })
+        .forEach((key) => {
+            const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
+            const displayQueryFilters = queryFilter.map((filter) => ({
+                operator: filter.operator,
+                value: filter.value.toString(),
+            }));
+            title += buildFilterString(key, displayQueryFilters, ' ');
+        });
+
+    return title;
+}
+
 function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
     return normalizeQuery(`type:${type} status:${status}`);
 }
@@ -830,11 +855,9 @@ export {
     buildQueryStringFromFilterValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
-    getCurrentSearchParams,
     getFiltersFormValues,
     getPolicyIDFromSearchQuery,
     getListItem,
-    getSearchHeaderTitle,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
@@ -842,6 +865,8 @@ export {
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
+    getSearchHeaderTitle,
+    getSearchRouterInputText,
     normalizeQuery,
     shouldShowYear,
     buildCannedSearchQuery,
