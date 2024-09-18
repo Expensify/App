@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -49,11 +49,6 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  * to display a full size image or PDF modally with optional confirmation button.
  */
 
-type AttachmentModalOnyxProps = {
-    /** The transaction associated with the receipt attachment, if any */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-};
-
 type ImagePickerResponse = {
     height?: number;
     name: string;
@@ -70,7 +65,7 @@ type ChildrenProps = {
     show: () => void;
 };
 
-type AttachmentModalProps = AttachmentModalOnyxProps & {
+type AttachmentModalProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
@@ -154,7 +149,6 @@ function AttachmentModal({
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
     maybeIcon = false,
-    transaction,
     headerTitle,
     children,
     fallbackSource,
@@ -167,6 +161,11 @@ function AttachmentModal({
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const transactionID = useMemo(() => {
+        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        return ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    }, [report?.parentReportID, report?.parentReportActionID]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -634,14 +633,6 @@ function AttachmentModal({
 
 AttachmentModal.displayName = 'AttachmentModal';
 
-export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
-    transaction: {
-        key: ({report}) => {
-            const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-            const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        },
-    },
-})(memo(AttachmentModal));
+export default memo(AttachmentModal);
 
 export type {Attachment, FileObject, ImagePickerResponse};

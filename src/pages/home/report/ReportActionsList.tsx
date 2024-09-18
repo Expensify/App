@@ -10,8 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -38,7 +37,7 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
 
-type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
+type ReportActionsListProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
@@ -145,7 +144,6 @@ function ReportActionsList({
     sortedReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
-    currentUserPersonalDetails,
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -155,6 +153,7 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -675,6 +674,6 @@ function ReportActionsList({
 
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default withCurrentUserPersonalDetails(memo(ReportActionsList));
+export default memo(ReportActionsList);
 
 export type {LoadNewerChats, ReportActionsListProps};

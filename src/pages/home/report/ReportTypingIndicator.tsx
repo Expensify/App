@@ -1,6 +1,5 @@
 import React, {memo, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
 import useLocalize from '@hooks/useLocalize';
@@ -8,22 +7,17 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportUserIsTyping} from '@src/types/onyx';
 
-type ReportTypingIndicatorOnyxProps = {
-    /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
-    userTypingStatuses: OnyxEntry<ReportUserIsTyping>;
-};
-
-type ReportTypingIndicatorProps = ReportTypingIndicatorOnyxProps & {
+type ReportTypingIndicatorProps = {
     // eslint-disable-next-line react/no-unused-prop-types -- This is used by withOnyx
     reportID: string;
 };
 
-function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps) {
+function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
@@ -63,8 +57,4 @@ function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps)
 
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
-export default withOnyx<ReportTypingIndicatorProps, ReportTypingIndicatorOnyxProps>({
-    userTypingStatuses: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-    },
-})(memo(ReportTypingIndicator));
+export default memo(ReportTypingIndicator);
