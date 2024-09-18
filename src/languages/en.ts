@@ -2037,7 +2037,7 @@ export default {
         incorporationDate: 'Incorporation date',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         incorporationState: 'Incorporation state',
-        pleaseSelectTheStateYourCompanyWasIncorporatedIn: 'Where was your business incorporated?',
+        pleaseSelectTheStateYourCompanyWasIncorporatedIn: 'Where was the business incorporated?',
         letsDoubleCheck: "Let's double check that everything looks right.",
         companyAddress: 'Business address',
         listOfRestrictedBusinesses: 'list of restricted businesses',
