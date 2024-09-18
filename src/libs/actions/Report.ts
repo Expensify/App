@@ -112,6 +112,7 @@ import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
+import type Onboarding from '@src/types/onyx/Onboarding';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -274,6 +275,12 @@ Onyx.connect({
 
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
+
+let onboarding: OnyxEntry<Onboarding | []>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => (onboarding = value),
+});
 
 registerPaginationConfig({
     initialCommand: WRITE_COMMANDS.OPEN_REPORT,
@@ -757,35 +764,6 @@ function clearAvatarErrors(reportID: string) {
 }
 
 /**
- * Gets details for an invite onboarding if certain conditions are met
- * @returns firstName, lastName, and onboardingMessage values
- */
-function getInviteOnboardingDetails() {
-    if (!introSelected) {
-        return;
-    }
-
-    const {choice, isInviteOnboardingComplete, inviteType} = introSelected;
-    if (isInviteOnboardingComplete ?? inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU ?? inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE) {
-        return;
-    }
-
-    const personalDetails = allPersonalDetails?.[currentUserAccountID];
-    const firstName = personalDetails?.firstName ?? '';
-    const lastName = personalDetails?.lastName ?? '';
-
-    Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
-
-    if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
-        return {
-            firstName,
-            lastName,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
-        };
-    }
-}
-
-/**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
@@ -874,23 +852,33 @@ function openReport(
         parentReportActionID,
     };
 
-    const inviteOnboardingDetails = getInviteOnboardingDetails();
-    if (inviteOnboardingDetails && !introSelected?.isInviteOnboardingComplete && introSelected?.choice) {
-        const onboardingData = prepareOnboardingOptimisticData(introSelected?.choice, inviteOnboardingDetails.onboardingMessage);
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
+    const hasCompletedGuidedSetup = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
+    
+    if(!hasCompletedGuidedSetup && introSelected && !isInviteOnboardingComplete) {
+        const {choice, inviteType} = introSelected;
+        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU;
 
-        optimisticData.push(...onboardingData.optimisticData, {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {
-                isInviteOnboardingComplete: true,
-            },
-        });
+        if(choice && !isInviteIOUorInvoice) {
+            const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
+            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
 
-        successData.push(...onboardingData.successData);
+            Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
 
-        failureData.push(...onboardingData.failureData);
+            optimisticData.push(...onboardingData.optimisticData, {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: true,
+                },
+            });
 
-        parameters.guidedSetupObject = JSON.stringify(onboardingData.guidedSetupData);
+            successData.push(...onboardingData.successData);
+
+            failureData.push(...onboardingData.failureData);
+
+            parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
+        }
     }
 
     if (ReportUtils.isGroupChat(newReportObject)) {

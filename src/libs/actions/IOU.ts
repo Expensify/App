@@ -70,6 +70,7 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
+import type Onboarding from '@src/types/onyx/Onboarding';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -284,6 +285,12 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+let onboarding: OnyxEntry<Onboarding | []>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => (onboarding = value),
 });
 
 /**
@@ -7502,9 +7509,10 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
  * @param paymentSelected based on which we choose the onboarding choice and concierge message
  */
 function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
-    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
-
-    if (isInviteOnboardingComplete || !introSelected?.choice) {
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
+    const hasCompletedGuidedSetup = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
+    
+    if (hasCompletedGuidedSetup || isInviteOnboardingComplete || !introSelected?.choice) {
         return;
     }
 
