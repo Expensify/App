@@ -201,6 +201,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Schedule AWS Device Farm test run on main branch (retryable)
+        id: schedule-awsdf-main
         run: |
           MAX_RETRIES=3
           RETRY_DELAY=60  # 1 minute delay between retries
