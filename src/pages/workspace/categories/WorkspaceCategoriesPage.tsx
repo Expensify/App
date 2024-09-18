@@ -63,7 +63,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
-    const [downloadFailureModalVisible, setDownloadFailureModalVisible] = useState(false);
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
@@ -323,9 +323,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Category.downloadCategoriesCSV(policyId, () => {
-                        setDownloadFailureModalVisible(true);
-                    });
+                    Modal.close(() => {
+                        Category.downloadCategoriesCSV(policyId, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    })
                 },
             });
         }
@@ -428,10 +430,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     title={translate('common.downloadFailedTitle')}
                     prompt={translate('common.downloadFailedDescription')}
                     isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setDownloadFailureModalVisible(false)}
+                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
                     secondOptionText={translate('common.buttonConfirm')}
-                    isVisible={downloadFailureModalVisible}
-                    onClose={() => setDownloadFailureModalVisible(false)}
+                    isVisible={isDownloadFailureModalVisible}
+                    onClose={() => setIsDownloadFailureModalVisible(false)}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
