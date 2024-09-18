@@ -17,11 +17,13 @@ describe('libs/NextStepUtils', () => {
         const currentUserAccountID = 37;
         const strangeEmail = 'stranger@expensify.com';
         const strangeAccountID = 50;
+        const ownerEmail = 'owner@expensify.com';
+        const ownerAccountID = 99;
         const policyID = '1';
         const policy: Policy = {
             // Important props
             id: policyID,
-            owner: currentUserEmail,
+            owner: ownerEmail,
             harvesting: {
                 enabled: false,
             },
@@ -54,6 +56,11 @@ describe('libs/NextStepUtils', () => {
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
+                        avatar: '',
+                    },
+                    [ownerAccountID]: {
+                        accountID: ownerAccountID,
+                        login: ownerEmail,
                         avatar: '',
                     },
                 },
@@ -360,14 +367,13 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for userAdmin to pay expense(s)
+                // Waiting for an admin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${currentUserEmail}`,
-                        type: 'strong',
+                        text: `an admin`,
                     },
                     {
                         text: ' to ',
@@ -495,14 +501,13 @@ describe('libs/NextStepUtils', () => {
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for userAdmin to pay expense(s).
+                // Waiting for an admin to pay expense(s).
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: currentUserEmail,
-                        type: 'strong',
+                        text: 'an admin',
                     },
                     {
                         text: ' to ',
