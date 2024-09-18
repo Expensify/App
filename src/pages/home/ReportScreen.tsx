@@ -213,13 +213,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             },
         [reportOnyx, permissions],
     );
+    const reportID = report?.reportID;
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
-    const {reportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(report?.reportID, reportActionIDFromRoute);
+    const {reportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -255,7 +256,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report?.reportID ?? '', reportActions ?? [], isOffline);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID ?? '', reportActions ?? [], isOffline);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
     const combinedReportActions = ReportActionsUtils.getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action));
@@ -303,16 +304,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }
 
     useEffect(() => {
-        if (
-            !transactionThreadReportID ||
-            !route?.params?.reportActionID ||
-            !report?.reportID ||
-            !ReportUtils.isOneTransactionThread(linkedAction?.childReportID ?? '-1', report?.reportID, linkedAction)
-        ) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !ReportUtils.isOneTransactionThread(linkedAction?.childReportID ?? '-1', reportID ?? '', linkedAction)) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, report?.reportID]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
 
     if (report && (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report))) {
         headerView = (
@@ -387,7 +383,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return false;
         }
 
-        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !report?.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
             return true;
         }
 
@@ -399,7 +395,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
         finishedLoadingApp,
-        report?.reportID,
+        reportID,
         isOptimisticDelete,
         reportMetadata?.isLoadingInitialReportActions,
         userLeavingStatus,
@@ -412,11 +408,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
-        if (!report?.reportID || !isFocused) {
+        if (!reportID || !isFocused) {
             return;
         }
-        Report.updateLastVisitTime(report?.reportID);
-    }, [report?.reportID, isFocused]);
+        Report.updateLastVisitTime(reportID);
+    }, [reportID, isFocused]);
 
     const fetchReportIfNeeded = useCallback(() => {
         // Report ID will be empty when the reports collection is empty.
@@ -452,16 +448,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? ''));
     }, [accountManagerReportID]);
 
-    const reportID = report?.reportID;
-
     // Clear notifications for the current report when it's opened and re-focused
     const clearNotifications = useCallback(() => {
         // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
-        if (!isTopMostReportId || !reportID) {
+        if (!isTopMostReportId) {
             return;
         }
 
-        clearReportNotifications(reportID);
+        clearReportNotifications(reportID ?? '');
     }, [reportID, isTopMostReportId]);
 
     useEffect(clearNotifications, [clearNotifications]);
@@ -480,7 +474,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 return;
             }
 
-            Report.unsubscribeFromLeavingRoomReportChannel(report?.reportID ?? '');
+            Report.unsubscribeFromLeavingRoomReportChannel(reportID ?? '');
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
@@ -516,17 +510,16 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             prevIsFocused ||
             !ReportUtils.isChatThread(report) ||
             ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
-            isSingleTransactionView ||
-            !report?.reportID
+            isSingleTransactionView
         ) {
             return;
         }
-        Report.openReport(report?.reportID);
+        Report.openReport(reportID ?? '');
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report?.participants, isFocused, isSingleTransactionView, report?.reportID]);
+    }, [prevIsFocused, report?.participants, isFocused, isSingleTransactionView, reportID]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -681,11 +674,11 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [isLinkedActionInaccessibleWhisper]);
 
     useEffect(() => {
-        if (!!report?.lastReadTime || !ReportUtils.isTaskReport(report) || !report?.reportID) {
+        if (!!report?.lastReadTime || !ReportUtils.isTaskReport(report)) {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        Report.readNewestAction(report?.reportID);
+        Report.readNewestAction(report?.reportID ?? '');
     }, [report]);
     const firstReportAction = reportActions[0];
 
