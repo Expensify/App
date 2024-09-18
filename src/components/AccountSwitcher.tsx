@@ -190,7 +190,8 @@ function AccountSwitcher() {
                         }
                         item.onSelected();
                     }}
-                    containerStyle={{maxHeight: windowHeight / 2, width: 'fit-content'}}
+                    containerStyles={{maxHeight: windowHeight / 2, width: 'fit-content', maxWidth: '100%'}}
+                    headerStyles={styles.pt0}
                     shouldUseScrollView
                 />
             )}

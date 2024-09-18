@@ -108,7 +108,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Used to apply styles specifically to the header text */
-    headerStyle?: TextStyle;
+    headerStyles?: StyleProp<TextStyle>;
 
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
@@ -137,8 +137,8 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
-    containerStyle,
-    headerStyle,
+    containerStyles,
+    headerStyles,
     shouldUseScrollView = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -216,7 +216,7 @@ function PopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyle]}>{headerText}</Text>;
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -271,7 +271,7 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyle]}>
+                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     <WrapComponent>
