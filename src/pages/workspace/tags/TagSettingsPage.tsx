@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,16 +27,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyTagLists} from '@src/types/onyx';
 
-type TagSettingsPageOnyxProps = {
-    /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
+type TagSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
-type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
-
-function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
+function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
     const {orderWeight, policyID, tagName} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -198,8 +192,4 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
 TagSettingsPage.displayName = 'TagSettingsPage';
 
-export default withOnyx<TagSettingsPageProps, TagSettingsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(TagSettingsPage);
+export default TagSettingsPage;
