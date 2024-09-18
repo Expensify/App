@@ -15,7 +15,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
