@@ -591,13 +591,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
-    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-    // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    if (String(reportAction.reportActionID) === key) {
-        Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-        return true;
-    }
-
     const deprecatedOldDotReportActions: ReportActionName[] = [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
