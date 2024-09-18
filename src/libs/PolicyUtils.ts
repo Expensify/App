@@ -409,6 +409,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
@@ -1049,6 +1053,7 @@ export {
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     isPolicyOwner,
+    arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
