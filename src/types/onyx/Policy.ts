@@ -1412,9 +1412,6 @@ type ExpenseRule = {
     id?: string;
 };
 
-/** The name of the category or tag */
-type CategoryOrTagName = string;
-
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
