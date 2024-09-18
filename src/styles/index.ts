@@ -5095,6 +5095,11 @@ const styles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        pendingStateCardIllustration: {
+            width: 233,
+            height: 162,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
