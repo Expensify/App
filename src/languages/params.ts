@@ -517,7 +517,33 @@ type ConnectionParams = {
     connection: string;
 };
 
+type MissingPropertyParams = {
+    propertyName: string;
+};
+
+type InvalidPropertyParams = {
+    propertyName: string;
+    expectedType: string;
+};
+
+type InvalidValueParams = {
+    expectedValues: string;
+};
+
+type ImportTagsSuccessfullDescriptionParams = {
+    tags: number;
+};
+
+type ImportedTagsMessageParams = {
+    columnCounts: number;
+};
+
 export type {
+    ImportedTagsMessageParams,
+    ImportTagsSuccessfullDescriptionParams,
+    MissingPropertyParams,
+    InvalidPropertyParams,
+    InvalidValueParams,
     ConnectionParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
