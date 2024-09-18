@@ -53,7 +53,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
-                    {translate('travel.subtitle')}
+                    {translate('travel.subtitle')}{' '}
                     <TextLink
                         onPress={() => {
                             Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
