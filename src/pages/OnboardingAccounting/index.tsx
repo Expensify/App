@@ -20,6 +20,6 @@ function OnboardingAccounting({...rest}: OnboardingAccountingProps) {
     );
 }
 
-OnboardingAccounting.displayName = 'OnboardingPurpose';
+OnboardingAccounting.displayName = 'OnboardingAccounting';
 
 export default OnboardingAccounting;
