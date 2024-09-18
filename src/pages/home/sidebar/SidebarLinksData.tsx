@@ -34,7 +34,7 @@ type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
 function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
-    const activeWorkspaceID = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
 
     const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();

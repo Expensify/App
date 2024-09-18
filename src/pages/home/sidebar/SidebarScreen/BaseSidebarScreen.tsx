@@ -27,7 +27,7 @@ const startTimer = () => {
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
-    const activeWorkspaceID = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 

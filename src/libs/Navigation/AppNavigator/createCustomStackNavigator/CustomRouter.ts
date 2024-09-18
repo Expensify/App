@@ -1,6 +1,7 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, getPathFromState, StackActions, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
@@ -62,6 +63,7 @@ type CustomRootStackActionType = {
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
+    const {setActiveWorkspaceID} = useActiveWorkspace();
 
     // @TODO: Make sure that everything works fine without compareAndAdaptState function
     return {
@@ -75,15 +77,19 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     if (!queryJSON) {
                         return null;
                     }
+
                     if (action.payload.policyID) {
                         queryJSON.policyID = action.payload.policyID;
                     } else {
                         delete queryJSON.policyID;
                     }
+
                     const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
                         ...currentParams,
                         q: SearchUtils.buildSearchQueryString(queryJSON),
                     });
+
+                    setActiveWorkspaceID(action.payload.policyID);
                     return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
                 if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
@@ -101,6 +107,8 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                         return stackRouter.getStateForAction(state, newAction, configOptions);
                     }
                     const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
+
+                    setActiveWorkspaceID(action.payload.policyID);
                     return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
                 // We don't have other navigators that should handle switch policy action.

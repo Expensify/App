@@ -64,7 +64,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const activeWorkspaceID = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
 

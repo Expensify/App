@@ -116,7 +116,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const activeWorkspaceID = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);

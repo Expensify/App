@@ -115,7 +115,7 @@ function WorkspacesListPage() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const activeWorkspaceID = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
