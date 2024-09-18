@@ -6440,12 +6440,11 @@ function getReportFromHoldRequestsOnyxData(
     const firstHoldTransaction = holdTransactions[0];
     const newParentReportActionID = rand64();
 
-    const holdTotal = iouReport.total && iouReport.unheldTotal ? iouReport.total - iouReport.unheldTotal : 0;
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
         chatReport.reportID,
         chatReport.policyID ?? iouReport.policyID ?? '',
         recipient.accountID ?? 1,
-        holdTotal * -1,
+        holdTransactions.reduce((acc, transaction) => acc + transaction.amount, 0) * -1,
         getCurrency(firstHoldTransaction),
         false,
         newParentReportActionID,
