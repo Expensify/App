@@ -3266,8 +3266,6 @@ export default {
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
             importMembers: 'Import members',
-            importedMembersMessage: (columnCounts: number) =>
-                `We found *${columnCounts} columns* in your spreadsheet. Select *Email* next to the column that contains emails. You can also select *Role* next to the column that sets users roles.`,
         },
         card: {
             header: 'Unlock free Expensify Cards',
