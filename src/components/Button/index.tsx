@@ -80,6 +80,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style?: StyleProp<ViewStyle>;
 
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
+
     /** Additional button styles. Specific to the OpacityView of the button */
     innerStyles?: StyleProp<ViewStyle>;
 
@@ -140,13 +143,13 @@ type ButtonProps = Partial<ChildrenProps> & {
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
 
-const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
+const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
 function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? ''), [activeElementRole]);
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -190,7 +193,7 @@ function Button(
 
         small = false,
         large = false,
-        medium = false,
+        medium = !small && !large,
 
         isLoading = false,
         isDisabled = false,
@@ -206,6 +209,7 @@ function Button(
         enterKeyEventListenerPriority = 0,
 
         style = [],
+        disabledStyle,
         innerStyles = [],
         textStyles = [],
         textHoverStyles = [],
@@ -328,6 +332,9 @@ function Button(
                 />
             )}
             <PressableWithFeedback
+                dataSet={{
+                    listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
+                }}
                 ref={ref}
                 onLayout={onLayout}
                 onPress={(event) => {
@@ -381,6 +388,7 @@ function Button(
                     danger && !isDisabled ? styles.buttonDangerHovered : undefined,
                     hoverStyles,
                 ]}
+                disabledStyle={disabledStyle}
                 id={id}
                 accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}
