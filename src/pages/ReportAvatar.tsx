@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import React, {useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -10,34 +9,46 @@ import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report} from '@src/types/onyx';
 
-type ReportAvatarOnyxProps = {
-    report: OnyxEntry<Report>;
-    isLoadingApp: OnyxEntry<boolean>;
-    policies: OnyxCollection<Policy>;
-};
+type ReportAvatarProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
+function ReportAvatar({route}: ReportAvatarProps) {
+    const reportIDFromRoute = route.params?.reportID ?? '-1';
+    const policyIDFromRoute = route.params?.policyID ?? '-1';
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDFromRoute}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
-function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true}: ReportAvatarProps) {
-    const policyID = route.params.policyID ?? '-1';
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const policyName = ReportUtils.getPolicyName(report, false, policy);
-    const avatarURL = ReportUtils.getWorkspaceIcon(report).source;
+    const attachment = useMemo(() => {
+        if (ReportUtils.isGroupChat(report) && !ReportUtils.isThread(report)) {
+            return {
+                source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID ?? ''),
+                headerTitle: ReportUtils.getReportName(report),
+                originalFileName: report?.avatarFileName ?? '',
+                isWorkspaceAvatar: false,
+            };
+        }
+
+        return {
+            source: UserUtils.getFullSizeAvatar(ReportUtils.getWorkspaceIcon(report).source, 0),
+            headerTitle: ReportUtils.getPolicyName(report, false, policy),
+            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
+            originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
+            isWorkspaceAvatar: true,
+        };
+    }, [report, policy]);
 
     return (
         <AttachmentModal
-            headerTitle={policyName}
+            headerTitle={attachment.headerTitle}
             defaultOpen
-            source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
+            source={attachment.source}
             onModalClose={() => {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
             }}
-            isWorkspaceAvatar
+            isWorkspaceAvatar={attachment.isWorkspaceAvatar}
             maybeIcon
-            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
-            originalFileName={policy?.originalFileName ?? policy?.id ?? report?.policyID}
+            originalFileName={attachment.originalFileName}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
@@ -45,15 +56,4 @@ function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = tr
 }
 
 ReportAvatar.displayName = 'ReportAvatar';
-
-export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(ReportAvatar);
+export default ReportAvatar;
