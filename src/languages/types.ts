@@ -58,6 +58,7 @@ type WelcomeToRoomParams = {
 
 type UsePlusButtonParams = {
     additionalText: string;
+    type?: string;
 };
 
 type ReportArchiveReasonsClosedParams = {

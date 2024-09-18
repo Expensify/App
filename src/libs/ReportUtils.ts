@@ -6532,7 +6532,6 @@ function getMoneyRequestOptionsText(
     moneyRequestOptions: Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>,
 ): string {    
     const moneyRequestOptionsList = moneyRequestOptions
-        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
         .map((item, i) => Localize.translateLocal(`reportActionsView.iouTypes.${item}`));
 
     if (moneyRequestOptionsList.length > 1) {

@@ -10,7 +10,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -206,8 +205,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) || moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) && (
-                    <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) || moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.INVOICE)) && (
+                    <Text>{translate('reportActionsView.usePlusButton', {additionalText, type: isInvoiceRoom ? report?.chatType : undefined} )}</Text>
                 )}
             </View>
         </>
