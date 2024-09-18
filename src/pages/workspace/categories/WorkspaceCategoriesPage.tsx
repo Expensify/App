@@ -327,7 +327,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Category.downloadCategoriesCSV(policyId, () => {
                             setIsDownloadFailureModalVisible(true);
                         });
-                    })
+                    });
                 },
             });
         }
