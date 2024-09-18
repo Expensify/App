@@ -29,6 +29,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
@@ -39,10 +40,16 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const handleSubmitForm = useCallback(
         (submitCode: string) => {
             User.validateSecondaryLogin(loginList, contactMethod ?? '', submitCode);
-            Navigation.navigate(navigateBackTo);
         },
-        [loginList, contactMethod, navigateBackTo],
+        [loginList, contactMethod],
     );
+
+    useEffect(() => {
+        if (!isUserValidated) {
+            return;
+        }
+        Navigation.navigate(navigateBackTo);
+    }, [isUserValidated, navigateBackTo]);
 
     return (
         <ScreenWrapper

@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
@@ -52,7 +53,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack();
+                Navigation.navigate(ROUTES.SETTINGS_WALLET);
             }
         },
         [personalBankAccount],
@@ -97,7 +98,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                             text={translate('walletPage.chooseAccountBody')}
                             plaidData={plaidData}
                             isDisplayedInWalletFlow
-                            onExitPlaid={() => Navigation.goBack()}
+                            onExitPlaid={() => Navigation.navigate(ROUTES.SETTINGS_WALLET)}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             selectedPlaidAccountID={selectedPlaidAccountId}
                         />
