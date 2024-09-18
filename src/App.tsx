@@ -20,6 +20,7 @@ import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
+import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -94,6 +95,7 @@ function App({url}: AppProps) {
                                 VolumeContextProvider,
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
+                                SearchRouterContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

@@ -32,6 +32,7 @@ function BaseListItem<TItem extends ListItem>({
     children,
     isFocused,
     shouldSyncFocus = true,
+    shouldDisplayRBR = true,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
@@ -126,7 +127,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && !!item.brickRoadIndicator && (
+                    {!item.isSelected && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}
