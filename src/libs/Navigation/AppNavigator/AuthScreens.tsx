@@ -49,6 +49,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
@@ -203,9 +204,9 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 function AuthScreens() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [session, sessionStatus] = useOnyx(ONYXKEYS.SESSION);
+    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -384,6 +385,9 @@ function AuthScreens() {
         // Prevent unnecessary scrolling
         cardStyle: styles.cardStyleNavigator,
     };
+    if (isLoadingOnyxValue(sessionStatus, lastOpenedPublicRoomIDStatus, initialLastUpdateIDAppliedToClientStatus)) {
+        return;
+    }
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
