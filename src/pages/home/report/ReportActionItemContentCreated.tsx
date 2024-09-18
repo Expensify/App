@@ -149,7 +149,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
         return (
             <OfflineWithFeedback pendingAction={action.pendingAction}>
-                {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
+                {!isEmptyObject(transactionThreadReport?.reportID) ? (
                     <>
                         <MoneyReportView
                             report={report}

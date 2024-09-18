@@ -21,6 +21,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -110,6 +111,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             }),
         [policyCategories, selectedCategories, canSelectMultiple, translate],
     );
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
     const toggleCategory = useCallback((category: PolicyOption) => {
         setSelectedCategories((prev) => {
