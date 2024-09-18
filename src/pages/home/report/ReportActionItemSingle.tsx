@@ -200,99 +200,126 @@ function ReportActionItemSingle({
         [action, isWorkspaceActor, actorAccountID],
     );
 
-    const getAvatar = () => {
-        if (displayAllActors) {
-            return (
-                <MultipleAvatars
-                    icons={[icon, secondaryAvatar]}
-                    isInReportAction
-                    shouldShowTooltip
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-                />
-            );
-        }
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    mainAvatar={icon}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
-                />
-            );
-        }
-        return (
-            <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? -1)}
-                delegateAccountID={Number(action?.delegateAccountID ?? -1)}
-                icon={icon}
-            >
-                <View>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={icon.source}
-                        type={icon.type}
-                        name={icon.name}
-                        avatarID={icon.id}
-                        fallbackIcon={fallbackIcon}
+    const getAvatar = useMemo(() => {
+        return () => {
+            if (displayAllActors) {
+                return (
+                    <MultipleAvatars
+                        icons={[icon, secondaryAvatar]}
+                        isInReportAction
+                        shouldShowTooltip
+                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
                     />
-                </View>
-            </UserDetailsTooltip>
-        );
-    };
+                );
+            }
+            if (shouldShowSubscriptAvatar) {
+                return (
+                    <SubscriptAvatar
+                        mainAvatar={icon}
+                        secondaryAvatar={secondaryAvatar}
+                        noMargin
+                    />
+                );
+            }
+            return (
+                <UserDetailsTooltip
+                    accountID={Number(actorAccountID ?? -1)}
+                    delegateAccountID={Number(action?.delegateAccountID ?? -1)}
+                    icon={icon}
+                >
+                    <View>
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={icon.source}
+                            type={icon.type}
+                            name={icon.name}
+                            avatarID={icon.id}
+                            fallbackIcon={fallbackIcon}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            );
+        };
+    }, [
+        displayAllActors,
+        shouldShowSubscriptAvatar,
+        actorAccountID,
+        action?.delegateAccountID,
+        icon,
+        styles.actionAvatar,
+        fallbackIcon,
+        secondaryAvatar,
+        StyleUtils,
+        theme.appBG,
+        theme.hoverComponentBG,
+        isHovered,
+    ]);
 
-    const getHeading = () => {
-        if (displayAllActors && secondaryAvatar.name) {
+    const getHeading = useMemo(() => {
+        return () => {
+            if (displayAllActors && secondaryAvatar.name && isReportPreviewAction) {
+                return (
+                    <View style={[styles.flexRow]}>
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${0}`}
+                            accountID={actorAccountID ?? -1}
+                            fragment={{...personArray[0], type: 'TEXT', text: displayName ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.chatItemMessageHeaderSender, styles.pre]}
+                        >
+                            {` & `}
+                        </Text>
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${1}`}
+                            accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
+                            fragment={{...personArray[1], type: 'TEXT', text: secondaryAvatar.name ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={secondaryAvatar}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    </View>
+                );
+            }
             return (
-                <View style={[styles.flexRow]}>
-                    <ReportActionItemFragment
-                        style={[styles.flex1]}
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`person-${action?.reportActionID}-${0}`}
-                        accountID={actorAccountID ?? -1}
-                        fragment={{...personArray[0], type: 'TEXT', text: displayName ?? ''}}
-                        delegateAccountID={action?.delegateAccountID}
-                        isSingleLine
-                        actorIcon={icon}
-                        moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                    />
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.chatItemMessageHeaderSender, styles.pre]}
-                    >
-                        {` & `}
-                    </Text>
-                    <ReportActionItemFragment
-                        style={[styles.flex1]}
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`person-${action?.reportActionID}-${1}`}
-                        accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
-                        fragment={{...personArray[1], type: 'TEXT', text: secondaryAvatar.name ?? ''}}
-                        delegateAccountID={action?.delegateAccountID}
-                        isSingleLine
-                        actorIcon={secondaryAvatar}
-                        moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                    />
+                <View>
+                    {personArray?.map((fragment) => (
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${actorAccountID}`}
+                            accountID={actorAccountID ?? -1}
+                            fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    ))}
                 </View>
             );
-        }
-        return (
-            <View>
-                {personArray?.map((fragment, index) => (
-                    <ReportActionItemFragment
-                        style={[styles.flex1]}
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`person-${action?.reportActionID}-${index}`}
-                        accountID={actorAccountID ?? -1}
-                        fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                        delegateAccountID={action?.delegateAccountID}
-                        isSingleLine
-                        actorIcon={icon}
-                        moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                    />
-                ))}
-            </View>
-        );
-    };
+        };
+    }, [
+        displayAllActors,
+        secondaryAvatar,
+        isReportPreviewAction,
+        personArray,
+        styles.flexRow,
+        styles.flex1,
+        styles.chatItemMessageHeaderSender,
+        styles.pre,
+        action,
+        actorAccountID,
+        displayName,
+        icon,
+    ]);
 
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
