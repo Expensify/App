@@ -529,45 +529,59 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
-        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
-            }
-        }
-        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-            const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
-            return `${value}`;
-        }
-        if (filterKey === FILTER_KEYS.TYPE && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizeString(filterValue as string)}`;
-        }
-        if (filterKey === FILTER_KEYS.STATUS && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeString(filterValue as string)}`;
-        }
-        if (
-            (filterKey === FILTER_KEYS.CATEGORY ||
-                filterKey === FILTER_KEYS.CARD_ID ||
-                filterKey === FILTER_KEYS.TAX_RATE ||
-                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
-                filterKey === FILTER_KEYS.TAG ||
-                filterKey === FILTER_KEYS.CURRENCY ||
-                filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO ||
-                filterKey === FILTER_KEYS.IN) &&
-            Array.isArray(filterValue) &&
-            filterValue.length > 0
-        ) {
-            const filterValueArray = [...new Set<string>(filterValues[filterKey] ?? [])];
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
-            }
-        }
+    // We separate type and status filters from other filters to maintain hashes consistency for saved searches
+    const {type, status, ...otherFilters} = filterValues;
+    const filtersString: string[] = [];
 
-        return undefined;
-    });
+    if (type) {
+        const sanitizedType = sanitizeString(type);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
+    }
+
+    if (status) {
+        const sanitizedStatus = sanitizeString(status);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    const mappedFilters = Object.entries(otherFilters)
+        .map(([filterKey, filterValue]) => {
+            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+                }
+            }
+
+            if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
+                const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
+                return `${value}`;
+            }
+
+            if (
+                (filterKey === FILTER_KEYS.CATEGORY ||
+                    filterKey === FILTER_KEYS.CARD_ID ||
+                    filterKey === FILTER_KEYS.TAX_RATE ||
+                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                    filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.IN) &&
+                Array.isArray(filterValue) &&
+                filterValue.length > 0
+            ) {
+                const filterValueArray = [...new Set<string>(filterValue)];
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
+                }
+            }
+
+            return undefined;
+        })
+        .filter((filter): filter is string => !!filter);
+
+    filtersString.push(...mappedFilters);
 
     const dateFilter = buildDateFilterQuery(filterValues);
     filtersString.push(dateFilter);
@@ -575,7 +589,7 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
 
-    return filtersString.filter(Boolean).join(' ');
+    return filtersString.join(' ').trim();
 }
 
 /**
