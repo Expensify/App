@@ -1,4 +1,3 @@
-import differenceInMilliseconds from 'date-fns/differenceInMilliseconds';
 import React from 'react';
 import {useErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
@@ -14,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import refreshPage from '@libs/refreshPage';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,26 +24,8 @@ function GenericErrorPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
     const {resetBoundary} = useErrorBoundary();
-
-    const refresh = () => {
-        const lastRefreshTimestamp = JSON.parse(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP) ?? 'null') as string;
-
-        if (lastRefreshTimestamp === null || differenceInMilliseconds(Date.now(), Number(lastRefreshTimestamp)) > CONST.ERROR_WINDOW_RELOAD_TIMEOUT || !window?.location?.reload) {
-            resetBoundary();
-            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP, Date.now().toString());
-
-            return;
-        }
-
-        window.location.reload();
-        sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP);
-    };
-
-    const refreshAndSignOut = () => {
-        Session.signOutAndRedirectToSignIn();
-        refresh();
-    };
 
     return (
         <SafeAreaConsumer>
@@ -80,11 +62,14 @@ function GenericErrorPage() {
                                         success
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
-                                        onPress={refresh}
+                                        onPress={() => refreshPage(resetBoundary)}
                                     />
                                     <Button
                                         text={translate('initialSettingsPage.signOut')}
-                                        onPress={refreshAndSignOut}
+                                        onPress={() => {
+                                            Session.signOutAndRedirectToSignIn();
+                                            refreshPage(resetBoundary);
+                                        }}
                                     />
                                 </View>
                             </View>
