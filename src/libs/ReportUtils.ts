@@ -3696,7 +3696,6 @@ function getReportName(
 
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
-    // let parentReportAction = parentReportActionParam as OnyxEntry<ReportAction>;
     if (parentReportActionParam) {
         parentReportAction = parentReportActionParam;
     } else {
