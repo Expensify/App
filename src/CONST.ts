@@ -1155,7 +1155,6 @@ const CONST = {
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
     },
