@@ -22,13 +22,12 @@ type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeo
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const contactMethod = account?.primaryLogin ?? '';
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const firstRenderRef = useRef(true);
-    const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
+    const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
@@ -67,7 +66,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('contacts.validateAccount')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_BANK_ACCOUNT)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
                 <Text style={[themeStyles.mb3]}>{translate('contacts.featureRequiresValidate')}</Text>
@@ -75,7 +74,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
                     validateCodeAction={validateCodeAction}
                     validateError={validateLoginError}
                     handleSubmitForm={handleSubmitForm}
-                    clearError={() => {}}
+                    clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
                 />
             </View>
         </ScreenWrapper>
