@@ -136,30 +136,6 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 return state;
             }
 
-            /**
-             * When we go back from the chat opened in the Chats section to the chat opened in the Search RHP we have to pop the Home screen from the Bottom tab navigator to display correctly Search page under RHP on native platform.
-             * It fixes this issue: https://github.com/Expensify/App/issues/48882
-             */
-            if (action.type === 'GO_BACK' || action.type === 'POP') {
-                const shouldPopHome =
-                    state.routes.length >= 3 &&
-                    state.routes.at(-1)?.name === SCREENS.REPORT &&
-                    state.routes.at(-2)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
-                    getTopmostBottomTabRoute(state as State<RootStackParamList>)?.name === SCREENS.HOME;
-
-                if (!shouldPopHome) {
-                    return stackRouter.getStateForAction(state, action, configOptions);
-                }
-
-                const bottomTabState = state.routes.at(0)?.state;
-                const newBottomTabState = {...bottomTabState, routes: bottomTabState?.routes?.slice(0, -1), index: (bottomTabState?.index ?? 0) - 1};
-
-                const newState = {...state};
-                newState.routes[0].state = newBottomTabState as State;
-
-                return stackRouter.getStateForAction(state, action, configOptions);
-            }
-
             return stackRouter.getStateForAction(state, action, configOptions);
         },
     };
