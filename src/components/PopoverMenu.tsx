@@ -2,7 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {Fragment, useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -107,6 +107,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** The style of content container which wraps all child views */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Used to apply styles specifically to the header text */
+    headerStyle?: TextStyle;
+
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 };
@@ -135,6 +138,7 @@ function PopoverMenu({
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
     containerStyle,
+    headerStyle,
     shouldUseScrollView = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -212,7 +216,7 @@ function PopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyle]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -283,7 +287,7 @@ function PopoverMenu({
                                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                                     shouldCheckActionAllowedOnPress={false}
                                     onFocus={() => setFocusedIndex(menuIndex)}
-                                    style={{backgroundColor: focusedIndex === menuIndex ? theme.activeComponentBG : undefined}}
+                                    style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                                     // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...menuItemProps}
