@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {View, StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -29,6 +29,14 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
 
     /** The policy for the current route */
     policy: OnyxEntry<Policy>;
+};
+
+type RoomDescriptionProps = {
+    /** On press event */
+    onPress: () => void;
+
+    /** Styles */
+    style: StyleProp<TextStyle>[];
 };
 
 function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
@@ -83,6 +91,23 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         return translate('reportActionsView.sayHello');
     }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
 
+    const RoomDescription = (props: RoomDescriptionProps) => (
+        <PressableWithoutFeedback
+            {...props}
+            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+        >
+            <RenderHTML html={welcomeMessage.messageHtml} />
+        </PressableWithoutFeedback>
+    );
+
+    const roomOnPress = () => {
+        if (ReportUtils.canEditReportDescription(report, policy)) {
+            Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1'));
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+    };
+
     return (
         <>
             <View>
@@ -91,18 +116,14 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat &&
                     (welcomeMessage?.messageHtml ? (
-                        <PressableWithoutFeedback
+                        <RoomDescription
                             onPress={() => {
                                 if (!canEditPolicyDescription) {
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
-                            }}
-                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                        >
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </PressableWithoutFeedback>
+                            }} 
+                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]} />
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
@@ -114,19 +135,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                     ))}
                 {isChatRoom &&
                     (welcomeMessage?.messageHtml ? (
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                if (ReportUtils.canEditReportDescription(report, policy)) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1'));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
-                            }}
-                            style={styles.renderHTML}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                        >
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </PressableWithoutFeedback>
+                        <RoomDescription
+                            onPress={roomOnPress}
+                            style={styles.renderHTML} />
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
@@ -164,15 +175,19 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         <Text>{welcomeMessage.phrase2}</Text>                    
                     </Text>
                 )}
-                {isInvoiceRoom && (
-                    <Text>
+                {isInvoiceRoom && (welcomeMessage?.messageHtml ? (
+                    <RoomDescription
+                        onPress={roomOnPress}
+                        style={styles.renderHTML} />
+                ) : (
+                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
                         <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>  
                         <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
                         <Text>{welcomeMessage.phrase3}</Text>                   
                     </Text>
-                )}
+                ))}
                 {isSystemChat && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>                       
