@@ -681,7 +681,9 @@ export default {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importSuccessfullTitle: 'Importar categorías',
+        importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
         invalidFileMessage:
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
@@ -3017,7 +3019,6 @@ export default {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
-            importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
             subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
@@ -3231,6 +3232,9 @@ export default {
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
+            importTags: 'Importar categorías',
+            importedTagsMessage: (columnCounts: number) =>
+                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -3334,6 +3338,8 @@ export default {
                     }
                 }
             },
+            errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
+            goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
             setup: 'Configurar',
             lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
@@ -3901,6 +3907,7 @@ export default {
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
                 unlockFeatureGoToSubtitle: 'Ir a',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                enableFeatureSubtitle: (featureName: string) => `y habilita ${featureName} para desbloquear esta función.`,
             },
             categoryRules: {
                 title: 'Reglas de categoría',
