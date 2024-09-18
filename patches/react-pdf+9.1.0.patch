@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-pdf/dist/cjs/Document.js b/node_modules/react-pdf/dist/cjs/Document.js
+index ed7114d..43d648b 100644
+--- a/node_modules/react-pdf/dist/cjs/Document.js
++++ b/node_modules/react-pdf/dist/cjs/Document.js
+@@ -281,6 +281,7 @@ const Document = (0, react_1.forwardRef)(function Document(_a, ref) {
+             pdfDispatch({ type: 'REJECT', error });
+         });
+         return () => {
++            loadingTask._worker.destroy();
+             loadingTask.destroy();
+         };
+     }, [options, pdfDispatch, source]);
+diff --git a/node_modules/react-pdf/dist/esm/Document.js b/node_modules/react-pdf/dist/esm/Document.js
+index 997a370..894e3c9 100644
+--- a/node_modules/react-pdf/dist/esm/Document.js
++++ b/node_modules/react-pdf/dist/esm/Document.js
+@@ -253,6 +253,7 @@ const Document = forwardRef(function Document(_a, ref) {
+             pdfDispatch({ type: 'REJECT', error });
+         });
+         return () => {
++            loadingTask._worker.destroy();
+             loadingTask.destroy();
+         };
+     }, [options, pdfDispatch, source]);

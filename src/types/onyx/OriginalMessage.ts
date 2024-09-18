@@ -175,6 +175,9 @@ type OriginalMessageClosed = {
 
     /** If the report was closed because accounts got merged, then this is the old account ID */
     oldAccountID?: number;
+
+    /** Name of the invoice receiver's policy */
+    receiverPolicyName?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -520,12 +523,19 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
  */
 type OriginalMessageExpensifyCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
 };
+
+/**
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ */
+type IssueNewCardOriginalMessage = OriginalMessage<
+    typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+>;
 
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
@@ -617,4 +627,5 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
+    IssueNewCardOriginalMessage,
 };
