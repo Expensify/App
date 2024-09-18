@@ -10,7 +10,7 @@ type CompleteGuidedSetupParams = {
     engagementChoice: OnboardingPurposeType;
     paymentSelected?: string;
     companySize?: OnboardingCompanySizeType;
-    userReportedIntegration?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    userReportedIntegration?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
 };
 
 export default CompleteGuidedSetupParams;
