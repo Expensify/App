@@ -4312,10 +4312,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
-        purposeMenuItemSelected: {
-            backgroundColor: theme.activeComponentBG,
-        },
-
         willChangeTransform: {
             willChange: 'transform',
         },
