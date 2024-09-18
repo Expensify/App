@@ -1,5 +1,5 @@
 import {useNavigationState} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
 import * as SearchUtils from '@libs/SearchUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -7,6 +7,8 @@ import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
+    const [activeWorkspaceID, setActiveWorkspaceID] = useState<string | undefined>(undefined);
+
     const lastPolicyRoute = useNavigationState((state) =>
         state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE),
     );

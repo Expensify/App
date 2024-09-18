@@ -1,6 +1,7 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, getPathFromState, StackActions, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
@@ -89,11 +90,13 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     if (!queryJSON) {
                         return null;
                     }
+
                     if (action.payload.policyID) {
                         queryJSON.policyID = action.payload.policyID;
                     } else {
                         delete queryJSON.policyID;
                     }
+
                     const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
                         ...currentParams,
                         q: SearchUtils.buildSearchQueryString(queryJSON),
