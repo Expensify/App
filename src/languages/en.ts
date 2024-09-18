@@ -3856,6 +3856,7 @@ export default {
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid. ',
                 unlockFeatureGoToSubtitle: 'Go to',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `and enable workflows, then add ${featureName} to unlock this feature.`,
+                enableFeatureSubtitle: (featureName: string) => `and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
                 title: 'Category rules',
