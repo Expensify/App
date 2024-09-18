@@ -58,7 +58,7 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
  * After everything is implemented this function can be removed, as we will always use SearchRouter in the App.
  */
 function canUseNewSearchRouter() {
-    return Environment.isDevelopment();
+    return true;
 }
 
 /**

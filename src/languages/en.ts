@@ -4065,6 +4065,8 @@ export default {
             past: 'Past',
         },
         expenseType: 'Expense type',
+        recentSearches: 'Recent searches',
+        recentChats: 'Recent chats',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

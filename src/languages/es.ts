@@ -4116,6 +4116,8 @@ export default {
             past: 'Anterior',
         },
         expenseType: 'Tipo de gasto',
+        recentSearches: 'Búsquedas recientes',
+        recentChats: 'Chats recientes',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

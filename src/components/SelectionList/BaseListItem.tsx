@@ -88,7 +88,8 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.text ?? ''}
+                // accessibilityDisabled
+                accessibilityLabel=""
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}

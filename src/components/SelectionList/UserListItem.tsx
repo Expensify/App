@@ -47,11 +47,12 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
-
+    // console.log('%%%%%\n', 'onFocus', item);
+    // console.log('%%%%%\n', 'pressable', pressable);
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, styles.br2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -62,7 +63,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
-            pressableStyle={pressableStyle}
+            pressableStyle={[isFocused && styles.sidebarLinkActive, pressableStyle]}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
@@ -109,11 +110,13 @@ function UserListItem<TItem extends ListItem>({
                             <MultipleAvatars
                                 icons={item.icons ?? []}
                                 shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
+                                secondAvatarStyle={
+                                    [
+                                        // StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        // isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        // hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]
+                                }
                             />
                         ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

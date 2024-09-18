@@ -306,6 +306,7 @@ export type {default as ToggleCardContinuousReconciliationParams} from './Toggle
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as SaveSearchParams} from './SaveSearch';
+export type {default as AddRecentSearch} from './AddRecentSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';

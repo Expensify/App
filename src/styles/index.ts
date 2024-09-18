@@ -4651,6 +4651,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             paddingHorizontal: 16,
             paddingVertical: 16,
+            borderRadius: 8,
         },
 
         selectionListStickyHeader: {

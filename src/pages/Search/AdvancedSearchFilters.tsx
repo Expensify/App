@@ -227,11 +227,13 @@ function AdvancedSearchFilters() {
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
 
     const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
 
     const applyFiltersAndNavigate = () => {
+        SearchActions.addRecentSearch({queryJSON, previousRecentSearches: recentSearches ?? []});
         SearchActions.clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(

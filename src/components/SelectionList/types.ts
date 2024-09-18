@@ -166,6 +166,9 @@ type ListItem = {
 
     /** The style to override the cursor appearance */
     cursorStyle?: CursorStyles[keyof CursorStyles];
+
+    /** The style to override the default appearance */
+    itemStyle?: StyleProp<ViewStyle>;
 };
 
 type TransactionListItemType = ListItem &
@@ -548,6 +551,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
+    focusItem?: (keyForList: string) => void;
 };
 
 type ItemLayout = {

@@ -64,6 +64,7 @@ import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
+import type {RecentSearchItem} from './RecentSearch';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
@@ -232,6 +233,7 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
+    RecentSearchItem,
     ImportedSpreadsheet,
     ValidateMagicCodeAction,
 };
