@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
 import MultipleAvatars from '@components/MultipleAvatars';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -9,10 +10,12 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
 
@@ -56,7 +59,7 @@ function ChatListItem<TItem extends ListItem>({
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     return (
         <BaseListItem
             item={item}
@@ -82,14 +85,14 @@ function ChatListItem<TItem extends ListItem>({
             {(hovered) => (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <AttachmentContext.Provider value={attachmentContextValue}>
-                        <View>
+                        <View style={{maxWidth: '100%'}}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb2]}>
                                 <Text style={styles.chatItemMessageHeaderPolicy}>In </Text>
                                 <TextLink
                                     fontSize={variables.fontSizeSmall}
-                                    onPress={() => {}}
+                                    onPress={() => onSelectRow(item)}
                                 >
-                                    #wave-collect
+                                    {ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`])}
                                 </TextLink>
                             </View>
                             <View style={styles.flexRow}>
