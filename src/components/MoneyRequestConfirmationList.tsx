@@ -654,6 +654,8 @@ function MoneyRequestConfirmationList({
                 isSelected: false,
                 isInteractive: !shouldDisableParticipant(participant),
             }));
+
+            // console.log('formattedSelectedParticipants', formattedSelectedParticipants);
             options.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,

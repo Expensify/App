@@ -76,6 +76,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
+import type {OptimisticChatReport} from '@libs/ReportUtils';
 import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
@@ -4097,6 +4098,10 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
+function createDraftReportForPolicyExpenseChat(draftReport: OptimisticChatReport) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReport.reportID}`, draftReport);
+}
+
 export type {Video};
 
 export {
@@ -4185,4 +4190,5 @@ export {
     exportToIntegration,
     markAsManuallyExported,
     handleReportChanged,
+    createDraftReportForPolicyExpenseChat,
 };

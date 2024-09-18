@@ -10,6 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {SelectedTagOption} from '@components/TagPicker';
+import {createDraftReportForPolicyExpenseChat} from '@libs/actions/Report';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -61,6 +62,7 @@ import * as UserUtils from './UserUtils';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;
+    isOptimisticReportOption?: boolean;
 };
 
 type OptionList = {
@@ -237,6 +239,13 @@ Onyx.connect({
         currentUserLogin = value?.email;
         currentUserAccountID = value?.accountID;
     },
+});
+
+let allReportsDraft: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportsDraft = value),
 });
 
 let loginList: OnyxEntry<Login>;
@@ -1516,6 +1525,7 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
+    const policyToReportForPolicyExpenseChats: Record<string, Report> = {};
 
     if (reports) {
         Object.values(reports).forEach((report) => {
@@ -1529,6 +1539,10 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             const isChatRoom = ReportUtils.isChatRoom(report);
             if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
+            }
+
+            if (ReportUtils.isPolicyExpenseChat(report) && report.policyID) {
+                policyToReportForPolicyExpenseChats[report.policyID] = report;
             }
 
             // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -1545,6 +1559,45 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
         });
     }
 
+    const policiesWithoutExpenseChats = Object.values(policies ?? {}).filter((policy) => {
+        if (policy?.type === CONST.POLICY.TYPE.PERSONAL || !policy?.isPolicyExpenseChatEnabled) {
+            return false;
+        }
+        return !policyToReportForPolicyExpenseChats[policy?.id ?? ''];
+    });
+
+    // go through each policy and create a optimistic report option for it
+    if (policiesWithoutExpenseChats && policiesWithoutExpenseChats.length > 0) {
+        policiesWithoutExpenseChats.forEach((policy) => {
+            // check for draft report exist in allreportDrafts for the policy
+            let draftReport = Object.values(allReportsDraft ?? {})?.find((reportDraft) => reportDraft?.policyID === policy?.id);
+            if (!draftReport) {
+                draftReport = ReportUtils.buildOptimisticChatReport(
+                    [currentUserAccountID ?? -1],
+                    '',
+                    CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policy?.id,
+                    currentUserAccountID,
+                    true,
+                    policy?.name,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                );
+                createDraftReportForPolicyExpenseChat({...draftReport, isOptimisticReport: true});
+            }
+            const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(draftReport);
+            allReportOptions.push({
+                item: draftReport,
+                ...createOption(accountIDs, personalDetails, draftReport, {}),
+            });
+        });
+    }
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
         ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}, {showPersonalDetails: true}),
