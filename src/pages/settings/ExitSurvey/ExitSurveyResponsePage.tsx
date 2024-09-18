@@ -119,7 +119,10 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     );
 
     return (
-        <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
+        <ScreenWrapper
+            testID={ExitSurveyResponsePage.displayName}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}

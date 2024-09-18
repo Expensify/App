@@ -159,7 +159,10 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     );
 
     return (
-        <ScreenWrapper testID={ConsolePage.displayName}>
+        <ScreenWrapper
+            testID={ConsolePage.displayName}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
