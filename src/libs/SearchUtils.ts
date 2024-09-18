@@ -529,7 +529,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    // We separe type and status filters from other filters to maintain hashes consistency for saved searches
+    // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
