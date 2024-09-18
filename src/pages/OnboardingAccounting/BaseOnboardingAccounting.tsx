@@ -102,7 +102,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             isSelected: userReportedIntegration === null,
         };
         return [...policyAccountingOptions, noneAccountingOption];
-    }, [StyleUtils, onboardingIsMediumOrLargerScreenWidth, styles.ml0, styles.ml3, styles.mr0, styles.mr3, styles.onboardingIconWrapper, theme.success, translate, userReportedIntegration]);
+    }, [StyleUtils, onboardingIsMediumOrLargerScreenWidth, styles.ml0, styles.ml3, styles.mr3, styles.onboardingIconWrapper, theme.success, translate, userReportedIntegration]);
 
     const footerContent = (
         <>
