@@ -22,8 +22,8 @@ function ValidateLoginPage({
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const login = credentials?.login;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
-    // We don't want the previous autoAuthState affects the rendering of the current magic link page, so the autoAuthState prop sets initWithStoredValues as false,
-    // except if the user is signed in because the page will be remounted when successfully signed in as explained in Session.initAutoAuthState.
+    // To ensure that the previous autoAuthState does not impact the rendering of the current magic link page, the autoAuthState prop sets initWithStoredValues to false.
+    // This is done unless the user is signed in, in which case the page will be remounted upon successful sign-in, as explained in Session.initAutoAuthState.
     const autoAuthState = isSignedIn ? session?.autoAuthState : autoAuthStateProp;
     const autoAuthStateWithDefault = autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;

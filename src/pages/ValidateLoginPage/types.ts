@@ -17,6 +17,7 @@ type ValidateLoginPageOnyxProps = ValidateLoginPageOnyxNativeProps & {
     /** The credentials of the person logging in */
     credentials: OnyxEntry<Credentials>;
 
+    /** The auto authentication (magic link) status */
     autoAuthState: OnyxEntry<AutoAuthState>;
 };
 
