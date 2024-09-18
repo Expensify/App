@@ -151,31 +151,41 @@ function ReportActionItemSingle({
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
-    const icon = {
-        source: avatarSource ?? FallbackAvatar,
-        type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
-        name: primaryDisplayName ?? '',
-        id: avatarId,
-    };
+
+    const icon = useMemo(
+        () => ({
+            source: avatarSource ?? FallbackAvatar,
+            type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
+            name: primaryDisplayName ?? '',
+            id: avatarId,
+        }),
+        [avatarSource, isWorkspaceActor, primaryDisplayName, avatarId],
+    );
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
-        ? [
-              {
-                  type: 'TEXT',
-                  text: displayName,
-              },
-          ]
-        : action?.person ?? [];
+    const personArray = useMemo(() => {
+        const baseArray = displayName
+            ? [
+                  {
+                      type: 'TEXT',
+                      text: displayName,
+                  },
+              ]
+            : action?.person ?? [];
 
-    if (displayAllActors && secondaryAvatar.name) {
-        personArray.push({
-            type: 'TEXT',
-            text: secondaryAvatar.name ?? '',
-        });
-    }
+        if (displayAllActors && secondaryAvatar?.name) {
+            return [
+                ...baseArray,
+                {
+                    type: 'TEXT',
+                    text: secondaryAvatar.name ?? '',
+                },
+            ];
+        }
+        return baseArray;
+    }, [displayName, action?.person, displayAllActors, secondaryAvatar?.name]);
 
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
@@ -370,5 +380,4 @@ function ReportActionItemSingle({
     );
 }
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
-
 export default ReportActionItemSingle;
