@@ -5198,11 +5198,6 @@ const styles = (theme: ThemeColors) =>
         accountSwitcherPopover: {
             width: variables.sideBarWidth - 19,
         },
-
-        accountSwitcherAnchorPosition: {
-            top: 80,
-            left: 12,
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
