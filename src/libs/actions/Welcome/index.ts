@@ -7,6 +7,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -193,8 +194,8 @@ function completeHybridAppOnboarding() {
         }
 
         // if the call succeeded HybridApp onboarding is finished, otherwise it's not
-        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === 200});
-        NativeModules.HybridAppModule.completeOnboarding(response?.jsonCode === 200);
+        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === CONST.JSON_CODE.SUCCESS});
+        NativeModules.HybridAppModule.completeOnboarding(response?.jsonCode === CONST.JSON_CODE.SUCCESS);
     });
 }
 
