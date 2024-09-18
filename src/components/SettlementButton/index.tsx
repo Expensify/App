@@ -62,13 +62,14 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
-    const [lastPaymentMethod = '-1'] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod?.[policyID]});
-    const lastPaymentMethodIsInitialized = lastPaymentMethod !== '-1';
+    const [nvpLastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const nvpLastPaymentMethodIsInitialized = nvpLastPaymentMethod !== undefined;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
+        const lastPaymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
@@ -155,11 +156,12 @@ function SettlementButton({
             return buttonOptions.sort((method) => (method.value === lastPaymentMethod ? -1 : 0));
         }
         return buttonOptions;
-        // We don't want to reorder the options when the preferred payment method changes while the button is still visible except when the last payment method is not initialized yet.
+        // We don't want to reorder the options when the preferred payment method changes while the button is still visible except for component initialization when the last payment method is not initialized yet.
         // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
-        lastPaymentMethodIsInitialized,
+        policyID,
+        nvpLastPaymentMethodIsInitialized,
         iouReport,
         translate,
         formattedAmount,
