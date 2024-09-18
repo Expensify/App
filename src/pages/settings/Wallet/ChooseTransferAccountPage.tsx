@@ -36,7 +36,7 @@ function ChooseTransferAccountPage() {
      * @param accountType of the selected account type
      * @param account of the selected account data
      */
-    const selectAccountAndNavigateBack = (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, account?: AccountData) => {
+    const selectAccountAndNavigateBack = (accountType?: string, account?: AccountData) => {
         PaymentMethods.saveWalletTransferAccountTypeAndID(
             accountType ?? '',
             (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? account?.bankAccountID?.toString() : account?.fundID?.toString()) ?? '',
@@ -99,7 +99,7 @@ function ChooseTransferAccountPage() {
                     onSelectRow={(value) => {
                         const accountType = value?.bankAccount?.accountType;
                         const accountData = value?.bankAccount?.accountData;
-                        selectAccountAndNavigateBack(undefined, accountType, accountData);
+                        selectAccountAndNavigateBack(accountType, accountData);
                     }}
                     shouldSingleExecuteRowSelect
                     shouldUpdateFocusedIndex
