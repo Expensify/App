@@ -243,6 +243,8 @@ const SCREENS = {
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
     },
 
+    SETTINGS_TAGS_ROOT: 'Settings_Tags',
+
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
         NAME: 'Report_Settings_Name',
