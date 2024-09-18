@@ -4,6 +4,7 @@ import type {StyleProp} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import Avatar from '@components/Avatar';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -23,6 +24,7 @@ type AvatarWithDelegateAvatarProps = {
 
 function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const delegatePersonalDetail = Object.values(personalDetails[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
 
@@ -32,7 +34,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
             <View style={[styles.sidebarStatusAvatar]}>
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
-                        size={CONST.AVATAR_SIZE.SMALL}
+                        size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}
                         source={UserUtils.getSmallSizeAvatar(delegatePersonalDetail?.avatar, delegatePersonalDetail?.accountID)}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}
