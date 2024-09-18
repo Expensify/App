@@ -20,6 +20,6 @@ function OnboardingEmployees({...rest}: OnboardingEmployeesProps) {
     );
 }
 
-OnboardingEmployees.displayName = 'OnboardingPurpose';
+OnboardingEmployees.displayName = 'OnboardingEmployees';
 
 export default OnboardingEmployees;
