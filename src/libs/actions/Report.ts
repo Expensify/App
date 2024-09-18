@@ -82,7 +82,7 @@ import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -3341,6 +3341,8 @@ function completeOnboarding(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     paymentSelected?: string,
+    companySize?: OnboardingCompanySizeType,
+    userReportedIntegration?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null,
 ) {
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
@@ -3687,6 +3689,8 @@ function completeOnboarding(
         actorAccountID,
         guidedSetupData: JSON.stringify(guidedSetupData),
         paymentSelected,
+        companySize,
+        userReportedIntegration,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});

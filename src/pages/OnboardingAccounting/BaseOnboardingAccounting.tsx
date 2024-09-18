@@ -1,5 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,23 +17,35 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
 import type {OnboardingIcon} from '@src/types/onyx/Onboarding';
 import type {BaseOnboardingAccountingProps} from './types';
 
+type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+
 type OnboardingListItemData = ListItem & {
+    keyForList: OnboardingAccountingType | null;
     onboardingIcon: OnboardingIcon;
 };
-
-function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [userReportedIntegration, setUserReportedIntegration] = useState<string | null | undefined>(undefined);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+
+    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccountingType | null | undefined>(undefined);
     const [error, setError] = useState('');
 
     const accountingOptions: OnboardingListItemData[] = useMemo(() => {
@@ -112,13 +126,44 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 text={translate('common.confirm')}
                 // eslint-disable-next-line rulesdir/prefer-early-return
                 onPress={() => {
-                    if (!userReportedIntegration) {
+                    if (userReportedIntegration === undefined) {
                         setError(translate('onboarding.purpose.errorSelection'));
                         // eslint-disable-next-line no-useless-return
                         return;
                     }
 
-                    // TODO: call CompleOnboarding API after the back-end PR is complete
+                    if (!onboardingPurposeSelected) {
+                        return;
+                    }
+
+                    if (onboardingPolicyID) {
+                        Policy.enablePolicyConnections(onboardingPolicyID, true);
+                    }
+
+                    Report.completeOnboarding(
+                        onboardingPurposeSelected,
+                        CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                        {
+                            firstName: '',
+                            lastName: '',
+                        },
+                        onboardingAdminsChatReportID ?? undefined,
+                        onboardingPolicyID,
+                        undefined,
+                        onboardingCompanySize,
+                        userReportedIntegration,
+                    );
+
+                    Welcome.setOnboardingAdminsChatReportID();
+                    Welcome.setOnboardingPolicyID();
+
+                    Navigation.dismissModal();
+
+                    // Only navigate to concierge chat when central pane is visible
+                    // Otherwise stay on the chats screen.
+                    if (!shouldUseNarrowLayout && !route.params?.backTo) {
+                        Report.navigateToConciergeChat();
+                    }
                 }}
                 pressOnEnter
             />
@@ -150,6 +195,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     sections={[{data: accountingOptions}]}
                     onSelectRow={(item) => {
                         setUserReportedIntegration(item.keyForList);
+                        setError('');
                     }}
                     shouldUpdateFocusedIndex
                     ListItem={OnboardingListItem}

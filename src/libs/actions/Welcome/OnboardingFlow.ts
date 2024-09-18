@@ -52,16 +52,12 @@ function adaptOnboardingRouteState() {
     }
 
     let adaptedOnboardingModalNavigatorState = {} as Readonly<PartialState<NavigationState>>;
-    if (currentRoute?.name === SCREENS.ONBOARDING.PERSONAL_DETAILS && selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+    if (currentRoute?.name === SCREENS.ONBOARDING.ACCOUNTING && selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
         adaptedOnboardingModalNavigatorState = {
             index: 2,
             routes: [
                 {
                     name: SCREENS.ONBOARDING.PURPOSE,
-                    params: currentRoute?.params,
-                },
-                {
-                    name: SCREENS.ONBOARDING.WORK,
                     params: currentRoute?.params,
                 },
                 {

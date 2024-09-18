@@ -139,11 +139,11 @@ const onboardingInviteTypes = {
 } as const;
 
 const onboardingCompanySize = {
-    MICRO: 'micro',
-    SMALL: 'small',
-    MEDIUM_SMALL: 'mediumSmall',
-    MEDIUM: 'medium',
-    LARGE: 'large',
+    MICRO: '1-10',
+    SMALL: '11-50',
+    MEDIUM_SMALL: '51-100',
+    MEDIUM: '101-1000',
+    LARGE: '1001+',
 };
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
