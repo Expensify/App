@@ -18,7 +18,9 @@ Onyx.connect({
     },
 });
 
-const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [ONYXKEYS.NVP_TRY_FOCUS_MODE, ONYXKEYS.PREFERRED_THEME, ONYXKEYS.NVP_PREFERRED_LOCALE, ONYXKEYS.SESSION];
+// NOTE: We are preserving the CREDENTIALS because new ones are returned from DelegateConnect and DelegateDisconnect
+// and clearing them out would prevent the user from reauthenticating when the restricted authTokens expire.
+const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [ONYXKEYS.NVP_TRY_FOCUS_MODE, ONYXKEYS.PREFERRED_THEME, ONYXKEYS.NVP_PREFERRED_LOCALE, ONYXKEYS.SESSION, ONYXKEYS.CREDENTIALS];
 
 function connect(email: string) {
     if (!delegatedAccess?.delegators) {
