@@ -699,6 +699,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
+                        },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
                         },
