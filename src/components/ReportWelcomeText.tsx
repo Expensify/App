@@ -42,6 +42,7 @@ type RoomDescriptionProps = {
 function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
@@ -108,6 +109,13 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
     };
 
+    const ArchivedMessage = () => (
+        <Text>
+        <Text>{welcomeMessage.phrase1}</Text>
+        <Text style={[styles.textStrong]}>{ReportUtils.getReportName(report)}</Text>
+        <Text>{welcomeMessage.phrase2}</Text>
+    </Text>);
+
     return (
         <>
             <View>
@@ -138,7 +146,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         <RoomDescription
                             onPress={roomOnPress}
                             style={styles.renderHTML} />
-                    ) : (
+                    ) : isArchivedRoom ? <ArchiveMessage /> : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
                             {welcomeMessage.showReportName && (
@@ -164,7 +172,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {(isAdminRoom || isAnnounceRoom) && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
-                        <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                        <Text style={[styles.textStrong]}>{ReportUtils.getReportName(report)}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>                    
                     </Text>
                 )}
@@ -179,8 +187,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                     <RoomDescription
                         onPress={roomOnPress}
                         style={styles.renderHTML} />
-                ) : (
-                     <Text>
+                ) : isArchivedRoom ? <ArchivedMessage /> : (
+                    <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
                         <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>  
