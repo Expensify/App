@@ -1,3 +1,3 @@
-type UsePageRefreshType = () => () => void;
+type UsePageRefresh = () => () => void;
 
-export default UsePageRefreshType;
+export default UsePageRefresh;
