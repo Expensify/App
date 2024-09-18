@@ -220,7 +220,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     }
                                 }}
                                 withoutFocusOnSecondaryInteraction
-                                activeOpacity={0.8}
+                                activeOpacity={variables.pressDimValue}
+                                opacityAnimationDuration={0}
                                 style={[
                                     styles.flexRow,
                                     styles.alignItemsCenter,
