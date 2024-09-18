@@ -1,5 +1,4 @@
 import React from 'react';
-import {useErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
@@ -10,10 +9,10 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import refreshPage from '@libs/refreshPage';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,8 +23,7 @@ function GenericErrorPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
-    const {resetBoundary} = useErrorBoundary();
+    const refreshPage = usePageRefresh();
 
     return (
         <SafeAreaConsumer>
@@ -62,13 +60,13 @@ function GenericErrorPage() {
                                         success
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
-                                        onPress={() => refreshPage(resetBoundary)}
+                                        onPress={refreshPage}
                                     />
                                     <Button
                                         text={translate('initialSettingsPage.signOut')}
                                         onPress={() => {
                                             Session.signOutAndRedirectToSignIn();
-                                            refreshPage(resetBoundary);
+                                            refreshPage();
                                         }}
                                     />
                                 </View>
