@@ -82,7 +82,7 @@ function MenuItemList({
 
     return (
         <>
-            {menuItems.map((menuItemProps) => (
+            {menuItems.map(({key, ...menuItemProps}) => (
                 <OfflineWithFeedback
                     pendingAction={menuItemProps.pendingAction}
                     onClose={menuItemProps.onPendingActionDismiss}
@@ -90,7 +90,7 @@ function MenuItemList({
                     shouldForceOpacity={menuItemProps.shouldForceOpacity}
                 >
                     <MenuItem
-                        key={menuItemProps.key ?? menuItemProps.title}
+                        key={key ?? menuItemProps.title}
                         wrapperStyle={wrapperStyle}
                         onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                         ref={popoverAnchor}
