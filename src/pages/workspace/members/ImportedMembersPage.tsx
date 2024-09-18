@@ -119,7 +119,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImporting}
-                headerText={translate('workspace.people.importedMembersMessage', spreadsheetColumns?.length)}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
 
