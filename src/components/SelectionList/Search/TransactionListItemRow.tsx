@@ -81,10 +81,13 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
-    const filename = getFileName(transactionItem?.receipt?.source ?? '');
-    const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
-    const isReceiptPDF = Str.isPDF(filename);
-    const source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+    let source = transactionItem?.receipt?.source ?? '';
+    if (source) {
+        const filename = getFileName(transactionItem?.receipt?.source ?? '');
+        const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+        const isReceiptPDF = Str.isPDF(filename);
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+    }
 
     return (
         <View
