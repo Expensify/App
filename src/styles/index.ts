@@ -4495,11 +4495,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        onboardingItemWrapper: {
-            alignItems: 'center',
-            flexDirection: 'row',
-        },
-
         onboardingIconWrapper: {
             alignItems: 'center',
             justifyContent: 'center',
