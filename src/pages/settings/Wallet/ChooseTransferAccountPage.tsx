@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
