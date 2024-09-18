@@ -4,7 +4,7 @@ import {format} from 'date-fns';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -33,23 +33,15 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CapturedLogs} from '@src/types/onyx';
 
-type ConsolePageOnyxProps = {
-    /** Logs captured on the current device */
-    capturedLogs: OnyxEntry<CapturedLogs>;
-
-    /** Whether or not logs should be stored */
-    shouldStoreLogs: OnyxEntry<boolean>;
-};
-
-type ConsolePageProps = ConsolePageOnyxProps;
-
 const filterBy = {
     all: '',
     network: '[Network]',
 } as const;
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
-function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
+function ConsolePage() {
+    const [capturedLogs] = useOnyx(ONYXKEYS.LOGS);
+    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
     const [input, setInput] = useState('');
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
@@ -231,11 +223,4 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
 
 ConsolePage.displayName = 'ConsolePage';
 
-export default withOnyx<ConsolePageProps, ConsolePageOnyxProps>({
-    capturedLogs: {
-        key: ONYXKEYS.LOGS,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(ConsolePage);
+export default ConsolePage;
