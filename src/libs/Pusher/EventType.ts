@@ -10,5 +10,6 @@ export default {
     MULTIPLE_EVENTS: 'multipleEvents',
     MULTIPLE_EVENT_TYPE: {
         ONYX_API_UPDATE: 'onyxApiUpdate',
+        RECONNECT_APP: 'reconnectApp',
     },
 } as const;

@@ -276,6 +276,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
