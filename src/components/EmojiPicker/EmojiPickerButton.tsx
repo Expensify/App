@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {memo, useEffect, useRef} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -21,6 +22,9 @@ type EmojiPickerButtonProps = {
     /** Unique id for emoji picker */
     emojiPickerID?: string;
 
+    /** A callback function when the button is pressed */
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number;
 
@@ -29,7 +33,7 @@ type EmojiPickerButtonProps = {
     onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
 };
 
-function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -44,7 +48,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={isDisabled}
-                onPress={() => {
+                onPress={(e) => {
                     if (!isFocused) {
                         return;
                     }
@@ -64,6 +68,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }
+                    onPress?.(e);
                 }}
                 id={id}
                 accessibilityLabel={translate('reportActionCompose.emoji')}

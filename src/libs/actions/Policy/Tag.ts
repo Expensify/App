@@ -11,9 +11,13 @@ import type {
     UpdatePolicyTagGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
@@ -122,6 +126,34 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
     return newOptimisticPolicyRecentlyUsedTags;
 }
 
+function updateImportSpreadsheetData(tagsLength: number): OnyxData {
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfullTitle'), prompt: translateLocal('spreadsheet.importTagsSuccessfullDescription', tagsLength)},
+                },
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                },
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
 function createPolicyTag(policyID: string, tagName: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
     const newTagName = PolicyUtils.escapeTagName(tagName);
@@ -185,6 +217,18 @@ function createPolicyTag(policyID: string, tagName: string) {
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+}
+
+function importPolicyTags(policyID: string, tags: PolicyTag[]) {
+    const onyxData = updateImportSpreadsheetData(tags.length);
+
+    const parameters = {
+        policyID,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_TAGS_SREADSHEET, parameters, onyxData);
 }
 
 function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
@@ -846,6 +890,20 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
+function downloadTagsCSV(policyID: string) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
+        policyID,
+    });
+    const fileName = 'Tags.csv';
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -861,6 +919,8 @@ export {
     renamePolicyTaglist,
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
+    importPolicyTags,
+    downloadTagsCSV,
 };
 
 export type {NewCustomUnit};
