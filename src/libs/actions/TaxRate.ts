@@ -308,8 +308,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
             ...rate,
             attributes: {
                 ...rate?.attributes,
-                taxRateExternalID: undefined,
-                taxClaimablePercentage: undefined,
+                taxRateExternalID: null,
+                taxClaimablePercentage: null,
             },
             pendingFields: {
                 taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
