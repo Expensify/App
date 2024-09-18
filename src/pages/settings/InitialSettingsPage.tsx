@@ -333,7 +333,6 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                                 shouldStackHorizontally={item.shouldStackHorizontally}
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
-                                hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={
@@ -350,19 +349,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 </View>
             );
         },
-        [
-            styles.pb4,
-            styles.mh3,
-            styles.sectionTitle,
-            styles.sectionMenuItem,
-            styles.hoveredComponentBG,
-            translate,
-            userWallet?.currentBalance,
-            isExecuting,
-            singleExecution,
-            activeCentralPaneRoute,
-            waitForNavigate,
-        ],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, isExecuting, singleExecution, activeCentralPaneRoute, waitForNavigate],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
