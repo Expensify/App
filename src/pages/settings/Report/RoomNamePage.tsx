@@ -85,7 +85,6 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
             // No change needed, navigate back
             if (previousName !== policyRoomName) {
                 ReportActions.updatePolicyRoomName(report, policyRoomName);
-                return;
             }
             goBack();
         },
