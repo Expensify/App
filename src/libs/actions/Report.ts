@@ -2694,10 +2694,6 @@ function openReportFromDeepLink(url: string) {
                             return;
                         }
 
-                        if (shouldSkipDeepLinkNavigation(route)) {
-                            return;
-                        }
-
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
                         const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
@@ -2712,6 +2708,10 @@ function openReportFromDeepLink(url: string) {
 
                         if (isOnboardingFlowName(currentFocusedRoute?.name)) {
                             Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                            return;
+                        }
+
+                        if (shouldSkipDeepLinkNavigation(route)) {
                             return;
                         }
 
