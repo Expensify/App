@@ -78,6 +78,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
 
 function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
@@ -179,7 +180,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                containerStyle={styles.searchListContentMargin}
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentMargin}
             />
         );
     }
