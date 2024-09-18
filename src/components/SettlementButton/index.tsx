@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -7,7 +7,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
