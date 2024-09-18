@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -13,25 +12,14 @@ import * as ReportInstance from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnboardingPurpose, Policy as PolicyType} from '@src/types/onyx';
 
-type SystemChatReportFooterMessageOnyxProps = {
-    /** Saved onboarding purpose selected by the user */
-    choice: OnyxEntry<OnboardingPurpose>;
-
-    /** The list of this user's policies */
-    policies: OnyxCollection<PolicyType>;
-
-    /** policyID for main workspace */
-    activePolicyID: OnyxEntry<Required<string>>;
-};
-
-type SystemChatReportFooterMessageProps = SystemChatReportFooterMessageOnyxProps;
-
-function SystemChatReportFooterMessage({choice, policies, activePolicyID}: SystemChatReportFooterMessageProps) {
+function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
@@ -87,14 +75,4 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
 
 SystemChatReportFooterMessage.displayName = 'SystemChatReportFooterMessage';
 
-export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFooterMessageOnyxProps>({
-    choice: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    activePolicyID: {
-        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    },
-})(SystemChatReportFooterMessage);
+export default SystemChatReportFooterMessage;
