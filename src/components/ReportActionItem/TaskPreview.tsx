@@ -112,7 +112,7 @@ function TaskPreview({
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
-                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID) || !Task.canActionTask(taskReport, currentUserPersonalDetails.accountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     Task.reopenTask(taskReport);
