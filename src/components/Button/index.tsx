@@ -143,13 +143,13 @@ type ButtonProps = Partial<ChildrenProps> & {
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
 
-const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
+const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
 function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? ''), [activeElementRole]);
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -332,6 +332,9 @@ function Button(
                 />
             )}
             <PressableWithFeedback
+                dataSet={{
+                    listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
+                }}
                 ref={ref}
                 onLayout={onLayout}
                 onPress={(event) => {
