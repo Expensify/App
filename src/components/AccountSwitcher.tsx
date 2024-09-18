@@ -38,6 +38,8 @@ function AccountSwitcher() {
     const {canUseNewDotCopilot} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [user] = useOnyx(ONYXKEYS.USER);
     const buttonRef = useRef<HTMLDivElement>(null);
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
@@ -166,6 +168,14 @@ function AccountSwitcher() {
                         >
                             {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                         </Text>
+                        {!!user?.isDebugModeEnabled && (
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                numberOfLines={1}
+                            >
+                                AccountID: {session?.accountID}
+                            </Text>
+                        )}
                     </View>
                 </View>
             </PressableWithFeedback>
