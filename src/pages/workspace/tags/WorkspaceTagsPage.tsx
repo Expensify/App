@@ -400,9 +400,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                         headerMedia={LottieAnimations.GenericEmptyState}
-                        headerStyles={styles.emptyFolderBG}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {hasVisibleTags && !isLoading && (

@@ -386,9 +386,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                         headerMedia={LottieAnimations.GenericEmptyState}
-                        headerStyles={styles.emptyFolderBG}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (

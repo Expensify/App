@@ -5166,6 +5166,15 @@ const styles = (theme: ThemeColors) =>
             height: 100,
         },
 
+        emptyStateFolderWebStyles: {
+            ...sizing.w100,
+            minWidth: 300,
+            ...spacing.mtAuto,
+            ...spacing.mbAuto,
+            ...flex.alignItemsCenter,
+            ...display.dFlex,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,

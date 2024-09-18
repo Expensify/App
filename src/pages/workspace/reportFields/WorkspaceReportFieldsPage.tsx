@@ -292,7 +292,8 @@ function WorkspaceReportFieldsPage({
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                         headerMedia={LottieAnimations.GenericEmptyState}
-                        headerStyles={styles.emptyFolderBG}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {!shouldShowEmptyState && !isLoading && (
