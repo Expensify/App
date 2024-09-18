@@ -1,14 +1,13 @@
 import React, {lazy, memo, Suspense, useEffect, useState} from 'react';
 import {preload, register} from 'react-native-bundle-splitter';
-import lazyRetry from '@src/utils/lazyRetry';
+import lazyRetry, {retryImport} from '@src/utils/lazyRetry';
 
-// const AuthScreens = lazy(() => lazyRetry(() => import('./AuthScreens')));
 const PublicScreens = lazy(() => lazyRetry(() => import('./PublicScreens')));
 
+const AUTH_SCREENS = 'AuthScreens';
 const AuthScreens = register({
-    name: 'AuthScreens',
-    // TODO: add retry logic
-    loader: () => import('./AuthScreens'),
+    name: AUTH_SCREENS,
+    loader: () => retryImport(() => import('./AuthScreens')),
 });
 
 type AppNavigatorProps = {
@@ -20,10 +19,10 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const [canNavigateToProtectedRoutes, setNavigateToProtectedRoutes] = useState(false);
 
     useEffect(() => {
-        // Preload Auth Screens to be sure navigator can be mounted synchronously to avoid problems
-        // described in https://github.com/Expensify/App/issues/44600
+        // Preload Auth Screens in advance to be sure that navigator can be mounted synchronously
+        // to avoid problems described in https://github.com/Expensify/App/issues/44600
         preload()
-            .component('AuthScreens')
+            .component(AUTH_SCREENS)
             .then(() => {
                 setNavigateToProtectedRoutes(true);
             });
