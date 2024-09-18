@@ -7512,7 +7512,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
     const hasCompletedGuidedSetup = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
 
-    if (hasCompletedGuidedSetup || isInviteOnboardingComplete || !introSelected?.choice) {
+    if (hasCompletedGuidedSetup ?? isInviteOnboardingComplete ?? !introSelected?.choice) {
         return;
     }
 

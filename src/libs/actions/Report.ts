@@ -857,9 +857,10 @@ function openReport(
 
     if (!hasCompletedGuidedSetup && introSelected && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
-        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU;
+        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+        const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
-        if (choice && !isInviteIOUorInvoice) {
+        if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
             const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
             const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
 
@@ -2716,8 +2717,8 @@ function openReportFromDeepLink(url: string) {
         Session.waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (onboarding) => {
-                    if (onboarding) {
+                callback: (onboardingData) => {
+                    if (onboardingData) {
                         // Once the onboarding data is available, we want to disconnect the connection
                         // so it won't trigger the deeplink again every time the data is changed, for example, when relogin.
                         Onyx.disconnect(connection);
@@ -2742,7 +2743,7 @@ function openReportFromDeepLink(url: string) {
 
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
-                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
+                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingData);
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         if (!hasCompletedGuidedSetupFlow) {
