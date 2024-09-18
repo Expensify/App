@@ -24,6 +24,8 @@ type ValidateCodeActionModalProps = {
 
     /** Function to clear error of the form */
     clearError: () => void;
+
+    onModalHide?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

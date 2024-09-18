@@ -8,12 +8,15 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
@@ -32,6 +35,26 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const validateLoginError = ErrorUtils.getLatestErrorField(loginList?.[account?.primaryLogin ?? ''], 'validateLogin');
+
+    const handleSubmitForm = useCallback(
+        (validateCode: string) => {
+            User.validateSecondaryLogin(loginList, account?.primaryLogin ?? '', validateCode);
+        },
+        [loginList, account],
+    );
+
+    useEffect(() => {
+        if (!isUserValidated && !isValidateCodeActionModalVisible) {
+            setIsValidateCodeActionModalVisible(true);
+        }
+        if (isUserValidated && isValidateCodeActionModalVisible) {
+            setIsValidateCodeActionModalVisible(false);
+        }
+    }, [isUserValidated, isValidateCodeActionModalVisible]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -67,12 +90,12 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             shouldShowOfflineIndicator={false}
             testID={AddPersonalBankAccountPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!isUserValidated}>
-                <HeaderWithBackButton
-                    title={translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={exitFlow}
-                />
-                {shouldShowSuccess ? (
+            <HeaderWithBackButton
+                title={translate('bankAccount.addBankAccount')}
+                onBackButtonPress={exitFlow}
+            />
+            {isUserValidated &&
+                (shouldShowSuccess ? (
                     <ConfirmationPage
                         heading={translate('addPersonalBankAccountPage.successTitle')}
                         description={translate('addPersonalBankAccountPage.successMessage')}
@@ -102,8 +125,19 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                             selectedPlaidAccountID={selectedPlaidAccountId}
                         />
                     </FormProvider>
-                )}
-            </FullPageNotFoundView>
+                ))}
+            <ValidateCodeActionModal
+                handleSubmitForm={handleSubmitForm}
+                clearError={() => User.clearContactMethodErrors(account?.primaryLogin ?? '', 'validateLogin')}
+                onClose={() => {
+                    setIsValidateCodeActionModalVisible(false);
+                }}
+                onModalHide={() => Navigation.dismissModal()}
+                validateError={validateLoginError}
+                isVisible={isValidateCodeActionModalVisible}
+                title={translate('cardPage.validateCardTitle')}
+                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            />
         </ScreenWrapper>
     );
 }

@@ -13,7 +13,7 @@ import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-function ValidateCodeActionModal({isVisible, title, description, onClose, validatePendingAction, validateError, handleSubmitForm, clearError}: ValidateCodeActionModalProps) {
+function ValidateCodeActionModal({isVisible, title, description, onClose, validatePendingAction, validateError, handleSubmitForm, clearError, onModalHide}: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -24,6 +24,11 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
         clearError();
         onClose();
     }, [onClose, clearError]);
+
+    const onHide = useCallback(() => {
+        clearError();
+        onModalHide?.();
+    }, [onModalHide, onClose]);
 
     useEffect(() => {
         if (!firstRenderRef.current || !isVisible) {
@@ -39,6 +44,7 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
             isVisible={isVisible}
             onClose={hide}
             onModalHide={hide}
+            onBackdropPress={onHide}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
