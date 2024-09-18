@@ -181,6 +181,7 @@ type GetOptionsConfig = {
     includeDomainEmail?: boolean;
     action?: IOUAction;
     shouldBoldTitleByDefault?: boolean;
+    includePoliciesWithoutExpenseChats?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1594,6 +1595,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(draftReport);
             allReportOptions.push({
                 item: draftReport,
+                isOptimisticReportOption: true,
                 ...createOption(accountIDs, personalDetails, draftReport, {}),
             });
         });
@@ -1797,6 +1799,7 @@ function getOptions(
         includeDomainEmail = false,
         action,
         shouldBoldTitleByDefault = true,
+        includePoliciesWithoutExpenseChats = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1861,6 +1864,9 @@ function getOptions(
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
+        if (option.isOptimisticReportOption && !includePoliciesWithoutExpenseChats) {
+            return;
+        }
         const report = option.item;
         const doesReportHaveViolations = shouldShowViolations(report, transactionViolations);
 
@@ -2191,6 +2197,7 @@ function getFilteredOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
     sortByReportTypeInSearch = false,
+    includePoliciesWithoutExpenseChats = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2220,6 +2227,7 @@ function getFilteredOptions(
             includeInvoiceRooms,
             action,
             sortByReportTypeInSearch,
+            includePoliciesWithoutExpenseChats,
         },
     );
 }

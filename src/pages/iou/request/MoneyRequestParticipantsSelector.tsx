@@ -130,6 +130,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             iouType === CONST.IOU.TYPE.INVOICE,
             action,
             isPaidGroupPolicy,
+            true,
         );
 
         return optionList;
