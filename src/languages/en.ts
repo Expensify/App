@@ -2014,7 +2014,7 @@ export default {
     },
     businessInfoStep: {
         businessInfo: 'Business info',
-        enterTheNameOfYourBusiness: "What's the name of the business?",
+        enterTheNameOfYourBusiness: "What's the business name?",
         businessName: 'Legal company name',
         enterYourCompanysTaxIdNumber: "What's the tax ID number?",
         taxIDNumber: 'Tax ID number',
