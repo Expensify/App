@@ -105,7 +105,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     shouldShowSelectedItemCheck?: boolean;
 
     /** The style of content container which wraps all child views */
-    containerStyle?: StyleProp<ViewStyle>;
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Used to apply styles specifically to the header text */
     headerStyle?: TextStyle;
