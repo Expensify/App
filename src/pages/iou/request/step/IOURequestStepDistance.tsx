@@ -239,6 +239,9 @@ function IOURequestStepDistance({
     }, [iouType, reportID, transactionID]);
 
     const navigateToNextStep = useCallback(() => {
+        if (transaction?.splitShares) {
+            IOU.resetSplitShares(transaction);
+        }
         if (backTo) {
             Navigation.goBack(backTo);
             return;
