@@ -59,7 +59,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             buttonText={content.buttonText}
             buttonAction={content.buttonAction}
             headerContentStyles={[styles.h100, styles.w100]}
-            lottieWebViewStyles={{...content.lottieWebViewStyles, ...styles.mtAuto, ...styles.mbAuto}}
+            lottieWebViewStyles={{...content.lottieWebViewStyles, ...styles.mtAuto, ...styles.mbAuto, ...styles.alignItemsCenter, ...styles.dFlex}}
         />
     );
 }
