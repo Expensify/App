@@ -332,6 +332,9 @@ function Button(
                 />
             )}
             <PressableWithFeedback
+                dataSet={{
+                    listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
+                }}
                 ref={ref}
                 onLayout={onLayout}
                 onPress={(event) => {

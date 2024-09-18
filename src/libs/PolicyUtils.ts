@@ -951,6 +951,10 @@ function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
 
+function hasUnsupportedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return !(accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).some((integration) => !!policy?.connections?.[integration]);
+}
+
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
@@ -1104,6 +1108,7 @@ export {
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
     getDomainNameForPolicy,
+    hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
 };
 
