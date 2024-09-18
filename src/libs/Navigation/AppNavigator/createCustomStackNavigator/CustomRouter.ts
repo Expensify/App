@@ -135,7 +135,6 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             if (shouldPreventReset(state, action)) {
                 return state;
             }
-
             return stackRouter.getStateForAction(state, action, configOptions);
         },
     };
