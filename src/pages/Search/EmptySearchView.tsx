@@ -43,7 +43,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     buttonText: undefined,
                     buttonAction: undefined,
-                    lottieWebViewStyles: styles.w100,
+                    lottieWebViewStyles: {...styles.w100, minWidth: 350},
                 };
         }
     }, [type, StyleUtils, translate, theme, styles.w100]);
