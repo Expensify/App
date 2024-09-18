@@ -105,7 +105,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const joinButton = (
         <Button
             success
-            medium
             text={translate('common.join')}
             onPress={join}
         />

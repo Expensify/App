@@ -261,7 +261,14 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
+        updatedTransaction.comment = {
+            ...(updatedTransaction?.comment ?? {}),
+            customUnit: {
+                ...updatedTransaction?.comment?.customUnit,
+                customUnitRateID: transactionChanges.customUnitRateID,
+                defaultP2PRate: null,
+            },
+        };
         shouldStopSmartscan = true;
     }
 
@@ -830,7 +837,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();
+    return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
 /**

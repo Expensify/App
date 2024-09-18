@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
@@ -10,6 +11,7 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
@@ -49,11 +51,22 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
+function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
+    const saveSearchName = name ?? queryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName});
+}
+
+function deleteSavedSearch(hash: number) {
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
-
+    const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const queryWithOffset = {
-        ...queryJSON,
+        ...queryJSONWithoutFlatFilters,
         offset,
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
@@ -128,11 +141,27 @@ function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FO
 /**
  * Clears all values for the advanced filters search form.
  */
-function clearAdvancedFilters() {
+function clearAllFilters() {
     Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
 }
 
+function clearAdvancedFilters() {
+    const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
+    Object.values(FILTER_KEYS)
+        .filter((key) => key !== FILTER_KEYS.TYPE && key !== FILTER_KEYS.STATUS)
+        .forEach((key) => {
+            values[key] = null;
+        });
+
+    Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+}
+
+function dismissSavedSearchRenameTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, true);
+}
+
 export {
+    saveSearch,
     search,
     createTransactionThread,
     deleteMoneyRequestOnSearch,
@@ -140,5 +169,8 @@ export {
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     updateAdvancedFilters,
+    clearAllFilters,
     clearAdvancedFilters,
+    deleteSavedSearch,
+    dismissSavedSearchRenameTooltip,
 };

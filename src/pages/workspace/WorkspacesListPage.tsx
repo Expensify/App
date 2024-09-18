@@ -368,7 +368,6 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             success
-            medium
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
             icon={Expensicons.Plus}

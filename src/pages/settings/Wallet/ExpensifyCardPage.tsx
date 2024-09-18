@@ -198,7 +198,6 @@ function ExpensifyCardPage({
                                 />
 
                                 <Button
-                                    medium
                                     style={[styles.mh5, styles.mb5]}
                                     text={translate('cardPage.reviewTransaction')}
                                     onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
@@ -242,7 +241,6 @@ function ExpensifyCardPage({
                                                     shouldShowRightComponent
                                                     rightComponent={
                                                         <Button
-                                                            medium
                                                             text={translate('cardPage.cardDetails.revealDetails')}
                                                             onPress={() => openValidateCodeModal(card.cardID)}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}

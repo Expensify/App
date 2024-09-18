@@ -507,6 +507,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
@@ -689,6 +698,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             parse: {
                                 orderWeight: Number,
                             },
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
@@ -1134,13 +1149,21 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_IS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {
+                    screens: {
+                        [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: ROUTES.SEARCH_SAVED_SEARCH_RENAME.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
                     screens: {
                         [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
+                    screens: {
+                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS.route,
                     },
                 },
             },

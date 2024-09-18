@@ -136,7 +136,7 @@ function AccountSwitcher() {
                 <View style={[styles.flexRow, styles.gap3]}>
                     <Avatar
                         type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.MEDIUM}
+                        size={CONST.AVATAR_SIZE.DEFAULT}
                         avatarID={currentUserPersonalDetails?.accountID}
                         source={currentUserPersonalDetails?.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
