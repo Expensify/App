@@ -7,8 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import OnboardingListItem from '@components/SelectionList/OnboardingListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,15 +29,17 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(null);
     const [error, setError] = useState('');
 
-    const companySizeOptions: ListItem[] = useMemo(() => {
+    const companySizeOptions = useMemo(() => {
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize) => {
             return {
                 text: translate(`onboarding.employees.${companySize}`),
                 keyForList: companySize,
                 isSelected: companySize === selectedCompanySize,
+                leftElement: onboardingIsMediumOrLargerScreenWidth ? <View style={styles.ml3} /> : null,
+                rightElement: onboardingIsMediumOrLargerScreenWidth ? <View style={styles.mr3} /> : null,
             };
         });
-    }, [translate, selectedCompanySize]);
+    }, [translate, selectedCompanySize, onboardingIsMediumOrLargerScreenWidth, styles.ml3, styles.mr3]);
 
     const footerContent = (
         <>
@@ -91,7 +92,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         setError('');
                     }}
                     shouldUpdateFocusedIndex
-                    ListItem={OnboardingListItem}
+                    ListItem={RadioListItem}
                     footerContent={footerContent}
                 />
                 {shouldUseNarrowLayout && <OfflineIndicator />}
