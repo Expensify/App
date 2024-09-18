@@ -1,12 +1,10 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {findFocusedRoute, getPathFromState, StackRouter} from '@react-navigation/native';
+import {findFocusedRoute, getPathFromState, StackActions, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as Localize from '@libs/Localize';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import linkingConfig from '@libs/Navigation/linkingConfig';
-import createSplitNavigator from '@libs/Navigation/linkingConfig/createSplitNavigator';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -27,6 +25,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
         // We reset the URL as the browser sets it in a way that doesn't match the navigation state
+        // @TODO is it working? Maybe we should split it for platforms.
         // eslint-disable-next-line no-restricted-globals
         history.replaceState({}, '', getPathFromState(state, linkingConfig.config));
         return true;
@@ -49,39 +48,17 @@ function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBa
     return false;
 }
 
-const SCREENS_WITH_WORKSPACE_SWITCHER: string[] = [SCREENS.SEARCH.CENTRAL_PANE, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR];
-
-// function isPushingScreenWithWorkspaceSwitcher(action: CommonActions.Action | StackActionType): action is StackActionType | {type: 'PUSH'; payload: any} {
-//     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.PUSH) {
-//         return false;
-//     }
-
-//     // Only these screens have the workspace switcher.
-//     if (SCREENS_WITH_WORKSPACE_SWITCHER.includes(action.payload.name)) {
-//         return true;
-//     }
-
-//     return false;
-// }
-
-// eslint-disable-next-line rulesdir/no-inline-named-export
 type CustomRootStackActionType = {
     type: 'SWITCH_POLICY_ID';
-    payload: {policyID: string};
-};
+    payload: {
+        policyID: string;
 
-// function extractPolicyIDFromState(state: StackNavigationState<ParamListBase>) {
-//     for (let i = state.routes.length - 1; i >= 0; i--) {
-//         const route = state.routes[i];
-//         if (route.name === SCREENS.SEARCH.CENTRAL_PANE) {
-//             return extractPolicyIDFromQuery(route as NavigationPartialRoute);
-//         }
-//         if (route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-//             const params = route.params ? (route.params as RootStackParamList[typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]) : undefined;
-//             return params?.policyID;
-//         }
-//     }
-// }
+        // @TODO not sure about these properties.
+        reportID?: string;
+        reportActionID?: string;
+        referrer?: string;
+    };
+};
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
@@ -95,61 +72,38 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 if (lastRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
                     const currentParams = lastRoute.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
                     const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
-                    let newParams = null;
-
                     if (!queryJSON) {
-                        return;
+                        return null;
                     }
-
                     if (action.payload.policyID) {
                         queryJSON.policyID = action.payload.policyID;
                     } else {
                         delete queryJSON.policyID;
                     }
-
-                    newParams = {...currentParams, q: SearchUtils.buildSearchQueryString(queryJSON)};
-                    const newRoutes = [...state.routes, {...lastRoute, params: newParams}];
-                    return {...state, routes: newRoutes, index: newRoutes.length - 1};
+                    const newAction = StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {
+                        ...currentParams,
+                        q: SearchUtils.buildSearchQueryString(queryJSON),
+                    });
+                    return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
                 if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    // TODO: handle change policy id of reports navigator.
-
+                    // @TODO: It would be great to avoid coupling switchPolicy with specific actions for report screen
                     if (action.payload.reportID) {
-                        const newRoute = createSplitNavigator(
-                            {
-                                name: SCREENS.HOME,
-                            },
-                            {
-                                name: SCREENS.REPORT,
-                                params: {
-                                    reportID: action.payload.reportID,
-                                    reportActionID: action.payload.reportActionID,
-                                    referrer: action.payload.referrer,
-                                },
-                            },
-                            {
-                                policyID: action.payload.policyID,
-                            },
-                        );
-                        const newRoutes = [...state.routes, newRoute];
-                        return {...state, stale: true, routes: newRoutes, index: newRoutes.length - 1};
-                    }
-
-                    const splitNavigatorMainScreen = getIsNarrowLayout() ? undefined : {name: SCREENS.REPORT, params: {reportID: ''}};
-
-                    const newRoute = createSplitNavigator(
-                        {
-                            name: SCREENS.HOME,
-                        },
-                        splitNavigatorMainScreen,
-                        {
+                        const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
                             policyID: action.payload.policyID,
-                        },
-                    );
-                    const newRoutes = [...state.routes, newRoute];
-                    return {...state, stale: true, routes: newRoutes, index: newRoutes.length - 1};
+                            screen: SCREENS.REPORT,
+                            params: {
+                                reportID: action.payload.reportID,
+                                reportActionID: action.payload.reportActionID,
+                                referrer: action.payload.referrer,
+                            },
+                        });
+                        return stackRouter.getStateForAction(state, newAction, configOptions);
+                    }
+                    const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
+                    return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
-                // In other cases, do nothing.
+                // We don't have other navigators that should handle switch policy action.
                 return null;
             }
 
@@ -160,68 +114,49 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 
             if (action.type === 'PUSH' && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
-                const currentParams = {...action.payload.params};
-                action.payload.params = {...currentParams, policyID};
+
+                const modifiedAction = {
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        params: {
+                            ...action.payload.params,
+                            policyID,
+                        },
+                    },
+                };
+
+                return stackRouter.getStateForAction(state, modifiedAction, configOptions);
             }
 
             if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
                 const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
                 const currentParams = action.payload.params as RootStackParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
                 const queryJSON = SearchUtils.buildSearchQueryJSON(currentParams.q);
+
                 if (!queryJSON) {
-                    return;
+                    return null;
                 }
+
                 if (policyID) {
                     queryJSON.policyID = policyID;
                 } else {
                     delete queryJSON.policyID;
                 }
 
-                action.payload.params = {q: SearchUtils.buildSearchQueryString(queryJSON), isCustomQuery: false};
+                const modifiedAction = {
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        params: {
+                            ...action.payload.params,
+                            q: SearchUtils.buildSearchQueryString(queryJSON),
+                        },
+                    },
+                };
+
+                return stackRouter.getStateForAction(state, modifiedAction, configOptions);
             }
-
-            // TODO: I don't remember if the code below makes sense Wojtek :D but it's possible.
-            // One part seems redundant to the lines 102-108 above
-            //
-            // Copy existing policyID to the new screen.
-            // TODO: Can't figure out the types for
-            // if (action.type === 'PUSH' && isPushingScreenWithWorkspaceSwitcher(action)) {
-            //     const policyID = extractPolicyIDFromState(state);
-
-            //     // If there is no policyID, continue with the default behavior.
-            //     if (!policyID) {
-            //         return stackRouter.getStateForAction(state, action, configOptions);
-            //     }
-
-            //     // If there is, we need to add it to the new screen.
-            //     //
-            //     const modifiedAction = {...action};
-
-            //     if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-            //         modifiedAction.payload.params = {...action.payload.params, policyID};
-            //     }
-
-            //     if (action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
-            //         if (policyID) {
-            //             const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
-            //             if (queryJSON) {
-            //                 queryJSON.policyID = policyID;
-            //                 params.q = SearchUtils.buildSearchQueryString(queryJSON);
-            //             }
-            //         } else {
-            //             const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
-            //             if (queryJSON) {
-            //                 delete queryJSON.policyID;
-            //                 params.q = SearchUtils.buildSearchQueryString(queryJSON);
-            //             }
-            //         }
-            //         action.payload.params = {...action.payload.params, policyID: extractPolicyIDFromState(state)};
-            //     }
-
-            //     // This shouldn't happen, but if it does, we don't want to break the app.
-            //     console.error('Unhandled screen with workspace switcher:', action.payload.name);
-            //     return;
-            // }
 
             if (shouldDismissSideModalNavigator(state, action)) {
                 const modifiedState = {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0};
