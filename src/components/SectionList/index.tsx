@@ -19,3 +19,4 @@ function SectionList<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, 
 SectionList.displayName = 'SectionList';
 
 export default forwardRef(SectionList);
+export {AnimatedSectionList};
