@@ -1,6 +1,8 @@
-import React, {useMemo} from 'react';
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -10,46 +12,70 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
 };
 
-type TripsFeaturesProps = FeatureListItem & {
-    title: string;
-};
+const tripsFeatures: FeatureListItem[] = [
+    {
+        icon: Illustrations.PiggyBank,
+        translationKey: 'travel.features.saveMoney',
+    },
+    {
+        icon: Illustrations.Alert,
+        translationKey: 'travel.features.alerts',
+    },
+];
 
 function EmptySearchView({type}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [primaryLogin = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
+    const policy = usePolicy(activePolicyID);
+    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
+
+    const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
+    const hasPolicyAddress = !isEmptyObject(policy?.address);
+
+    const onBookATripPress = useCallback(() => {
+        if (Str.isSMSLogin(primaryLogin)) {
+            setCtaErrorMessage(translate('travel.phoneError'));
+            return;
+        }
+        if (!hasPolicyAddress) {
+            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
+            return;
+        }
+        if (!hasAcceptedTravelTerms) {
+            Navigation.navigate(ROUTES.TRAVEL_TCS);
+            return;
+        }
+        if (ctaErrorMessage) {
+            setCtaErrorMessage('');
+        }
+        Link.openTravelDotLink(activePolicyID)?.catch(() => {
+            setCtaErrorMessage(translate('travel.errorMessage'));
+        });
+    }, [activePolicyID, primaryLogin, hasPolicyAddress, hasAcceptedTravelTerms, translate, ctaErrorMessage]);
 
     const subtitleComponent = useMemo(() => {
-        const tripsFeatures: TripsFeaturesProps[] = [
-            {
-                icon: Illustrations.PiggyBank,
-                translationKey: 'travel.features.saveMoney',
-                title: translate('travel.features.saveMoney'),
-            },
-            {
-                icon: Illustrations.Alert,
-                translationKey: 'travel.features.alerts',
-                title: translate('travel.features.alerts'),
-            },
-        ];
-
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
@@ -70,7 +96,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             style={styles.w100}
                         >
                             <MenuItem
-                                title={tripsFeature.title}
+                                title={translate(tripsFeature.translationKey)}
                                 icon={tripsFeature.icon}
                                 iconWidth={variables.menuIconSize}
                                 iconHeight={variables.menuIconSize}
@@ -83,9 +109,16 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                         </View>
                     ))}
                 </View>
+                {ctaErrorMessage && (
+                    <DotIndicatorMessage
+                        style={styles.mt1}
+                        messages={{error: ctaErrorMessage}}
+                        type="error"
+                    />
+                )}
             </>
         );
-    }, [styles, translate]);
+    }, [styles, translate, ctaErrorMessage]);
 
     const content = useMemo(() => {
         switch (type) {
@@ -99,7 +132,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1')),
+                    buttonAction: onBookATripPress,
                     canEmptyViewBeScrolled: true,
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
@@ -117,7 +150,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     buttonAction: undefined,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, activePolicyID]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, onBookATripPress]);
 
     return (
         <EmptyStateComponent
