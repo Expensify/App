@@ -259,10 +259,14 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: 'Waiting for ',
                     },
-                    {
-                        text: reimburserDisplayName,
-                        type: 'strong',
-                    },
+                    reimburserAccountID === -1
+                        ? {
+                              text: 'an admin',
+                          }
+                        : {
+                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
+                              type: 'strong',
+                          },
                     {
                         text: ' to ',
                     },
