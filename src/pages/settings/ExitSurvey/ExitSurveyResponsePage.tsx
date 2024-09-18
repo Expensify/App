@@ -155,7 +155,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                             accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
-                            maxAutoGrowHeight={responseInputMaxHeight}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el: AnimatedTextInputRef) => {
                                 if (!el) {
