@@ -477,8 +477,8 @@ jobs:
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
-          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=\"$isAtLeastOnePlatformDeployed\"" >> "$GITHUB_OUTPUT"
-          echo "IS_ALL_PLATFORMS_DEPLOYED=\"$isAllPlatformsDeployed\"" >> "$GITHUB_OUTPUT"
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
 
   createPrerelease:
     runs-on: ubuntu-latest
