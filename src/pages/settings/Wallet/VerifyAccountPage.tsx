@@ -27,6 +27,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
+    const firstRenderRef = useRef(true);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
@@ -35,7 +36,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_WALLET;
 
-    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
+    useEffect(() => {
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            User.requestValidateCodeAction();
+        }
+        return () => User.clearUnvalidatedNewContactMethodAction();
+    }, []);
 
     const handleSubmitForm = useCallback(
         (submitCode: string) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,6 +11,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +29,7 @@ const plaidDesktopMessage = getPlaidDesktopMessage();
 function SetupMethod({isPlaidDisabled}: SetupMethodProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     return (
         <View>
@@ -47,7 +49,13 @@ function SetupMethod({isPlaidDisabled}: SetupMethodProps) {
                 <Button
                     icon={Expensicons.Bank}
                     text={translate('bankAccount.addBankAccount')}
-                    onPress={() => BankAccounts.openPersonalBankAccountSetupWithPlaid()}
+                    onPress={() => {
+                        if (!isUserValidated) {
+                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ENABLE_PAYMENTS));
+                            return;
+                        }
+                        BankAccounts.openPersonalBankAccountSetupWithPlaid();
+                    }}
                     isDisabled={!!isPlaidDisabled}
                     style={[styles.mt4, styles.mb2]}
                     iconStyles={styles.buttonCTAIcon}
