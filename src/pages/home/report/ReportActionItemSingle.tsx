@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,6 +83,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+    const policy = usePolicy(report.policyID);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
@@ -98,9 +100,9 @@ function ReportActionItemSingle({
     let avatarId: number | string | undefined = actorAccountID;
 
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report);
+        displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
-        avatarSource = ReportUtils.getWorkspaceIcon(report).source;
+        avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their

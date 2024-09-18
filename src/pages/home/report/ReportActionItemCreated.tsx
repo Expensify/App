@@ -1,34 +1,21 @@
-import lodashIsEqual from 'lodash/isEqual';
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
-type ReportActionItemCreatedOnyxProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<Report>;
-
-    /** The policy object for the current route */
-    policy: OnyxEntry<Policy>;
-
-    /** Personal details of all the users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
+type ReportActionItemCreatedProps = {
     /** The id of the report */
     reportID: string;
 
@@ -36,7 +23,10 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
-function ReportActionItemCreated({report, personalDetails, policy, reportID}: ReportActionItemCreatedProps) {
+function ReportActionItemCreated({policyID, reportID}: ReportActionItemCreatedProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
@@ -47,7 +37,7 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
         return null;
     }
 
-    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
+    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
     if (ReportUtils.isInvoiceRoom(report) && ReportUtils.isCurrentUserInvoiceReceiver(report)) {
@@ -98,33 +88,4 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
 
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOnyxProps>({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(
-    memo(
-        ReportActionItemCreated,
-        (prevProps, nextProps) =>
-            prevProps.policy?.name === nextProps.policy?.name &&
-            prevProps.policy?.avatarURL === nextProps.policy?.avatarURL &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum &&
-            prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
-            prevProps.report?.description === nextProps.report?.description &&
-            prevProps.personalDetails === nextProps.personalDetails &&
-            prevProps.policy?.description === nextProps.policy?.description &&
-            prevProps.report?.reportName === nextProps.report?.reportName &&
-            prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
-            lodashIsEqual(prevProps.report?.invoiceReceiver, nextProps.report?.invoiceReceiver) &&
-            prevProps.report?.errorFields === nextProps.report?.errorFields,
-    ),
-);
+export default memo(ReportActionItemCreated);
