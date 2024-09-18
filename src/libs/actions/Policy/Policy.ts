@@ -166,8 +166,6 @@ Onyx.connect({
     },
 });
 
-
-
 let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
