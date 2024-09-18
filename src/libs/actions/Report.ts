@@ -100,6 +100,7 @@ import type {
     ReportActionReactions,
     ReportUserIsTyping,
 } from '@src/types/onyx';
+import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
@@ -112,7 +113,6 @@ import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
-import type Onboarding from '@src/types/onyx/Onboarding';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -854,12 +854,12 @@ function openReport(
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
     const hasCompletedGuidedSetup = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
-    
-    if(!hasCompletedGuidedSetup && introSelected && !isInviteOnboardingComplete) {
+
+    if (!hasCompletedGuidedSetup && introSelected && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU;
 
-        if(choice && !isInviteIOUorInvoice) {
+        if (choice && !isInviteIOUorInvoice) {
             const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
             const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
 
