@@ -52,10 +52,10 @@ type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWr
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
     shouldIncludeDeprecatedIOUType = false,
-): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundProps<MoneyRequestRouteName>> & RefAttributes<TRef>> {
+): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps> & RefAttributes<TRef>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>, ref: ForwardedRef<TRef>) {
-        const {route} = props as TProps;
+    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+        const {route} = props;
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
