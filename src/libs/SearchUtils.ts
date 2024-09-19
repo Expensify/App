@@ -397,6 +397,18 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+    }
+}
+
 /* Search query related */
 
 /**
@@ -459,16 +471,58 @@ function sanitizeString(str: string) {
     return str;
 }
 
-function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (expenseType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return 'common.distance';
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return 'common.card';
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
-            return 'iou.cash';
+/**
+ * @private
+ * traverses the AST and returns filters as a QueryFilters object
+ */
+function getFilters(queryJSON: SearchQueryJSON) {
+    const filters = {} as QueryFilters;
+    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
+
+    function traverse(node: ASTNode) {
+        if (!node.operator) {
+            return;
+        }
+
+        if (typeof node?.left === 'object' && node.left) {
+            traverse(node.left);
+        }
+
+        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
+            traverse(node.right);
+        }
+
+        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+        if (!filterKeys.includes(nodeKey)) {
+            return;
+        }
+
+        if (!filters[nodeKey]) {
+            filters[nodeKey] = [];
+        }
+
+        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
+        const filterArray = filters[nodeKey] ?? [];
+        if (!Array.isArray(node.right)) {
+            filterArray.push({
+                operator: node.operator,
+                value: node.right as string | number,
+            });
+        } else {
+            node.right.forEach((element) => {
+                filterArray.push({
+                    operator: node.operator,
+                    value: element as string | number,
+                });
+            });
+        }
     }
+
+    if (queryJSON.filters) {
+        traverse(queryJSON.filters);
+    }
+
+    return filters;
 }
 
 function buildSearchQueryJSON(query: SearchQueryString) {
@@ -520,7 +574,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 /**
  * Given object with chosen search filters builds correct query string from them
  */
-function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
+function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
@@ -585,64 +639,9 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
 }
 
 /**
- *
- * @private
- * traverses the AST and returns filters as a QueryFilters object
- */
-function getFilters(queryJSON: SearchQueryJSON) {
-    const filters = {} as QueryFilters;
-    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
-
-    function traverse(node: ASTNode) {
-        if (!node.operator) {
-            return;
-        }
-
-        if (typeof node?.left === 'object' && node.left) {
-            traverse(node.left);
-        }
-
-        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
-            traverse(node.right);
-        }
-
-        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!filterKeys.includes(nodeKey)) {
-            return;
-        }
-
-        if (!filters[nodeKey]) {
-            filters[nodeKey] = [];
-        }
-
-        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
-        const filterArray = filters[nodeKey] ?? [];
-        if (!Array.isArray(node.right)) {
-            filterArray.push({
-                operator: node.operator,
-                value: node.right as string | number,
-            });
-        } else {
-            node.right.forEach((element) => {
-                filterArray.push({
-                    operator: node.operator,
-                    value: element as string | number,
-                });
-            });
-        }
-    }
-
-    if (queryJSON.filters) {
-        traverse(queryJSON.filters);
-    }
-
-    return filters;
-}
-
-/**
  * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
  */
-function getFiltersFormValues(queryJSON: SearchQueryJSON) {
+function buildFilterFormValuesFromQuery(queryJSON: SearchQueryJSON) {
     const filters = getFilters(queryJSON);
     const filterKeys = Object.keys(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -773,36 +772,6 @@ function getSearchHeaderTitle(
     return title;
 }
 
-function getSearchRouterInputText(queryJSON: SearchQueryJSON) {
-    const {type, status} = queryJSON;
-    const filters = queryJSON.flatFilters ?? {};
-
-    let title = `type:${type} status:${status}`;
-
-    Object.keys(filters)
-        .filter((filterKey) => {
-            return (
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
-                filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY
-            );
-        })
-        .forEach((key) => {
-            const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
-            const displayQueryFilters = queryFilter.map((filter) => ({
-                operator: filter.operator,
-                value: filter.value.toString(),
-            }));
-            title += buildFilterString(key, displayQueryFilters, ' ');
-        });
-
-    return title;
-}
-
 function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
     return normalizeQuery(`type:${type} status:${status}`);
 }
@@ -849,10 +818,10 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 export {
-    buildQueryStringFromFilterValues,
+    buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
-    getFiltersFormValues,
+    buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
     getListItem,
     getSections,
@@ -863,7 +832,6 @@ export {
     isTransactionListItemType,
     isReportActionListItemType,
     getSearchHeaderTitle,
-    getSearchRouterInputText,
     normalizeQuery,
     shouldShowYear,
     buildCannedSearchQuery,

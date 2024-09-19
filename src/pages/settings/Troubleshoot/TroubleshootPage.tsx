@@ -106,6 +106,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />

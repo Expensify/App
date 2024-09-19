@@ -387,6 +387,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
                 >
@@ -423,6 +424,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
                 >

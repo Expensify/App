@@ -5,16 +5,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
-    initialValue?: string;
     isFullWidth: boolean;
     onChange: (searchTerm: string) => void;
     onSubmit: () => void;
 };
 
-function SearchRouterInput({initialValue = '', isFullWidth, onChange, onSubmit}: SearchRouterInputProps) {
+function SearchRouterInput({isFullWidth, onChange, onSubmit}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
-    const [value, setValue] = useState(initialValue);
+    const [value, setValue] = useState('');
 
     const onChangeText = (text: string) => {
         setValue(text);

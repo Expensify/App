@@ -13,6 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -264,6 +265,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
+                            <SearchButton />
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
