@@ -86,87 +86,6 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
     };
 }
 
-function updateQuickbooksOnlineAutoSync(policyID: string, settingValue: boolean) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            autoSync: {
-                                enabled: settingValue ?? null,
-                            },
-                            pendingFields: {
-                                [CONST.QUICKBOOKS_CONFIG.AUTO_SYNC]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [CONST.QUICKBOOKS_CONFIG.AUTO_SYNC]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            autoSync: {
-                                enabled: !settingValue ?? null,
-                            },
-                            pendingFields: {
-                                [CONST.QUICKBOOKS_CONFIG.AUTO_SYNC]: null,
-                            },
-                            errorFields: {
-                                [CONST.QUICKBOOKS_CONFIG.AUTO_SYNC]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            autoSync: {
-                                enabled: settingValue ?? null,
-                            },
-                            pendingFields: {
-                                [CONST.QUICKBOOKS_CONFIG.AUTO_SYNC]: null,
-                            },
-                            errorFields: {
-                                [CONST.QUICKBOOKS_CONFIG.AUTO_SYNC]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
-        policyID,
-        settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.AUTO_SYNC),
-    };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
-}
-
 function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksOnline']['config']>(
     policyID: string,
     settingName: TSettingName,
@@ -243,6 +162,17 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
         failureData,
         successData,
     };
+}
+
+function updateQuickbooksOnlineAutoSync<TSettingValue extends Connections['quickbooksOnline']['config']['autoSync']['enabled']>(policyID: string, settingValue: TSettingValue) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, {enabled: settingValue}, {enabled: !settingValue});
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.AUTO_SYNC),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC, parameters, onyxData);
 }
 
 function updateQuickbooksOnlineEnableNewCategories<TSettingValue extends Connections['quickbooksOnline']['config']['enableNewCategories']>(policyID: string, settingValue: TSettingValue) {
