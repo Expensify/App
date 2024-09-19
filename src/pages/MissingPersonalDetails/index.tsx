@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -42,6 +43,7 @@ function MissingPersonalDetails() {
             return;
         }
         PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(values, firstUnissuedCard?.cardID ?? 0);
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
     }, [firstUnissuedCard?.cardID, values]);
 
@@ -63,6 +65,7 @@ function MissingPersonalDetails() {
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack();
             return;
         }
