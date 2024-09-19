@@ -398,6 +398,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                         lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (

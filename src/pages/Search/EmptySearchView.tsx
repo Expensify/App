@@ -43,9 +43,10 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     buttonText: undefined,
                     buttonAction: undefined,
+                    headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles.w100]);
+    }, [type, StyleUtils, translate, theme, styles.w100, styles.emptyStateFolderWebStyles]);
 
     return (
         <EmptyStateComponent
@@ -57,7 +58,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             subtitle={content.subtitle}
             buttonText={content.buttonText}
             buttonAction={content.buttonAction}
-            headerContentStyles={[styles.h100, styles.w100]}
+            headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
         />
     );

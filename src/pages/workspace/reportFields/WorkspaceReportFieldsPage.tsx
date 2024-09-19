@@ -294,6 +294,7 @@ function WorkspaceReportFieldsPage({
                         headerMedia={LottieAnimations.GenericEmptyState}
                         headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                         lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {!shouldShowEmptyState && !isLoading && (

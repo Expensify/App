@@ -404,6 +404,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                         headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                         lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {hasVisibleTags && !isLoading && (
