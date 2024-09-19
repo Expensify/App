@@ -42,32 +42,9 @@ type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> &
 
 function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperProps) {
     const styles = useThemeStyles();
-    const [currentQuery, setCurrentQuery] = useState<SearchQueryJSON | undefined>(undefined);
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
-
-    const clearUserQuery = () => {
-        setCurrentQuery(undefined);
-    };
-
-    const onSearchChange = useCallback((userQuery: string) => {
-        if (!userQuery) {
-            clearUserQuery();
-            return;
-        }
-
-        const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
-        if (queryJSON) {
-            setCurrentQuery(queryJSON);
-        }
-    }, []);
-
-    const onSearchSubmit = useCallback(() => {
-        const query = SearchUtils.buildSearchQueryString(currentQuery);
-        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-        clearUserQuery();
-    }, [currentQuery]);
 
     return (
         <View
@@ -90,10 +67,10 @@ function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperPr
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
+                        disabled
                         isFullWidth
                         wrapperStyle={styles.searchRouterInputResultsStyle}
-                        onChange={onSearchChange}
-                        onSubmit={onSearchSubmit}
+                        defaultValue={content}
                         shouldShowRightComponent
                         rightComponent={children}
                     />

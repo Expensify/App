@@ -8,9 +8,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
+    onChange?: (searchTerm: string) => void;
+
+    onSubmit?: () => void;
+
+    /** Whether the input is full width */
     isFullWidth: boolean;
-    onChange: (searchTerm: string) => void;
-    onSubmit: () => void;
+
+    /** Default value for text input */
+    defaultValue?: string;
 
     /** Whether the input is disabled */
     disabled?: boolean;
@@ -25,14 +31,16 @@ type SearchRouterInputProps = {
     rightComponent?: ReactNode;
 };
 
-function SearchRouterInput({isFullWidth, onChange, onSubmit, disabled = false, wrapperStyle, shouldShowRightComponent = false, rightComponent}: SearchRouterInputProps) {
+function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', disabled = false, wrapperStyle, shouldShowRightComponent = false, rightComponent}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState(defaultValue);
 
     const onChangeText = (text: string) => {
         setValue(text);
-        onChange(text);
+        if(onChange) {
+            onChange(text);
+        }
     };
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -42,6 +50,7 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, disabled = false, w
             <View style={styles.flex1}>
                 <BaseTextInput
                     disabled={disabled}
+                    shouldUseDisabledStyles={false}
                     value={value}
                     onChangeText={onChangeText}
                     onSubmitEditing={onSubmit}
