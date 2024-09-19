@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -24,11 +24,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
-import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
+import type {BaseOnboardingWorkProps} from './types';
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED)
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID)
     const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const {isOffline} = useNetwork();
@@ -118,11 +120,4 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
-    onboardingPurposeSelected: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    onboardingPolicyID: {
-        key: ONYXKEYS.ONBOARDING_POLICY_ID,
-    },
-})(BaseOnboardingWork);
+export default BaseOnboardingWork;
