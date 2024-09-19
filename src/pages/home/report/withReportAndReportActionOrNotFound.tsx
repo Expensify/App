@@ -2,8 +2,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry, WithOnyxState} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -47,7 +47,7 @@ type WithReportAndReportActionOrNotFoundProps = OnyxProps &
 
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentType<Omit<TProps & RefAttributes<TRef>, keyof OnyxProps>> {
+): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '-1'}`);
