@@ -854,6 +854,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
     },
+    WORKSPACE_TAG_APPROVER: {
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${tagName}/approver` as const,
+    },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
         getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tag-list/${orderWeight}` as const,
@@ -1467,6 +1471,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable/destination',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/destination',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/destination` as const,
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
         getRoute: (policyID: string, reimbursable: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const,
@@ -1482,6 +1494,50 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
+    },
+    DEBUG_REPORT: {
+        route: 'debug/report/:reportID',
+        getRoute: (reportID: string) => `debug/report/${reportID}` as const,
+    },
+    DEBUG_REPORT_TAB_DETAILS: {
+        route: 'debug/report/:reportID/details',
+        getRoute: (reportID: string) => `debug/report/${reportID}/details` as const,
+    },
+    DEBUG_REPORT_TAB_JSON: {
+        route: 'debug/report/:reportID/json',
+        getRoute: (reportID: string) => `debug/report/${reportID}/json` as const,
+    },
+    DEBUG_REPORT_TAB_ACTIONS: {
+        route: 'debug/report/:reportID/actions',
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions` as const,
+    },
+    DEBUG_REPORT_ACTION: {
+        route: 'debug/report/:reportID/actions/:reportActionID',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
+    },
+    DEBUG_REPORT_ACTION_CREATE: {
+        route: 'debug/report/:reportID/actions/create',
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions/create` as const,
+    },
+    DEBUG_REPORT_ACTION_TAB_DETAILS: {
+        route: 'debug/report/:reportID/actions/:reportActionID/details',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/details` as const,
+    },
+    DEBUG_REPORT_ACTION_TAB_JSON: {
+        route: 'debug/report/:reportID/actions/:reportActionID/json',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/json` as const,
+    },
+    DEBUG_REPORT_ACTION_TAB_PREVIEW: {
+        route: 'debug/report/:reportID/actions/:reportActionID/preview',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
+    },
+    DETAILS_CONSTANT_PICKER_PAGE: {
+        route: 'debug/details/constant/:fieldName',
+        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/constant/${fieldName}?fieldValue=${fieldValue}`, backTo),
+    },
+    DETAILS_DATE_TIME_PICKER_PAGE: {
+        route: 'debug/details/datetime/:fieldName',
+        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },
 } as const;
 

@@ -63,15 +63,15 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={
-                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
-                            ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
+                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.defaultValue
+                            ? policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.defaultValue
                             : null
                     }
                     key="customName"
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.customNameTitle')}
-                        title={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue}
+                        title={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
@@ -79,8 +79,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 </OfflineWithFeedback>,
                 <ToggleSettingOptionRow
                     pendingAction={
-                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable
-                            ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable
+                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.deletable
+                            ? policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.deletable
                             : null
                     }
                     key="preventMembersFromChangingCustomNames"
@@ -88,7 +88,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                     titleStyle={styles.pv2}
-                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable}
+                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                     onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
                 />,
             ],
