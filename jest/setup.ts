@@ -73,6 +73,13 @@ jest.mock('react-native-reanimated', () => ({
     useReducedMotion: jest.fn,
 }));
 
+// This mock is required as it's part of the `useAnimatedHighlightStyle` hook
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
 jest.mock('@src/libs/actions/Timing', () => ({
