@@ -19,6 +19,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
     const paymentCompleteTextScale = useSharedValue(0);
     const paymentCompleteTextOpacity = useSharedValue(1);
     const height = useSharedValue<number>(variables.componentSizeNormal);
+    const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
     const buttonStyles = useAnimatedStyle(() => ({
         transform: [{scale: buttonScale.value}],
         opacity: buttonOpacity.value,
@@ -33,6 +34,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         height: height.value,
         justifyContent: 'center',
         overflow: 'hidden',
+        marginTop: buttonMarginTop.value,
     }));
     const buttonDisabledStyle = isPaidAnimationRunning
         ? {
@@ -66,6 +68,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
             totalDelay,
             withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
         );
+        buttonMarginTop.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
         paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
     }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
 
