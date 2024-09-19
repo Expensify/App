@@ -2,8 +2,7 @@ import truncate from 'lodash/truncate';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
@@ -40,33 +39,14 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
+import usePolicy from '@hooks/usePolicy';
 
-type ReportPreviewOnyxProps = {
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<Policy>;
-
-    /** ChatReport associated with iouReport */
-    chatReport: OnyxEntry<Report>;
-
-    /** Active IOU Report for current report */
-    iouReport: OnyxEntry<Report>;
-
-    /** All the transactions, used to update ReportPreview label and status */
-    transactions: OnyxCollection<Transaction>;
-
-    /** All of the transaction violations */
-    transactionViolations: OnyxCollection<TransactionViolations>;
-
-    /** The user's wallet account */
-    userWallet: OnyxEntry<UserWallet>;
-};
-
-type ReportPreviewProps = ReportPreviewOnyxProps & {
+type ReportPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
@@ -102,24 +82,24 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
 };
 
 function ReportPreview({
-    iouReport,
-    policy,
     iouReportID,
     policyID,
     chatReportID,
-    chatReport,
     action,
     containerStyles,
     contextMenuAnchor,
-    transactions,
-    transactionViolations,
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    userWallet,
 }: ReportPreviewProps) {
+    const policy = usePolicy(policyID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -580,23 +560,4 @@ function ReportPreview({
 
 ReportPreview.displayName = 'ReportPreview';
 
-export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-})(ReportPreview);
+export default ReportPreview;
