@@ -491,6 +491,11 @@ type ParsingDetails = {
     policyID?: string;
 };
 
+type Thread = {
+    parentReportID: string;
+    parentReportActionID: string;
+} & Report;
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -1111,14 +1116,14 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report has a parent
  */
-function isThread(report: OnyxInputOrEntry<Report>): boolean {
+function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
     return !!(report?.parentReportID && report?.parentReportActionID);
 }
 
 /**
  * Returns true if report is of type chat and has a parent and is therefore a Thread.
  */
-function isChatThread(report: OnyxInputOrEntry<Report>): boolean {
+function isChatThread(report: OnyxInputOrEntry<Report>): report is Thread {
     return isThread(report) && report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
@@ -1535,7 +1540,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  * the parentReportAction is a transaction.
  */
 function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
-    if (isThread(report) && report?.parentReportID && report.parentReportActionID) {
+    if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -1548,7 +1553,7 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
  * the parentReportAction is a transaction.
  */
 function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
-    if (isThread(report) && report?.parentReportID && report.parentReportActionID) {
+    if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isIOUReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -1561,7 +1566,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  * parentReportAction has type of track.
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
-    if (isThread(report) && report?.parentReportID && report.parentReportActionID) {
+    if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && ReportActionsUtils.isTrackExpenseAction(parentReportAction);
     }
@@ -2210,7 +2215,7 @@ function getIcons(
         };
         return [fallbackIcon];
     }
-    if (isExpenseRequest(report) && report?.parentReportID && report.parentReportActionID) {
+    if (isExpenseRequest(report) && isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
@@ -2223,7 +2228,7 @@ function getIcons(
 
         return [memberIcon, workspaceIcon];
     }
-    if (isChatThread(report) && report?.parentReportID && report.parentReportActionID) {
+    if (isChatThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
         const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
@@ -3106,7 +3111,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
     const parentReportAction =
-        moneyRequestReport?.parentReportID && moneyRequestReport.parentReportActionID
+        isThread(moneyRequestReport)
             ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`]?.[moneyRequestReport.parentReportActionID]
             : undefined;
 
@@ -3718,7 +3723,7 @@ function getReportName(
     let parentReportAction: OnyxEntry<ReportAction> | undefined;
     if (parentReportActionParam) {
         parentReportAction =
-            report?.parentReportID && report.parentReportActionID
+            isThread(report)
                 ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
                 : undefined;
     }
@@ -6005,7 +6010,7 @@ function shouldReportBeInOptionList({
     // Optionally exclude reports that do not belong to currently active workspace
 
     const parentReportAction =
-        report?.parentReportID && report.parentReportActionID
+        isThread(report)
             ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
             : undefined;
 
