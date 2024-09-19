@@ -56,17 +56,17 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        buttonScale.value = withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION});
-        buttonOpacity.value = withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION});
-        paymentCompleteTextScale.value = withTiming(1, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION});
+        buttonScale.value = withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION});
+        buttonOpacity.value = withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION});
+        paymentCompleteTextScale.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION});
 
         // Wait for the above animation + 1s delay before hiding the component
-        const totalDelay = CONST.ANIMATION_PAY_BUTTON_DURATION + CONST.ANIMATION_PAY_BUTTON_HIDE_DELAY;
+        const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
         height.value = withDelay(
             totalDelay,
-            withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION}, () => runOnJS(onAnimationFinish)()),
+            withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
         );
-        paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAY_BUTTON_DURATION}));
+        paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
     }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
 
     return (
