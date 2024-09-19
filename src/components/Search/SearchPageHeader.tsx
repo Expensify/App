@@ -1,11 +1,9 @@
 import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import Header from '@components/Header';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -34,58 +32,56 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import type {SearchQueryJSON} from './types';
+import Header from '@components/Header';
+import SearchRouterInput from './SearchRouter/SearchRouterInput';
 
-type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
-    subtitleStyles?: StyleProp<TextStyle>;
+type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
+    content: string;
+    isCannedQuery: boolean;
 };
 
-function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperProps) {
     const styles = useThemeStyles();
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
-
-    const middleContent = useMemo(() => {
-        return (
-            <Header
-                title={
-                    <Text
-                        style={[styles.mutedTextLabel, styles.pre]}
-                        numberOfLines={1}
-                    >
-                        {title}
-                    </Text>
-                }
-                subtitle={
-                    <Text
-                        numberOfLines={2}
-                        style={[styles.textLarge, subtitleStyles]}
-                    >
-                        {subtitle}
-                    </Text>
-                }
-            />
-        );
-    }, [styles.mutedTextLabel, styles.pre, styles.textLarge, subtitle, subtitleStyles, title]);
 
     return (
         <View
             dataSet={{dragArea: false}}
             style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                {icon && (
-                    <Icon
-                        src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+            {isCannedQuery ? (
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                    {icon && (
+                        <Icon
+                            src={icon}
+                            width={variables.iconHeader}
+                            height={variables.iconHeader}
+                            additionalStyles={[styles.mr2]}
+                        />
+                    )}
+                    <Header subtitle={
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>
+                            {content}
+                        </Text>
+                    }/>
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>
+                        {children}
+                    </View>
+                </View>
+            ) : (
+                <View style={styles.pr5}>
+                    <SearchRouterInput
+                        isFullWidth
+                        wrapperStyle={styles.searchRouterInputResultsStyle}
+                        onChange={() => console.log("change")}
+                        onSubmit={() => console.log("submit")}
+                        shouldShowRightComponent
+                        rightComponent={children}
                     />
-                )}
-
-                {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
-            </View>
+                </View>
+            )}
         </View>
     );
 }
@@ -153,11 +149,8 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
 
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
 
-    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
-    const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
-    const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
-
-    const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
+    const headerIcon = getHeaderContent(type).icon;
+    const headerContent = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -302,10 +295,9 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
 
     return (
         <HeaderWrapper
-            title={headerTitle}
-            subtitle={headerSubtitle}
             icon={headerIcon}
-            subtitleStyles={subtitleStyles}
+            content={headerContent}
+            isCannedQuery={isCannedQuery}
         >
             {headerButtonsOptions.length > 0 ? (
                 <ButtonWithDropdownMenu
@@ -320,6 +312,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 />
             ) : (
                 <Button
+                    innerStyles={!isCannedQuery && styles.highlightBG}
                     text={translate('search.filtersHeader')}
                     icon={Expensicons.Filters}
                     onPress={onPress}

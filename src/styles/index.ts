@@ -3603,7 +3603,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 2,
             borderColor: theme.borderFocus,
-            paddingHorizontal: 8,
+        },
+
+        searchRouterInputResultsStyle: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadius,
         },
 
         searchTableHeaderActive: {
