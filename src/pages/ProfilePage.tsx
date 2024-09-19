@@ -80,6 +80,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.guideCalendarLink,
     });
@@ -298,6 +299,14 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={SessionActions.checkIfActionIsAllowed(() => {
                                     LinkActions.openExternalLink(guideCalendarLink);
                                 })}
+                            />
+                        )}
+                        {!!report?.reportID && isDebugModeEnabled && (
+                            <MenuItem
+                                title={translate('debug.debug')}
+                                icon={Expensicons.Bug}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}
                     </ScrollView>
