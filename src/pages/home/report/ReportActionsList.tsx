@@ -655,7 +655,13 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={() => {
+                        InteractionManager.runAfterInteractions(() => {
+                            requestAnimationFrame(() => {
+                                onStartReached();
+                            });
+                        });
+                    }}
                     onStartReachedThreshold={0.75}
                     ListFooterComponent={listFooterComponent}
                     ListHeaderComponent={listHeaderComponent}
