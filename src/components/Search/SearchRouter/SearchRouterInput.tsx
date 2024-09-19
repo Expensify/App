@@ -38,7 +38,7 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
 
     const onChangeText = (text: string) => {
         setValue(text);
-        if(onChange) {
+        if (onChange) {
             onChange(text);
         }
     };
