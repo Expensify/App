@@ -225,8 +225,9 @@ function ReportActionItemSingle({
                 return (
                     <SubscriptAvatar
                         mainAvatar={icons[0]}
-                        secondaryAvatar={icons[1]}
+                        secondaryAvatar={icons[1] ?? secondaryAvatar}
                         noMargin
+                        backgroundColor={isHovered ? theme.hoverComponentBG : theme.componentBG}
                     />
                 );
             }
