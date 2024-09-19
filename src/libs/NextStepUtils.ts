@@ -48,7 +48,7 @@ function parseMessage(messages: Message[] | undefined) {
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
-            content = nextPart.text === `'s` ? 'Your' : 'You';
+            content = nextPart?.text === `'s` ? 'Your' : 'You';
         } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
             content = '';
         } else if (isEmail) {
@@ -121,6 +121,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: `${ownerDisplayName}`,
                         type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
                     {
                         text: ' to ',
@@ -142,6 +143,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: `${ownerDisplayName}`,
                         type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
                     {
                         text: `'s`,
