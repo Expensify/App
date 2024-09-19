@@ -119,7 +119,7 @@ function SecuritySettingsPage() {
             description: personalDetail?.displayName ? formattedEmail : '',
             badgeText: translate('delegate.role', {role}),
             avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
+            icon: personalDetail?.avatar ?? FallbackAvatar,
             iconType: CONST.ICON_TYPE_AVATAR,
             numberOfLinesDescription: 1,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -163,7 +163,7 @@ function SecuritySettingsPage() {
                                     <Section
                                         title={translate('delegate.copilotDelegatedAccess')}
                                         renderSubtitle={() => (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
                                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
                                                 <TextLink
                                                     style={[styles.link]}
@@ -171,7 +171,7 @@ function SecuritySettingsPage() {
                                                 >
                                                     {translate('common.learnMore')}
                                                 </TextLink>
-                                            </View>
+                                            </Text>
                                         )}
                                         isCentralPane
                                         subtitleMuted
