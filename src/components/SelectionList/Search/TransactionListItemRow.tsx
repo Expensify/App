@@ -81,10 +81,10 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
-    const filename = getFileName(transactionItem?.receipt?.source ?? '');
-    const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
-    const isReceiptPDF = Str.isPDF(filename);
-    const source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+    // const filename = getFileName(transactionItem?.receipt?.source ?? '');
+    // const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+    // const isReceiptPDF = Str.isPDF(filename);
+    // const source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
 
     return (
         <View
@@ -95,7 +95,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 backgroundStyles,
             ]}
         >
-            <ReceiptImage
+            {/* <ReceiptImage
                 source={source}
                 isEReceipt={transactionItem.hasEReceipt}
                 transactionID={transactionItem.transactionID}
@@ -106,7 +106,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
-            />
+            /> */}
         </View>
     );
 }

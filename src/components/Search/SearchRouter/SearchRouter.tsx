@@ -3,18 +3,15 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Modal from '@components/Modal';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SingleIconListItem from '@components/SelectionList/Search/SingleIconListItem';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,6 +28,11 @@ function SearchRouter() {
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const [currentQuery, setCurrentQuery] = useState<SearchQueryJSON | undefined>(undefined);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => {
+        const dateA = new Date(a.timestamp);
+        const dateB = new Date(b.timestamp);
+        return dateB.getTime() - dateA.getTime();
+    });
 
     const clearUserQuery = () => {
         setCurrentQuery(undefined);
@@ -54,21 +56,28 @@ function SearchRouter() {
         }
     }, SEARCH_DEBOUNCE_DELAY);
 
-    const onSearchSubmit = useCallback(() => {
-        if (!currentQuery) {
-            return;
-        }
+    const closeAndClearRouter = useCallback(() => {
         closeSearchRouter();
-        const queryString = SearchUtils.buildSearchQueryString(currentQuery);
-        SearchActions.addRecentSearch({queryJSON: currentQuery, previousRecentSearches: recentSearches ?? []});
-        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
         clearUserQuery();
-    }, [currentQuery, closeSearchRouter, recentSearches]);
+    }, [closeSearchRouter]);
+
+    const onSearchSubmit = useCallback(
+        (query: SearchQueryJSON | undefined) => {
+            if (!query) {
+                return;
+            }
+            closeSearchRouter();
+            const queryString = SearchUtils.buildSearchQueryString(query);
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
+            clearUserQuery();
+        },
+        [closeSearchRouter],
+    );
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
-            onSearchSubmit();
+            onSearchSubmit(currentQuery);
         },
         {
             captureOnInputs: true,
@@ -111,13 +120,17 @@ function SearchRouter() {
                     <SearchRouterInput
                         isFullWidth={isFullWidth}
                         onChange={onSearchChange}
-                        onSubmit={onSearchSubmit}
+                        onSubmit={() => {
+                            onSearchSubmit(currentQuery);
+                        }}
                     />
 
                     <SearchRouterList
                         currentSearch={currentQuery}
-                        recentSearches={recentSearches ?? []}
+                        recentSearches={sortedRecentSearches}
                         recentReports={searchOptions}
+                        onRecentSearchSelect={onSearchSubmit}
+                        closeAndClearRouter={closeAndClearRouter}
                     />
                 </View>
             </FocusTrapForModal>

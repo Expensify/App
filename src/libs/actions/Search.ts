@@ -65,12 +65,13 @@ function deleteSavedSearch(hash: number) {
 
 // this is mocked interaction, BE is not ready yet
 function addRecentSearch({queryJSON, previousRecentSearches}: {queryJSON: SearchQueryJSON; previousRecentSearches: RecentSearchItem[]}) {
+    const uniqueRecentSearches = previousRecentSearches.filter((recentSearch) => recentSearch.query === queryJSON.inputQuery);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.RECENT_SEARCHES}`,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            value: [{query: queryJSON?.inputQuery, timestamp: 'someTimestamp'}, ...previousRecentSearches].slice(0, 5),
+            value: [{query: queryJSON?.inputQuery, timestamp: 'someTimestamp'}, ...uniqueRecentSearches].slice(0, 5),
         },
     ];
 
