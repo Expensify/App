@@ -166,7 +166,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const handleIssueNewCard = useCallback(() => {
         if (hasMultipleFeeds) {
-            setIsFeedSelectorModalVisible(true);
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
             return;
         }
         const activeRoute = Navigation.getActiveRoute();
@@ -179,7 +179,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             isEditing: false,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [hasMultipleFeeds, memberLogin, policyID]);
+    }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
