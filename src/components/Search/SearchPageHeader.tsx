@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -42,9 +42,32 @@ type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> &
 
 function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperProps) {
     const styles = useThemeStyles();
+    const [currentQuery, setCurrentQuery] = useState<SearchQueryJSON | undefined>(undefined);
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
+
+    const clearUserQuery = () => {
+        setCurrentQuery(undefined);
+    };
+
+    const onSearchChange = useCallback((userQuery: string) => {
+        if (!userQuery) {
+            clearUserQuery();
+            return;
+        }
+
+        const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+        if (queryJSON) {
+            setCurrentQuery(queryJSON);
+        }
+    }, []);
+
+    const onSearchSubmit = useCallback(() => {
+        const query = SearchUtils.buildSearchQueryString(currentQuery);
+        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        clearUserQuery();
+    }, [currentQuery]);
 
     return (
         <View
@@ -69,8 +92,8 @@ function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperPr
                     <SearchRouterInput
                         isFullWidth
                         wrapperStyle={styles.searchRouterInputResultsStyle}
-                        onChange={() => console.log('change')}
-                        onSubmit={() => console.log('submit')}
+                        onChange={onSearchChange}
+                        onSubmit={onSearchSubmit}
                         shouldShowRightComponent
                         rightComponent={children}
                     />
