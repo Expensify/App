@@ -145,7 +145,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: `'s`,
-                        type: 'strong'
+                        type: 'strong',
                     },
                     {
                         text: ' %expenses to automatically submit',
