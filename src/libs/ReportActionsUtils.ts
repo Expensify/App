@@ -1066,7 +1066,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 /**
  * Returns true if all transactions on the report have the same ownerID
  */
-function isSingleActorMoneyReport(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
+function isSingleActorForAllTransactions(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
     const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
     if (!iouRequestActions.length) {
         return true;
@@ -1864,7 +1864,7 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
-    isSingleActorMoneyReport,
+    isSingleActorForAllTransactions,
 };
 
 export type {LastVisibleMessage};

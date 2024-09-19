@@ -1606,7 +1606,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
  */
 function isSingleOwnerReport(reportID: string): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-    return !!ReportActionsUtils.isSingleActorMoneyReport(reportID, reportActions);
+    return !!ReportActionsUtils.isSingleActorForAllTransactions(reportID, reportActions);
 }
 
 /**
