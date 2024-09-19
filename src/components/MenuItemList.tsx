@@ -84,6 +84,7 @@ function MenuItemList({
         <>
             {menuItems.map((menuItemProps) => (
                 <OfflineWithFeedback
+                    key={menuItemProps.key ?? menuItemProps.title}
                     pendingAction={menuItemProps.pendingAction}
                     onClose={menuItemProps.onPendingActionDismiss}
                     errors={menuItemProps.error}

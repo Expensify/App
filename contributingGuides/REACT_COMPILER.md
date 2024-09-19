@@ -6,13 +6,9 @@
 
 At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
 
-## React Compiler CI check
+## React Compiler compatibility check
 
-We have implemented a CI check that runs the React Compiler on all pull requests (PRs). This check compares compilable files from the PR branch with those in the target branch. If it detects that a file was previously compiled successfully but now fails to compile, the check will fail.
-
-## What if CI check fails in my PR?
-
-If the CI check fails for your PR, you need to fix the problem. If you're unsure how to resolve it, you can ask for help in the `#expensify-open-source` Slack channel (and tag `@Kiryl Ziusko`).
+To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can run the `npm run react-compiler-healthcheck-test` locally and analyze the output.
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
