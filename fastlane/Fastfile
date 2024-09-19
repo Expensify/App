@@ -15,8 +15,8 @@ require 'ostruct'
 skip_docs
 opt_out_usage
 
-KEY_GRADLE_APK_PATH = "gradleAPKOutputPath"
-KEY_GRADLE_AAB_PATH = "gradleAABOutputPath"
+KEY_GRADLE_APK_PATH = "apkPath"
+KEY_GRADLE_AAB_PATH = "aabPath"
 KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
 

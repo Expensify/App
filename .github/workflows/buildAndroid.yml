@@ -95,11 +95,11 @@ jobs:
           esac
           bundle exec fastlane android "$lane"
 
-          # gradleAPKOutputPath and gradleAABOutputPath are environment varibles set within the Fastfile
-          echo "GRADLE_AAB_OUTPUT_PATH=$gradleAABOutputPath" >> "$GITHUB_OUTPUT"
-          echo "AAB_FILE_NAME=$(basename "$gradleAABOutputPath")" >> "$GITHUB_OUTPUT"
-          echo "GRADLE_APK_OUTPUT_PATH=$gradleAPKOutputPath" >> "$GITHUB_OUTPUT"
-          echo "APK_FILE_NAME=$(basename "$gradleAPKOutputPath")" >> "$GITHUB_OUTPUT"
+          # aabPath and apkPath are environment varibles set within the Fastfile
+          echo "AAB_PATH=$aabPath" >> "$GITHUB_OUTPUT"
+          echo "AAB_FILE_NAME=$(basename "$aabPath")" >> "$GITHUB_OUTPUT"
+          echo "APK_PATH=$apkPath" >> "$GITHUB_OUTPUT"
+          echo "APK_FILE_NAME=$(basename "$apkPath")" >> "$GITHUB_OUTPUT"
 
           SHOULD_UPLOAD_SOURCEMAPS='false'
           if [ -f ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map ]; then
@@ -111,18 +111,18 @@ jobs:
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
       - name: Upload Android AAB artifact
-        if: ${{ steps.build.outputs.GRADLE_AAB_OUTPUT_PATH != '' }}
+        if: ${{ steps.build.outputs.AAB_PATH != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: android-artifact-aab
-          path: ${{ steps.build.outputs.GRADLE_AAB_OUTPUT_PATH }}
+          path: ${{ steps.build.outputs.AAB_PATH }}
 
       - name: Upload Android APK artifact
-        if: ${{ steps.build.outputs.GRADLE_APK_OUTPUT_PATH != '' }}
+        if: ${{ steps.build.outputs.APK_PATH != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: android-artifact-apk
-          path: ${{ steps.build.outputs.GRADLE_APK_OUTPUT_PATH }}
+          path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload Android sourcemaps artifact
         if: ${{ steps.build.outputs.SHOULD_UPLOAD_SOURCEMAPS == 'true' }}
