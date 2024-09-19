@@ -83,7 +83,7 @@ function IOURequestStepTag({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = false;
+    const shouldShowTag = transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
