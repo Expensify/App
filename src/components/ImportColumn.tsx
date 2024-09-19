@@ -176,12 +176,17 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
-            <Text style={[styles.textSupporting, styles.mw100]}>{columnHeader}</Text>
+            <Text
+                numberOfLines={1}
+                style={[styles.textSupporting, styles.mw100]}
+            >
+                {columnHeader}
+            </Text>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <Text
                     numberOfLines={2}
                     ellipsizeMode="tail"
-                    style={[styles.flex1, styles.flexWrap]}
+                    style={[styles.flex1, styles.flexWrap, styles.breakAll]}
                 >
                     {columnValuesString}
                 </Text>

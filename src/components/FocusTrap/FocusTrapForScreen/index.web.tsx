@@ -51,8 +51,11 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                         return false;
                     }
 
-                    const isFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
-                    if (isFocusedElementInsideContainer) {
+                    const isFocusedElementInsideContainer = !!focusTrapContainers?.some((container) => container.contains(document.activeElement));
+                    const hasButtonWithEnterListener = !!focusTrapContainers?.some(
+                        (container) => !!container.querySelector(`button[data-listener="${CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey}"]`),
+                    );
+                    if (isFocusedElementInsideContainer || hasButtonWithEnterListener) {
                         return false;
                     }
                     return undefined;

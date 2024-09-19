@@ -1,0 +1,20 @@
+diff --git a/node_modules/expo/android/src/main/java/expo/modules/ReactNativeHostWrapperBase.kt b/node_modules/expo/android/src/main/java/expo/modules/ReactNativeHostWrapperBase.kt
+index d6b2180..cb006ce 100644
+--- a/node_modules/expo/android/src/main/java/expo/modules/ReactNativeHostWrapperBase.kt
++++ b/node_modules/expo/android/src/main/java/expo/modules/ReactNativeHostWrapperBase.kt
+@@ -8,13 +8,13 @@ import com.facebook.react.ReactNativeHost
+ import com.facebook.react.ReactPackage
+ import com.facebook.react.bridge.JavaScriptExecutorFactory
+ import com.facebook.react.bridge.ReactContext
++import com.facebook.react.defaults.DefaultReactNativeHost
+ import java.lang.reflect.Method
+ 
+ open class ReactNativeHostWrapperBase(
+   application: Application,
+   protected val host: ReactNativeHost
+-) : ReactNativeHost(application) {
+-  // TODO: Inherit from DefaultReactNativeHost when we drop SDK 49 support
++) : DefaultReactNativeHost(application) {
+ 
+   internal val reactNativeHostHandlers = ExpoModulesPackage.packageList
+     .flatMap { it.createReactNativeHostHandlers(application) }

@@ -1,5 +1,4 @@
 import type {ImageStyle} from 'expo-image';
-import type {JSX} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -15,7 +14,7 @@ type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
-    subtitle: string | JSX.Element;
+    subtitle: string | React.ReactNode;
     buttonText?: string;
     buttonAction?: () => void;
     containerStyles?: StyleProp<ViewStyle>;

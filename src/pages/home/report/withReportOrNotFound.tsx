@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList} from '@navigation/types';
+import type {ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList, RoomMembersNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,8 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
         | RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
         | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
         | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
-        | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
+        | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
+        | RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -84,7 +85,7 @@ export default function (
                 }
 
                 if (shouldShowNotFoundPage) {
-                    return <NotFoundPage />;
+                    return <NotFoundPage isReportRelatedPage />;
                 }
             }
 

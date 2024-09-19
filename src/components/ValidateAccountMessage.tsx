@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
@@ -41,7 +42,12 @@ function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
                 <TextLink
                     fontSize={variables.fontSizeLabel}
                     onPress={() => {
-                        const login = loginList?.[loginNames?.[0]] ?? {};
+                        const loginName = loginNames?.[0];
+                        const login = loginList?.[loginName] ?? {};
+                        if (!login?.validatedDate && !login?.validateCodeSent) {
+                            User.requestContactMethodValidateCode(loginName);
+                        }
+
                         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0], backTo));
                     }}
                 >

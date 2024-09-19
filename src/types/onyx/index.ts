@@ -12,6 +12,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
+import type {AddNewCompanyCardFeed} from './CardFeeds';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -80,6 +81,7 @@ import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type {SaveSearch} from './SaveSearch';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -131,6 +133,7 @@ export type {
     IntroSelected,
     IOU,
     IssueNewCard,
+    AddNewCompanyCardFeed,
     LastExportMethod,
     Locale,
     Login,
@@ -228,6 +231,7 @@ export type {
     MobileSelectionMode,
     WorkspaceTooltip,
     CardFeeds,
+    SaveSearch,
     ImportedSpreadsheet,
     ValidateMagicCodeAction,
 };

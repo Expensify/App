@@ -1,10 +1,13 @@
-const {getDefaultConfig} = require('expo/metro-config');
+const {getDefaultConfig: getExpoDefaultConfig} = require('expo/metro-config');
+const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/metro-config');
+
 const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
 require('dotenv').config();
 
-const defaultConfig = getDefaultConfig(__dirname);
+const defaultConfig = getReactNativeDefaultConfig(__dirname);
+const expoConfig = getExpoDefaultConfig(__dirname);
 
 const isE2ETesting = process.env.E2E_TESTING === 'true';
 const e2eSourceExts = ['e2e.js', 'e2e.ts', 'e2e.tsx'];
@@ -23,4 +26,4 @@ const config = {
     },
 };
 
-module.exports = mergeConfig(defaultConfig, config);
+module.exports = mergeConfig(defaultConfig, expoConfig, config);
