@@ -3176,7 +3176,7 @@ function updateMoneyRequestDistanceRate(
 ) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
-        ...(updatedTaxAmount ? {taxAmount: updatedTaxAmount} : {}),
+        ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
     const allReports = ReportConnection.getAllReports();
