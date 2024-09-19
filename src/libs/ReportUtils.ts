@@ -1,10 +1,11 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import {isEmpty, isNumber} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
+import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
+import isNumber from 'lodash/isNumber';
 import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -289,6 +290,7 @@ type OptimisticChatReport = Pick<
     | 'description'
     | 'writeCapability'
     | 'avatarUrl'
+    | 'avatarFileName'
     | 'invoiceReceiver'
     | 'isHidden'
 > & {
@@ -425,7 +427,6 @@ type OptionData = {
     keyForList?: string;
     searchText?: string;
     isIOUReportOwner?: boolean | null;
-    isArchivedRoom?: boolean | null;
     shouldShowSubscript?: boolean | null;
     isPolicyExpenseChat?: boolean | null;
     isMoneyRequestReport?: boolean | null;
@@ -1686,7 +1687,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport)) {
+    if (!isMoneyRequestReport(moneyRequestReport) || isArchivedRoom(moneyRequestReport)) {
         return false;
     }
 
@@ -5081,6 +5082,7 @@ function buildOptimisticChatReport(
     parentReportID = '',
     description = '',
     avatarUrl = '',
+    avatarFileName = '',
     optimisticReportID = '',
 ): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
@@ -5121,6 +5123,7 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
         avatarUrl,
+        avatarFileName,
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
@@ -5138,6 +5141,7 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
+    avatarFilename: string,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -5156,6 +5160,7 @@ function buildOptimisticGroupChatReport(
         undefined,
         undefined,
         avatarUri,
+        avatarFilename,
         optimisticReportID,
     );
 }
@@ -5558,6 +5563,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         currentUserAccountID,
         true,
         policyName,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -7227,7 +7233,10 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = reportTransactions.reduce((currentVal, transaction) => currentVal + (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
-        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency)];
+        return [
+            CurrencyUtils.convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
+            CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
+        ];
     }
 
     return [
