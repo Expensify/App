@@ -3159,7 +3159,9 @@ function updateMoneyRequestDescription(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
+    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params object
+    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, paramsWithoutTaxUpdated, onyxData);
 }
 
 /** Updates the distance rate of an expense */
