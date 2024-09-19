@@ -3171,9 +3171,13 @@ function updateMoneyRequestDistanceRate(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    taxAmount?: number,
+    taxCode?: string,
 ) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
+        ...(taxAmount ? {taxAmount} : {}),
+        ...(taxCode ? {taxCode} : {}),
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -6445,7 +6449,7 @@ function getReportFromHoldRequestsOnyxData(
         chatReport.reportID,
         chatReport.policyID ?? iouReport.policyID ?? '',
         recipient.accountID ?? 1,
-        (firstHoldTransaction?.amount ?? 0) * -1,
+        holdTransactions.reduce((acc, transaction) => acc + transaction.amount, 0) * -1,
         getCurrency(firstHoldTransaction),
         false,
         newParentReportActionID,
