@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,22 +25,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
-type PolicyDistanceRateDetailsPageOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
+type PolicyDistanceRateDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
 
-type PolicyDistanceRateDetailsPageProps = PolicyDistanceRateDetailsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
-
-function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetailsPageProps) {
+function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policyID = route.params.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
@@ -209,8 +203,4 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
 
 PolicyDistanceRateDetailsPage.displayName = 'PolicyDistanceRateDetailsPage';
 
-export default withOnyx<PolicyDistanceRateDetailsPageProps, PolicyDistanceRateDetailsPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRateDetailsPage);
+export default PolicyDistanceRateDetailsPage;

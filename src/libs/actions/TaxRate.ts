@@ -316,7 +316,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         };
-        successRates[rateID] = {...rate, pendingFields: {taxRateExternalID: null}};
+        successRates[rateID] = {...rate, pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null}};
         failureRates[rateID] = {
             ...rate,
             pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
