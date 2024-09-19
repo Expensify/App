@@ -50,7 +50,8 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         paymentCompleteTextScale.value = 0;
         paymentCompleteTextOpacity.value = 1;
         height.value = variables.componentSizeNormal;
-    }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height]);
+        buttonMarginTop.value = styles.expenseAndReportPreviewTextButtonContainer.gap;
+    }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
 
     useEffect(() => {
         if (!isPaidAnimationRunning) {
