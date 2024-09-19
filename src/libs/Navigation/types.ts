@@ -1425,9 +1425,7 @@ type RestrictedActionParamList = {
 };
 
 type MissingPersonalDetailsParamList = {
-    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: {
-        policyID: string;
-    };
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
 };
 
 type DebugParamList = {
