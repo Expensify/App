@@ -84,13 +84,13 @@ function ReportActionItemSingle({
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-
+    const icons = ReportUtils.getIcons(iouReport ?? null, personalDetails);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const displayAllActors = isReportPreviewAction && !isTripRoom && ReportUtils.isIOUReport(iouReport ?? null);
+    const displayAllActors = isReportPreviewAction && !isTripRoom && ReportUtils.isIOUReport(iouReport ?? null) && icons.length > 1;
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
@@ -134,7 +134,6 @@ function ReportActionItemSingle({
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? managerID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
             const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
-
             secondaryAvatar = {
                 source: secondaryUserAvatar,
                 type: CONST.ICON_TYPE_AVATAR,
@@ -175,7 +174,7 @@ function ReportActionItemSingle({
               ]
             : action?.person ?? [];
 
-        if (displayAllActors && secondaryAvatar?.name) {
+        if (displayAllActors) {
             return [
                 ...baseArray,
                 {
@@ -215,7 +214,7 @@ function ReportActionItemSingle({
             if (displayAllActors) {
                 return (
                     <MultipleAvatars
-                        icons={[icon, secondaryAvatar]}
+                        icons={icons}
                         isInReportAction
                         shouldShowTooltip
                         secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
@@ -225,8 +224,8 @@ function ReportActionItemSingle({
             if (shouldShowSubscriptAvatar) {
                 return (
                     <SubscriptAvatar
-                        mainAvatar={icon}
-                        secondaryAvatar={secondaryAvatar}
+                        mainAvatar={icons[0]}
+                        secondaryAvatar={icons[1]}
                         noMargin
                     />
                 );
@@ -258,11 +257,11 @@ function ReportActionItemSingle({
         icon,
         styles.actionAvatar,
         fallbackIcon,
-        secondaryAvatar,
         StyleUtils,
         theme.appBG,
         theme.hoverComponentBG,
         isHovered,
+        icons,
     ]);
 
     const getHeading = useMemo(() => {
