@@ -551,7 +551,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
-    focusItem?: (keyForList: string) => void;
 };
 
 type ItemLayout = {

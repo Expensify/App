@@ -12,7 +12,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {RecentSearchItem} from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
@@ -61,21 +60,6 @@ function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: strin
 
 function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
-}
-
-// this is mocked interaction, BE is not ready yet
-function addRecentSearch({queryJSON, previousRecentSearches}: {queryJSON: SearchQueryJSON; previousRecentSearches: RecentSearchItem[]}) {
-    const uniqueRecentSearches = previousRecentSearches.filter((recentSearch) => recentSearch.query === queryJSON.inputQuery);
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.RECENT_SEARCHES}`,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            value: [{query: queryJSON?.inputQuery, timestamp: 'someTimestamp'}, ...uniqueRecentSearches].slice(0, 5),
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.ADD_RECENT_SEARCH, {jsonQuery: queryJSON?.inputQuery}, {optimisticData});
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -189,5 +173,4 @@ export {
     clearAdvancedFilters,
     deleteSavedSearch,
     dismissSavedSearchRenameTooltip,
-    addRecentSearch,
 };

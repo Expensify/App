@@ -52,7 +52,7 @@ function UserListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, styles.br2]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -110,13 +110,11 @@ function UserListItem<TItem extends ListItem>({
                             <MultipleAvatars
                                 icons={item.icons ?? []}
                                 shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={
-                                    [
-                                        // StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                        // isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                        // hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                    ]
-                                }
+                                secondAvatarStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                ]}
                             />
                         ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
