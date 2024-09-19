@@ -70,7 +70,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft ? transactionDraft : transaction}
-                route={props.route}
                 ref={ref}
             />
         );
