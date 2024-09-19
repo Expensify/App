@@ -1602,6 +1602,14 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 }
 
 /**
+ * Checks if a report has only transactions with different owners
+ */
+function isSingleOwnerReport(reportID: string): boolean {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    return !!ReportActionsUtils.isSingleActorMoneyReport(reportID, reportActions);
+}
+
+/**
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
@@ -2322,7 +2330,7 @@ function getIcons(
         const isManager = currentUserAccountID === report?.managerID;
 
         // For one transaction IOUs, display a simplified report icon
-        if (isOneTransactionReport(report?.reportID ?? '-1')) {
+        if (isOneTransactionReport(report?.reportID ?? '-1') || isSingleOwnerReport(report?.reportID ?? '-1')) {
             return [ownerIcon];
         }
 
@@ -8137,6 +8145,7 @@ export {
     isIndividualInvoiceRoom,
     isAuditor,
     hasMissingInvoiceBankAccount,
+    isSingleOwnerReport,
 };
 
 export type {
