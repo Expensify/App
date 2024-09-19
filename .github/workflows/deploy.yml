@@ -455,30 +455,36 @@ jobs:
   checkDeploymentSuccess:
     runs-on: ubuntu-latest
     outputs:
-      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
-      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
+      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
     needs: [android, desktop, iOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
-        id: checkDeploymentSuccess
+        id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED is $isAtLeastOnePlatformDeployed"
+
+      - name: Check deployment success on all platforms
+        id: checkDeploymentSuccessOnAtLeastAllPlatform
+        run: |
+          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] && \
             [ "${{ needs.iOS.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
-          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=\"$isAtLeastOnePlatformDeployed\"" >> "$GITHUB_OUTPUT"
-          echo "IS_ALL_PLATFORMS_DEPLOYED=\"$isAllPlatformsDeployed\"" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
   createPrerelease:
     runs-on: ubuntu-latest
