@@ -39,7 +39,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import WorkspaceMemberDetailsFeedSelectorModal from './WorkspaceMemberDetailsFeedSelectorModal';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
@@ -65,7 +64,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
-    const [isFeedSelectorModalVisible, setIsFeedSelectorModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
@@ -338,11 +336,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         </>
                                     )}
                                 </View>
-                                <WorkspaceMemberDetailsFeedSelectorModal
-                                    isVisible={isFeedSelectorModalVisible}
-                                    onClose={() => setIsFeedSelectorModalVisible(false)}
-                                    policyID={policyID}
-                                />
                             </View>
                         </ScrollView>
                     </>
