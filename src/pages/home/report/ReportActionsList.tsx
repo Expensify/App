@@ -170,7 +170,6 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -236,7 +235,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [accountID, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [sortedVisibleReportActions, unreadMarkerTime]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
