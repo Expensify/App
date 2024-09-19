@@ -131,7 +131,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     useFocusEffect(fetchCompanyCards);
 
     const companyCards = cardFeeds?.companyCards ?? {};
-    const selectedCompanyCard = companyCards[selectedFeed] ?? null;
+    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
     const isNoFeed = !selectedCompanyCard;
     const isPending = selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
