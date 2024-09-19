@@ -8,6 +8,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,8 +30,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(null);
     const [error, setError] = useState('');
 
-    const companySizeOptions = useMemo(() => {
-        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize) => {
+    const companySizeOptions: ListItem[] = useMemo(() => {
+        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): ListItem => {
             return {
                 text: translate(`onboarding.employees.${companySize}`),
                 keyForList: companySize,

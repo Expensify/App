@@ -10,6 +10,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,6 +18,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
@@ -26,6 +28,10 @@ import type {OnboardingAccountingType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
 import type {BaseOnboardingAccountingProps} from './types';
+
+type OnboardingListItem = ListItem & {
+    keyForList: OnboardingAccountingType;
+};
 
 function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
@@ -41,8 +47,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccountingType | undefined>(undefined);
     const [error, setError] = useState('');
 
-    const accountingOptions = useMemo(() => {
-        const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME).map((connectionName) => {
+    const accountingOptions: OnboardingListItem[] = useMemo(() => {
+        const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME).map((connectionName): OnboardingListItem => {
             let text;
             let accountingIcon;
             switch (connectionName) {
@@ -71,32 +77,38 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 keyForList: connectionName,
                 text,
                 leftElement: (
-                    <View style={[styles.mr3, onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0, styles.onboardingIconWrapper]}>
-                        <Icon
-                            src={accountingIcon}
-                            width={40}
-                            height={40}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                        />
-                    </View>
+                    <Icon
+                        src={accountingIcon}
+                        width={variables.iconSizeExtraLarge}
+                        height={variables.iconSizeExtraLarge}
+                        additionalStyles={[
+                            StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR),
+                            styles.mr3,
+                            onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0,
+                            styles.onboardingIconWrapper,
+                        ]}
+                    />
                 ),
                 rightElement: onboardingIsMediumOrLargerScreenWidth ? <View style={styles.mr3} /> : null,
                 isSelected: userReportedIntegration === connectionName,
             };
         });
-        const noneAccountingOption = {
+        const noneAccountingOption: OnboardingListItem = {
             keyForList: null,
             text: translate('onboarding.accounting.noneOfAbove'),
             leftElement: (
-                <View style={[styles.mr3, onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0, styles.onboardingIconWrapper]}>
-                    <Icon
-                        src={Expensicons.Clear}
-                        width={20}
-                        height={20}
-                        fill={theme.success}
-                        additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                    />
-                </View>
+                <Icon
+                    src={Expensicons.Clear}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.success}
+                    additionalStyles={[
+                        StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR),
+                        styles.mr3,
+                        onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0,
+                        styles.onboardingIconWrapper,
+                    ]}
+                />
             ),
             rightElement: onboardingIsMediumOrLargerScreenWidth ? <View style={styles.mr3} /> : null,
             isSelected: userReportedIntegration === null,
