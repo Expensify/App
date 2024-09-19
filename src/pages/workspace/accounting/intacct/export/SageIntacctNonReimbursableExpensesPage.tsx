@@ -105,9 +105,10 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                     switch (item.type) {
                         case 'toggle':
                             // eslint-disable-next-line no-case-declarations
-                            const {type, shouldHide, ...rest} = item;
+                            const {type, shouldHide, key, ...rest} = item;
                             return (
                                 <ToggleSettingOptionRow
+                                    key={key}
                                     // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
