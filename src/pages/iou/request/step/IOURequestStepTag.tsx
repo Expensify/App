@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native-web';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -83,7 +83,7 @@ function IOURequestStepTag({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists);
+    const shouldShowTag = false;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
