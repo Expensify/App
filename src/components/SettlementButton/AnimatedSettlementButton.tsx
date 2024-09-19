@@ -70,7 +70,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         );
         buttonMarginTop.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
         paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
-    }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
+    }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, buttonMarginTop, resetAnimation]);
 
     return (
         <Animated.View style={containerStyles}>

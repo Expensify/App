@@ -18,6 +18,7 @@ import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -44,7 +45,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
-import usePolicy from '@hooks/usePolicy';
 
 type ReportPreviewProps = {
     /** All the data of the action */
@@ -392,11 +392,12 @@ function ReportPreview({
         }
 
         if (isPaidAnimationRunning) {
+            // eslint-disable-next-line react-compiler/react-compiler
             checkMarkOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION});
         } else {
             checkMarkOpacity.value = 1;
         }
-    }, [isPaidAnimationRunning, iouSettled]);
+    }, [isPaidAnimationRunning, iouSettled, checkMarkOpacity]);
 
     return (
         <OfflineWithFeedback
