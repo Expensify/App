@@ -1,10 +1,11 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import {isEmpty, isNumber} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
+import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
+import isNumber from 'lodash/isNumber';
 import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';

@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {startCase} from 'lodash';
+import startCase from 'lodash/startCase';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {

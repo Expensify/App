@@ -1,6 +1,7 @@
 import {fastMerge, Str} from 'expensify-common';
-import _ from 'lodash';
+import clone from 'lodash/clone';
 import lodashFindLast from 'lodash/findLast';
+import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -422,7 +423,7 @@ function getCombinedReportActions(
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (_.isEmpty(transactionThreadReportID) || isSentMoneyReport) {
+    if (isEmpty(transactionThreadReportID) || isSentMoneyReport) {
         return reportActions;
     }
 
@@ -722,7 +723,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return reportAction;
     }
 
-    const updatedReportAction = _.clone(reportAction);
+    const updatedReportAction = clone(reportAction);
 
     if (!updatedReportAction.message) {
         return updatedReportAction;
@@ -737,7 +738,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
 
 function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
-    if (!_.isEmpty(actionsToMerge)) {
+    if (!isEmpty(actionsToMerge)) {
         reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
             ReportAction | null | undefined
         >;
@@ -1404,7 +1405,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
         const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
-        const handleText = _.isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
+        const handleText = isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
     const preMentionsText = 'Heads up, ';
