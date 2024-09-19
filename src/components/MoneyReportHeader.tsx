@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -25,6 +26,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
+import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -140,25 +142,34 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-        if (!type || !chatReport) {
-            return;
-        }
-        setPaymentType(type);
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-            IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
-        } else {
-            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
-        }
-    };
+    const confirmPayment = useCallback(
+        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+            if (!type || !chatReport) {
+                return;
+            }
+            setPaymentType(type);
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true);
+            } else if (isAnyTransactionOnHold) {
+                setIsHoldMenuVisible(true);
+            } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+                IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+            } else {
+                IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
+            }
+        },
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (isAnyTransactionOnHold) {
+        if (isDelegateAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
+        } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(moneyRequestReport, true);
@@ -311,7 +322,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
-                            medium
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
@@ -323,7 +333,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.pv2, styles.pr0]}
@@ -361,7 +370,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {shouldShowSubmitButton && shouldUseNarrowLayout && (
                         <Button
-                            medium
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
@@ -371,7 +379,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
@@ -400,6 +407,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     transactionCount={transactionIDs.length}
                 />
             )}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                delegatorEmail={delegatorEmail ?? ''}
+            />
+
             <ConfirmModal
                 title={translate('iou.deleteExpense')}
                 isVisible={isDeleteRequestModalVisible}

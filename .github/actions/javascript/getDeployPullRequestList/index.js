@@ -11502,97 +11502,51 @@ const github = __importStar(__nccwpck_require__(5438));
 const ActionUtils_1 = __nccwpck_require__(6981);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
-const BUILD_AND_DEPLOY_JOB_NAME_PREFIX = 'Build and deploy';
-/**
- * This function checks if a given release is a valid baseTag to get the PR list with `git log baseTag...endTag`.
- *
- * The rules are:
- *     - production deploys can only be compared with other production deploys
- *     - staging deploys can be compared with other staging deploys or production deploys.
- *       The reason is that the final staging release in each deploy cycle will BECOME a production release.
- *       For example, imagine a checklist is closed with version 9.0.20-6; that's the most recent staging deploy, but the release for 9.0.20-6 is now finalized, so it looks like a prod deploy.
- *       When 9.0.21-0 finishes deploying to staging, the most recent prerelease is 9.0.20-5. However, we want 9.0.20-6...9.0.21-0,
- *       NOT 9.0.20-5...9.0.21-0 (so that the PR CP'd in 9.0.20-6 is not included in the next checklist)
- */
-async function isReleaseValidBaseForEnvironment(releaseTag, isProductionDeploy) {
-    if (!isProductionDeploy) {
-        return true;
-    }
-    const isPrerelease = (await GithubUtils_1.default.octokit.repos.getReleaseByTag({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        tag: releaseTag,
-    })).data.prerelease;
-    return !isPrerelease;
-}
-/**
- * Was a given platformDeploy workflow run successful on at least one platform?
- */
-async function wasDeploySuccessful(runID) {
-    const jobsForWorkflowRun = (await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        run_id: runID,
-        filter: 'latest',
-    })).data.jobs;
-    return jobsForWorkflowRun.some((job) => job.name.startsWith(BUILD_AND_DEPLOY_JOB_NAME_PREFIX) && job.conclusion === 'success');
-}
-/**
- * This function checks if a given deploy workflow is a valid basis for comparison when listing PRs merged between two versions.
- * It returns the reason a version should be skipped, or an empty string if the version should not be skipped.
- */
-async function shouldSkipVersion(lastSuccessfulDeploy, inputTag, isProductionDeploy) {
-    if (!lastSuccessfulDeploy?.head_branch) {
-        // This should never happen. Just doing this to appease TS.
-        return '';
-    }
-    // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
-    // In this case, the next for wrong environment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
-    if (lastSuccessfulDeploy?.head_branch === inputTag) {
-        return `Same as input tag ${inputTag}`;
-    }
-    if (!(await isReleaseValidBaseForEnvironment(lastSuccessfulDeploy?.head_branch, isProductionDeploy))) {
-        return 'Was a staging deploy, we only want to compare with other production deploys';
-    }
-    if (!(await wasDeploySuccessful(lastSuccessfulDeploy.id))) {
-        return 'Was an unsuccessful deploy, nothing was deployed in that version';
-    }
-    return '';
-}
 async function run() {
     try {
         const inputTag = core.getInput('TAG', { required: true });
         const isProductionDeploy = !!(0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+        let priorTag;
+        let foundCurrentRelease = false;
+        await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.repos.listReleases, {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            workflow_id: 'platformDeploy.yml',
-            status: 'completed',
-        })).data.workflow_runs
-            // Note: we filter out cancelled runs instead of looking only for success runs
-            // because if a build fails on even one platform, then it will have the status 'failure'
-            .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
-        // Find the most recent deploy workflow targeting the correct environment, for which at least one of the build jobs finished successfully
-        let lastSuccessfulDeploy = completedDeploys.shift();
-        if (!lastSuccessfulDeploy) {
-            throw new Error('Could not find a prior successful deploy');
-        }
-        let reason = await shouldSkipVersion(lastSuccessfulDeploy, inputTag, isProductionDeploy);
-        while (lastSuccessfulDeploy && reason) {
-            console.log(`Deploy of tag ${lastSuccessfulDeploy.head_branch} was not valid as a base for comparison, looking at the next one. Reason: ${reason}`, lastSuccessfulDeploy.html_url);
-            lastSuccessfulDeploy = completedDeploys.shift();
-            if (!lastSuccessfulDeploy) {
-                throw new Error('Could not find a prior successful deploy');
+            per_page: 100,
+        }, ({ data }, done) => {
+            // For production deploys, look only at other production deploys.
+            // staging deploys can be compared with other staging deploys or production deploys.
+            // The reason is that the final staging release in each deploy cycle will BECOME a production release
+            const filteredData = isProductionDeploy ? data.filter((release) => !release.prerelease) : data;
+            // Release was in the last page, meaning the previous release is the first item in this page
+            if (foundCurrentRelease) {
+                priorTag = data.at(0)?.tag_name;
+                done();
+                return filteredData;
             }
-            reason = await shouldSkipVersion(lastSuccessfulDeploy, inputTag, isProductionDeploy);
+            // Search for the index of input tag
+            const indexOfCurrentRelease = filteredData.findIndex((release) => release.tag_name === inputTag);
+            // If it happens to be at the end of this page, then the previous tag will be in the next page.
+            // Set a flag showing we found it so we grab the first release of the next page
+            if (indexOfCurrentRelease === filteredData.length - 1) {
+                foundCurrentRelease = true;
+                return filteredData;
+            }
+            // If it's anywhere else in this page, the the prior release is the next item in the page
+            if (indexOfCurrentRelease >= 0) {
+                priorTag = filteredData.at(indexOfCurrentRelease + 1)?.tag_name;
+                done();
+            }
+            // Release not in this page (or we're done)
+            return filteredData;
+        });
+        if (!priorTag) {
+            throw new Error('Something went wrong and the prior tag could not be found.');
         }
-        const priorTag = lastSuccessfulDeploy.head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
+        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     }

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
@@ -13,11 +15,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
 
 type SearchStatusBarProps = {
     type: SearchDataTypes;
     status: SearchStatus;
+    resetOffset: () => void;
 };
 
 const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
@@ -82,28 +85,55 @@ const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: Translat
         query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.DRAFTS,
-        icon: Expensicons.Pencil,
-        text: 'common.drafts',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.DRAFTS),
+        key: CONST.SEARCH.STATUS.TRIP.CURRENT,
+        icon: Expensicons.Calendar,
+        text: 'search.filters.current',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.CURRENT),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.OUTSTANDING,
-        icon: Expensicons.Hourglass,
-        text: 'common.outstanding',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.OUTSTANDING),
+        key: CONST.SEARCH.STATUS.TRIP.PAST,
+        icon: Expensicons.History,
+        text: 'search.filters.past',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAST),
+    },
+];
+
+const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+    {
+        key: CONST.SEARCH.STATUS.CHAT.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.APPROVED,
-        icon: Expensicons.ThumbsUp,
-        text: 'iou.approved',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.APPROVED),
+        key: CONST.SEARCH.STATUS.CHAT.UNREAD,
+        icon: Expensicons.ChatBubbleUnread,
+        text: 'common.unread',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.UNREAD),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.PAID,
-        icon: Expensicons.MoneyBag,
-        text: 'iou.settledExpensify',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAID),
+        key: CONST.SEARCH.STATUS.CHAT.SENT,
+        icon: Expensicons.Send,
+        text: 'common.sent',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.SENT),
+    },
+    {
+        key: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
+        icon: Expensicons.Document,
+        text: 'common.attachments',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.ATTACHMENTS),
+    },
+    {
+        key: CONST.SEARCH.STATUS.CHAT.LINKS,
+        icon: Expensicons.Paperclip,
+        text: 'common.links',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.LINKS),
+    },
+    {
+        key: CONST.SEARCH.STATUS.CHAT.PINNED,
+        icon: Expensicons.Pin,
+        text: 'search.filters.pinned',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.PINNED),
     },
 ];
 
@@ -113,28 +143,36 @@ function getOptions(type: SearchDataTypes) {
             return invoiceOptions;
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return tripOptions;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return chatOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return expenseOptions;
     }
 }
 
-function SearchStatusBar({type, status}: SearchStatusBarProps) {
+function SearchStatusBar({type, status, resetOffset}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const options = getOptions(type);
+    const scrollRef = useRef<RNScrollView>(null);
+    const isScrolledRef = useRef(false);
 
     return (
         <ScrollView
+            ref={scrollRef}
             style={[styles.flexRow, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
             horizontal
             showsHorizontalScrollIndicator={false}
         >
             {options.map((item, index) => {
-                const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
+                const onPress = singleExecution(() => {
+                    resetOffset();
+                    Navigation.setParams({q: item.query});
+                });
                 const isActive = status === item.key;
                 const isFirstItem = index === 0;
                 const isLastItem = index === options.length - 1;
@@ -142,6 +180,13 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                 return (
                     <Button
                         key={item.key}
+                        onLayout={(e) => {
+                            if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
+                                return;
+                            }
+                            isScrolledRef.current = true;
+                            scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                        }}
                         text={translate(item.text)}
                         onPress={onPress}
                         icon={item.icon}
@@ -153,7 +198,6 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                         textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
                         // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
                         style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
-                        medium
                     />
                 );
             })}

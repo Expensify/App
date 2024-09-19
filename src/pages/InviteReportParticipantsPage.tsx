@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -14,6 +14,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,8 +46,13 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
+
+    useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
@@ -98,8 +104,8 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+                const processedSearchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(processedSearchValue) || !!option.login?.toLowerCase().includes(processedSearchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
@@ -177,22 +183,22 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        const processedLogin = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
-        if (!inviteOptions.userToInvite && expensifyEmails.includes(searchValue)) {
+        if (!inviteOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
             !inviteOptions.userToInvite &&
             excludedUsers.includes(
-                PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
-                    ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
-                    : searchValue,
+                PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(processedLogin)).possible
+                    ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(processedLogin))
+                    : processedLogin,
             )
         ) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName ?? ''});
+            return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
-        return OptionsListUtils.getHeaderMessage(inviteOptions.recentReports.length + inviteOptions.personalDetails.length !== 0, !!inviteOptions.userToInvite, searchValue);
+        return OptionsListUtils.getHeaderMessage(inviteOptions.recentReports.length + inviteOptions.personalDetails.length !== 0, !!inviteOptions.userToInvite, processedLogin);
     }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.recentReports.length, inviteOptions.personalDetails.length, excludedUsers, translate, reportName]);
 
     const footerContent = useMemo(
@@ -200,7 +206,10 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
             <FormAlertWithSubmitButton
                 isDisabled={!selectedOptions.length}
                 buttonText={translate('common.invite')}
-                onSubmit={inviteUsers}
+                onSubmit={() => {
+                    UserSearchPhraseActions.clearUserSearchPhrase();
+                    inviteUsers();
+                }}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
@@ -227,8 +236,10 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 sections={sections}
                 ListItem={InviteMemberListItem}
                 textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
+                textInputValue={searchValue}
+                onChangeText={(value) => {
+                    setSearchValue(value);
+                }}
                 headerMessage={headerMessage}
                 onSelectRow={toggleOption}
                 onConfirm={inviteUsers}

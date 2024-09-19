@@ -41,6 +41,7 @@ function StepWrapper({
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+            shouldEnableMaxHeight
             testID={StepWrapper.displayName}
         >
             <AnimatedStep

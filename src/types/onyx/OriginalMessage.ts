@@ -8,7 +8,7 @@ import type ReportActionName from './ReportActionName';
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
 
 /** Types of payments methods */
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE | typeof CONST.PAYMENT_METHODS>;
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 /** Types of sources of original message */
 type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
@@ -175,6 +175,9 @@ type OriginalMessageClosed = {
 
     /** If the report was closed because accounts got merged, then this is the old account ID */
     oldAccountID?: number;
+
+    /** Name of the invoice receiver's policy */
+    receiverPolicyName?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -491,6 +494,15 @@ type OriginalMessageUnapproved = {
     expenseReportID: string;
 };
 
+/** Model of `Removed From Approval Chain` report action */
+type OriginalMessageRemovedFromApprovalChain = {
+    /** The submitter IDs whose approval chains changed such that the approver was removed from their approval chains */
+    submittersAccountIDs: number[];
+
+    /** The accountID of the approver who was removed from the submitter's approval chain */
+    whisperedTo: number[];
+};
+
 /**
  * Model of `Add payment card` report action
  */
@@ -511,12 +523,19 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
  */
 type OriginalMessageExpensifyCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
 };
+
+/**
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ */
+type IssueNewCardOriginalMessage = OriginalMessage<
+    typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+>;
 
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
@@ -557,8 +576,9 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
-    [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
+    [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
@@ -607,4 +627,5 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
+    IssueNewCardOriginalMessage,
 };
