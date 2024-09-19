@@ -61,11 +61,9 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
 
-        const reportID = route.params.reportID;
-
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? -1}`);
+        const [report = {reportID: ''}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? -1}`);
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID ?? -1}`);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? -1}`);
 
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
