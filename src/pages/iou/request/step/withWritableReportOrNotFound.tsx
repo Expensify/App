@@ -52,7 +52,7 @@ type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWr
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
     shouldIncludeDeprecatedIOUType = false,
-): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps> & RefAttributes<TRef>> {
+): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
