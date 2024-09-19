@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
+import type en from './en';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
@@ -5416,4 +5417,4 @@ const translations = {
     },
 };
 
-export default translations satisfies TranslationDeepObject<typeof translations>;
+export default translations satisfies TranslationDeepObject<typeof en>;
