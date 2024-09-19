@@ -89,7 +89,12 @@ AppLogs.registerHandler({
     handler: ({filter, logs}) => {
         logs.forEach((log) => {
             // sanitize filter to avoid infinite loop
-            Log.info(log.message.replace(filter, '[PushNotification]'));
+            const message = log.message.replace(filter, '[PushNotification]');
+            if (log.level === 'error') {
+                Log.hmmm(message);
+            } else {
+                Log.info(message);
+            }
         });
     },
 });
