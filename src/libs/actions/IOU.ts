@@ -3159,7 +3159,6 @@ function updateMoneyRequestDescription(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
-
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
