@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
@@ -298,7 +298,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
 
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
 
-    const optimisticRates: Record<string, Rate> = {};
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, Rate> = {};
     const failureRates: Record<string, Rate> = {};
 
@@ -318,7 +318,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
         };
         successRates[rateID] = {...rate, pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null}};
         failureRates[rateID] = {
-            ...rate,
+            attributes: {...rate?.attributes},
             pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
             errorFields: {
                 taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),

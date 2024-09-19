@@ -11,10 +11,10 @@ type Unit = 'mi' | 'km';
 /** Tax rate attributes of the policy distance rate */
 type TaxRateAttributes = {
     /** Percentage of the tax that can be reclaimable */
-    taxClaimablePercentage?: number | null;
+    taxClaimablePercentage?: number;
 
     /** External ID associated to this tax rate */
-    taxRateExternalID?: string | null;
+    taxRateExternalID?: string;
 };
 
 /** Model of policy distance rate */
