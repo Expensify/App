@@ -82,9 +82,6 @@ type OptionRowLHNDataProps = {
      */
     iouReportReportActions: OnyxEntry<ReportActions>;
 
-    /** IOU report related to the last action of this report */
-    iouReport: OnyxEntry<Report>;
-
     /** List of transaction violation */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
 

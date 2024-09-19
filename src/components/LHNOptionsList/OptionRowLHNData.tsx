@@ -25,7 +25,6 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     iouReportReportActions,
-    iouReport,
     transaction,
     lastReportActionTransaction,
     transactionViolations,
@@ -45,7 +44,6 @@ function OptionRowLHNData({
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
-            iouReport,
             reportActions,
             personalDetails,
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
@@ -68,7 +66,6 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
-        iouReport,
         lastReportActionTransaction,
         reportActions,
         personalDetails,

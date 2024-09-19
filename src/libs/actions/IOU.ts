@@ -6745,7 +6745,6 @@ function getPayMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
-                total,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
                 hasOutstandingChildRequest: false,
@@ -7049,7 +7048,6 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
         value: {
             ...expenseReport,
-            total,
             lastMessageText: ReportActionsUtils.getReportActionText(optimisticApprovedReportAction),
             lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticApprovedReportAction),
             stateNum: predictedNextState,
