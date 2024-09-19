@@ -95,7 +95,7 @@ function MissingPersonalDetails() {
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
-                    startStepIndex={CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME}
+                    startStepIndex={startFrom}
                     stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
                 />
             </View>
