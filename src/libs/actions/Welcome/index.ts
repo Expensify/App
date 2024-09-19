@@ -2,10 +2,12 @@ import {NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -189,7 +191,16 @@ function completeHybridAppOnboarding() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData}).then((response) => {
+        if (!response) {
+            return;
+        }
+
+        // if the call succeeded HybridApp onboarding is finished, otherwise it's not
+        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === CONST.JSON_CODE.SUCCESS});
+        NativeModules.HybridAppModule.completeOnboarding(response?.jsonCode === CONST.JSON_CODE.SUCCESS);
+    });
 }
 
 Onyx.connect({
