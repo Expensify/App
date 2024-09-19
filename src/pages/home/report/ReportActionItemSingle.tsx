@@ -258,11 +258,13 @@ function ReportActionItemSingle({
         icon,
         styles.actionAvatar,
         fallbackIcon,
+        icons,
         StyleUtils,
         theme.appBG,
         theme.hoverComponentBG,
+        theme.componentBG,
         isHovered,
-        icons,
+        secondaryAvatar,
     ]);
 
     const getHeading = useMemo(() => {
