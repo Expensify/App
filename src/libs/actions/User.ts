@@ -1335,6 +1335,10 @@ function subscribeToActiveGuides() {
     });
 }
 
+function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
+    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1375,4 +1379,5 @@ export {
     clearValidateCodeActionError,
     subscribeToActiveGuides,
     dismissGBRTooltip,
+    setIsDebugModeEnabled,
 };
