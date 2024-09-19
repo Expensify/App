@@ -38,14 +38,16 @@ Onyx.connect({
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
 
-    messages?.forEach((part) => {
+    messages?.forEach((part, index) => {
         const isEmail = Str.isValidEmail(part.text);
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
-            content = 'You';
+            content = messages[index + 1].text === `'s` ? 'Your' : 'You';
+        } else if (part.text === `'s` && (messages[index - 1].text === currentUserEmail || messages[index - 1].clickToCopyText === currentUserEmail)) {
+            content = '';
         } else if (isEmail) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
@@ -65,15 +67,15 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
     const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
     if (approvalChain.length === 0) {
-        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+        return submitToAccountID === currentUserAccountID ? 'You' : ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
     const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
     if (!nextApproverEmail) {
-        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+        return submitToAccountID === currentUserAccountID ? 'You' : ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
-    return PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
+    return nextApproverEmail === currentUserEmail ? 'You' : PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
 }
 
 /**
@@ -98,9 +100,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const nextApproverDisplayName = getNextApproverDisplayName(policy, ownerAccountID, submitToAccountID, report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
-    const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
+    const reimburserDisplayName = reimburserAccountID === currentUserAccountID ? 'You' : ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
+    const isOwnerCurrentUser = ownerAccountID === currentUserAccountID;
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
@@ -114,7 +117,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}`,
+                        text: isOwnerCurrentUser ? 'You' : `${ownerDisplayName}`,
                         type: 'strong',
                     },
                     {
@@ -128,7 +131,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                 ],
             };
-
             // Scheduled submit enabled
             if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
@@ -136,7 +138,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}'s`,
+                        text: isOwnerCurrentUser ? 'Your' : `${ownerDisplayName}'s`,
                         type: 'strong',
                     },
                     {
