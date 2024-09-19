@@ -401,9 +401,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pb0]}
-            includePaddingTop={false}
-            includeSafeAreaPaddingBottom={false}
+            style={[styles.w100]}
+            includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
         >
             {headerContent}
@@ -413,7 +412,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 scrollEventThrottle={16}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
-            >
+        >
                 {accountMenuItems}
                 {workspaceMenuItems}
                 {generalMenuItems}

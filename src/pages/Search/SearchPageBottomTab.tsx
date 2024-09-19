@@ -86,7 +86,6 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
-            style={styles.pv0}
             offlineIndicatorStyle={styles.mtAuto}
         >
             {!selectionMode?.isEnabled ? (
