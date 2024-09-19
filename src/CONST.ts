@@ -1055,7 +1055,6 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
-            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -1152,7 +1151,6 @@ const CONST = {
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
     },
@@ -2806,6 +2804,7 @@ const CONST = {
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
+        DEBUG: 'debug',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4141,6 +4140,7 @@ const CONST = {
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -5517,6 +5517,7 @@ const CONST = {
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
+                PINNED: 'pinned',
             },
         },
         TABLE_COLUMNS: {
@@ -5754,6 +5755,13 @@ const CONST = {
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    },
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
     },
 } as const;
 

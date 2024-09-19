@@ -88,12 +88,14 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
+        let taxAmount;
+        let taxRateExternalID;
         if (shouldShowTax) {
             const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
-            const taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
+            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
+            taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
@@ -102,7 +104,7 @@ function IOURequestStepDistanceRate({
             IOU.setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy?.id ?? '-1', !isEditing);
 
             if (isEditing) {
-                IOU.updateMoneyRequestDistanceRate(transaction?.transactionID ?? '-1', reportID, customUnitRateID, policy, policyTags, policyCategories);
+                IOU.updateMoneyRequestDistanceRate(transaction?.transactionID ?? '-1', reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);
             }
         }
 

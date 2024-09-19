@@ -5,6 +5,7 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
@@ -73,6 +74,8 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                {/* This is only temporary for development and will be cleaned up in: https://github.com/Expensify/App/issues/49122 */}
+                <SearchButton />
                 {displaySearch && (
                     <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback

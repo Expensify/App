@@ -199,26 +199,29 @@ function ReportPreview({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
-    const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-        if (!type) {
-            return;
-        }
-        setPaymentType(type);
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (isDelegateAccessRestricted) {
-            setIsNoDelegateAccessMenuVisible(true);
-        } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
-            setIsHoldMenuVisible(true);
-        } else if (chatReport && iouReport) {
-            setIsPaidAnimationRunning(true);
-            HapticFeedback.longPress();
-            if (ReportUtils.isInvoiceReport(iouReport)) {
-                IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
-            } else {
-                IOU.payMoneyRequest(type, chatReport, iouReport);
+    const confirmPayment = useCallback(
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+            if (!type) {
+                return;
             }
-        }
-    };
+            setPaymentType(type);
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true);
+            } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+                setIsHoldMenuVisible(true);
+            } else if (chatReport && iouReport) {
+                setIsPaidAnimationRunning(true);
+                HapticFeedback.longPress();
+                if (ReportUtils.isInvoiceReport(iouReport)) {
+                    IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
+                } else {
+                    IOU.payMoneyRequest(type, chatReport, iouReport);
+                }
+            }
+        },
+        [chatReport, iouReport, isDelegateAccessRestricted],
+    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
