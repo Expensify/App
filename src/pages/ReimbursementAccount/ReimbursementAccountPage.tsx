@@ -182,7 +182,6 @@ function ReimbursementAccountPage({
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     function hasInProgressVBBA(): boolean {
-        console.log(!!achData?.bankAccountID && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED);
         return !!achData?.bankAccountID && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
     }
     /*
@@ -194,7 +193,6 @@ function ReimbursementAccountPage({
             // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
         }
-        console.log('heeere', achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route)));
         return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
     }
 
@@ -275,7 +273,6 @@ function ReimbursementAccountPage({
             }
 
             if (!hasACHDataBeenLoaded) {
-                console.log('here1');
                 if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isReimbursementAccountLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
@@ -288,7 +285,6 @@ function ReimbursementAccountPage({
                 prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
             ) {
-                console.log('here2');
                 setShouldShowContinueSetupButton(hasInProgressVBBA());
             }
 
@@ -343,7 +339,6 @@ function ReimbursementAccountPage({
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (hasInProgressVBBA()) {
-                    console.log('here4');
                     setShouldShowContinueSetupButton(true);
                 }
                 if (subStep) {
