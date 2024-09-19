@@ -3719,8 +3719,12 @@ function getReportName(
     }
 
     let formattedName: string | undefined;
-    const parentReportAction =
-        parentReportActionParam && isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
+    let parentReportAction: OnyxEntry<ReportAction>;
+    if (parentReportActionParam) {
+        parentReportAction = parentReportActionParam;
+    } else {
+        parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
+    }
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
@@ -4256,7 +4260,7 @@ function buildOptimisticTaskCommentReportAction(
 
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     reportAction.reportAction.originalMessage = {
         html: ReportActionsUtils.getReportActionHtml(reportAction.reportAction),
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
