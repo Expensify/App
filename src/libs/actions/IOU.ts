@@ -6634,16 +6634,7 @@ function getPayMoneyRequestParams(
             successData: policySuccessData,
             params,
         } = Policy.buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
-        const {
-            adminsChatReportID,
-            adminsCreatedReportActionID,
-            expenseChatReportID,
-            expenseCreatedReportActionID,
-            customUnitRateID,
-            customUnitID,
-            ownerEmail,
-            policyName,
-        } = params;
+        const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
         policyParams = {
             policyID: payerPolicyID,
