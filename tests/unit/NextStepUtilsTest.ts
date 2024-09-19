@@ -1,15 +1,15 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
+import { format, lastDayOfMonth, setDate } from 'date-fns';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
-import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import type { Policy, Report, ReportNextStep } from '@src/types/onyx';
+import { toCollectionDataSet } from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-Onyx.init({keys: ONYXKEYS});
+Onyx.init({ keys: ONYXKEYS });
 
 describe('libs/NextStepUtils', () => {
     describe('buildNextStep', () => {
@@ -44,7 +44,7 @@ describe('libs/NextStepUtils', () => {
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
 
             Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.SESSION]: { email: currentUserEmail, accountID: currentUserAccountID },
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
@@ -113,7 +113,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -143,7 +148,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -173,7 +183,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -203,7 +218,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -234,7 +254,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -267,7 +292,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -298,7 +328,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -515,7 +550,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
                 // mock the report as approved
-                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
+                const originalState = { stateNum: report.stateNum, statusNum: report.statusNum };
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
