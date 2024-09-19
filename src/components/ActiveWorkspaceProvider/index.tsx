@@ -17,23 +17,23 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
     const queryFromRouteParam = lastPolicyRoute?.params && 'q' in lastPolicyRoute.params ? (lastPolicyRoute.params.q as string) : '';
 
     useEffect(() => {
-        if (!policyIDFromRouteParam) {
-            return;
-        }
-        setActiveWorkspaceID(policyIDFromRouteParam);
-    }, [policyIDFromRouteParam, setActiveWorkspaceID]);
-
-    useEffect(() => {
-        if (!queryFromRouteParam) {
+        if (policyIDFromRouteParam) {
+            setActiveWorkspaceID(policyIDFromRouteParam);
             return;
         }
 
-        const queryJSON = SearchUtils.buildSearchQueryJSON(queryFromRouteParam);
-        if (!queryJSON) {
-            return undefined;
+        if (queryFromRouteParam) {
+            const queryJSON = SearchUtils.buildSearchQueryJSON(queryFromRouteParam);
+            if (!queryJSON) {
+                setActiveWorkspaceID(undefined);
+                return;
+            }
+            setActiveWorkspaceID(SearchUtils.getPolicyIDFromSearchQuery(queryJSON));
+            return;
         }
-        setActiveWorkspaceID(SearchUtils.getPolicyIDFromSearchQuery(queryJSON));
-    }, [queryFromRouteParam]);
+
+        setActiveWorkspaceID(undefined);
+    }, [policyIDFromRouteParam, queryFromRouteParam, setActiveWorkspaceID]);
 
     const value = useMemo(
         () => ({
