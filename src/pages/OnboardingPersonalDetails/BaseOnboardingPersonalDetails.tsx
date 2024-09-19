@@ -5,6 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
-import OfflineIndicator from '@components/OfflineIndicator';
 
 function BaseOnboardingPersonalDetails({
     currentUserPersonalDetails,
@@ -123,59 +123,57 @@ function BaseOnboardingPersonalDetails({
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    progressBarPercentage={75}
-                    onBackButtonPress={OnboardingFlow.goBack}
-                />
-                <FormProvider
-                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
-                    validate={validate}
-                    onSubmit={completeEngagement}
-                    submitButtonText={translate('common.continue')}
-                    enabledWhenOffline
-                    submitFlexEnabled
-                    shouldValidateOnBlur={false}
-                    shouldValidateOnChange={shouldValidateOnChange}
-                    shouldTrimValues={false}
-                >
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.FIRST_NAME}
-                            name="fname"
-                            label={translate('common.firstName')}
-                            aria-label={translate('common.firstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserPersonalDetails?.firstName}
-                            shouldSaveDraft
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            spellCheck={false}
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LAST_NAME}
-                            name="lname"
-                            label={translate('common.lastName')}
-                            aria-label={translate('common.lastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserPersonalDetails?.lastName}
-                            shouldSaveDraft
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            spellCheck={false}
-                        />
-                    </View>
-                </FormProvider>
-                {isSmallScreenWidth && <OfflineIndicator />}
-            </View>
+            <HeaderWithBackButton
+                shouldShowBackButton
+                progressBarPercentage={75}
+                onBackButtonPress={OnboardingFlow.goBack}
+            />
+            <FormProvider
+                style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
+                validate={validate}
+                onSubmit={completeEngagement}
+                submitButtonText={translate('common.continue')}
+                enabledWhenOffline
+                submitFlexEnabled
+                shouldValidateOnBlur={false}
+                shouldValidateOnChange={shouldValidateOnChange}
+                shouldTrimValues={false}
+            >
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                </View>
+                <View style={styles.mb4}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={inputCallbackRef}
+                        inputID={INPUT_IDS.FIRST_NAME}
+                        name="fname"
+                        label={translate('common.firstName')}
+                        aria-label={translate('common.firstName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={currentUserPersonalDetails?.firstName}
+                        shouldSaveDraft
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
+                    />
+                </View>
+                <View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.LAST_NAME}
+                        name="lname"
+                        label={translate('common.lastName')}
+                        aria-label={translate('common.lastName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={currentUserPersonalDetails?.lastName}
+                        shouldSaveDraft
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
+                    />
+                </View>
+            </FormProvider>
+            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
