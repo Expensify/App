@@ -136,10 +136,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
-                Connections.updatePolicyConnectionConfig(
+                QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(
                     policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
                     isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
                     qboConfig?.collectionAccountID,
                 ),

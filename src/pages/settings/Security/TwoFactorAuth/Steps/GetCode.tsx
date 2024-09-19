@@ -28,7 +28,6 @@ function GetCode({account}: GetCodeProps) {
     return (
         <StepWrapper
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
-            shouldEnableKeyboardAvoidingView={false}
             onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED, CONST.ANIMATION_DIRECTION.OUT)}
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >

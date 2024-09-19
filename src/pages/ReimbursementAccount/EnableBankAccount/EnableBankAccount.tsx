@@ -31,7 +31,8 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
     const {translate} = useLocalize();
 
     const achData = reimbursementAccount?.achData ?? {};
-    const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: achData.bankName, styles});
+
     const formattedBankAccountNumber = achData.accountNumber ? `${translate('bankAccount.accountEnding')} ${achData.accountNumber.slice(-4)}` : '';
     const bankAccountOwnerName = achData.addressName;
     const errors = reimbursementAccount?.errors ?? {};
@@ -66,11 +67,12 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
                             title={bankAccountOwnerName}
                             description={formattedBankAccountNumber}
                             icon={icon}
+                            iconStyles={iconStyles}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             interactive={false}
                             displayInDefaultIconColor
-                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
                         />
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
                         <MenuItem

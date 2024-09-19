@@ -77,6 +77,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Whether button is disabled */
         isSubmitDisabled?: boolean;
+
+        /** Whether HTML is allowed in form inputs */
+        allowHTML?: boolean;
     };
 
 function FormProvider(
@@ -92,6 +95,7 @@ function FormProvider(
         draftValues,
         onSubmit,
         shouldTrimValues = true,
+        allowHTML = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -114,40 +118,42 @@ function FormProvider(
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
 
-            // Validate the input for html tags. It should supersede any other error
-            Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
-                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
-                if (!inputValue || typeof inputValue !== 'string') {
-                    return;
-                }
-                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+            if (!allowHTML) {
+                // Validate the input for html tags. It should supersede any other error
+                Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
+                    // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
+                    if (!inputValue || typeof inputValue !== 'string') {
+                        return;
+                    }
+                    const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
-                // Return early if there are no HTML characters
-                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-                    return;
-                }
+                    // Return early if there are no HTML characters
+                    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+                        return;
+                    }
 
-                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
-                // Check for any matches that the original regex (foundHtmlTagIndex) matched
-                if (matchedHtmlTags) {
-                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
-                    for (const htmlTag of matchedHtmlTags) {
-                        isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
-                        if (!isMatch) {
-                            break;
+                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
+                    // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                    if (matchedHtmlTags) {
+                        // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                        for (const htmlTag of matchedHtmlTags) {
+                            isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
+                            if (!isMatch) {
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (isMatch && leadingSpaceIndex === -1) {
-                    return;
-                }
+                    if (isMatch && leadingSpaceIndex === -1) {
+                        return;
+                    }
 
-                // Add a validation error here because it is a string value that contains HTML characters
-                validateErrors[inputID] = translate('common.error.invalidCharacter');
-            });
+                    // Add a validation error here because it is a string value that contains HTML characters
+                    validateErrors[inputID] = translate('common.error.invalidCharacter');
+                });
+            }
 
             if (typeof validateErrors !== 'object') {
                 throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
@@ -161,7 +167,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate],
+        [shouldTrimValues, formID, validate, errors, translate, allowHTML],
     );
 
     // When locales change from another session of the same account,
