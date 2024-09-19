@@ -389,7 +389,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
         },
     ];
     Object.entries(reportIDToOptimisticClosedReportActionID).forEach(([reportID, optimisticReportActionID]) => {
-        finallyData.push({
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
