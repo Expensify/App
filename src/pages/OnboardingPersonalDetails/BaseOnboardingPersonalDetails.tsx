@@ -5,7 +5,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -26,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
+import OfflineIndicator from '@components/OfflineIndicator';
 
 function BaseOnboardingPersonalDetails({
     currentUserPersonalDetails,
@@ -121,6 +121,7 @@ function BaseOnboardingPersonalDetails({
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingPersonalDetails"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
                 <HeaderWithBackButton

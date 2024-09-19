@@ -5,7 +5,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -25,12 +24,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
+import OfflineIndicator from '@components/OfflineIndicator';
 
 function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth,onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const {isOffline} = useNetwork();
 
@@ -75,6 +74,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWork"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
                 <HeaderWithBackButton
@@ -112,7 +112,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                         />
                     </View>
                 </FormProvider>
-                {shouldUseNarrowLayout && <OfflineIndicator />}
+                {isSmallScreenWidth && <OfflineIndicator />}
             </View>
         </ScreenWrapper>
     );

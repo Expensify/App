@@ -39,7 +39,8 @@ function RulesMaxExpenseAgePage({
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        const validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
+        let validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
+        validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
     }, []);
 
@@ -80,7 +81,6 @@ function RulesMaxExpenseAgePage({
                             value={maxExpenseAgeValue}
                             onChangeText={onChangeMaxExpenseAge}
                             ref={inputCallbackRef}
-                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.maxExpenseAgeDescription')}</Text>
                     </View>
