@@ -306,6 +306,7 @@ function ReportPreview({
     }, [
         isScanning,
         isPolicyExpenseChat,
+        policy,
         chatReport,
         isInvoiceRoom,
         invoiceReceiverPolicy,
@@ -413,8 +414,11 @@ function ReportPreview({
 
         // eslint-disable-next-line react-compiler/react-compiler
         previewMessageOpacity.value = withTiming(0.75, {duration: CONST.ANIMATION_PAID_DURATION / 2}, () => {
+            // eslint-disable-next-line react-compiler/react-compiler
             previewMessageOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION / 2});
         });
+        // We only want to animate the text when the text changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
 
     useEffect(() => {
