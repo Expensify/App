@@ -16,7 +16,6 @@ type SharedProps<T> = {
     subtitle: string | React.ReactNode;
     buttonText?: string;
     buttonAction?: () => void;
-    pressOnEnter?: boolean;
     containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;

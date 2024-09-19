@@ -5161,6 +5161,7 @@ const styles = (theme: ThemeColors) =>
 
         emptyFolderDarkBG: {
             backgroundColor: '#782c04',
+            height: 220,
         },
 
         emptyStateVideo: {
@@ -5176,8 +5177,6 @@ const styles = (theme: ThemeColors) =>
         emptyStateFolderWebStyles: {
             ...sizing.w100,
             minWidth: 400,
-            ...spacing.mtAuto,
-            ...spacing.mbAuto,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
