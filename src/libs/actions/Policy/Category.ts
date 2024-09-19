@@ -1041,7 +1041,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
-function downloadCategoriesCSV(policyID: string) {
+function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
         policyID,
     });
@@ -1053,7 +1053,7 @@ function downloadCategoriesCSV(policyID: string) {
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
