@@ -43,7 +43,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     buttonText: undefined,
                     buttonAction: undefined,
-                    lottieWebViewStyles: {...styles.w100, minWidth: 300},
                 };
         }
     }, [type, StyleUtils, translate, theme, styles.w100]);
@@ -53,13 +52,13 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             SkeletonComponent={SearchRowSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
             headerMedia={content.headerMedia}
-            headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto]}
+            headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
             title={content.title}
             subtitle={content.subtitle}
             buttonText={content.buttonText}
             buttonAction={content.buttonAction}
             headerContentStyles={[styles.h100, styles.w100]}
-            lottieWebViewStyles={{...content.lottieWebViewStyles, ...styles.mtAuto, ...styles.mbAuto, ...styles.alignItemsCenter, ...styles.dFlex}}
+            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
         />
     );
 }

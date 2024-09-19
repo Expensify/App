@@ -5075,6 +5075,8 @@ const styles = (theme: ThemeColors) =>
 
         emptyStateCardIllustrationContainer: {
             height: 220,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         emptyStateCardIllustration: {
@@ -5168,10 +5170,11 @@ const styles = (theme: ThemeColors) =>
 
         emptyStateFolderWebStyles: {
             ...sizing.w100,
-            minWidth: 300,
+            minWidth: 400,
             ...spacing.mtAuto,
             ...spacing.mbAuto,
             ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
             ...display.dFlex,
         },
 

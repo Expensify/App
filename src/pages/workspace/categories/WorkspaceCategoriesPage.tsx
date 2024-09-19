@@ -388,7 +388,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         headerMedia={LottieAnimations.GenericEmptyState}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto, styles.emptyFolderBG]}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                         lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}

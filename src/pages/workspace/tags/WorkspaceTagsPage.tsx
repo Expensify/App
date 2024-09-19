@@ -402,7 +402,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         headerMedia={LottieAnimations.GenericEmptyState}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.alignItemsCenter, styles.mvAuto, styles.emptyFolderBG]}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                         lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
