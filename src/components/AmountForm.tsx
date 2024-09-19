@@ -256,6 +256,7 @@ function AmountForm(
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
+                errorText={errorText}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

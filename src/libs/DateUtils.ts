@@ -464,12 +464,12 @@ function extractDate(dateTimeString: string): string {
  * param {string} dateTimeString
  * returns {string} example: 11:10 PM
  */
-function extractTime12Hour(dateTimeString: string): string {
+function extractTime12Hour(dateTimeString: string, isFullFormat = false): string {
     if (!dateTimeString || dateTimeString === 'never') {
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, 'hh:mm a');
+    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
 }
 
 /**
@@ -613,22 +613,26 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
 };
 
 /**
- * param {String} dateTime in 'HH:mm:ss' format
+ * param {String} dateTime in 'HH:mm:ss.SSS a' format
  * returns {Object}
- * example {hour: '11', minute: '10', period: 'AM'}
+ * example {hour: '11', minute: '10', seconds: '10', miliseconds: '123', period: 'AM'}
  */
-function get12HourTimeObjectFromDate(dateTime: string): {hour: string; minute: string; period: string} {
+function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; miliseconds: string; period: string} {
     if (!dateTime) {
         return {
             hour: '12',
             minute: '00',
+            seconds: '00',
+            miliseconds: '000',
             period: 'PM',
         };
     }
-    const parsedTime = parse(dateTime, 'hh:mm a', new Date());
+    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date());
     return {
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
+        seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
+        miliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
         period: format(parsedTime, 'a').toUpperCase(),
     };
 }

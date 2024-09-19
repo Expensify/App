@@ -1126,7 +1126,7 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 }
 
 /**
- * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
+ * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
  */
 function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
@@ -1143,11 +1143,18 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(taskReport)) {
+    if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
         return false;
     }
 
     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
+}
+
+/**
+ * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
+ */
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
 function clearTaskErrors(reportID: string) {
@@ -1191,6 +1198,7 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
+    canActionTask,
     setNewOptimisticAssignee,
 };
 
