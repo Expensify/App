@@ -133,6 +133,7 @@ function AccountSwitcher() {
                 }}
                 ref={buttonRef}
                 interactive={canSwitchAccounts}
+                pressDimmingValue={canSwitchAccounts ? undefined : 1}
                 wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
             >
                 <View style={[styles.flexRow, styles.gap3]}>
@@ -147,7 +148,7 @@ function AccountSwitcher() {
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge]}
+                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>

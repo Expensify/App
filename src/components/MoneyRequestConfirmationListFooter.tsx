@@ -314,7 +314,10 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <ShowContextMenuContext.Provider value={contextMenuContextValue}>
-                    <MentionReportContext.Provider value={mentionReportContextValue}>
+                    <MentionReportContext.Provider
+                        key={translate('common.description')}
+                        value={mentionReportContextValue}
+                    >
                         <MenuItemWithTopDescription
                             key={translate('common.description')}
                             shouldShowRightIcon={!isReadOnly}
@@ -519,7 +522,10 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                <View
+                    key={translate('common.billable')}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
+                >
                     <ToggleSettingOptionRow
                         switchAccessibilityLabel={translate('common.billable')}
                         title={translate('common.billable')}
@@ -536,8 +542,8 @@ function MoneyRequestConfirmationListFooter({
         },
     ];
 
-    const primaryFields: JSX.Element[] = [];
-    const supplementaryFields: JSX.Element[] = [];
+    const primaryFields: React.JSX.Element[] = [];
+    const supplementaryFields: React.JSX.Element[] = [];
 
     classifiedFields.forEach((field) => {
         if (field.shouldShow && !field.isSupplementary) {
