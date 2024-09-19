@@ -83,7 +83,7 @@ jobs:
         id: build
         run: |
           lane=''
-          case ${{ inputs.type }} in
+          case '${{ inputs.type }}' in
             'release')
               lane='build';;
             'adhoc')
