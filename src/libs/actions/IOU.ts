@@ -6635,8 +6635,6 @@ function getPayMoneyRequestParams(
             params,
         } = Policy.buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
         const {
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
@@ -6649,8 +6647,6 @@ function getPayMoneyRequestParams(
 
         policyParams = {
             policyID: payerPolicyID,
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
@@ -7561,8 +7557,6 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         params: {
             reportActionID,
             policyID,
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
@@ -7588,8 +7582,6 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         params = {
             ...params,
             policyID,
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
