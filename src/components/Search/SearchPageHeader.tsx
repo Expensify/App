@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import Header from '@components/Header';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -31,9 +32,8 @@ import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults'
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SearchQueryJSON} from './types';
-import Header from '@components/Header';
 import SearchRouterInput from './SearchRouter/SearchRouterInput';
+import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
     content: string;
@@ -61,22 +61,16 @@ function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperPr
                             additionalStyles={[styles.mr2]}
                         />
                     )}
-                    <Header subtitle={
-                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>
-                            {content}
-                        </Text>
-                    }/>
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>
-                        {children}
-                    </View>
+                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{content}</Text>} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
                 </View>
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
                         isFullWidth
                         wrapperStyle={styles.searchRouterInputResultsStyle}
-                        onChange={() => console.log("change")}
-                        onSubmit={() => console.log("submit")}
+                        onChange={() => console.log('change')}
+                        onSubmit={() => console.log('submit')}
                         shouldShowRightComponent
                         rightComponent={children}
                     />

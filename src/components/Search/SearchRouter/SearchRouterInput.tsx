@@ -1,9 +1,11 @@
-import React, {ReactNode, useState} from 'react';
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
+import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import BaseTextInput from '@components/TextInput/BaseTextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import { StyleProp, View, ViewStyle } from 'react-native';
 
 type SearchRouterInputProps = {
     isFullWidth: boolean;
