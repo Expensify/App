@@ -18,7 +18,7 @@ class NotificationService: UANotificationServiceExtension {
   let appLogs: AppLogs = .init()
   
   deinit {
-    appLogs.interceptLogs(appGroup: "group.com.expensify.new")
+    appLogs.forwardLogsTo(appGroup: "group.com.expensify.new")
   }
   
   override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {

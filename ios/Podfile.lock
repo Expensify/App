@@ -1565,7 +1565,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-app-logs (0.1.0):
+  - react-native-app-logs (0.2.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3200,7 +3200,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
   React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
   react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
-  react-native-app-logs: 3a477c23fab54f4992c8949e5a687f65068fa8e3
+  react-native-app-logs: 91a04f691f2db7c1d6153bce31cab3922e6873f4
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
@@ -3276,7 +3276,7 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
-  Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
+  Yoga: 2a45d7e59592db061217551fd3bbe2dd993817ae
 
 PODFILE CHECKSUM: 0bbc059ab75e64282fdab92577f2b921b6b6df20
 
