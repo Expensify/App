@@ -140,8 +140,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}'s`,
+                        text: `${ownerDisplayName}`,
                         type: 'strong',
+                    },
+                    {
+                        text: `'s`,
+                        type: 'strong'
                     },
                     {
                         text: ' %expenses to automatically submit',
