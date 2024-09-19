@@ -132,6 +132,13 @@ function ReportPreview({
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const previewMessageOpacity = useSharedValue(1);
+    const previewMessageStyle = useAnimatedStyle(() => ({
+        ...styles.flex1,
+        ...styles.flexRow,
+        ...styles.alignItemsCenter,
+        opacity: previewMessageOpacity.value,
+    }));
     const checkMarkOpacity = useSharedValue(iouSettled ? 1 : 0);
     const checkMarkStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
@@ -271,14 +278,14 @@ function ReportPreview({
         return !Number.isNaN(amount) && amount === 0;
     }
 
-    const getPreviewMessage = () => {
+    const previewMessage = useMemo(() => {
         if (isScanning) {
             return translate('common.receipt');
         }
 
         let payerOrApproverName;
         if (isPolicyExpenseChat) {
-            payerOrApproverName = ReportUtils.getPolicyName(chatReport);
+            payerOrApproverName = ReportUtils.getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
             payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
@@ -296,7 +303,20 @@ function ReportPreview({
             payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
-    };
+    }, [
+        isScanning,
+        isPolicyExpenseChat,
+        chatReport,
+        isInvoiceRoom,
+        invoiceReceiverPolicy,
+        managerID,
+        isApproved,
+        iouSettled,
+        iouReport?.isWaitingOnBankAccount,
+        hasNonReimbursableTransactions,
+        chatReport?.ownerAccountID,
+        translate,
+    ]);
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
@@ -387,6 +407,17 @@ function ReportPreview({
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     useEffect(() => {
+        if (!isPaidAnimationRunning) {
+            return;
+        }
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        previewMessageOpacity.value = withTiming(0.75, {duration: CONST.ANIMATION_PAID_DURATION / 2}, () => {
+            previewMessageOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION / 2});
+        });
+    }, [previewMessage, previewMessageOpacity]);
+
+    useEffect(() => {
         if (!iouSettled) {
             return;
         }
@@ -431,9 +462,9 @@ function ReportPreview({
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
-                                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
-                                        </View>
+                                        <Animated.View style={previewMessageStyle}>
+                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{previewMessage}</Text>
+                                        </Animated.View>
                                         {shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
