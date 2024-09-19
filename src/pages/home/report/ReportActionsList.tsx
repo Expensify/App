@@ -122,6 +122,19 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
+function wasMessageReceivedWhileOffline(message: OnyxTypes.ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: OnyxTypes.Locale): boolean {
+    if (!onlineLastAt || !offlineLastAt) {
+        return false;
+    }
+
+    const messageCreatedAt = DateUtils.getLocalDateFromDatetime(locale, message.created);
+
+    if (messageCreatedAt > offlineLastAt && messageCreatedAt <= onlineLastAt) {
+        return true;
+    }
+    return false;
+}
+
 function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string): boolean {
     if (!lastReadTime) {
         return !ReportActionsUtils.isCreatedAction(message);
@@ -161,7 +174,8 @@ function ReportActionsList({
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {isOffline} = useNetwork();
+    const {preferredLocale} = useLocalize();
+    const {isOffline, lastOfflineAt, lastOnlineAt} = useNetwork();
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -222,6 +236,14 @@ function ReportActionsList({
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions[index + 1];
+
+            const isCurrentMessageOffline = wasMessageReceivedWhileOffline(reportAction, lastOfflineAt, lastOnlineAt, preferredLocale);
+            const isNextMessageOffline = (nextMessage && wasMessageReceivedWhileOffline(nextMessage, lastOfflineAt, lastOnlineAt, preferredLocale)) || !nextMessage;
+
+            if (isCurrentMessageOffline && !isNextMessageOffline) {
+                return true;
+            }
+
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
             let shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
@@ -245,7 +267,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [accountID, sortedVisibleReportActions, unreadMarkerTime, messageManuallyMarkedUnread]);
+    }, [sortedVisibleReportActions, lastOfflineAt, lastOnlineAt, preferredLocale, unreadMarkerTime, messageManuallyMarkedUnread, accountID]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
