@@ -68,7 +68,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'));
+        Navigation.goBack();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;

@@ -19,6 +19,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -82,6 +83,13 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
         } else {
+            CompanyCards.setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CARD,
+                data: {
+                    email: memberLogin,
+                },
+                isEditing: false,
+            });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed));
         }
     };
