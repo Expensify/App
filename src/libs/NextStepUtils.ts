@@ -43,10 +43,13 @@ function parseMessage(messages: Message[] | undefined) {
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
+        const previousPart = messages[index - 1];
+        const nextPart = messages[index + 1];
+
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
-            content = messages[index + 1].text === `'s` ? 'Your' : 'You';
-        } else if (part.text === `'s` && (messages[index - 1].text === currentUserEmail || messages[index - 1].clickToCopyText === currentUserEmail)) {
+            content = nextPart.text === `'s` ? 'Your' : 'You';
+        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
             content = '';
         } else if (isEmail) {
             tagType = 'next-step-email';
@@ -67,15 +70,15 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
     const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
     if (approvalChain.length === 0) {
-        return submitToAccountID === currentUserAccountID ? 'You' : ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
     const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
     if (!nextApproverEmail) {
-        return submitToAccountID === currentUserAccountID ? 'You' : ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
-    return nextApproverEmail === currentUserEmail ? 'You' : PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
+    return PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
 }
 
 /**
@@ -103,7 +106,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const reimburserDisplayName = reimburserAccountID === currentUserAccountID ? 'You' : ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
-    const isOwnerCurrentUser = ownerAccountID === currentUserAccountID;
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
@@ -117,7 +119,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: isOwnerCurrentUser ? 'You' : `${ownerDisplayName}`,
+                        text: `${ownerDisplayName}`,
                         type: 'strong',
                     },
                     {
@@ -138,7 +140,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: isOwnerCurrentUser ? 'Your' : `${ownerDisplayName}'s`,
+                        text: `${ownerDisplayName}'s`,
                         type: 'strong',
                     },
                     {
