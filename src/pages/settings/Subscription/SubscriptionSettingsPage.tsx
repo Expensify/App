@@ -1,5 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Subscription from '@userActions/Subscription';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionDetails from './SubscriptionDetails';
@@ -26,7 +29,11 @@ function SubscriptionSettingsPage() {
     useEffect(() => {
         Subscription.openSubscriptionPage();
     }, []);
+    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
+    if (!subscriptionPlan && isAppLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
     if (!subscriptionPlan) {
         return <NotFoundPage />;
     }
