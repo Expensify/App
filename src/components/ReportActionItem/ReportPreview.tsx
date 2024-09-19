@@ -1,9 +1,10 @@
 import truncate from 'lodash/truncate';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
@@ -151,6 +152,11 @@ function ReportPreview({
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const checkMarkOpacity = useSharedValue(iouSettled ? 1 : 0);
+    const checkMarkStyle = useAnimatedStyle(() => ({
+        ...styles.defaultCheckmarkWrapper,
+        opacity: checkMarkOpacity.value,
+    }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
@@ -400,6 +406,18 @@ function ReportPreview({
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
+    useEffect(() => {
+        if (!iouSettled) {
+            return;
+        }
+
+        if (isPaidAnimationRunning) {
+            checkMarkOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION});
+        } else {
+            checkMarkOpacity.value = 1;
+        }
+    }, [isPaidAnimationRunning, iouSettled]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -454,12 +472,12 @@ function ReportPreview({
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
                                                 {iouSettled && (
-                                                    <View style={styles.defaultCheckmarkWrapper}>
+                                                    <Animated.View style={checkMarkStyle}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
                                                         />
-                                                    </View>
+                                                    </Animated.View>
                                                 )}
                                             </View>
                                         </View>
