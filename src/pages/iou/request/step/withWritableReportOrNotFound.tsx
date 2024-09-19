@@ -56,14 +56,14 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
+        const [report = {reportID: ''}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`);
+        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`);
+
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
-
-        const [report = {reportID: ''}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? -1}`);
-        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? -1}`);
 
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
