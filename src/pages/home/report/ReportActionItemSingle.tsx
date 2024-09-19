@@ -81,7 +81,7 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const icons = ReportUtils.getIcons(iouReport ?? null, personalDetails);
