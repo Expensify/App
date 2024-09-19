@@ -68,6 +68,7 @@ type CentralPaneScreensParamList = {
 
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
+        name?: string;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
