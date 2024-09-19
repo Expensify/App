@@ -85,7 +85,6 @@ import type {
     PolicyCategory,
     ReimbursementAccount,
     Report,
-    ReportAction,
     Request,
     TaxRatesWithDefault,
     Transaction,
@@ -389,7 +388,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             },
         },
     ];
-    Object.entries(reportIDToOptimisticClosedReportActionID).map(([reportID, optimisticReportActionID]) => {
+    Object.entries(reportIDToOptimisticClosedReportActionID).forEach(([reportID, optimisticReportActionID]) => {
         finallyData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
