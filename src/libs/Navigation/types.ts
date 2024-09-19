@@ -276,6 +276,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
@@ -1190,6 +1196,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
+    [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1429,6 +1436,29 @@ type MissingPersonalDetailsParamList = {
     };
 };
 
+type DebugParamList = {
+    [SCREENS.DEBUG.REPORT]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION]: {
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+        fieldName: string;
+        fieldValue?: string;
+        backTo?: string;
+    };
+    [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
+        fieldName: string;
+        fieldValue?: string;
+        backTo?: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -1502,4 +1532,5 @@ export type {
     SearchSavedSearchParamList,
     RestrictedActionParamList,
     MissingPersonalDetailsParamList,
+    DebugParamList,
 };

@@ -178,6 +178,7 @@ const SCREENS = {
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
+        DEBUG: 'Debug',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -413,6 +414,8 @@ const SCREENS = {
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
+        TAGS_IMPORT: 'Tags_Import',
+        TAGS_IMPORTED: 'Tags_Imported',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
@@ -551,6 +554,13 @@ const SCREENS = {
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    DEBUG: {
+        REPORT: 'Debug_Report',
+        REPORT_ACTION: 'Debug_Report_Action',
+        REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
+        DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
+        DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

@@ -55,7 +55,7 @@ function CardTypeStep() {
             isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
             leftElement: (
                 <Icon
-                    src={Illustrations.AmexBlueCompanyCards}
+                    src={Illustrations.AmexCardCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles.mr3}
@@ -69,7 +69,7 @@ function CardTypeStep() {
             isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
             leftElement: (
                 <Icon
-                    src={Illustrations.MasterCardCompanyCards}
+                    src={Illustrations.MasterCardCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles.mr3}
@@ -83,7 +83,7 @@ function CardTypeStep() {
             isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.VISA,
             leftElement: (
                 <Icon
-                    src={Illustrations.VisaCompanyCards}
+                    src={Illustrations.VisaCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles.mr3}

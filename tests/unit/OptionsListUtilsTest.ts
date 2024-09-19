@@ -2641,7 +2641,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].isArchivedRoom).toBe(true);
+            expect(!!filteredOptions.recentReports[0].private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {

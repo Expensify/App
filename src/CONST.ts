@@ -111,16 +111,16 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
                 'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
         },
         {
-            type: 'enableWallet',
+            type: 'addBankAccount',
             autoCompleted: false,
-            title: 'Enable your wallet',
+            title: 'Add personal bank account',
             description:
-                'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
                 '\n' +
-                'Here’s how to set up your wallet:\n' +
+                'Here’s how to set up your bank account:\n' +
                 '\n' +
                 '1. Click your profile picture.\n' +
-                '2. Click *Wallet* > *Enable wallet*.\n' +
+                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
                 'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
@@ -727,6 +727,7 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
+        POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1054,7 +1055,6 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
-            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -1151,7 +1151,6 @@ const CONST = {
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
     },
@@ -1417,6 +1416,7 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
+    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
         ADMIN: 'admin@expensify.com',
@@ -2804,6 +2804,7 @@ const CONST = {
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
+        DEBUG: 'debug',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4039,70 +4040,6 @@ const CONST = {
     },
 
     /**
-     * Acceptable values for the `accessibilityRole` prop on react native components.
-     *
-     * **IMPORTANT:** Do not use with the `role` prop as it can cause errors.
-     *
-     * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
-     */
-    ACCESSIBILITY_ROLE: {
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        BUTTON: 'button',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        LINK: 'link',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        MENUITEM: 'menuitem',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        TEXT: 'text',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        RADIO: 'radio',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        IMAGEBUTTON: 'imagebutton',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        CHECKBOX: 'checkbox',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        SWITCH: 'switch',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        ADJUSTABLE: 'adjustable',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        IMAGE: 'image',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        TEXTBOX: 'textbox',
-    },
-
-    /**
      * Acceptable values for the `role` attribute on react native components.
      *
      * **IMPORTANT:** Not for use with the `accessibilityRole` prop, as it accepts different values, and new components
@@ -4203,6 +4140,7 @@ const CONST = {
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -4606,6 +4544,25 @@ const CONST = {
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
                 {
+                    type: 'setupTags',
+                    autoCompleted: false,
+                    title: 'Set up tags (optional)',
+                    description: ({workspaceMoreFeaturesLink}) =>
+                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
+                        '\n' +
+                        '*Here’s how to set up tags:*\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click More features.\n' +
+                        '5. Enable tags.\n' +
+                        '6. Navigate to Tags in the workspace editor.\n' +
+                        '7. In Tags, click + Add tag to make your own.\n' +
+                        '\n' +
+                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
+                },
+                {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
@@ -4716,19 +4673,19 @@ const CONST = {
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
                 {
-                    type: 'enableWallet',
+                    type: 'addBankAccount',
                     autoCompleted: false,
-                    title: 'Enable your wallet',
+                    title: 'Add personal bank account',
                     description:
-                        'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                        'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
                         '\n' +
-                        'Here’s how to enable your wallet:\n' +
+                        'Here’s how to set up your bank account:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. *Click Wallet* > *Enable wallet*.\n' +
-                        '3. Add your bank account.\n' +
+                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                        '3. Connect your bank account.\n' +
                         '\n' +
-                        'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
+                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
                 },
             ],
         },
@@ -5560,6 +5517,7 @@ const CONST = {
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
+                PINNED: 'pinned',
             },
         },
         TABLE_COLUMNS: {
@@ -5796,6 +5754,14 @@ const CONST = {
         ICON_HEIGHT: 160,
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
+        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    },
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
     },
 } as const;
 
