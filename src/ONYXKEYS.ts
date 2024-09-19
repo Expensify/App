@@ -215,6 +215,9 @@ const ONYXKEYS = {
     /** The NVP containing all information related to educational tooltip in workspace chat */
     NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
 
+    /** Whether to hide save search rename tooltip */
+    NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP: 'nvp_should_hide_saved_search_rename_tooltip',
+
     /**  Whether to hide gbr tooltip */
     NVP_SHOULD_HIDE_GBR_TOOLTIP: 'nvp_should_hide_gbr_tooltip',
 
@@ -424,6 +427,12 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the information about the saved searches */
+    SAVED_SEARCHES: 'nvp_savedSearches',
+
+    /** Stores recently used currencies */
+    RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -527,6 +536,8 @@ const ONYXKEYS = {
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
         WORKSPACE_COMPANY_CARD_FEED_NAME: 'workspaceCompanyCardFeedName',
         WORKSPACE_COMPANY_CARD_FEED_NAME_DRAFT: 'workspaceCompanyCardFeedNameDraft',
+        EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM: 'editCompanyCardName',
+        EDIT_WORKSPACE_COMPANY_CARD_NAME_DRAFT_FORM: 'editCompanyCardNameDraft',
         WORKSPACE_REPORT_FIELDS_FORM: 'workspaceReportFieldForm',
         WORKSPACE_REPORT_FIELDS_FORM_DRAFT: 'workspaceReportFieldFormDraft',
         POLICY_CREATE_DISTANCE_RATE_FORM: 'policyCreateDistanceRateForm',
@@ -557,6 +568,8 @@ const ONYXKEYS = {
         DATE_OF_BIRTH_FORM_DRAFT: 'dateOfBirthFormDraft',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         HOME_ADDRESS_FORM_DRAFT: 'homeAddressFormDraft',
+        PERSONAL_DETAILS_FORM: 'personalDetailsForm',
+        PERSONAL_DETAILS_FORM_DRAFT: 'personalDetailsFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
@@ -661,6 +674,8 @@ const ONYXKEYS = {
         SAGE_INTACCT_DIMENSION_TYPE_FORM_DRAFT: 'sageIntacctDimensionTypeFormDraft',
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
         SEARCH_ADVANCED_FILTERS_FORM_DRAFT: 'searchAdvancedFiltersFormDraft',
+        SEARCH_SAVED_SEARCH_RENAME_FORM: 'searchSavedSearchRenameForm',
+        SEARCH_SAVED_SEARCH_RENAME_FORM_DRAFT: 'searchSavedSearchRenameFormDraft',
         TEXT_PICKER_MODAL_FORM: 'textPickerModalForm',
         TEXT_PICKER_MODAL_FORM_DRAFT: 'textPickerModalFormDraft',
         RULES_CUSTOM_NAME_MODAL_FORM: 'rulesCustomNameModalForm',
@@ -677,6 +692,12 @@ const ONYXKEYS = {
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
         RULES_MAX_EXPENSE_AGE_FORM_DRAFT: 'rulesMaxExpenseAgeFormDraft',
+        DEBUG_REPORT_PAGE_FORM: 'debugReportPageForm',
+        DEBUG_REPORT_PAGE_FORM_DRAFT: 'debugReportPageFormDraft',
+        DEBUG_REPORT_ACTION_PAGE_FORM: 'debugReportActionPageForm',
+        DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT: 'debugReportActionPageFormDraft',
+        DEBUG_DETAILS_FORM: 'debugDetailsForm',
+        DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
     },
 } as const;
 
@@ -690,6 +711,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
+    [ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM]: FormTypes.WorkspaceCompanyCardEditName;
     [ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM]: FormTypes.WorkspaceReportFieldForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM]: FormTypes.WorkspaceCategoryDescriptionHintForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM]: FormTypes.WorkspaceCategoryFlagAmountsOverForm;
@@ -704,6 +726,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: FormTypes.WorkspaceInviteMessageForm;
     [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM]: FormTypes.DateOfBirthForm;
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: FormTypes.HomeAddressForm;
+    [ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM]: FormTypes.PersonalDetailsForm;
     [ONYXKEYS.FORMS.NEW_ROOM_FORM]: FormTypes.NewRoomForm;
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.RoomSettingsForm;
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.NewTaskForm;
@@ -768,6 +791,10 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM]: FormTypes.RulesRequiredReceiptAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
+    [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
+    [ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM]: FormTypes.DebugReportForm;
+    [ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM]: FormTypes.DebugReportActionForm;
+    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -833,7 +860,8 @@ type OnyxValuesMapping = {
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
-
+    [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch[];
+    [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -967,6 +995,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

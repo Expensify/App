@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -41,7 +42,7 @@ type NewCustomUnit = {
 type WorkspaceMembersRoleData = {
     accountID: number;
     email: string;
-    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -407,7 +408,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
     const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {

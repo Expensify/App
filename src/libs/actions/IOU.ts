@@ -523,6 +523,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
     isOneOnOneSplit = false,
     existingTransactionThreadReportID?: string,
+    optimisticRecentlyUsedCurrencies?: string[],
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
@@ -645,6 +646,14 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
             value: optimisticPolicyRecentlyUsedCategories,
+        });
+    }
+
+    if (optimisticRecentlyUsedCurrencies?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            value: optimisticRecentlyUsedCurrencies,
         });
     }
 
@@ -882,9 +891,8 @@ function buildOnyxDataForMoneyRequest(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -919,6 +927,7 @@ function buildOnyxDataForInvoice(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    optimisticRecentlyUsedCurrencies?: string[],
     companyName?: string,
     companyWebsite?: string,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
@@ -1006,6 +1015,14 @@ function buildOnyxDataForInvoice(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
             value: optimisticPolicyRecentlyUsedCategories,
+        });
+    }
+
+    if (optimisticRecentlyUsedCurrencies?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            value: optimisticRecentlyUsedCurrencies,
         });
     }
 
@@ -1249,9 +1266,8 @@ function buildOnyxDataForInvoice(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -1626,9 +1642,8 @@ function buildOnyxDataForTrackExpense(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -1897,6 +1912,7 @@ function getSendInvoiceInformation(
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
+    const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
@@ -1950,6 +1966,7 @@ function getSendInvoiceInformation(
         policy,
         policyTagList,
         policyCategories,
+        optimisticRecentlyUsedCurrencies,
         companyName,
         companyWebsite,
     );
@@ -2076,6 +2093,7 @@ function getMoneyRequestInformation(
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentluUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -2162,6 +2180,9 @@ function getMoneyRequestInformation(
         policyTagList,
         policyCategories,
         optimisticNextStep,
+        undefined,
+        undefined,
+        optimisticPolicyRecentluUsedCurrencies,
     );
 
     return {
@@ -2469,7 +2490,9 @@ function getUpdateMoneyRequestParams(
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    let updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
+    let updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction> = transaction
+        ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport)
+        : null;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
@@ -2492,7 +2515,7 @@ function getUpdateMoneyRequestParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(updatedTransaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2521,7 +2544,7 @@ function getUpdateMoneyRequestParams(
     // - we're updating the distance rate while the waypoints are still pending
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -2656,7 +2679,8 @@ function getUpdateMoneyRequestParams(
     }
 
     // Update recently used categories if the category is changed
-    if ('category' in transactionChanges) {
+    const hasModifiedCategory = 'category' in transactionChanges;
+    if (hasModifiedCategory) {
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
@@ -2667,8 +2691,21 @@ function getUpdateMoneyRequestParams(
         }
     }
 
+    // Update recently used currencies if the currency is changed
+    if ('currency' in transactionChanges) {
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
+        if (optimisticRecentlyUsedCurrencies.length) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                value: optimisticRecentlyUsedCurrencies,
+            });
+        }
+    }
+
     // Update recently used categories if the tag is changed
-    if ('tag' in transactionChanges) {
+    const hasModifiedTag = 'tag' in transactionChanges;
+    if (hasModifiedTag) {
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
@@ -2711,15 +2748,14 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && ('tag' in transactionChanges || 'category' in transactionChanges)) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 currentTransactionViolations,
-                !!policy.requiresTag,
+                policy,
                 policyTagList ?? {},
-                !!policy.requiresCategory,
                 policyCategories ?? {},
                 PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
             ),
@@ -3134,9 +3170,13 @@ function updateMoneyRequestDistanceRate(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    taxAmount?: number,
+    taxCode?: string,
 ) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
+        ...(taxAmount ? {taxAmount} : {}),
+        ...(taxCode ? {taxCode} : {}),
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -3824,7 +3864,7 @@ function trackExpense(
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
 
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
@@ -4216,6 +4256,8 @@ function createSplitsAndOnyxData(
         // Add category to optimistic policy recently used categories when a participant is a workspace
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
+
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
@@ -4240,6 +4282,8 @@ function createSplitsAndOnyxData(
             null,
             null,
             true,
+            undefined,
+            optimisticRecentlyUsedCurrencies,
         );
 
         const individualSplit = {
@@ -4706,12 +4750,21 @@ function startSplitBill({
 
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${participant.policyID}`,
                 value: optimisticPolicyRecentlyUsedCategories,
+            });
+        }
+
+        if (optimisticRecentlyUsedCurrencies.length > 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                value: optimisticRecentlyUsedCurrencies,
             });
         }
 
@@ -5299,6 +5352,18 @@ function editRegularMoneyRequest(
         }
     }
 
+    // Update recently used currencies if the currency is changed
+    if ('currency' in transactionChanges) {
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
+        if (optimisticRecentlyUsedCurrencies.length) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                value: optimisticRecentlyUsedCurrencies,
+            });
+        }
+    }
+
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
@@ -5394,9 +5459,8 @@ function editRegularMoneyRequest(
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             currentTransactionViolations,
-            !!policy.requiresTag,
+            policy,
             policyTags,
-            !!policy.requiresCategory,
             policyCategories,
             PolicyUtils.hasDependentTags(policy, policyTags),
         );
@@ -8180,6 +8244,5 @@ export {
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
     mergeDuplicates,
-    prepareToCleanUpMoneyRequest,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

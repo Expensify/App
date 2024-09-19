@@ -4,9 +4,11 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
+    DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
+    MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
@@ -21,6 +23,7 @@ import type {
     RoomMembersNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
+    SearchSavedSearchParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
@@ -259,6 +262,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRateTaxReclaimableEditPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRateTaxRateEditPage').default,
+    [SCREENS.WORKSPACE.TAGS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportTagsPage').default,
+    [SCREENS.WORKSPACE.TAGS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/ImportedTagsPage').default,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default,
     [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/TagSettingsPage').default,
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceViewTagsPage').default,
@@ -429,6 +434,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AddNewCardPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceCardSettingsPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementAccountPage').default,
@@ -553,8 +561,24 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersInPage').default,
 });
 
+const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSavedSearchParamList>({
+    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SavedSearchRenamePage').default,
+});
+
 const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.RESTRICTED_ACTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default,
+});
+
+const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<MissingPersonalDetailsParamList>({
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
+});
+
+const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
+    [SCREENS.DEBUG.REPORT]: () => require<ReactComponentModule>('../../../../pages/Debug/Report/DebugReportPage').default,
+    [SCREENS.DEBUG.REPORT_ACTION]: () => require<ReactComponentModule>('../../../../pages/Debug/ReportAction/DebugReportActionPage').default,
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: () => require<ReactComponentModule>('../../../../pages/Debug/ReportAction/DebugReportActionCreatePage').default,
+    [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: () => require<ReactComponentModule>('../../../../pages/Debug/DebugDetailsConstantPickerPage').default,
+    [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: () => require<ReactComponentModule>('../../../../pages/Debug/DebugDetailsDateTimePickerPage').default,
 });
 
 export {
@@ -587,4 +611,7 @@ export {
     SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
+    SearchSavedSearchModalStackNavigator,
+    MissingPersonalDetailsModalStackNavigator,
+    DebugModalStackNavigator,
 };

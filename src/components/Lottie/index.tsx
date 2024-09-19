@@ -3,7 +3,7 @@ import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
@@ -15,9 +15,10 @@ import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
+    shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieView>) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, ref: ForwardedRef<LottieView>) {
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenStateContext();
     const styles = useThemeStyles();
@@ -26,10 +27,26 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     useNetwork({onReconnect: () => setIsError(false)});
 
     const [animationFile, setAnimationFile] = useState<string | AnimationObject | {uri: string}>();
+    const [isInteractionComplete, setIsInteractionComplete] = useState(false);
 
     useEffect(() => {
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
+
+    useEffect(() => {
+        if (!shouldLoadAfterInteractions) {
+            return;
+        }
+
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            setIsInteractionComplete(true);
+        });
+
+        return () => {
+            interactionTask.cancel();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
@@ -66,7 +83,15 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     // we'll just render an empty view as the fallback to prevent
     // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
     // 2. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
-    if (hasNavigatedAway || isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+    // 3. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
+    if (
+        hasNavigatedAway ||
+        isError ||
+        appState.isBackground ||
+        !animationFile ||
+        splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+        (!isInteractionComplete && shouldLoadAfterInteractions)
+    ) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 

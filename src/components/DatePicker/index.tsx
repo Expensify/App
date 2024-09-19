@@ -35,7 +35,7 @@ type DatePickerProps = {
     maxDate?: Date;
 
     /** A function that is passed by FormWrapper */
-    onInputChange?: (value: Date) => void;
+    onInputChange?: (value: string) => void;
 
     /** A function that is passed by FormWrapper */
     onTouched?: () => void;
