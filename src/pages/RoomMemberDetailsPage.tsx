@@ -88,7 +88,6 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                         <Button
                             text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                            medium
                             isDisabled={isSelectedMemberCurrentUser}
                             icon={Expensicons.RemoveMembers}
                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}

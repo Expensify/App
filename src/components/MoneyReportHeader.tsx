@@ -145,22 +145,25 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-        if (!type || !chatReport) {
-            return;
-        }
-        setPaymentType(type);
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (isDelegateAccessRestricted) {
-            setIsNoDelegateAccessMenuVisible(true);
-        } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-            IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
-        } else {
-            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
-        }
-    };
+    const confirmPayment = useCallback(
+        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+            if (!type || !chatReport) {
+                return;
+            }
+            setPaymentType(type);
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true);
+            } else if (isAnyTransactionOnHold) {
+                setIsHoldMenuVisible(true);
+            } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+                IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+            } else {
+                IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
+            }
+        },
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -319,7 +322,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
-                            medium
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
@@ -331,7 +333,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.pv2, styles.pr0]}
@@ -369,7 +370,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {shouldShowSubmitButton && shouldUseNarrowLayout && (
                         <Button
-                            medium
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
@@ -379,7 +379,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}

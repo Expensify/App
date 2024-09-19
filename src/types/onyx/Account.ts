@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -11,16 +10,25 @@ type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
 /** Model of delegate */
-type Delegate = {
+type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The email of the delegate */
     email: string;
 
     /** The role of the delegate */
-    role: DelegateRole;
+    role?: DelegateRole;
 
-    /** Authentication failure errors */
-    error?: TranslationPaths;
-};
+    /** Whether the user validation code was sent */
+    validateCodeSent?: boolean;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Whether the user is loading */
+    isLoading?: boolean;
+
+    /** The accountID of a delegate when they aren't in the personalDetails. */
+    optimisticAccountID?: number;
+}>;
 
 /** Model of delegated access data */
 type DelegatedAccess = {
@@ -34,7 +42,7 @@ type DelegatedAccess = {
     delegate?: string;
 
     /** Authentication failure errors when disconnecting as a copilot */
-    error?: TranslationPaths;
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 /** Model of user account */
@@ -125,4 +133,4 @@ type Account = {
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};

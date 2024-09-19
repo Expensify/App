@@ -140,7 +140,10 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastReadTime: reportAction3CreatedDate,
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
-                participants: {[USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                participants: {
+                    [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
@@ -301,7 +304,10 @@ describe('Unread Indicators', () => {
                             lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_C_ACCOUNT_ID,
-                            participants: {[USER_C_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                            participants: {
+                                [USER_C_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                            },
                             type: CONST.REPORT.TYPE.CHAT,
                         },
                     },

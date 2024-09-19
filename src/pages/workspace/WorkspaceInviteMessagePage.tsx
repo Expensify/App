@@ -38,7 +38,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
-import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
@@ -111,7 +110,6 @@ function WorkspaceInviteMessagePage({
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
         debouncedSaveDraft(null);
-        SearchInputManager.searchInput = '';
         Navigation.dismissModal();
     };
 
