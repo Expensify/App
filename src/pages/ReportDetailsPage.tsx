@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -64,14 +64,7 @@ type ReportDetailsPageMenuItem = {
     shouldShowRightIcon?: boolean;
 };
 
-type ReportDetailsPageOnyxProps = {
-    /** Personal details of all the users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-};
-type ReportDetailsPageProps = ReportDetailsPageOnyxProps & WithReportOrNotFoundProps & StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
+type ReportDetailsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
 
 const CASES = {
     DEFAULT: 'default',
@@ -81,7 +74,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report, session, personalDetails}: ReportDetailsPageProps) {
+function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -100,6 +93,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     );
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -428,6 +424,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 action: () => unapproveExpenseReportOrShowModal(),
             });
         }
+
+        if (report?.reportID && isDebugModeEnabled) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
+                translationKey: 'debug.debug',
+                icon: Expensicons.Bug,
+                action: () => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID)),
+                isAnonymousAction: true,
+                shouldShowRightIcon: true,
+            });
+        }
+
         return items;
     }, [
         isSelfDM,
@@ -459,6 +467,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         session,
         leaveChat,
         canUnapproveRequest,
+        isDebugModeEnabled,
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
     ]);
@@ -847,13 +856,4 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
 ReportDetailsPage.displayName = 'ReportDetailsPage';
 
-export default withReportOrNotFound()(
-    withOnyx<ReportDetailsPageProps, ReportDetailsPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(ReportDetailsPage),
-);
+export default withReportOrNotFound()(ReportDetailsPage);
