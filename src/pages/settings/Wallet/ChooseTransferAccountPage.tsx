@@ -91,7 +91,7 @@ function ChooseTransferAccountPage() {
                 title={translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />
-            <ScrollView>
+        
                 <SelectionList
                     sections={[{data}]}
                     ListItem={RadioListItem}
@@ -113,7 +113,7 @@ function ChooseTransferAccountPage() {
                     }
                     icon={Expensicons.Plus}
                 />
-            </ScrollView>
+          
         </ScreenWrapper>
     );
 }
