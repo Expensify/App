@@ -10,7 +10,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidationCode} from '@libs/actions/Delegate';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -43,10 +42,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             text={translate('delegate.addCopilot')}
             style={styles.mt6}
             pressOnEnter
-            onPress={() => {
-                requestValidationCode();
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(login, role));
-            }}
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(login, role))}
         />
     );
 

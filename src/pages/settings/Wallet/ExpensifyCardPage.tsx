@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
@@ -314,6 +315,7 @@ function ExpensifyCardPage({
                     <ValidateCodeActionModal
                         handleSubmitForm={handleRevealDetails}
                         clearError={() => {}}
+                        sendValidateCode={requestValidateCodeAction}
                         onClose={() => setIsValidateCodeActionModalVisible(false)}
                         isVisible={isValidateCodeActionModalVisible}
                         title={translate('cardPage.validateCardTitle')}

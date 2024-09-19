@@ -1,3 +1,4 @@
+import React from 'react';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionModalProps = {
@@ -24,6 +25,13 @@ type ValidateCodeActionModalProps = {
 
     /** Function to clear error of the form */
     clearError: () => void;
+
+    footer?: React.JSX.Element;
+
+    sendValidateCode: () => void;
+
+    /** If the magic code has been resent previously */
+    hasMagicCodeBeenSent?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

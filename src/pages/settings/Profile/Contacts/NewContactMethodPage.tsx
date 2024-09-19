@@ -153,6 +153,7 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
                 title={contactMethod}
+                sendValidateCode={() => User.requestValidateCodeAction()}
                 description={translate('contacts.enterMagicCode', {contactMethod})}
             />
         </ScreenWrapper>

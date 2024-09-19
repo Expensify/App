@@ -161,10 +161,6 @@ function clearDelegatorErrors() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, errorFields: undefined}))}});
 }
 
-function requestValidationCode() {
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
-}
-
 function addDelegate(email: string, role: DelegateRole, validateCode: string) {
     const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
 
@@ -206,6 +202,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: optimisticDelegateData(),
                 },
+                isLoading: true,
             },
         },
     ];
@@ -250,6 +247,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: successDelegateData(),
                 },
+                isLoading: false,
             },
         },
     ];
@@ -292,6 +290,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: failureDelegateData(),
                 },
+                isLoading: false,
             },
         },
     ];
@@ -325,4 +324,4 @@ function removePendingDelegate(email: string) {
     });
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate};
+export {connect, disconnect, clearDelegatorErrors, addDelegate, clearAddDelegateErrors, removePendingDelegate};

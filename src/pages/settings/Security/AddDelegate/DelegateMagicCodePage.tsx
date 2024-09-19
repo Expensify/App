@@ -1,33 +1,31 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+import * as User from '@libs/actions/User';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as Delegate from '@userActions/Delegate';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import ValidateCodeForm from './ValidateCodeForm';
-import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
+
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
-    const styles = useThemeStyles();
-    const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
+    const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
 
     useEffect(() => {
         if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.errorFields?.addDelegate) {
@@ -39,32 +37,28 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     }, [login, currentDelegate, role]);
 
     const onBackButtonPress = () => {
+        setIsValidateCodeActionModalVisible(false);
         Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role));
     };
 
+    const clearError = () => {
+        if (!validateLoginError) {
+            return;
+        }
+        Delegate.clearAddDelegateErrors(currentDelegate?.email ?? '', 'addDelegate');
+    };
+
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={DelegateMagicCodePage.displayName}
-            offlineIndicatorStyle={styles.mtAuto}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('delegate.makeSureItIsYou')}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
-                    <ValidateCodeForm
-                        ref={validateCodeFormRef}
-                        delegate={login}
-                        role={role}
-                        wrapperStyle={safeAreaPaddingBottomStyle}
-                    />
-                </>
-            )}
-        </ScreenWrapper>
+        <ValidateCodeActionModal
+            clearError={clearError}
+            onClose={onBackButtonPress}
+            validateError={validateLoginError}
+            isVisible={isValidateCodeActionModalVisible}
+            title={translate('delegate.makeSureItIsYou')}
+            sendValidateCode={() => User.requestValidateCodeAction()}
+            handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
+            description={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+        />
     );
 }
 

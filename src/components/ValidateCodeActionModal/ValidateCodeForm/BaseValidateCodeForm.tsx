@@ -64,6 +64,8 @@ type ValidateCodeFormProps = {
 
     /** Function to clear error of the form */
     clearError: () => void;
+
+    sendValidateCode: () => void;
 };
 
 type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
@@ -78,6 +80,7 @@ function BaseValidateCodeForm({
     validateError,
     handleSubmitForm,
     clearError,
+    sendValidateCode,
 }: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -129,14 +132,6 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        if (!validateError) {
-            return;
-        }
-        clearError();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [clearError, validateError]);
-
-    useEffect(() => {
         if (!hasMagicCodeBeenSent) {
             return;
         }
@@ -147,7 +142,7 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        User.requestValidateCodeAction();
+        sendValidateCode();
         inputValidateCodeRef.current?.clear();
     };
 
@@ -196,7 +191,7 @@ function BaseValidateCodeForm({
                 errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus={false}
+                autoFocus
             />
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}

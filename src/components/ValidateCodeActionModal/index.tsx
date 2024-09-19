@@ -13,7 +13,19 @@ import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-function ValidateCodeActionModal({isVisible, title, description, onClose, validatePendingAction, validateError, handleSubmitForm, clearError}: ValidateCodeActionModalProps) {
+function ValidateCodeActionModal({
+    isVisible,
+    title,
+    description,
+    onClose,
+    validatePendingAction,
+    validateError,
+    handleSubmitForm,
+    clearError,
+    footer,
+    sendValidateCode,
+    hasMagicCodeBeenSent,
+}: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -30,7 +42,8 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
             return;
         }
         firstRenderRef.current = false;
-        User.requestValidateCodeAction();
+
+        sendValidateCode();
     }, [isVisible]);
 
     return (
@@ -61,10 +74,13 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}
                         handleSubmitForm={handleSubmitForm}
+                        sendValidateCode={sendValidateCode}
                         clearError={clearError}
                         ref={validateCodeFormRef}
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     />
                 </View>
+                {footer}
             </ScreenWrapper>
         </Modal>
     );
