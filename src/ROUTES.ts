@@ -894,6 +894,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
     },
+    WORKSPACE_MEMBER_NEW_CARD: {
+        route: 'settings/workspaces/:policyID/members/:accountID/new-card',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/new-card` as const,
+    },
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/role-selection` as const,

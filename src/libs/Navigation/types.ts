@@ -356,6 +356,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
