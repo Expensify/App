@@ -114,9 +114,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     const filterEmojis = throttle((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
-        if (emojiListRef.current) {
-            scrollTo(emojiListRef, 0, 0, false);
-        }
+        emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             setFilteredEmojis(allEmojis);
@@ -241,7 +239,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-            scrollTo(emojiListRef, 0, calculatedOffset, true);
+            emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
         },
         [emojiListRef],
     );
