@@ -28,6 +28,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
+import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -116,10 +117,10 @@ type MoneyRequestConfirmationListFooterProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The policy tag lists */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The policy tag lists */
-    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagList>>;
+    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
 
     /** The rate of the transaction */
     rate: number | undefined;
@@ -217,13 +218,12 @@ function MoneyRequestConfirmationListFooter({
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    // A flag for showing the tags field
-    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, isTypeInvoice, policyTagLists]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {
@@ -234,8 +234,8 @@ function MoneyRequestConfirmationListFooter({
     const canUpdateSenderWorkspace = useMemo(() => {
         const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
 
-        return PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
-    }, [allPolicies, selectedParticipants, transaction?.isFromGlobalCreate]);
+        return PolicyUtils.canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+    }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -268,6 +268,8 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
+
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
@@ -298,23 +300,29 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <MenuItemWithTopDescription
+                <MentionReportContext.Provider
                     key={translate('common.description')}
-                    shouldShowRightIcon={!isReadOnly}
-                    shouldParseTitle
-                    title={iouComment}
-                    description={translate('common.description')}
-                    onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
-                        );
-                    }}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    numberOfLinesTitle={2}
-                />
+                    value={mentionReportContextValue}
+                >
+                    <MenuItemWithTopDescription
+                        key={translate('common.description')}
+                        shouldShowRightIcon={!isReadOnly}
+                        shouldParseTitle
+                        excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                        title={iouComment}
+                        description={translate('common.description')}
+                        onPress={() => {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
+                            );
+                        }}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        numberOfLinesTitle={2}
+                    />
+                </MentionReportContext.Provider>
             ),
             shouldShow: true,
             isSupplementary: false,
@@ -499,7 +507,10 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                <View
+                    key={translate('common.billable')}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
+                >
                     <ToggleSettingOptionRow
                         switchAccessibilityLabel={translate('common.billable')}
                         title={translate('common.billable')}
@@ -516,8 +527,8 @@ function MoneyRequestConfirmationListFooter({
         },
     ];
 
-    const primaryFields: JSX.Element[] = [];
-    const supplementaryFields: JSX.Element[] = [];
+    const primaryFields: React.JSX.Element[] = [];
+    const supplementaryFields: React.JSX.Element[] = [];
 
     classifiedFields.forEach((field) => {
         if (field.shouldShow && !field.isSupplementary) {

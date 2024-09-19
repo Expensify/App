@@ -2,11 +2,11 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,18 +28,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
-
-const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'> => ({
-    id: policy?.id ?? '-1',
-    ownerAccountID: policy?.ownerAccountID,
-    owner: policy?.owner ?? '',
-    employeeList: policy?.employeeList,
-});
 
 type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
@@ -49,9 +41,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
 
-    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult, policiesResult);
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
@@ -59,6 +50,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
+    const backTo = route.params.backTo;
 
     /**
      * Gets the current contact method from the route params
@@ -88,8 +80,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        User.setContactMethodAsDefault(contactMethod, policies);
-    }, [contactMethod, policies]);
+        User.setContactMethodAsDefault(contactMethod, backTo);
+    }, [contactMethod, backTo]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -138,16 +130,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const confirmDeleteAndHideModal = useCallback(() => {
         toggleDeleteModal(false);
-        User.deleteContactMethod(contactMethod, loginList ?? {});
-    }, [contactMethod, loginList, toggleDeleteModal]);
-
-    useEffect(() => {
-        if (isEmptyObject(loginData)) {
-            return;
-        }
-        User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+        User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+    }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
@@ -158,8 +142,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -171,8 +155,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 <FullPageNotFoundView
                     shouldShow
                     linkKey="contacts.goBackContactMethods"
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
-                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 />
             </ScreenWrapper>
         );
@@ -191,7 +175,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         >
             <HeaderWithBackButton
                 title={formattedContactMethod}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
             />
             <ScrollView keyboardShouldPersistTaps="handled">
                 <ConfirmModal
@@ -211,10 +195,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 />
 
                 {isFailedAddContactMethod && (
-                    <DotIndicatorMessage
-                        style={[themeStyles.mh5, themeStyles.mv3]}
-                        messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
-                        type="error"
+                    <ErrorMessageRow
+                        errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                        errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
+                        onClose={() => {
+                            User.clearContactMethod(contactMethod);
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        }}
+                        canDismissError
                     />
                 )}
 
@@ -243,7 +231,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     >
                         <MenuItem
                             title={translate('contacts.setAsDefault')}
-                            icon={Expensicons.Profile}
+                            icon={Expensicons.Star}
                             onPress={setAsDefault}
                         />
                     </OfflineWithFeedback>

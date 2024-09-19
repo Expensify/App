@@ -14,7 +14,7 @@ type UnitSelectorProps = {
     setNewUnit: (value: UnitItemType) => void;
 
     /** Currently selected unit */
-    defaultValue: Unit;
+    defaultValue?: Unit;
 
     /** Label to display on field */
     label: string;
@@ -41,7 +41,7 @@ function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelec
         hidePickerModal();
     };
 
-    const title = Str.recapitalize(translate(getUnitTranslationKey(defaultValue)));
+    const title = defaultValue ? Str.recapitalize(translate(getUnitTranslationKey(defaultValue))) : '';
 
     return (
         <View>

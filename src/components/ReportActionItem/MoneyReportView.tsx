@@ -10,6 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -68,13 +69,29 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+        return fields.filter((field) => field.target === report.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
     const shouldShowReportField =
         !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.isPaidGroupPolicyExpenseReport(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
+
+    const renderThreadDivider = useMemo(
+        () =>
+            shouldHideThreadDividerLine && !isCombinedReport ? (
+                <UnreadActionIndicator
+                    reportActionID={report.reportID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            ) : (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                />
+            ),
+        [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule, isCombinedReport],
+    );
 
     return (
         <>
@@ -117,7 +134,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             interactive
                                             shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
-                                            hoverAndPressStyle={false}
                                             titleWithTooltips={[]}
                                             brickRoadIndicator={violation ? 'error' : undefined}
                                             errorText={violationTranslation}
@@ -197,12 +213,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                     </>
                 )}
             </View>
-            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && (
-                <SpacerView
-                    shouldShow={!shouldHideThreadDividerLine}
-                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
-                />
-            )}
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && renderThreadDivider}
         </>
     );
 }

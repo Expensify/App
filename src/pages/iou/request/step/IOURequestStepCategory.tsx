@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -25,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, ReportActions, Session, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -49,7 +50,7 @@ type IOURequestStepCategoryOnyxProps = {
     policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<ReportActions>;
@@ -176,23 +177,25 @@ function IOURequestStepCategory({
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                         containerStyle={[styles.flex1, styles.justifyContentCenter]}
                     />
-                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                        <Button
-                            large
-                            success
-                            style={[styles.w100]}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                        policy?.id ?? '-1',
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                    ),
-                                )
-                            }
-                            text={translate('workspace.categories.editCategories')}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
+                    {PolicyUtils.isPolicyAdmin(policy) && (
+                        <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                            <Button
+                                large
+                                success
+                                style={[styles.w100]}
+                                onPress={() =>
+                                    Navigation.navigate(
+                                        ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                            policy?.id ?? '-1',
+                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                        ),
+                                    )
+                                }
+                                text={translate('workspace.categories.editCategories')}
+                                pressOnEnter
+                            />
+                        </FixedFooter>
+                    )}
                 </View>
             )}
             {!shouldShowEmptyState && !isLoading && (

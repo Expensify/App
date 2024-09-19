@@ -215,6 +215,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 title={translate('initialSettingsPage.debugConsole.shareLog')}
                 isVisible={isLimitModalVisible}
                 onConfirm={() => setIsLimitModalVisible(false)}
+                onCancel={() => setIsLimitModalVisible(false)}
                 prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
                     size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
                 })}

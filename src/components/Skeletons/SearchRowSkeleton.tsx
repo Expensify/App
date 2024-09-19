@@ -1,5 +1,6 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -30,12 +31,14 @@ const rightButtonWidth = 80;
 
 function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
-    if (isSmallScreenWidth) {
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+
+    if (shouldUseNarrowLayout) {
         return (
             <ItemListSkeletonView
                 itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
-                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
+                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
                 gradientOpacityEnabled={gradientOpacityEnabled}
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
@@ -117,7 +120,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
             gradientOpacityEnabled={gradientOpacityEnabled}
-            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
             renderSkeletonItem={() => (
                 <>
                     <Rect

@@ -72,7 +72,7 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
-    receiptDropUIBG: Color;
+    fileDropUIBG: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
@@ -98,6 +98,7 @@ type ThemeColors = {
     videoPlayerBG: Color;
     transparentWhite: Color;
     emptyFolderBG: Color;
+    travelBG: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

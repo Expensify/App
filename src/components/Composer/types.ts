@@ -1,4 +1,5 @@
 import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 
 type TextSelection = {
     start: number;
@@ -37,7 +38,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     onChangeText?: (numberOfLines: string) => void;
 
     /** Callback method to handle pasting a file */
-    onPasteFile?: (file: File) => void;
+    onPasteFile?: (file: FileObject) => void;
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
@@ -67,9 +68,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility?: () => boolean;
-
-    /** Whether this is the report action compose */
-    isReportActionCompose?: boolean;
 
     /** Whether the sull composer is open */
     isComposerFullSize?: boolean;

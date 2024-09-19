@@ -19,11 +19,11 @@ function EmptyStateComponent({
     headerMedia,
     buttonText,
     buttonAction,
+    containerStyles,
     title,
     subtitle,
     headerStyles,
     headerContentStyles,
-    emptyStateForegroundStyles,
     minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
@@ -78,15 +78,14 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}]}>
+        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}
                 />
             </View>
-
-            <View style={[styles.emptyStateForeground, emptyStateForegroundStyles]}>
+            <View style={styles.emptyStateForeground}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
@@ -96,9 +95,10 @@ function EmptyStateComponent({
                             <Button
                                 success
                                 onPress={buttonAction}
-                            >
-                                {buttonText}
-                            </Button>
+                                text={buttonText}
+                                style={[styles.mt5]}
+                                large
+                            />
                         )}
                     </View>
                 </View>

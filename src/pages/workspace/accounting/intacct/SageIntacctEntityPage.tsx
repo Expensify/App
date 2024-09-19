@@ -38,7 +38,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     });
 
     const saveSelection = ({keyForList}: ListItem) => {
-        updateSageIntacctEntity(policyID, keyForList ?? '');
+        updateSageIntacctEntity(policyID, keyForList ?? '', entityID);
         Navigation.goBack();
     };
 

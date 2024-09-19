@@ -13,8 +13,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as AccountingUtils from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -24,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type WorkspaceSettlementAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
@@ -31,13 +34,18 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
-    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
-    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
+
+    const connectionName = reconciliationConnection ?? '';
+    const connectionParam = AccountingUtils.getRouteParamForConnection(connectionName as ConnectionName);
+
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
 
     const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
@@ -45,11 +53,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         const options = eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
             return {
-                value: bankAccount.accountData?.bankAccountID,
+                value: bankAccountID,
                 text: bankAccount.title,
                 leftElement: icon && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
@@ -62,15 +71,15 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     </View>
                 ),
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: bankAccount.accountData?.bankAccountID?.toString(),
-                isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
+                keyForList: bankAccountID?.toString(),
+                isSelected: bankAccountID === paymentBankAccountID,
             };
         });
         return options;
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        Card.updateSettlementAccount(policyID, value);
+        Card.updateSettlementAccount(workspaceAccountID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -94,7 +103,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     {isUsedContinuousReconciliation && (
                         <Text style={[styles.mh5, styles.mb6]}>
                             <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
-                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, reconciliationConnection))}>
+                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>
                                 {translate('workspace.expensifyCard.reconciliationAccount')}
                             </TextLink>{' '}
                             <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>

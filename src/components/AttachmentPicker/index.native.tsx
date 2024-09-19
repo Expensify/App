@@ -68,7 +68,7 @@ const getImagePickerOptions = (type: string): CameraOptions => {
  * @returns {Object}
  */
 
-const getDocumentPickerOptions = (type: string): DocumentPickerOptions<'ios' | 'android'> => {
+const getDocumentPickerOptions = (type: string): DocumentPickerOptions => {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return {
             type: [RNDocumentPicker.types.images],

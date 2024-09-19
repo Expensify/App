@@ -189,7 +189,7 @@ function BaseVideoPlayer({
             if (!status.isLoaded) {
                 preventPausingWhenExitingFullscreen(false);
                 setIsPlaying(false);
-                setIsLoading(false); // when video is ready to display duration is not NaN
+                setIsLoading(true); // when video is ready to display duration is not NaN
                 setIsBuffering(false);
                 setDuration(videoDuration * 1000);
                 setPosition(0);
@@ -442,7 +442,7 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                            {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}

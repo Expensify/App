@@ -30,7 +30,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const updateCreditCardAccount = useCallback(
         ({value}: SelectorType) => {
             if (value !== exportConfig?.nonReimbursableAccount) {
-                updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value);
+                updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value, exportConfig?.nonReimbursableAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },

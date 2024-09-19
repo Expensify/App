@@ -20,15 +20,11 @@ import {updateSageIntacctDefaultVendor, updateSageIntacctNonreimbursableExpenses
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
+import {getDefaultVendorName} from './utils';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
 };
-
-function getDefaultVendorName(defaultVendor?: string, vendors?: SageIntacctDataElementWithValue[]): string | undefined {
-    return (vendors ?? []).find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
-}
 
 function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -48,7 +44,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value === config?.export.nonReimbursable) {
                 return;
             }
-            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value);
+            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value, config?.export.nonReimbursable);
         },
         [config?.export.nonReimbursable, policyID],
     );
@@ -152,7 +148,12 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                             isActive={!!config?.export.nonReimbursableCreditCardChargeDefaultVendor}
                             onToggle={(enabled) => {
                                 const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
-                                updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
+                                updateSageIntacctDefaultVendor(
+                                    policyID,
+                                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                                    vendor,
+                                    config?.export.nonReimbursableCreditCardChargeDefaultVendor,
+                                );
                             }}
                             wrapperStyle={[styles.ph5, styles.pv3]}
                             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields)}

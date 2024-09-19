@@ -1,19 +1,22 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -58,6 +61,9 @@ function parseAndLogRoute(state: NavigationState) {
 
     if (focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
         updateLastVisitedPath(currentPath);
+        if (currentPath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(currentPath);
+        }
     }
 
     // Don't log the route transitions from OldDot because they contain authTokens
@@ -82,7 +88,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
 
@@ -97,8 +103,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
-        if (!hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+        if (!NativeModules.HybridAppModule && !hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
+            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
             return adaptedState;
         }
 
@@ -146,8 +152,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(!isSmallScreenWidth);
-    }, [isSmallScreenWidth]);
+        Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
+    }, [shouldUseNarrowLayout]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
@@ -181,7 +187,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             }}
         >
             {/* HybridAppMiddleware needs to have access to navigation ref and SplashScreenHidden context */}
-            <HybridAppMiddleware authenticated={authenticated}>
+            <HybridAppMiddleware>
                 <AppNavigator authenticated={authenticated} />
             </HybridAppMiddleware>
         </NavigationContainer>

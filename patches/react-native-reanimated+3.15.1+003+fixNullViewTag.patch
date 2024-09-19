@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-reanimated/src/createAnimatedComponent/createAnimatedComponent.tsx b/node_modules/react-native-reanimated/src/createAnimatedComponent/createAnimatedComponent.tsx
+index 577b4a7..c60f0f8 100644
+--- a/node_modules/react-native-reanimated/src/createAnimatedComponent/createAnimatedComponent.tsx
++++ b/node_modules/react-native-reanimated/src/createAnimatedComponent/createAnimatedComponent.tsx
+@@ -481,7 +481,9 @@ export function createAnimatedComponent(
+           ? (ref as HTMLElement)
+           : findNodeHandle(ref as Component);
+ 
+-        this._componentViewTag = tag as number;
++        if (tag !== null) {
++          this._componentViewTag = tag as number;
++        }
+ 
+         const { layout, entering, exiting, sharedTransitionTag } = this.props;
+         if (

@@ -164,6 +164,10 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         comment: {
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                quantity: null,
+            },
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.

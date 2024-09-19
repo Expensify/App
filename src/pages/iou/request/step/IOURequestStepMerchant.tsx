@@ -35,7 +35,7 @@ type IOURequestStepMerchantOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 type IOURequestStepMerchantProps = IOURequestStepMerchantOnyxProps &

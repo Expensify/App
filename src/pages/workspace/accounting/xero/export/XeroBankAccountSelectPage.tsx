@@ -8,14 +8,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroBankAccountsWithDefaultSelect} from '@libs/PolicyUtils';
+import {getXeroBankAccounts} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {updateXeroExportNonReimbursableAccount} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +28,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const {config} = policy?.connections?.xero ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, config?.export?.nonReimbursableAccount),
+        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount),
         [config?.export?.nonReimbursableAccount, policy],
     );
 
@@ -46,13 +46,11 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const updateBankAccount = useCallback(
         ({value}: SelectorType) => {
             if (initiallyFocusedOptionKey !== value) {
-                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
-                    nonReimbursableAccount: value,
-                });
+                updateXeroExportNonReimbursableAccount(policyID, value, config?.export?.nonReimbursableAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
-        [policyID, initiallyFocusedOptionKey],
+        [initiallyFocusedOptionKey, policyID, config?.export?.nonReimbursableAccount],
     );
 
     const listEmptyContent = useMemo(

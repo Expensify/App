@@ -1,8 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -40,6 +42,8 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, currency, toLocaleDigit),
         [currency, toLocaleDigit],
@@ -71,26 +75,28 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
-                    submitButtonText={translate('common.save')}
-                    onSubmit={submit}
-                    validate={validate}
-                    enabledWhenOffline
-                    style={[styles.flexGrow1]}
-                    shouldHideFixErrorsAlert
-                    submitFlexEnabled={false}
-                    submitButtonStyles={[styles.mh5, styles.mt0]}
-                >
-                    <InputWrapperWithRef
-                        InputComponent={AmountForm}
-                        inputID={INPUT_IDS.RATE}
-                        extraDecimals={1}
-                        isCurrencyPressable={false}
-                        currency={currency}
-                        ref={inputCallbackRef}
-                    />
-                </FormProvider>
+                <FullPageBlockingView style={[styles.flexGrow1]}>
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
+                        submitButtonText={translate('common.save')}
+                        onSubmit={submit}
+                        validate={validate}
+                        enabledWhenOffline
+                        style={[styles.flexGrow1]}
+                        shouldHideFixErrorsAlert
+                        submitFlexEnabled={false}
+                        submitButtonStyles={[styles.mh5, styles.mt0]}
+                    >
+                        <InputWrapperWithRef
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.RATE}
+                            extraDecimals={1}
+                            isCurrencyPressable={false}
+                            currency={currency}
+                            ref={inputCallbackRef}
+                        />
+                    </FormProvider>
+                </FullPageBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

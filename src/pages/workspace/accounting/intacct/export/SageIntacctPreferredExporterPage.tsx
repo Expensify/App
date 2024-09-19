@@ -67,7 +67,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportConfiguration?.exporter) {
-                updateSageIntacctExporter(policyID, row.value);
+                updateSageIntacctExporter(policyID, row.value, exportConfiguration?.exporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },

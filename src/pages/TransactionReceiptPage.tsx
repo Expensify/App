@@ -31,10 +31,11 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const isLocalFile = receiptURIs.isLocalFile;
+    const readonly = route.params.readonly ?? false;
 
     const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
+    const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
     const isTrackExpenseAction = ReportActionUtils.isTrackExpenseAction(parentReportAction);
 
     useEffect(() => {
@@ -58,7 +59,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             isAuthTokenRequired={!isLocalFile}
             report={report}
             isReceiptAttachment
-            canEditReceipt={canEditReceipt}
+            canEditReceipt={canEditReceipt && !readonly}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}

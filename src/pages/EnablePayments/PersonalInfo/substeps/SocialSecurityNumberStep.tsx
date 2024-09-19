@@ -23,20 +23,25 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+            if (shouldAskForFullSSN) {
+                if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
+                    errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
+                }
+            } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
                 errors.ssn = translate('bankAccount.error.ssnLast4');
             }
 
             return errors;
         },
-        [translate],
+        [translate, shouldAskForFullSSN],
     );
-
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
@@ -61,13 +66,13 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
-                        label={translate('personalInfoStep.last4SSN')}
-                        aria-label={translate('personalInfoStep.last4SSN')}
+                        label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
+                        aria-label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>

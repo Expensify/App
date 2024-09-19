@@ -2,8 +2,10 @@
 import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {Log, StartTrace, StopTrace, TraceMap} from './types';
+import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 
@@ -17,12 +19,14 @@ const startTrace: StartTrace = (customEventName) => {
         return;
     }
 
-    const session = SessionUtils.getSession();
+    const attributes = getAttributes();
 
     perf()
         .startTrace(customEventName)
         .then((trace) => {
-            trace.putAttribute('accountID', session?.accountID?.toString() ?? 'N/A');
+            Object.entries(attributes).forEach(([name, value]) => {
+                trace.putAttribute(name, value);
+            });
             traceMap[customEventName] = {
                 trace,
                 start,
@@ -37,7 +41,7 @@ const stopTrace: StopTrace = (customEventName) => {
         return;
     }
 
-    const trace = traceMap[customEventName].trace;
+    const trace = traceMap[customEventName]?.trace;
     if (!trace) {
         return;
     }
@@ -54,6 +58,20 @@ const stopTrace: StopTrace = (customEventName) => {
 const log: Log = (action: string) => {
     crashlytics().log(action);
 };
+
+function getAttributes(): FirebaseAttributes {
+    const session = SessionUtils.getSession();
+
+    const accountId = session?.accountID?.toString() ?? 'N/A';
+    const reportsLength = ReportConnection.getAllReportsLength().toString();
+    const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
+
+    return {
+        accountId,
+        reportsLength,
+        personalDetailsLength,
+    };
+}
 
 export default {
     startTrace,

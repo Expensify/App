@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -73,8 +74,8 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
-    const htmlForTaskPreview =
-        taskAssigneeAccountID > 0 ? `<comment><mention-user accountid="${taskAssigneeAccountID}"></mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const [avatar] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => personalDetails?.[taskAssigneeAccountID]?.avatar});
+    const htmlForTaskPreview = `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
 
     if (isDeletedParentAction) {
@@ -93,13 +94,12 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
-                    <View style={[styles.taskCheckboxWrapper]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mt1]}>
+                    <View style={[styles.taskCheckboxWrapper, styles.alignSelfCenter]}>
                         <Checkbox
                             style={[styles.mr2]}
-                            containerStyle={[styles.taskCheckbox]}
                             isChecked={isTaskCompleted}
-                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID) || !Task.canActionTask(taskReport, currentUserPersonalDetails.accountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     Task.reopenTask(taskReport);
@@ -110,7 +110,18 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                             accessibilityLabel={translate('task.task')}
                         />
                     </View>
-                    <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
+                    {taskAssigneeAccountID > 0 && (
+                        <Avatar
+                            containerStyles={[styles.mr2, styles.alignSelfCenter, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                            source={avatar}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                            avatarID={taskAssigneeAccountID}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    )}
+                    <View style={[styles.alignSelfCenter]}>
+                        <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
+                    </View>
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}

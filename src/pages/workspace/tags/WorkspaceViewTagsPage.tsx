@@ -16,6 +16,7 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -54,7 +55,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const policyID = route.params.policyID ?? '-1';
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
 
@@ -70,6 +71,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return;
         }
         setSelectedTags({});
+
+        return () => {
+            setSelectedTags({});
+            turnOffMobileSelectionMode();
+        };
     }, [isFocused]);
 
     const tagList = useMemo<TagListItem[]>(
@@ -80,14 +86,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     value: tag.name,
                     text: PolicyUtils.getCleanedTagName(tag.name),
                     keyForList: tag.name,
-                    isSelected: selectedTags[tag.name],
+                    isSelected: selectedTags[tag.name] && canSelectMultiple,
                     pendingAction: tag.pendingAction,
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [currentPolicyTag, selectedTags, translate],
+        [currentPolicyTag, selectedTags, canSelectMultiple, translate],
     );
 
     const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
@@ -225,6 +231,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             />
         );
     };
+
+    if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
+        Tag.setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+    }
 
     const navigateToEditTag = () => {
         Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight));

@@ -1,12 +1,20 @@
-import type {PolicyEmployee} from '@src/types/onyx';
-
 type CreateWorkspaceApprovalParams = {
     authToken: string;
     policyID: string;
-    employees: PolicyEmployee[];
+    /**
+     * Stringified JSON object with type of following structure:
+     * Array<{
+     *  email: string;
+     *  forwardsTo?: string;
+     *  submitsTo?: string;
+     * }>
+     */
+    employees: string;
 };
 
-type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
+type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams & {
+    defaultApprover?: string;
+};
 
 type RemoveWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 

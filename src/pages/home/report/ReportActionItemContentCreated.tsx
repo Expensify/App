@@ -149,13 +149,13 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
         return (
             <OfflineWithFeedback pendingAction={action.pendingAction}>
-                {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
+                {!isEmptyObject(transactionThreadReport?.reportID) ? (
                     <>
                         <MoneyReportView
                             report={report}
                             policy={policy}
                             isCombinedReport
-                            shouldShowTotal={transactionCurrency !== report.currency}
+                            shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
                         <ShowContextMenuContext.Provider value={contextValue}>

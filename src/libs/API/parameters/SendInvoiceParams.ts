@@ -20,6 +20,9 @@ type SendInvoiceParams = RequireAtLeastOne<
         transactionThreadReportID: string;
         companyName?: string;
         companyWebsite?: string;
+        createdIOUReportActionID: string;
+        createdReportActionIDForThread: string;
+        reportActionID: string;
     },
     'receiverEmail' | 'receiverInvoiceRoomID'
 >;

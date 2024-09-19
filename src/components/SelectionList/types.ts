@@ -5,10 +5,11 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
@@ -18,7 +19,7 @@ import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -60,6 +61,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to wrap the alternate text up to 2 lines */
     isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
@@ -125,6 +129,15 @@ type ListItem = {
     /** ID of the report */
     reportID?: string;
 
+    /** ID of the policy */
+    policyID?: string;
+
+    /** ID of the group */
+    groupID?: string;
+
+    /** ID of the category */
+    categoryID?: string;
+
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean | null;
 
@@ -156,10 +169,10 @@ type ListItem = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -197,13 +210,28 @@ type TransactionListItemType = ListItem &
         keyForList: string;
     };
 
+type ReportActionListItemType = ListItem &
+    SearchReportAction & {
+        /** The personal details of the user posting comment */
+        from: SearchPersonalDetails;
+
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final "date" value used for sorting */
+        date: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         transactions: TransactionListItemType[];
     };
@@ -232,6 +260,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
      * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
      */
     shouldSyncFocus?: boolean;
+
+    /** Whether to show RBR */
+    shouldDisplayRBR?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -245,6 +276,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
+    shouldDisplayRBR?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -268,7 +300,16 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem =
+    | typeof RadioListItem
+    | typeof UserListItem
+    | typeof TableListItem
+    | typeof InviteMemberListItem
+    | typeof TransactionListItem
+    | typeof ReportListItem
+    | typeof ChatListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -328,6 +369,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
+
+    /** Whether to show the text input */
+    shouldShowTextInput?: boolean;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -410,7 +454,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
-    /** Content to display if the list is empty */
+    /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
@@ -448,6 +492,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap the alternate text up to 2 lines */
     isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
@@ -489,6 +536,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Whether to show the empty list content */
+    shouldShowListEmptyContent?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -541,4 +591,6 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    ReportActionListItemType,
+    ChatListItemProps,
 };

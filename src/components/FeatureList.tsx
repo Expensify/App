@@ -54,6 +54,9 @@ type FeatureListProps = {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
+    /** Customize the Illustration container */
+    illustrationContainerStyle?: StyleProp<ViewStyle>;
+
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -78,6 +81,7 @@ function FeatureList({
     illustration,
     illustrationStyle,
     illustrationBackgroundColor,
+    illustrationContainerStyle,
     titleStyles,
     contentPaddingOnLargeScreens,
 }: FeatureListProps) {
@@ -94,6 +98,7 @@ function FeatureList({
             illustrationBackgroundColor={illustrationBackgroundColor}
             illustrationStyle={illustrationStyle}
             titleStyles={titleStyles}
+            illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
         >
             <View style={styles.flex1}>
@@ -117,7 +122,7 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
-                {secondaryButtonText && (
+                {!!secondaryButtonText && (
                     <Button
                         text={secondaryButtonText}
                         onPress={onSecondaryButtonPress}
@@ -128,6 +133,7 @@ function FeatureList({
                 )}
                 {ctaErrorMessage && (
                     <DotIndicatorMessage
+                        style={styles.mb1}
                         messages={{error: ctaErrorMessage}}
                         type="error"
                     />

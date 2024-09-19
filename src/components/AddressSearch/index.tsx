@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
@@ -327,12 +327,12 @@ function AddressSearch(
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue]);
 
-    const listEmptyComponent = useCallback(
-        () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+    const listEmptyComponent = useMemo(
+        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
         [isTyping, styles, translate],
     );
 
-    const listLoader = useCallback(
+    const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
                 <ActivityIndicator
@@ -460,15 +460,14 @@ function AddressSearch(
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
-                            predefinedPlaces?.length === 0 &&
-                            shouldShowCurrentLocationButton && (
+                            predefinedPlaces?.length === 0 && shouldShowCurrentLocationButton ? (
                                 <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={isOffline}
                                     />
                                 </View>
-                            )
+                            ) : undefined
                         }
                         placeholder=""
                         listViewDisplayed

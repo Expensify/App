@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -21,7 +22,9 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -32,113 +35,12 @@ import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import * as Member from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
-
-// TODO: remove when Onyx data is available
-const mockedCards: OnyxEntry<WorkspaceCardsList> = {
-    test1: {
-        accountID: 885646,
-        cardID: 1,
-        nameValuePairs: {
-            limit: 1000,
-            cardTitle: 'Test 1',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test2: {
-        accountID: 885646,
-        cardID: 2,
-        nameValuePairs: {
-            limit: 2000,
-            cardTitle: 'Test 2',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test3: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test4: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test5: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test6: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test7: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-};
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -150,21 +52,20 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
+    const policyID = route.params.policyID;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const [expensifyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
-    const policyID = route.params.policyID;
-    // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
-    // const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const cardList = mockedCards;
-
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
@@ -177,13 +78,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
+    const companyCards = CardUtils.getMemberCards(policy, allCardsList, accountID);
+
+    const memberCards = useMemo(() => {
+        if (!expensifyCardsList) {
+            return [];
+        }
+        return Object.values(expensifyCardsList).filter((expensifyCard) => expensifyCard.accountID === accountID);
+    }, [expensifyCardsList, accountID]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
-        return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policyOwnerDisplayName});
+        return translate('workspace.people.removeMembersWarningPrompt', {
+            memberName: displayName,
+            ownerName: policyOwnerDisplayName,
+        });
     }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
@@ -191,14 +103,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
                 isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.ADMIN,
             },
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
-                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
             },
         ],
         [member?.role, translate],
@@ -231,7 +152,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         [policyID],
     );
 
+    const navigateToCompanyCardDetails = useCallback(
+        (cardID: string, bank: string) => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, Navigation.getActiveRoute()));
+        },
+        [policyID],
+    );
+
     const navigateToIssueNewCard = useCallback(() => {
+        const activeRoute = Navigation.getActiveRoute();
+
         Card.setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data: {
@@ -239,7 +169,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             },
             isEditing: false,
         });
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     }, [memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
@@ -306,7 +236,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         <Button
                                             text={translate('workspace.people.transferOwner')}
                                             onPress={startChangeOwnershipFlow}
-                                            medium
                                             isDisabled={isOffline}
                                             icon={Expensicons.Transfer}
                                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
@@ -314,9 +243,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         />
                                     ) : (
                                         <Button
-                                            text={translate('workspace.people.removeMemberButtonTitle')}
+                                            text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                             onPress={askForConfirmationToRemove}
-                                            medium
                                             isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                             icon={Expensicons.RemoveMembers}
                                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
@@ -337,7 +265,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                        title={translate(`workspace.common.roleName`, member?.role)}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}
@@ -362,20 +290,37 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {Object.values(cardList ?? {}).map((card) => (
+                                            {memberCards.map((memberCard) => (
                                                 <MenuItem
-                                                    title={card.nameValuePairs?.cardTitle}
-                                                    badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
+                                                    title={memberCard.nameValuePairs?.cardTitle}
+                                                    badgeText={CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)}
                                                     icon={ExpensifyCardImage}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
                                                     contentFit="contain"
                                                     iconWidth={variables.cardIconWidth}
                                                     iconHeight={variables.cardIconHeight}
-                                                    onPress={() => navigateToDetails(card.cardID.toString())}
+                                                    onPress={() => navigateToDetails(memberCard.cardID.toString())}
                                                     shouldShowRightIcon
                                                 />
                                             ))}
+                                            {Object.keys(companyCards ?? {}).map((companyCardKey) => {
+                                                const companyCard = companyCards[companyCardKey];
+                                                return (
+                                                    <MenuItem
+                                                        key={companyCardKey}
+                                                        title={companyCard?.cardNumber ?? ''}
+                                                        icon={CardUtils.getCardDetailsImage(companyCard?.bank ?? '')}
+                                                        displayInDefaultIconColor
+                                                        iconStyles={styles.cardIcon}
+                                                        contentFit="contain"
+                                                        iconWidth={variables.cardIconWidth}
+                                                        iconHeight={variables.cardIconHeight}
+                                                        onPress={() => navigateToCompanyCardDetails(companyCardKey, companyCard?.bank)}
+                                                        shouldShowRightIcon
+                                                    />
+                                                );
+                                            })}
                                             <MenuItem
                                                 title={translate('workspace.expensifyCard.newCard')}
                                                 icon={Expensicons.Plus}

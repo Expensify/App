@@ -120,6 +120,7 @@ function CompanyOwnersListUBO({
                                 description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
                                 wrapperStyle={[styles.ph5]}
                                 icon={Expensicons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
                                 iconWidth={40}
                                 iconHeight={40}
                                 interactive={false}

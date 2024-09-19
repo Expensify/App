@@ -2,7 +2,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -194,21 +194,24 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
-
                     // Pass through the selected assignee
                     TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
-                Navigation.dismissModal(report.reportID);
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.dismissModal(report.reportID);
+                });
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 TaskActions.setAssigneeValue(
                     option?.login ?? '',
-                    option.accountID,
+                    option.accountID ?? -1,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
-                Navigation.goBack(ROUTES.NEW_TASK);
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.goBack(ROUTES.NEW_TASK);
+                });
             }
         },
         [session?.accountID, task?.shareDestination, report],

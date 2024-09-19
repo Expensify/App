@@ -5,7 +5,7 @@ import initPolyfill from './intlPolyfill';
 
 initPolyfill();
 
-const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10});
+const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10, monitoringName: 'NumberFormatUtils'});
 
 function format(locale: ValueOf<typeof CONST.LOCALES>, number: number, options?: Intl.NumberFormatOptions): string {
     return new MemoizedNumberFormat(locale, options).format(number);

@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import type {SearchQueryString} from '@components/Search/types';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -12,18 +13,18 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import linkingConfig from '@libs/Navigation/linkingConfig';
-import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
-import {getCurrentSearchParams} from '@libs/SearchUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +35,34 @@ import SCREENS from '@src/SCREENS';
 type BottomTabBarProps = {
     selectedTab: string | undefined;
 };
+
+/**
+ * Returns SearchQueryString that has policyID correctly set.
+ *
+ * When we're coming back to Search Screen we might have pre-existing policyID inside SearchQuery.
+ * There are 2 cases when we might want to remove this `policyID`:
+ *  - if Policy was removed in another screen
+ *  - if WorkspaceSwitcher was used to globally unset a policyID
+ * Otherwise policyID will be inserted into query
+ */
+function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
+    const queryJSON = SearchUtils.buildSearchQueryJSON(query);
+    if (!queryJSON) {
+        return query;
+    }
+
+    const policyID = activePolicyID ?? queryJSON.policyID;
+    const policy = PolicyUtils.getPolicy(policyID);
+
+    // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
+    if (!activePolicyID || !policy) {
+        delete queryJSON.policyID;
+    } else {
+        queryJSON.policyID = policyID;
+    }
+
+    return SearchUtils.buildSearchQueryString(queryJSON);
+}
 
 function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const theme = useTheme();
@@ -65,10 +94,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         }
 
         Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () => {
-                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
-                navigationRef.resetRoot(adaptedState);
-            },
+            onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
         });
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -87,15 +113,26 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             return;
         }
         interceptAnonymousUser(() => {
-            const currentSearchParams = getCurrentSearchParams();
+            const currentSearchParams = SearchUtils.getCurrentSearchParams();
             if (currentSearchParams) {
                 const {q, ...rest} = currentSearchParams;
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: q, ...rest}));
+                const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
+
+                Navigation.navigate(
+                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                        query: cleanedQuery,
+                        ...rest,
+                    }),
+                );
                 return;
             }
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
+
+            const defaultCannedQuery = SearchUtils.buildCannedSearchQuery();
+            // when navigating to search we might have an activePolicyID set from workspace switcher
+            const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
         });
-    }, [selectedTab]);
+    }, [activeWorkspaceID, selectedTab]);
 
     return (
         <View style={styles.bottomTabBarContainer}>

@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -41,7 +42,7 @@ type NewCustomUnit = {
 type WorkspaceMembersRoleData = {
     accountID: number;
     email: string;
-    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -104,6 +105,9 @@ Onyx.connect({
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
     const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
@@ -291,7 +295,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: optimisticMembersState},
+            value: {employeeList: optimisticMembersState, approver: emailList.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver},
         },
     ];
     optimisticData.push(...announceRoomMembers.onyxOptimisticData);
@@ -309,7 +313,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: failureMembersState},
+            value: {employeeList: failureMembersState, approver: policy?.approver},
         },
     ];
     failureData.push(...announceRoomMembers.onyxFailureData);
@@ -404,7 +408,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
     const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {

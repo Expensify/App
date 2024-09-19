@@ -72,6 +72,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
+        /** Whether to include safe area padding bottom or not */
+        includeSafeAreaPaddingBottom?: boolean;
+
+        /** Makes firstRender ref display loading page before isLoading is change to true */
+        showLoadingAsFirstRender?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
@@ -115,11 +121,13 @@ function WorkspacePageWithSections({
     reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     route,
     shouldUseScrollView = false,
+    showLoadingAsFirstRender = true,
     shouldSkipVBBACall = true,
     shouldShowBackButton = false,
     user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
+    includeSafeAreaPaddingBottom = false,
     shouldShowNonAdmin = false,
     headerContent,
     testID,
@@ -138,7 +146,7 @@ function WorkspacePageWithSections({
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const firstRender = useRef(true);
+    const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
 
@@ -169,7 +177,7 @@ function WorkspacePageWithSections({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={testID ?? WorkspacePageWithSections.displayName}

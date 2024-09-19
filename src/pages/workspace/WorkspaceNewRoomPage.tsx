@@ -64,6 +64,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -253,6 +254,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={WorkspaceNewRoomPage.displayName}
+            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+            focusTrapSettings={{active: false}}
         >
             {({insets}) =>
                 workspaceOptions.length === 0 ? (

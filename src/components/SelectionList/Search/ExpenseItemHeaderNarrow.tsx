@@ -7,16 +7,17 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchAccountDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
 type ExpenseItemHeaderNarrowProps = {
     text?: string;
-    participantFrom: SearchAccountDetails;
-    participantTo: SearchAccountDetails;
+    participantFrom: SearchPersonalDetails;
+    participantTo: SearchPersonalDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
     action?: SearchTransactionAction;
@@ -48,6 +49,9 @@ function ExpenseItemHeaderNarrow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
+    // It might happen that we are missing display names for `From` or `To`, we only display arrow icon if both names exist
+    const shouldDisplayArrowIcon = SearchUtils.isCorrectSearchUserName(participantFromDisplayName) && SearchUtils.isCorrectSearchUserName(participantToDisplayName);
+
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
@@ -77,12 +81,14 @@ function ExpenseItemHeaderNarrow({
                         displayName={participantFromDisplayName}
                     />
                 </View>
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeXXSmall}
-                    height={variables.iconSizeXXSmall}
-                    fill={theme.icon}
-                />
+                {shouldDisplayArrowIcon && (
+                    <Icon
+                        src={Expensicons.ArrowRightLong}
+                        width={variables.iconSizeXXSmall}
+                        height={variables.iconSizeXXSmall}
+                        fill={theme.icon}
+                    />
+                )}
                 <View style={[styles.flex1, styles.mw50]}>
                     <UserInfoCell
                         participant={participantTo}

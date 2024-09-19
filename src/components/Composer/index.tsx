@@ -4,7 +4,7 @@ import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
+import type {NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, StyleSheet, View} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -20,7 +20,6 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
 
@@ -71,7 +70,6 @@ function Composer(
             start: 0,
             end: 0,
         },
-        isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
@@ -100,7 +98,7 @@ function Composer(
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
-    const [textInputWidth, setTextInputWidth] = useState('');
+    const [textInputWidth, setTextInputWidth] = useState<ViewStyle['width']>('');
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
@@ -276,14 +274,6 @@ function Composer(
 
     useEffect(() => {
         setIsRendered(true);
-
-        return () => {
-            if (isReportActionCompose) {
-                return;
-            }
-            ReportActionComposeFocusManager.clear();
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const clear = useCallback(() => {
@@ -291,7 +281,7 @@ function Composer(
             return;
         }
 
-        const currentText = textInput.current.innerText;
+        const currentText = textInput.current.value;
         textInput.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
@@ -352,7 +342,7 @@ function Composer(
                 opacity: 0,
             }}
         >
-            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth as DimensionValue}]}>
+            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth}]}>
                 {`${valueBeforeCaret} `}
                 <Text
                     numberOfLines={1}
@@ -378,7 +368,7 @@ function Composer(
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
-            isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
             textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 
@@ -407,17 +397,6 @@ function Composer(
                 }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
-                onFocus={(e) => {
-                    ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!textInput.current) {
-                            return;
-                        }
-
-                        textInput.current.focus();
-                    });
-
-                    props.onFocus?.(e);
-                }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>

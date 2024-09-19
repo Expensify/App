@@ -68,10 +68,10 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
 
     const updateMapping = useCallback(
         ({value}: SelectorType) => {
-            updateSageIntacctMappingValue(policyID, mappingName, value as SageIntacctMappingValue);
+            updateSageIntacctMappingValue(policyID, mappingName, value as SageIntacctMappingValue, mappings?.[mappingName]);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mappingName));
         },
-        [mappingName, policyID],
+        [mappingName, policyID, mappings],
     );
 
     return (

@@ -10,8 +10,6 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
-import Timing from '@userActions/Timing';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -79,7 +77,11 @@ function ReportActionItemParentAction({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
                     callback: (val) => {
                         ancestorReports.current[ancestorReportID] = val;
-                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
+                        //  getAllAncestorReportActions use getReportOrDraftReport to get parent reports which gets the report from allReports that
+                        // holds the report collection. However, allReports is not updated by the time this current callback is called.
+                        // Therefore we need to pass the up-to-date report to getAllAncestorReportActions so that it uses the up-to-date report value
+                        // to calculate, for instance, unread marker.
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, val));
                     },
                 }),
             );
@@ -126,16 +128,15 @@ function ReportActionItemParentAction({
                     ) : (
                         <ReportActionItem
                             onPress={
-                                ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.parentReportID ?? '-1'])
+                                ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
                                     ? () => {
                                           const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                                           // Pop the thread report screen before navigating to the chat report.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1'));
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
                                           if (isVisibleAction && !isOffline) {
                                               // Pop the chat report screen before navigating to the linked report action.
-                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1', ancestor.reportAction.reportActionID));
+                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
                                           }
-                                          Timing.start(CONST.TIMING.SWITCH_REPORT);
                                       }
                                     : undefined
                             }

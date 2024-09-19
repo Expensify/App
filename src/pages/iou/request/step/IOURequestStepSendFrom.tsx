@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
@@ -37,11 +37,12 @@ type IOURequestStepSendFromProps = IOURequestStepSendFromOnyxProps &
 function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestStepSendFromProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
         // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
         // .filter((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 
@@ -62,7 +63,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, selectedWorkspace]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
