@@ -19,7 +19,7 @@ import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CustomSubStepProps} from './types';
-import {getSubstepValues} from './utils';
+import {getInitialSubstep, getSubstepValues} from './utils';
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
@@ -32,6 +32,8 @@ function MissingPersonalDetails() {
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
     const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+
+    const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
     const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
 
@@ -51,7 +53,7 @@ function MissingPersonalDetails() {
         screenIndex,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom: CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME, onFinished: handleFinishStep});
+    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {

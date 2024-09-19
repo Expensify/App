@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -22,5 +23,26 @@ function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
     };
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getSubstepValues};
+function getInitialSubstep(values: PersonalDetailsForm) {
+    if (values[INPUT_IDS.LEGAL_FIRST_NAME] === '' || values[INPUT_IDS.LEGAL_LAST_NAME] === '') {
+        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME;
+    }
+    if (values[INPUT_IDS.DATE_OF_BIRTH] === '') {
+        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.DATE_OF_BIRTH;
+    }
+    if (
+        values[INPUT_IDS.ADDRESS_LINE_1] === '' ||
+        values[INPUT_IDS.CITY] === '' ||
+        values[INPUT_IDS.STATE] === '' ||
+        values[INPUT_IDS.ZIP_POST_CODE] === '' ||
+        values[INPUT_IDS.COUNTRY] === ''
+    ) {
+        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.ADDRESS;
+    }
+    if (values[INPUT_IDS.PHONE_NUMBER] === '') {
+        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.PHONE_NUMBER;
+    }
+    return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.CONFIRM;
+}
+
+export {getSubstepValues, getInitialSubstep};
