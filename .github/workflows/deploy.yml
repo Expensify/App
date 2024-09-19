@@ -77,10 +77,46 @@ jobs:
       type: release
       ref: staging
 
-  deployAndroid:
-    name: Deploy Android app
-    # TODO: is this needs safe? Or will it not run for production?
+  uploadAndroid:
+    name: Upload Android build to Google Play Store
+    if: ${{ github.ref == 'refs/heads/staging' }}
     needs: buildAndroid
+    runs-on: ubuntu-latest
+    env:
+      RUBYOPT: '-rostruct'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Download Android build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /etc/usr/artifacts
+          pattern: android-artifact-*
+          merge-multiple: true
+
+      - name: Log downloaded artifact paths
+        run: ls -R /etc/usr/artifacts
+
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android upload_google_play_internal
+        env:
+          aabPath: /etc/usr/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
+
+      - name: Upload Android build to Browser Stack
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/etc/usr/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+  submitAndroid:
+    name: Submit Android app for production review
+    needs: prep
+    if: ${{ github.ref == 'refs/heads/production' }}
     runs-on: ubuntu-latest
     env:
       RUBYOPT: '-rostruct'
@@ -107,20 +143,11 @@ jobs:
       - name: Log downloaded artifact paths
         run: ls -R /etc/usr/artifacts
 
-      - name: Upload Android app to Google Play
-        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-          gradleAABOutputPath: /etc/usr/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
-
-      - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/etc/usr/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+      - name: Submit Android build for review
+        run: bundle exec fastlane android upload_google_play_production
 
       - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ failure() }}
         uses: 8398a7/action-slack@v3
         with:
           status: custom
