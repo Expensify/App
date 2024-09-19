@@ -19,6 +19,7 @@ import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CustomSubStepProps} from './types';
+import {getSubstepValues} from './utils';
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
@@ -28,7 +29,9 @@ function MissingPersonalDetails() {
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [values] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+
+    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
 
     const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
 

@@ -33,12 +33,12 @@ function AddressStep({isEditing, onNext, privatePersonalDetails}: CustomSubStepP
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     const defaultValues = {
-        street1: draftForm?.[INPUT_IDS.ADDRESS_LINE_1] ? draftForm?.[INPUT_IDS.ADDRESS_LINE_1] : street1,
-        street2: draftForm?.[INPUT_IDS.ADDRESS_LINE_2] ? draftForm?.[INPUT_IDS.ADDRESS_LINE_2] : street2,
-        city: draftForm?.[INPUT_IDS.CITY] ? draftForm?.[INPUT_IDS.CITY] : address?.city,
-        state: draftForm?.[INPUT_IDS.STATE] ? draftForm?.[INPUT_IDS.STATE] : address?.state,
-        zip: draftForm?.[INPUT_IDS.ZIP_POST_CODE] ? draftForm?.[INPUT_IDS.ZIP_POST_CODE] : address?.zip,
-        country: draftForm?.[INPUT_IDS.COUNTRY] ? draftForm?.[INPUT_IDS.COUNTRY] : address?.country,
+        street1: draftForm?.[INPUT_IDS.ADDRESS_LINE_1] ?? street1,
+        street2: draftForm?.[INPUT_IDS.ADDRESS_LINE_2] ?? street2,
+        city: draftForm?.[INPUT_IDS.CITY] ?? address?.city,
+        state: draftForm?.[INPUT_IDS.STATE] ?? address?.state,
+        zip: draftForm?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip,
+        country: draftForm?.[INPUT_IDS.COUNTRY] ?? address?.country,
     };
     const [currentCountry, setCurrentCountry] = useState(defaultValues.country);
     const [state, setState] = useState(defaultValues.state);

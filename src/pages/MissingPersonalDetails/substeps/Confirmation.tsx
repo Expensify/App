@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
@@ -11,26 +10,24 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import {getSubstepValues} from '@pages/MissingPersonalDetails/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const PERSONAL_DETAILS_STEP_INDEXES = CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
 
-function Confirmation({onNext, onMove}: CustomSubStepProps) {
+function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [values, formMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+    const [draftValues, formMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+
+    const values = getSubstepValues(privatePersonalDetails, draftValues);
 
     const isLoading = isLoadingOnyxValue(formMetadata);
-
-    if (isEmptyObject(values)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <SafeAreaConsumer>
@@ -67,7 +64,7 @@ function Confirmation({onNext, onMove}: CustomSubStepProps) {
                         }}
                     />
                     <MenuItemWithTopDescription
-                        description={translate('personalInfoStep.last4SSN')}
+                        description={translate('common.phoneNumber')}
                         title={values[INPUT_IDS.PHONE_NUMBER]}
                         shouldShowRightIcon
                         onPress={() => {
