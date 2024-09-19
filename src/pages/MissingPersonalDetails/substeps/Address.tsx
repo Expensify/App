@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
@@ -50,17 +50,6 @@ function AddressStep({isEditing, onNext, privatePersonalDetails}: CustomSubStepP
         onNext,
         shouldSaveDraft: isEditing,
     });
-
-    useEffect(() => {
-        if (!address) {
-            return;
-        }
-        setState(address.state);
-        setCurrentCountry(address.country);
-        setCity(address.city);
-        setZipcode(address.zip);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [address?.state, address?.country, address?.city, address?.zip]);
 
     const handleAddressChange = useCallback((value: unknown, key: unknown) => {
         const addressPart = value as string;
