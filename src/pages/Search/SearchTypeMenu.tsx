@@ -99,7 +99,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [showDeleteModal],
     );
 
-    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
         let title = item.name;
         if (title === item.query) {
             const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
@@ -124,7 +124,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!isNarrow) {
             return {
                 ...baseMenuItem,
-                shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
+                shouldRenderTooltip: index === 0 && !shouldHideSavedSearchRenameTooltip,
                 tooltipAnchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -133,6 +133,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftVertical: 15,
                 tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
                 renderTooltipContent: () => {
+                    if (index !== 0) {
+                        return null;
+                    }
                     SearchActions.dismissSavedSearchRenameTooltip();
                     return (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -178,7 +181,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout));
+        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout, index));
     };
 
     const renderSavedSearchesSection = useCallback(
