@@ -43,12 +43,7 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
             <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true)}</muted-text>`} />
             {shouldShowAddMissingDetailsButton && (
                 <Button
-                    onPress={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS);
-                    }}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addShippingDetails')}
