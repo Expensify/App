@@ -43,8 +43,8 @@ function parseMessage(messages: Message[] | undefined) {
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        const previousPart = messages[index - 1];
-        const nextPart = messages[index + 1];
+        const previousPart = messages.at(index - 1);
+        const nextPart = messages.at(index + 1);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
@@ -73,7 +73,7 @@ function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, subm
         return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
-    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail) + 1);
     if (!nextApproverEmail) {
         return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
