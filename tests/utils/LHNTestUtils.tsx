@@ -197,7 +197,7 @@ function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInT
         policyID: '08CE60F05A5D86E1',
         oldPolicyName: '',
         isOwnPolicyExpenseChat: false,
-        ownerAccountID: participantAccountIDs[0],
+        ownerAccountID: participantAccountIDs.at(0),
     };
 }
 

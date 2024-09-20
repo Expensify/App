@@ -1,0 +1,14 @@
+@@ -455,7 +475,12 @@
+ }
+ 
+ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+-    const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
++    const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
++
++    if (!tagList) {
++        return;
++    }
++
+     const tag = tagList.tags?.[policyTag.oldName];
+     const oldTagName = policyTag.oldName;
+     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);

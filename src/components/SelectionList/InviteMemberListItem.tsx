@@ -12,6 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 
@@ -77,8 +78,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
-                                mainAvatar={item.icons[0]}
-                                secondaryAvatar={item.icons[1]}
+                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
+                                secondaryAvatar={item.icons.at(1) ?? fallbackIcon}
                                 showTooltip={showTooltip}
                                 backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             />

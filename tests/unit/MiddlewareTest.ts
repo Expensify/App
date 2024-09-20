@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */
 import Onyx from 'react-native-onyx';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';

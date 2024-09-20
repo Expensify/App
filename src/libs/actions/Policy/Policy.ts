@@ -231,7 +231,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
-    return primaryPolicy ?? activeAdminWorkspaces[0];
+    return primaryPolicy ?? activeAdminWorkspaces.at(0);
 }
 
 /** Check if the policy has invoicing company details */
@@ -1201,7 +1201,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         (request) => request.data?.policyID === policyID && request.command === WRITE_COMMANDS.CREATE_WORKSPACE && request.data?.policyName !== name,
     );
 
-    const createWorkspaceRequest = persistedRequests[createWorkspaceRequestChangedIndex];
+    const createWorkspaceRequest = persistedRequests.at(createWorkspaceRequestChangedIndex);
     if (createWorkspaceRequest) {
         const workspaceRequest: Request = {
             ...createWorkspaceRequest,
@@ -1471,13 +1471,13 @@ function generateDefaultWorkspaceName(email = ''): string {
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
     }
-    const username = emailParts[0];
-    const domain = emailParts[1];
+    const username = emailParts.at(0) ?? '';
+    const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
     const displayName = userDetails?.displayName?.trim();
 
     if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.').at(0) ?? '')}'s Workspace`;
     } else if (displayName) {
         defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
     } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
@@ -2455,7 +2455,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: {
-                [Object.keys(announceChatData)[0]]: {
+                [Object.keys(announceChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -2474,7 +2474,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: {
-                [Object.keys(adminsChatData)[0]]: {
+                [Object.keys(adminsChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -2493,7 +2493,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: {
-                [Object.keys(workspaceChatData)[0]]: {
+                [Object.keys(workspaceChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },

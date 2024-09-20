@@ -225,10 +225,10 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
  */
 function base64ToFile(base64: string, filename: string): File {
     // Decode the base64 string
-    const byteString = atob(base64.split(',')[1]);
+    const byteString = atob(base64.split(',').at(1) ?? '');
 
     // Get the mime type from the base64 string
-    const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+    const mimeString = base64.split(',').at(0)?.split(':').at(1)?.split(';').at(0);
 
     // Convert byte string to Uint8Array
     const arrayBuffer = new ArrayBuffer(byteString.length);

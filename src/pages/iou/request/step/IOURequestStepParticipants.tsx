@@ -49,7 +49,7 @@ function IOURequestStepParticipants({
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
-    const selectedReportID = useRef<string>(participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID);
+    const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -94,7 +94,7 @@ function IOURequestStepParticipants({
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
-            const firstParticipantReportID = val[0]?.reportID ?? '';
+            const firstParticipantReportID = val.at(0)?.reportID ?? '';
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID, !canUseP2PDistanceRequests);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;

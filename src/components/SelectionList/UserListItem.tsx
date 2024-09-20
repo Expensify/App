@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
 
@@ -100,8 +101,8 @@ function UserListItem<TItem extends ListItem>({
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
-                                mainAvatar={item.icons[0]}
-                                secondaryAvatar={item.icons[1]}
+                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
+                                secondaryAvatar={item.icons.at(1)}
                                 showTooltip={showTooltip}
                                 backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             />

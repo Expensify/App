@@ -10,6 +10,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
@@ -209,8 +210,8 @@ function OptionRow({
                                 {!!option.icons?.length &&
                                     (option.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            mainAvatar={option.icons[0]}
-                                            secondaryAvatar={option.icons[1]}
+                                            mainAvatar={option.icons.at(0) ?? fallbackIcon}
+                                            secondaryAvatar={option.icons.at(1)}
                                             backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                         />

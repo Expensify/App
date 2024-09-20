@@ -144,9 +144,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.')[1];
-        const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-        return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        const decimalPart = numValue.toString().split('.').at(1);
+        if (decimalPart) {
+            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        }
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -303,10 +305,11 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
     const tagLists = getTagLists(policyTagList);
 
     return (
-        tagLists[tagIndex] ?? {
+        tagLists.at(tagIndex) ?? {
             name: '',
             required: false,
             tags: {},
+            orderWeight: 0,
         }
     );
 }
@@ -502,12 +505,12 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
  * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: number): number {
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover])[0];
+        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
@@ -515,12 +518,12 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
         return -1;
     }
 
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
     const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
-    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+    return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
 }
 
 /**
@@ -549,7 +552,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-    return getAccountIDsByLogins([reimburserEmail])[0];
+    return getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1;
 }
 
 function getPersonalPolicy() {

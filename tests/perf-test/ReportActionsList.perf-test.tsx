@@ -82,7 +82,7 @@ beforeEach(() => {
 
 function ReportActionsListWrapper() {
     const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
-    const lastVisibleActionCreated = reportActions[0].created;
+    const lastVisibleActionCreated = reportActions.at(0)?.created;
     const report = {
         ...LHNTestUtilsModule.getFakeReport(),
         lastVisibleActionCreated,

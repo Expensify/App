@@ -14,7 +14,10 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
         const currentIndex = intersection.indexOf(currentScreenName);
         const nextScreenIndex = currentIndex + 1;
         setCurrentScreenIndex(currentIndex);
-        setNextScreen(intersection[nextScreenIndex] ?? '');
+        const value = intersection.at(nextScreenIndex);
+        if (value) {
+            setNextScreen(value);
+        }
     }, [currentScreenName, intersection]);
 
     const navigateToNextScreen = () => {

@@ -896,7 +896,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
     let subtitle = '';
     if (isOneOnOneChat) {
-        const participantAccountID = participants[0] ?? -1;
+        const participantAccountID = participants.at(0) ?? -1;
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';

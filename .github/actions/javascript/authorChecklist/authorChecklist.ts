@@ -54,7 +54,7 @@ function partitionWithChecklist(body: string): string[] {
 async function getNumberOfItemsFromAuthorChecklist(): Promise<number> {
     const response = await fetch(pathToAuthorChecklist);
     const fileContents = await response.text();
-    const checklist = partitionWithChecklist(fileContents)[1];
+    const checklist = partitionWithChecklist(fileContents).at(1) ?? '';
     const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
     return numberOfChecklistItems;
 }

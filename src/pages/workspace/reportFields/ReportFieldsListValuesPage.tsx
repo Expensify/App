@@ -96,11 +96,11 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues[index] ?? true,
+                enabled: !disabledListValues.at(index) ?? true,
                 rightElement: (
                     <ListItemRightCaretWithLabel
                         shouldShowCaret={false}
-                        labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                        labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
                     />
                 ),
             }))
@@ -190,13 +190,13 @@ function ReportFieldsListValuesPage({
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return !disabledListValues?.[index];
+                return !disabledListValues?.at(index);
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (!disabledListValues?.[index] && index !== -1) {
+                    if (!disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
 
@@ -222,13 +222,13 @@ function ReportFieldsListValuesPage({
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return disabledListValues?.[index];
+                return disabledListValues?.at(index);
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (disabledListValues?.[index] && index !== -1) {
+                    if (disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
 

@@ -73,7 +73,7 @@ function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, subm
         return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
-    const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
     if (!nextApproverEmail) {
         return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }

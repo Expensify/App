@@ -111,7 +111,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ),
             }));
         }
-        const sortedTags = lodashSortBy(Object.values(policyTagLists[0]?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
         return sortedTags.map((tag) => ({
             value: tag.name,
             text: PolicyUtils.getCleanedTagName(tag.name),

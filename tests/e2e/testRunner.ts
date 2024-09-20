@@ -43,7 +43,7 @@ const getArg = (argName: string): string | undefined => {
     if (argIndex === -1) {
         return undefined;
     }
-    return args[argIndex + 1];
+    return args.at(argIndex + 1);
 };
 
 let config = defaultConfig;
@@ -218,7 +218,7 @@ const runTests = async (): Promise<void> => {
     // Run the tests
     const tests = Object.keys(config.TESTS_CONFIG);
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
-        const test = Object.values(config.TESTS_CONFIG)[testIndex];
+        const test = Object.values(config.TESTS_CONFIG).at(testIndex);
 
         // re-instal app for each new test suite
         await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
@@ -229,7 +229,7 @@ const runTests = async (): Promise<void> => {
             const includes = args[args.indexOf('--includes') + 1];
 
             // assume that "includes" is a regexp
-            if (!test.name.match(includes)) {
+            if (!test?.name?.match(includes)) {
                 // eslint-disable-next-line no-continue
                 continue;
             }
@@ -244,7 +244,7 @@ const runTests = async (): Promise<void> => {
         server.setTestConfig(test as TestConfig);
         server.setReadyToAcceptTestResults(false);
 
-        const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
+        const warmupText = `Warmup for test '${test?.name}' [${testIndex + 1}/${tests.length}]`;
 
         // by default we do 2 warmups:
         // - first warmup to pass a login flow
@@ -289,7 +289,7 @@ const runTests = async (): Promise<void> => {
                 mockNetwork: true,
             };
 
-            const iterationText = `Test '${test.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
+            const iterationText = `Test '${test?.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
             const mainIterationText = `[MAIN] ${iterationText}`;
             const deltaIterationText = `[DELTA] ${iterationText}`;
             try {

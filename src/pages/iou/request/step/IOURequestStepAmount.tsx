@@ -214,11 +214,11 @@ function IOURequestStepAmount({
 
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
@@ -230,7 +230,7 @@ function IOURequestStepAmount({
                         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
                         {},
                     );
@@ -245,7 +245,7 @@ function IOURequestStepAmount({
                         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
                     );
                     return;

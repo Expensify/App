@@ -171,7 +171,7 @@ function SuggestionMention(
             }
 
             // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-            return displayText.split('@')[0];
+            return displayText.split('@').at(0);
         },
         [currentUserPersonalDetails.login],
     );
@@ -193,7 +193,10 @@ function SuggestionMention(
     const insertSelectedMention = useCallback(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
-            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
+            const mentionObject = suggestionValues.suggestedMentions.at(highlightedMentionIndexInner);
+            if (!mentionObject) {
+                return;
+            }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
@@ -357,7 +360,7 @@ function SuggestionMention(
             const leftString = newValue.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
-            const secondToLastWord = words[words.length - 3];
+            const secondToLastWord = words.at(words.length - 3);
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';

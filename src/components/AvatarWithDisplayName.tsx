@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
@@ -121,8 +122,8 @@ function AvatarWithDisplayName({
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
                                 backgroundColor={avatarBorderColor}
-                                mainAvatar={icons[0]}
-                                secondaryAvatar={icons[1]}
+                                mainAvatar={icons.at(0) ?? fallbackIcon}
+                                secondaryAvatar={icons.at(1)}
                                 size={size}
                             />
                         ) : (

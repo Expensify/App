@@ -53,22 +53,22 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         }
 
         // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-        return displayText.split('@')[0];
+        return displayText.split('@').at(0);
     };
 
     if (!isEmpty(htmlAttribAccountID)) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
-        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '');
+        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
+        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID) ?? ''));
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
+        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {

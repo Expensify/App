@@ -242,7 +242,7 @@ function BaseSelectionList<TItem extends ListItem>(
      */
     const scrollToIndex = useCallback(
         (index: number, animated = true) => {
-            const item = flattenedSections.allOptions[index];
+            const item = flattenedSections.allOptions.at(index) ?? 0;
 
             if (!listRef.current || !item) {
                 return;
@@ -330,7 +330,7 @@ function BaseSelectionList<TItem extends ListItem>(
     };
 
     const selectFocusedOption = () => {
-        const focusedOption = flattenedSections.allOptions[focusedIndex];
+        const focusedOption = flattenedSections.allOptions.at(focusedIndex);
 
         if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
             return;
@@ -354,7 +354,7 @@ function BaseSelectionList<TItem extends ListItem>(
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
     const getItemLayout = (data: Array<SectionListData<TItem, SectionWithIndexOffset<TItem>>> | null, flatDataArrayIndex: number) => {
-        const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
+        const targetItem = flattenedSections.itemLayouts.at(flatDataArrayIndex);
 
         if (!targetItem) {
             return {
@@ -621,7 +621,7 @@ function BaseSelectionList<TItem extends ListItem>(
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions[focusedIndex],
+        shouldBubble: !flattenedSections.allOptions.at(focusedIndex),
         shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
@@ -630,7 +630,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
-            const focusedOption = flattenedSections.allOptions[focusedIndex];
+            const focusedOption = flattenedSections.allOptions.at(focusedIndex);
             if (onConfirm) {
                 onConfirm(e, focusedOption);
                 return;
@@ -639,7 +639,7 @@ function BaseSelectionList<TItem extends ListItem>(
         },
         {
             captureOnInputs: true,
-            shouldBubble: !flattenedSections.allOptions[focusedIndex],
+            shouldBubble: !flattenedSections.allOptions.at(focusedIndex),
             isActive: !disableKeyboardShortcuts && isFocused,
         },
     );

@@ -297,7 +297,11 @@ Onyx.connect({
 
         // Iterate over the report actions to build the sorted and lastVisible report actions objects
         Object.entries(allReportActions).forEach((reportActions) => {
-            const reportID = reportActions[0].split('_')[1];
+            const reportID = reportActions[0].split('_').at(1);
+            if (!reportID) {
+                return;
+            }
+
             const reportActionsArray = Object.values(reportActions[1] ?? {});
             let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
             allSortedReportActions[reportID] = sortedReportActions;
@@ -310,7 +314,12 @@ Onyx.connect({
                 sortedReportActions = ReportActionUtils.getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID, false);
             }
 
-            lastReportActions[reportID] = sortedReportActions[0];
+            const firstReportAction = sortedReportActions.at(0);
+            if (!firstReportAction) {
+                return;
+            }
+
+            lastReportActions[reportID] = firstReportAction;
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -322,7 +331,11 @@ Onyx.connect({
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                     !ReportActionUtils.isResolvedActionTrackExpense(reportAction),
             );
-            lastVisibleReportActions[reportID] = reportActionsForDisplay[0];
+            const reportActionForDisplay = reportActionsForDisplay.at(0);
+            if (!reportActionForDisplay) {
+                return;
+            }
+            lastVisibleReportActions[reportID] = reportActionForDisplay;
         });
     },
 });
@@ -548,7 +561,7 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
 
     return showChatPreviewLine && option.lastMessageText
         ? option.lastMessageText
-        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
+        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
 }
 
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
@@ -722,7 +735,7 @@ function createOption(
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
     const personalDetailList = Object.values(personalDetailMap).filter((details): details is PersonalDetails => !!details);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList.at(0);
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
     let reportName;
@@ -780,12 +793,12 @@ function createOption(
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
         reportName = showPersonalDetails
-            ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
+            ? ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
             : ReportUtils.getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
-        result.keyForList = String(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
+        result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
     }
@@ -2368,9 +2381,9 @@ function getFirstKeyForList(data?: Option[] | null) {
         return '';
     }
 
-    const firstNonEmptyDataObj = data[0];
+    const firstNonEmptyDataObj = data.at(0);
 
-    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+    return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
 function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {

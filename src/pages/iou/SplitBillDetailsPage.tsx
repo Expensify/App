@@ -72,7 +72,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     let participants: Array<Participant | ReportUtils.OptionData>;
     if (ReportUtils.isPolicyExpenseChat(report)) {
         participants = [
-            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true, reportID: ''}, personalDetails),
+            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
             OptionsListUtils.getPolicyExpenseReportOption({...report, selected: true, reportID}),
         ];
     } else {

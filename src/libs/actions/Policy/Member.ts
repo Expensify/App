@@ -395,7 +395,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     optimisticClosedReportActions.forEach((reportAction, index) => {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.at(index)?.reportID}`,
             value: {[reportAction.reportActionID]: null},
         });
     });
@@ -484,7 +484,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
     const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
     if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-        const currentError = changeOwnerErrors[0];
+        const currentError = changeOwnerErrors.at(0);
         if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
             ownershipChecks.shouldClearOutstandingBalance = true;
         }

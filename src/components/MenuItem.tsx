@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import getDefaultIcon from '@src/utils/getDefaultIcon';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
@@ -776,8 +777,8 @@ function MenuItem(
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={floatRightAvatars[0]}
-                                                                secondaryAvatar={floatRightAvatars[1]}
+                                                                mainAvatar={floatRightAvatars.at(0) ?? getDefaultIcon}
+                                                                secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />
                                                         ) : (
