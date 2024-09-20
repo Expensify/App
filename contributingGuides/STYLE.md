@@ -1109,19 +1109,19 @@ There are several ways to use and declare refs and we prefer the [callback metho
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something, please ask us first.
 
 
-# Handling Scroll Issues with Nested Lists in React Native
+## Handling Scroll Issues with Nested Lists in React Native
 
-## Problem
+### Problem
 
 When using `SelectionList` alongside other components (e.g., `Text`, `Button`), wrapping them inside a `ScrollView` can lead to alignment and performance issues. Additionally, using `ScrollView` with nested `FlatList` or `SectionList` causes the error:
 
 > "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation."
 
-## Solution
+### Solution
 
 The correct approach is avoid using `ScrollView`. You can add props like `listHeaderComponent` and `listFooterComponent` to add other components before or after the list while keeping the layout scrollable.
 
-## Wrong Approach (Using `SelectionList`)
+### Wrong Approach (Using `SelectionList`)
 
 ```jsx
 <ScrollView>
@@ -1135,7 +1135,7 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
 </ScrollView>
 ```
 
-## Correct Approach (Using `SelectionList`)
+### Correct Approach (Using `SelectionList`)
 
 ```jsx
 <SelectionList 
