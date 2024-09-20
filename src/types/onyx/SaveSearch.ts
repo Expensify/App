@@ -14,6 +14,6 @@ type SaveSearchItem = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /**
  * Model of saved searches
  */
-type SaveSearch = Record<number, SaveSearchItem | null>;
+type SaveSearch = Record<number, SaveSearchItem>;
 
 export type {SaveSearch, SaveSearchItem};

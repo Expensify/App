@@ -178,7 +178,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item ?? ({} as SaveSearchItem), key, shouldUseNarrowLayout));
+        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout));
     };
 
     const renderSavedSearchesSection = useCallback(
