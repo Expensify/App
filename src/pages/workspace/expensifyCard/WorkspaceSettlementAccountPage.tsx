@@ -98,26 +98,28 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     title={translate('workspace.expensifyCard.settlementAccount')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 />
-                <ScrollView>
-                    <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                    {isUsedContinuousReconciliation && (
-                        <Text style={[styles.mh5, styles.mb6]}>
-                            <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
-                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>
-                                {translate('workspace.expensifyCard.reconciliationAccount')}
-                            </TextLink>{' '}
-                            <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
-                            <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt2')}</Text>
-                        </Text>
-                    )}
-                    <SelectionList
-                        sections={[{data}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
-                        shouldSingleExecuteRowSelect
-                        initiallyFocusedOptionKey={paymentBankAccountID.toString()}
-                    />
-                </ScrollView>
+                <SelectionList
+                    sections={[{data}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedOptionKey={paymentBankAccountID.toString()}
+                    listHeaderContent={
+                        <>
+                            <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
+                            {isUsedContinuousReconciliation && (
+                                <Text style={[styles.mh5, styles.mb6]}>
+                                    <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
+                                    <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>
+                                        {translate('workspace.expensifyCard.reconciliationAccount')}
+                                    </TextLink>{' '}
+                                    <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
+                                    <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt2')}</Text>
+                                </Text>
+                            )}
+                        </>
+                    }
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
