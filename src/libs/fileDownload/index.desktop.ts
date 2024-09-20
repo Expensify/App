@@ -7,10 +7,10 @@ import type {FileDownload} from './types';
 /**
  * The function downloads an attachment on desktop platforms.
  */
-const fileDownload: FileDownload = (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType) => {
+const fileDownload: FileDownload = (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed?: () => void) => {
     if (requestType === CONST.NETWORK.METHOD.POST) {
         window.electron.send(ELECTRON_EVENTS.DOWNLOAD);
-        return fetchFileDownload(url, fileName, successMessage, shouldOpenExternalLink, formData, requestType);
+        return fetchFileDownload(url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed);
     }
 
     const options: Options = {

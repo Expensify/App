@@ -38,14 +38,19 @@ Onyx.connect({
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
 
-    messages?.forEach((part) => {
+    messages?.forEach((part, index) => {
         const isEmail = Str.isValidEmail(part.text);
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
+        const previousPart = messages?.at(index - 1);
+        const nextPart = messages?.at(index + 1);
+
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
-            content = 'You';
+            content = nextPart?.text === `'s` ? 'Your' : 'You';
+        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
+            content = '';
         } else if (isEmail) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
@@ -116,6 +121,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: `${ownerDisplayName}`,
                         type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
                     {
                         text: ' to ',
@@ -136,7 +142,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}'s`,
+                        text: `${ownerDisplayName}`,
+                        type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
+                    },
+                    {
+                        text: `'s`,
                         type: 'strong',
                     },
                     {

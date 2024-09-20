@@ -127,10 +127,7 @@ function WorkspaceReportFieldsPage({
         ];
     }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
-    const fieldSection = reportFieldsSections.at(0);
-    if (fieldSection) {
-        useAutoTurnSelectionModeOffWhenHasNoActiveOption(fieldSection.data);
-    }
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);

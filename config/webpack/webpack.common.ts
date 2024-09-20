@@ -128,6 +128,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,
         }),
+        ...(file === '.env.production' || file === '.env.staging'
+            ? [
+                  new IgnorePlugin({
+                      resourceRegExp: /@welldone-software\/why-did-you-render/,
+                  }),
+              ]
+            : []),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
@@ -215,6 +222,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
     resolve: {
         alias: {
+            lodash: 'lodash-es',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-config': 'react-web-config',
             // eslint-disable-next-line @typescript-eslint/naming-convention
