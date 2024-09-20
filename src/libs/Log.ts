@@ -88,8 +88,8 @@ AppLogs.registerHandler({
     filter: '[NotificationService]',
     handler: ({filter, logs}) => {
         logs.forEach((log) => {
-            // sanitize filter to avoid infinite loop
-            const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService')}`;
+            // both native and JS logs are captured by the filter so we replace the filter before logging to avoid an infinite loop
+            const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService -')}`;
 
             if (log.level === 'error') {
                 Log.hmmm(message);
