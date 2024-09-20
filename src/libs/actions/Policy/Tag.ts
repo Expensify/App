@@ -1,3 +1,4 @@
+import lodashCloneDeep from 'lodash/cloneDeep';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -6,6 +7,7 @@ import type {
     OpenPolicyTagsPageParams,
     RenamePolicyTaglistParams,
     RenamePolicyTagsParams,
+    SetPolicyTagApproverParams,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
     UpdatePolicyTagGLCodeParams,
@@ -27,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type NewCustomUnit = {
@@ -228,7 +230,7 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
         tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_TAGS_SREADSHEET, parameters, onyxData);
+    API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 }
 
 function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
@@ -453,10 +455,31 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 }
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    const policy = PolicyUtils.getPolicy(policyID);
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
     const tag = tagList.tags?.[policyTag.oldName];
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
+
+    const policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
+
+    // Its related by name, so the corresponding rule has to be updated to handle offline scenario
+    if (policyTagRule) {
+        const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyTagRule.id);
+        policyTagRule.applyWhen = policyTagRule.applyWhen.map((ruleCondition) => {
+            const {value, field, condition} = ruleCondition;
+
+            if (value === policyTag.oldName && field === CONST.POLICY.FIELDS.TAG && condition === CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+                return {...ruleCondition, value: policyTag.newName};
+            }
+
+            return ruleCondition;
+        });
+        updatedApprovalRules[indexToUpdate] = policyTagRule;
+    }
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -478,6 +501,15 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 errors: null,
                             },
                         },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: updatedApprovalRules,
                     },
                 },
             },
@@ -890,6 +922,74 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
+function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
+    const policy = PolicyUtils.getPolicy(policyID);
+    const prevApprovalRules = policy?.rules?.approvalRules ?? [];
+    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
+    const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
+    const toBeUnselected = approverRuleToUpdate?.approver === approver;
+
+    const updatedApproverRule = approverRuleToUpdate
+        ? {...approverRuleToUpdate, approver}
+        : {
+              applyWhen: [
+                  {
+                      condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                      field: CONST.POLICY.FIELDS.TAG,
+                      value: tag,
+                  },
+              ],
+              approver,
+              id: '-1',
+          };
+
+    const updatedApprovalRules = toBeUnselected ? filteredApprovalRules : [...filteredApprovalRules, updatedApproverRule];
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: updatedApprovalRules,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: updatedApprovalRules,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: prevApprovalRules,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTagApproverParams = {
+        policyID,
+        tagName: tag,
+        approver: toBeUnselected ? null : approver,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
+}
+
 function downloadTagsCSV(policyID: string) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
         policyID,
@@ -919,6 +1019,7 @@ export {
     renamePolicyTaglist,
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
+    setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
 };
