@@ -15,23 +15,21 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
     return (
         <SafeAreaInsetsContext.Consumer>
             {(insets) => {
-                const insetsWithDefault = insets ?? {
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                };
+                const defaultInsets = {top: 0, bottom: 0, left: 0, right: 0};
+                const safeInsets = insets ?? defaultInsets;
 
                 const androidInsets = {
-                    ...insetsWithDefault,
-                    top: StatusBar.currentHeight ?? insetsWithDefault.top,
+                    ...safeInsets,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    top: StatusBar.currentHeight || safeInsets.top,
                 };
 
-                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(androidInsets ?? undefined);
+                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(androidInsets);
+
                 return children({
                     paddingTop,
                     paddingBottom,
-                    insets: androidInsets ?? undefined,
+                    insets: androidInsets,
                     safeAreaPaddingBottomStyle: {paddingBottom},
                 });
             }}
