@@ -92,7 +92,7 @@ function WorkspaceSwitcherPage() {
 
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
-                Navigation.switchPolicyID({policyID});
+                Navigation.switchPolicyID(policyID);
             }
         },
         [activeWorkspaceID],

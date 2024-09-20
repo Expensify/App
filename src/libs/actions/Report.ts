@@ -1045,10 +1045,9 @@ function navigateToAndOpenReport(
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID ?? '', '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
-        Navigation.dismissModalWithReport(report);
-    } else {
-        Navigation.switchPolicyID({policyID: undefined, reportID: report?.reportID ?? '-1'});
+        Navigation.dismissModal();
     }
+    Navigation.navigateToReportWithPolicyCheck({report});
 }
 
 /**
@@ -2488,13 +2487,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
-            if (!reportBelongsToWorkspace) {
-                Navigation.switchPolicyID({policyID: undefined, reportID, referrer: CONST.REFERRER.NOTIFICATION});
-                return;
-            }
-            navigateFromNotification(reportID);
+            Navigation.navigateToReportWithPolicyCheck({reportID, referrer: CONST.REFERRER.NOTIFICATION, policyIDToCheck: policyID});
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {

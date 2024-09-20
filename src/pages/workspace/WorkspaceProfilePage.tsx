@@ -136,7 +136,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policy?.id) {
-            Navigation.switchPolicyID({policyID: undefined});
+            Navigation.switchPolicyID(undefined);
         }
     }, [policy?.id, policyName, activeWorkspaceID]);
 

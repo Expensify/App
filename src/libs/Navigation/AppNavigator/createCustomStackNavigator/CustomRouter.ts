@@ -3,6 +3,7 @@ import {findFocusedRoute, getPathFromState, StackActions, StackRouter} from '@re
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import linkingConfig from '@libs/Navigation/linkingConfig';
@@ -49,17 +50,14 @@ function shouldDismissSideModalNavigator(state: StackNavigationState<ParamListBa
     return false;
 }
 
-type CustomRootStackActionType = {
-    type: 'SWITCH_POLICY_ID';
-    payload: {
-        policyID: string;
-
-        // @TODO not sure about these properties.
-        reportID?: string;
-        reportActionID?: string;
-        referrer?: string;
-    };
-};
+type CustomRootStackActionType =
+    | {
+          type: 'SWITCH_POLICY_ID';
+          payload: {
+              policyID: string;
+          };
+      }
+    | {type: 'DISMISS_MODAL'};
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
@@ -93,19 +91,6 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
                 if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    // @TODO: It would be great to avoid coupling switchPolicy with specific actions for report screen
-                    if (action.payload.reportID) {
-                        const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
-                            policyID: action.payload.policyID,
-                            screen: SCREENS.REPORT,
-                            params: {
-                                reportID: action.payload.reportID,
-                                reportActionID: action.payload.reportActionID,
-                                referrer: action.payload.referrer,
-                            },
-                        });
-                        return stackRouter.getStateForAction(state, newAction, configOptions);
-                    }
                     const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
 
                     setActiveWorkspaceID(action.payload.policyID);
@@ -115,13 +100,45 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 return null;
             }
 
+            if (action.type === 'DISMISS_MODAL') {
+                const lastRoute = state.routes.at(-1);
+                const newAction = StackActions.pop();
+                switch (lastRoute?.name) {
+                    case NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR:
+                    case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
+                    case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
+                    case NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR:
+                    case NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR:
+                    case SCREENS.NOT_FOUND:
+                    case SCREENS.ATTACHMENTS:
+                    case SCREENS.TRANSACTION_RECEIPT:
+                    case SCREENS.PROFILE_AVATAR:
+                    case SCREENS.WORKSPACE_AVATAR:
+                    case SCREENS.REPORT_AVATAR:
+                    case SCREENS.CONCIERGE:
+                        return stackRouter.getStateForAction(state, newAction, configOptions);
+                    default: {
+                        Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
+                    }
+                }
+                return;
+            }
+
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
             if (shouldPreventReset(state, action)) {
                 return state;
             }
 
             if (action.type === 'PUSH' && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+                const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
+                let policyID;
+
+                if (haveParamsPolicyID) {
+                    policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
+                    setActiveWorkspaceID(policyID);
+                } else {
+                    policyID = getPolicyIDFromState(state as State<RootStackParamList>);
+                }
 
                 const modifiedAction = {
                     ...action,

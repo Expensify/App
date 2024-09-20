@@ -76,9 +76,6 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
     Navigation.isNavigationReady()
         .then(Navigation.waitForProtectedRoutes)
@@ -96,11 +93,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     }
 
                     Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    if (!reportBelongsToWorkspace) {
-                        Navigation.switchPolicyID({policyID, reportID});
-                    } else {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
-                    }
+                    Navigation.navigateToReportWithPolicyCheck({reportID, policyIDToCheck: policyID});
                 } catch (error) {
                     let errorMessage = String(error);
                     if (error instanceof Error) {

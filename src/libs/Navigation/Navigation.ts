@@ -4,6 +4,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -11,11 +12,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
-import {PROTECTED_SCREENS} from '@src/SCREENS';
+import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
-import originalDismissModal from './dismissModal';
-import originalDismissModalWithReport from './dismissModalWithReport';
+import getPolicyIDFromState from './getPolicyIDFromState';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
@@ -58,22 +59,12 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
-// Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
-const dismissModal = (reportID?: string, ref = navigationRef) => {
-    if (!reportID) {
-        originalDismissModal(ref);
-        return;
-    }
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    originalDismissModalWithReport({reportID, ...report}, ref);
-};
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
 // This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
 // Then we can pass the report as a param without getting it from the Onyx.
-const dismissModalWithReport = (report: OnyxEntry<Report>, ref = navigationRef) => originalDismissModalWithReport(report, ref);
 
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
@@ -432,16 +423,59 @@ function getTopMostCentralPaneRouteFromRootState() {
     return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
-type SwitchPolicyIDPayload = {
-    policyID?: string;
-    reportID?: number;
-    reportActionID?: string;
-    referrer?: string;
-};
-
-function switchPolicyID(payload: SwitchPolicyIDPayload) {
-    navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload});
+function switchPolicyID(policyID?: string) {
+    navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID}});
 }
+
+type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string};
+
+function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck}: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) {
+    const targetReport = reportID ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : report;
+    if (!targetReport) {
+        return;
+    }
+
+    const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+    const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
+    const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !ReportUtils.doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
+
+    if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport.reportID, reportActionID, referrer));
+        return;
+    }
+
+    const params: Record<string, string> = {
+        reportID: targetReport.reportID,
+    };
+
+    if (reportActionID) {
+        params.reportActionID = reportActionID;
+    }
+
+    if (referrer) {
+        params.referrer = referrer;
+    }
+
+    ref.dispatch({
+        ...StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+            policyID: null,
+            screen: SCREENS.REPORT,
+            params,
+        }),
+    });
+}
+
+const dismissModal = (reportID?: string, ref = navigationRef) => {
+    ref.dispatch({type: 'DISMISS_MODAL'});
+    if (!reportID) {
+        return;
+    }
+    navigateToReportWithPolicyCheck({reportID});
+};
+const dismissModalWithReport = (report: OnyxEntry<Report>) => {
+    dismissModal();
+    navigateToReportWithPolicyCheck({report});
+};
 
 export default {
     setShouldPopAllStateOnUP,
@@ -467,6 +501,7 @@ export default {
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
+    navigateToReportWithPolicyCheck,
 };
 
 export {navigationRef};
