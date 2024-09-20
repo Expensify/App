@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
-import {findLastIndex} from 'lodash';
+import findLastIndex from 'lodash/findLastIndex';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isCentralPaneName} from '@libs/NavigationUtils';
