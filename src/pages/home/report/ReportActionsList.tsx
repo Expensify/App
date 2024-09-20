@@ -626,7 +626,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        loadNewerChats(false);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
@@ -655,13 +655,7 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={() => {
-                        InteractionManager.runAfterInteractions(() => {
-                            requestAnimationFrame(() => {
-                                onStartReached();
-                            });
-                        });
-                    }}
+                    onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListFooterComponent={listFooterComponent}
                     ListHeaderComponent={listHeaderComponent}
