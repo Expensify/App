@@ -74,7 +74,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 )
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
-                .sort((a, b) => a.at(0).localeCompare(b.at(0))),
+                .sort((a, b) => (a.at(0) ?? '').localeCompare(b.at(0) ?? '')),
         [data],
     );
     const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_DATETIME_FIELDS.includes(key as DetailsDatetimeFieldsKeys)) as Array<[string, string]>, [data]);
