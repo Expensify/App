@@ -3487,14 +3487,13 @@ function getReportPreviewMessage(
  * At the moment, we only allow changing one transaction field at a time.
  */
 function getModifiedExpenseOriginalMessage(
-    delegate: string,
     oldTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OriginalMessageModifiedExpense {
-    const originalMessage: OriginalMessageModifiedExpense = {delegate: delegate};
+    const originalMessage: OriginalMessageModifiedExpense = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
     if ('comment' in transactionChanges) {
@@ -4222,7 +4221,6 @@ function buildOptimisticAddCommentReportAction(
             originalMessage: {
                 html: htmlForNewComment,
                 whisperedTo: [],
-                delegate,
             },
             isFirstItem: false,
             isAttachmentOnly,
@@ -4311,7 +4309,6 @@ function buildOptimisticTaskCommentReportAction(
         html: ReportActionsUtils.getReportActionHtml(reportAction.reportAction),
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
         whisperedTo: [],
-        delegate,
     };
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
@@ -4657,8 +4654,7 @@ function buildOptimisticIOUReportAction(
         currency,
         IOUTransactionID: transactionID,
         IOUReportID,
-        type,
-        delegate,
+        type
     };
 
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);
@@ -4726,7 +4722,6 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         amount,
         currency,
         expenseReportID,
-        delegate,
     };
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);
 
@@ -4768,7 +4763,6 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
             amount,
             currency,
             expenseReportID,
-            delegate,
         },
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency),
         person: [
@@ -4843,7 +4837,6 @@ function buildOptimisticSubmittedReportAction(
         amount,
         currency,
         expenseReportID,
-        delegate,
     };
 
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);
@@ -4969,7 +4962,7 @@ function buildOptimisticModifiedExpenseReportAction(
     policy: OnyxInputOrEntry<Policy>,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(delegate, oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);
 
     return {
@@ -5028,7 +5021,6 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(delegate: string
         ],
         originalMessage: {
             movedToReportID,
-            delegate,
         },
         person: [
             {
