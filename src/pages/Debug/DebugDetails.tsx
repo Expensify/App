@@ -95,7 +95,6 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
             });
-
             return newErrors;
         },
         [translate, validate],
@@ -135,6 +134,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
 
     return (
         <ScrollView style={styles.mv5}>
+            {children}
             <FormProvider
                 style={styles.flexGrow1}
                 formID={ONYXKEYS.FORMS.DEBUG_DETAILS_FORM}
