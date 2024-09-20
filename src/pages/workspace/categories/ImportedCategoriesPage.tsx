@@ -32,8 +32,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const isControl = isControlPolicy(policy);
-
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
         roles.push(
@@ -42,7 +40,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
         );
 
-        if (isControl) {
+        if (isControlPolicy(policy)) {
             roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
@@ -134,7 +132,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
-                headerText={translate('workspace.categories.importedCategoriesMessage')}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
