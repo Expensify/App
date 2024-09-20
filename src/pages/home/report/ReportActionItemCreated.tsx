@@ -40,7 +40,7 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     if (!ReportUtils.isChatReport(report)) {
@@ -77,7 +77,8 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
                         >
                             <MultipleAvatars
                                 icons={icons}
-                                size={isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                                size={CONST.AVATAR_SIZE.XLARGE}
+                                overlapDivider={4}
                                 shouldStackHorizontally
                                 shouldDisplayAvatarsInRows={shouldUseNarrowLayout}
                                 maxAvatarsInRow={shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}

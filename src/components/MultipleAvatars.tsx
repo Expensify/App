@@ -54,6 +54,9 @@ type MultipleAvatarsProps = {
 
     /** Prop to limit the amount of avatars displayed horizontally */
     maxAvatarsInRow?: number;
+
+    /** Prop to limit the amount of avatars displayed horizontally */
+    overlapDivider?: number;
 };
 
 type AvatarStyles = {
@@ -79,6 +82,7 @@ function MultipleAvatars({
     shouldShowTooltip = true,
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
+    overlapDivider = 3,
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -167,7 +171,7 @@ function MultipleAvatars({
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
-    const overlapSize = oneAvatarSize.width / 3;
+    const overlapSize = oneAvatarSize.width / overlapDivider;
 
     if (shouldStackHorizontally) {
         // Height of one avatar + border space
