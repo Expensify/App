@@ -3,7 +3,7 @@ import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import type {MenuItemBaseProps} from '@components/MenuItem';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
 
-type SavedSearchMenuItem = MenuItemBaseProps & {
+type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
     hash: string;
     query: string;
@@ -121,8 +121,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             />
         ),
         isSelected: currentSavedSearch?.hash === item.hash,
+        pendingAction: item.pendingAction,
     }));
-
     const allMenuItems = [];
     allMenuItems.push(...popoverMenuItems);
 
@@ -134,7 +134,6 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         });
         allMenuItems.push(...savedSearchItems);
     }
-
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
             <PressableWithFeedback
