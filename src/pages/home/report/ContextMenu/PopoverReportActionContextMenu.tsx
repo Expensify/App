@@ -78,7 +78,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
-    const onComfirmDeleteModal = useRef(() => {});
+    const onConfirmDeleteModal = useRef(() => {});
 
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
@@ -264,7 +264,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     };
 
     const confirmDeleteAndHideModal = useCallback(() => {
-        callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
+        callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
@@ -294,8 +294,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     /** Opens the Confirm delete action modal */
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
-        onComfirmDeleteModal.current = onConfirm;
 
+        onConfirmDeleteModal.current = onConfirm;
         reportIDRef.current = reportID;
         reportActionRef.current = reportAction ?? null;
 
