@@ -16,6 +16,21 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
+const MODAL_ROUTES_TO_DISMISS: string[] = [
+    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+    NAVIGATORS.LEFT_MODAL_NAVIGATOR,
+    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+    NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
+    SCREENS.NOT_FOUND,
+    SCREENS.ATTACHMENTS,
+    SCREENS.TRANSACTION_RECEIPT,
+    SCREENS.PROFILE_AVATAR,
+    SCREENS.WORKSPACE_AVATAR,
+    SCREENS.REPORT_AVATAR,
+    SCREENS.CONCIERGE,
+];
+
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
@@ -103,25 +118,13 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             if (action.type === 'DISMISS_MODAL') {
                 const lastRoute = state.routes.at(-1);
                 const newAction = StackActions.pop();
-                switch (lastRoute?.name) {
-                    case NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR:
-                    case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
-                    case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
-                    case NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR:
-                    case NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR:
-                    case SCREENS.NOT_FOUND:
-                    case SCREENS.ATTACHMENTS:
-                    case SCREENS.TRANSACTION_RECEIPT:
-                    case SCREENS.PROFILE_AVATAR:
-                    case SCREENS.WORKSPACE_AVATAR:
-                    case SCREENS.REPORT_AVATAR:
-                    case SCREENS.CONCIERGE:
-                        return stackRouter.getStateForAction(state, newAction, configOptions);
-                    default: {
-                        Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
-                    }
+
+                if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
+                    Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
+                    return;
                 }
-                return;
+
+                return stackRouter.getStateForAction(state, newAction, configOptions);
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
