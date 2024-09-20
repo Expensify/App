@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -14,10 +14,11 @@ import CONST from '@src/CONST';
 type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
+    shouldAutoTurnOff?: boolean;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, ...rest}: SelectionListWithModalProps<TItem>,
+    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, shouldAutoTurnOff, ...rest}: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -26,7 +27,8 @@ function SelectionListWithModal<TItem extends ListItem>(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {selectionMode} = useMobileSelectionMode(true);
+    const {selectionMode} = useMobileSelectionMode(shouldAutoTurnOff);
+    const wasSelectionOnRef = useRef(false);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
@@ -38,7 +40,10 @@ function SelectionListWithModal<TItem extends ListItem>(
             return;
         }
         if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
+            wasSelectionOnRef.current = true;
             turnOnMobileSelectionMode();
+        } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
+            turnOffMobileSelectionMode();
         }
     }, [sections, selectionMode, isSmallScreenWidth]);
 

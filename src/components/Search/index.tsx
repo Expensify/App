@@ -86,7 +86,7 @@ function Search({queryJSON}: SearchProps) {
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const {selectionMode} = useMobileSelectionMode(false);
     const [offset, setOffset] = useState(0);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
@@ -371,6 +371,7 @@ function Search({queryJSON}: SearchProps) {
                         />
                     )
                 }
+                shouldAutoTurnOff={false}
                 canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
                 customListHeaderHeight={searchHeaderHeight}
                 // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
