@@ -93,6 +93,7 @@ function SearchRouter() {
         [closeSearchRouter],
     );
 
+<<<<<<< HEAD
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
@@ -104,6 +105,8 @@ function SearchRouter() {
         },
     );
 
+=======
+>>>>>>> main
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         closeSearchRouter();
         clearUserQuery();

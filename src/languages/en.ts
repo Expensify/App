@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {startCase} from 'lodash';
+import startCase from 'lodash/startCase';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -687,6 +687,7 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importMembersSuccessfullDescription: (members: number) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
         importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
@@ -1102,6 +1103,7 @@ export default {
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
             testCrash: 'Test crash',
+            debugMode: 'Debug mode',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2845,11 +2847,11 @@ export default {
                         companyLabel: 'Company ID',
                     },
                     amex: {
-                        title: `What's the Amex delivery file name`,
+                        title: `What's the Amex delivery file name?`,
                         fileNameLabel: 'Delivery file name',
                     },
                     mastercard: {
-                        title: `What's the Mastercard distribution ID`,
+                        title: `What's the Mastercard distribution ID?`,
                         distributionLabel: 'Distribution ID',
                     },
                 },
@@ -3062,6 +3064,8 @@ export default {
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
                 emptyAddedFeedTitle: 'Assign company cards',
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
+                pendingFeedTitle: `We're reviewing your request...`,
+                pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
@@ -3182,6 +3186,8 @@ export default {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            tagRules: 'Tag rules',
+            approverDescription: 'Approver',
             importTags: 'Import tags',
             importedTagsMessage: (columnCounts: number) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
@@ -3264,6 +3270,7 @@ export default {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
+            importMembers: 'Import members',
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -3356,7 +3363,7 @@ export default {
                 }
             },
             errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
-            goToODToFix: 'Go to Expensiy Classic to fix this issue.',
+            goToODToFix: 'Go to Expensify Classic to fix this issue.',
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
@@ -4799,5 +4806,31 @@ export default {
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',
         notAllowedMessageEnd: ' copilot',
+    },
+    debug: {
+        debug: 'Debug',
+        details: 'Details',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Preview',
+        nothingToPreview: 'Nothing to preview',
+        editJson: 'Edit JSON:',
+        preview: 'Preview:',
+        missingProperty: ({propertyName}) => `Missing ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
+        invalidValue: ({expectedValues}) => `Invalid value - Expected: ${expectedValues}`,
+        missingValue: 'Missing value',
+        createReportAction: 'Create Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        hint: "Data changes won't be sent to the backend",
+        textFields: 'Text fields',
+        numberFields: 'Number fields',
+        booleanFields: 'Boolean fields',
+        constantFields: 'Constant fields',
+        dateTimeFields: 'DateTime fields',
+        date: 'Date',
+        time: 'Time',
+        none: 'None',
     },
 } satisfies TranslationBase;
