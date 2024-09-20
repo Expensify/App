@@ -21,7 +21,7 @@ export default function useFetchRoute(transaction: OnyxEntry<Transaction>, waypo
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const shouldFetchRoute = (isDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || isInitialMount) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1);
+    const shouldFetchRoute = (isDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || (isInitialMount && hasRouteError)) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1);
 
     useEffect(() => {
         if (isOffline || !shouldFetchRoute || !transaction?.transactionID) {
