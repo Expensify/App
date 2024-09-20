@@ -40,6 +40,30 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
+    const openEmojiPicker = (e: GestureResponderEvent | KeyboardEvent) => {
+        if (!isFocused) {
+            return;
+        }
+
+        if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
+            EmojiPickerAction.showEmojiPicker(
+                onModalHide,
+                onEmojiSelected,
+                emojiPopoverAnchor,
+                {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    shiftVertical,
+                },
+                () => {},
+                emojiPickerID,
+            );
+        } else {
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+        }
+        onPress?.(e);
+    };
+
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     return (
@@ -48,28 +72,7 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={isDisabled}
-                onPress={(e) => {
-                    if (!isFocused) {
-                        return;
-                    }
-                    if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(
-                            onModalHide,
-                            onEmojiSelected,
-                            emojiPopoverAnchor,
-                            {
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                shiftVertical,
-                            },
-                            () => {},
-                            emojiPickerID,
-                        );
-                    } else {
-                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
-                    }
-                    onPress?.(e);
-                }}
+                onPress={openEmojiPicker}
                 id={id}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
             >

@@ -1,8 +1,8 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
+import type {LayoutChangeEvent, View} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -55,6 +55,9 @@ type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'anim
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
+
+    /** Optional callback passed to popover's children container */
+    onLayout?: (e: LayoutChangeEvent) => void;
 
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
@@ -112,6 +115,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onLayout,
     onModalShow,
     headerText,
     fromSidebarMediumScreen,
@@ -258,7 +262,10 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <ScrollView style={isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer}>
+                <ScrollView
+                    onLayout={onLayout}
+                    style={isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer}
+                >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
