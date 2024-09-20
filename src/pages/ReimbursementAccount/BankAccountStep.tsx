@@ -150,7 +150,7 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             />
                         </View>
-                        <View style={styles.mv3}>
+                        <View style={styles.mb3}>
                             <MenuItem
                                 icon={Expensicons.Connect}
                                 title={translate('bankAccount.connectManually')}
