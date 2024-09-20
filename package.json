@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.155",
+    "@expensify/react-native-live-markdown": "0.1.157",
     "@expo/metro-runtime": "~3.2.3",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
