@@ -144,7 +144,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
 
     const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
-    console.log('%%%%%\n', 'isDeleteExpensesConfirmModalVisible', isDeleteExpensesConfirmModalVisible);
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
@@ -234,7 +233,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    console.log('i go here');
                     setIsDeleteExpensesConfirmModalVisible(true);
                 },
             });
@@ -278,10 +276,42 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     if (shouldUseNarrowLayout) {
         if (selectionMode?.isEnabled) {
             return (
-                <SearchSelectedNarrow
-                    options={headerButtonsOptions}
-                    itemsLength={selectedTransactionsKeys.length}
-                />
+                <View>
+                    <SearchSelectedNarrow
+                        options={headerButtonsOptions}
+                        itemsLength={selectedTransactionsKeys.length}
+                    />
+                    <ConfirmModal
+                        isVisible={isDeleteExpensesConfirmModalVisible}
+                        onConfirm={handleDeleteExpenses}
+                        onCancel={() => {
+                            setIsDeleteExpensesConfirmModalVisible(false);
+                        }}
+                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
+                    <DecisionModal
+                        title={translate('common.youAppearToBeOffline')}
+                        prompt={translate('common.offlinePrompt')}
+                        isSmallScreenWidth={isSmallScreenWidth}
+                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                        secondOptionText={translate('common.buttonConfirm')}
+                        isVisible={isOfflineModalVisible}
+                        onClose={() => setIsOfflineModalVisible(false)}
+                    />
+                    <DecisionModal
+                        title={translate('common.downloadFailedTitle')}
+                        prompt={translate('common.downloadFailedDescription')}
+                        isSmallScreenWidth={isSmallScreenWidth}
+                        onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                        secondOptionText={translate('common.buttonConfirm')}
+                        isVisible={isDownloadErrorModalVisible}
+                        onClose={() => setIsDownloadErrorModalVisible(false)}
+                    />
+                </View>
             );
         }
         return null;
