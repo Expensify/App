@@ -367,7 +367,19 @@ type OptimisticWorkspaceChats = {
 
 type OptimisticModifiedExpenseReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachmentOnly' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'isAttachmentOnly'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'pendingAction'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'delegateAccountID'
 > & {reportID?: string};
 
 type OptimisticTaskReport = Pick<
@@ -3475,13 +3487,14 @@ function getReportPreviewMessage(
  * At the moment, we only allow changing one transaction field at a time.
  */
 function getModifiedExpenseOriginalMessage(
+    delegate: string,
     oldTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OriginalMessageModifiedExpense {
-    const originalMessage: OriginalMessageModifiedExpense = {};
+    const originalMessage: OriginalMessageModifiedExpense = {delegate: delegate};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
     if ('comment' in transactionChanges) {
@@ -4948,6 +4961,7 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
  * Builds an optimistic modified expense action with a randomly generated reportActionID.
  */
 function buildOptimisticModifiedExpenseReportAction(
+    delegate: string,
     transactionThread: OnyxInputOrEntry<Report>,
     oldTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
@@ -4955,7 +4969,9 @@ function buildOptimisticModifiedExpenseReportAction(
     policy: OnyxInputOrEntry<Policy>,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const originalMessage = getModifiedExpenseOriginalMessage(delegate, oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
@@ -4983,6 +4999,7 @@ function buildOptimisticModifiedExpenseReportAction(
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThread?.reportID,
         shouldShow: true,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4991,7 +5008,9 @@ function buildOptimisticModifiedExpenseReportAction(
  * @param transactionThreadID - The reportID of the transaction thread
  * @param movedToReportID - The reportID of the report the transaction is moved to
  */
-function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+function buildOptimisticMovedTrackedExpenseModifiedReportAction(delegate: string, transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
@@ -5009,6 +5028,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         ],
         originalMessage: {
             movedToReportID,
+            delegate,
         },
         person: [
             {
@@ -5021,6 +5041,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThreadID,
         shouldShow: true,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 

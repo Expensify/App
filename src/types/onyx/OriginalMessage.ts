@@ -361,6 +361,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The ID of moved report */
     movedToReportID?: string;
+
+    /** Email of the delegate */
+    delegate: string;
 };
 
 /** Model of `reimbursement queued` report action */

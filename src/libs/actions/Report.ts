@@ -3373,7 +3373,6 @@ function completeOnboarding(
 
     let videoCommentAction: OptimisticAddCommentReportAction | null = null;
     let videoMessage: AddCommentOrAttachementParams | null = null;
-  
     if ('video' in data && data.video) {
         const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(delegateEmail, CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
         videoCommentAction = videoComment.reportAction;
