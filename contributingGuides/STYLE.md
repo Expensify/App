@@ -1142,8 +1142,8 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
     sections={[{item}]} 
     ListItem={RadioListItem} 
     onSelectRow={handleSelect}
-    ListHeaderComponent={<Text>Header Content</Text>}
-    ListFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
+    listHeaderComponent={<Text>Header Content</Text>}
+    listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
 />
 ```
 
