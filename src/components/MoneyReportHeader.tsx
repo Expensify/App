@@ -41,7 +41,7 @@ import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -61,8 +61,8 @@ type MoneyReportHeaderProps = {
 };
 
 function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyReportHeaderProps) {
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.chatReportID}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport.reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? ''}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? ''}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const requestParentReportAction = useMemo(() => {
@@ -109,10 +109,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID ?? '');
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`, {selector: ReportUtils.getArchiveReason});
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? ''}`, {selector: ReportUtils.getArchiveReason});
 
     const shouldShowPayButton = useMemo(
         () => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined),
@@ -137,9 +137,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowAnyButton =
         shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || hasAllPendingRTERViolations || shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
-    const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
+    const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
@@ -147,7 +147,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-            if (!type || !chatReport) {
+            if (!type || !chatReport || !moneyRequestReport) {
                 return;
             }
             setPaymentType(type);
@@ -292,9 +292,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <SettlementButton
-                            currency={moneyRequestReport.currency}
+                            currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
-                            policyID={moneyRequestReport.policyID}
+                            policyID={moneyRequestReport?.policyID}
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             onPress={confirmPayment}
@@ -319,7 +319,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && !shouldUseNarrowLayout && (
+                {shouldShowSubmitButton && !shouldUseNarrowLayout && moneyRequestReport && (
                     <View style={styles.pv2}>
                         <Button
                             success={isWaitingForSubmissionFromCurrentUser}
@@ -345,10 +345,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
                     {shouldShowSettlementButton && shouldUseNarrowLayout && (
                         <SettlementButton
-                            currency={moneyRequestReport.currency}
+                            currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
-                            policyID={moneyRequestReport.policyID}
-                            chatReportID={moneyRequestReport.chatReportID}
+                            policyID={moneyRequestReport?.policyID}
+                            chatReportID={moneyRequestReport?.chatReportID}
                             iouReport={moneyRequestReport}
                             onPress={confirmPayment}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -368,7 +368,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             connectionName={connectedIntegration}
                         />
                     )}
-                    {shouldShowSubmitButton && shouldUseNarrowLayout && (
+                    {shouldShowSubmitButton && shouldUseNarrowLayout && moneyRequestReport && (
                         <Button
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
@@ -394,7 +394,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                 </View>
             )}
-            {isHoldMenuVisible && requestType !== undefined && (
+            {isHoldMenuVisible && moneyRequestReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}

@@ -282,7 +282,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.goBack(undefined, false, true);
     }, [isInNarrowPaneModal]);
 
-    let headerView = report && (
+    let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
             onNavigationMenuButtonClicked={onBackButtonPress}
@@ -292,7 +292,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         />
     );
 
-    if (isSingleTransactionView && report) {
+    if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -311,7 +311,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
     }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
 
-    if (report && (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report))) {
+    if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
