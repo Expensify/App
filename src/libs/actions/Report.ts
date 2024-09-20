@@ -57,7 +57,6 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
@@ -2714,8 +2713,8 @@ function openReportFromDeepLink(url: string) {
         Session.waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (onboardingData) => {
-                    if (onboardingData) {
+                callback: (onboarding) => {
+                    if (onboarding) {
                         // Once the onboarding data is available, we want to disconnect the connection
                         // so it won't trigger the deeplink again every time the data is changed, for example, when relogin.
                         Onyx.disconnect(connection);
@@ -2734,32 +2733,29 @@ function openReportFromDeepLink(url: string) {
                             return;
                         }
 
-                        const state = navigationRef.getRootState();
-                        const currentFocusedRoute = findFocusedRoute(state);
-                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingData);
-
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        if (!hasCompletedGuidedSetupFlow) {
-                            Welcome.isOnboardingFlowCompleted({
-                                onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
-                            });
-                            return;
-                        }
+                        Welcome.isOnboardingFlowCompleted({
+                            onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
+                            onCompleted: () => {
+                                const state = navigationRef.getRootState();
+                                const currentFocusedRoute = findFocusedRoute(state);
 
-                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                            Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-                            return;
-                        }
+                                if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                                    Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                    return;
+                                }
 
-                        if (shouldSkipDeepLinkNavigation(route)) {
-                            return;
-                        }
+                                if (shouldSkipDeepLinkNavigation(route)) {
+                                    return;
+                                }
 
-                        if (isAuthenticated) {
-                            return;
-                        }
+                                if (isAuthenticated) {
+                                    return;
+                                }
 
-                        Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                            },
+                        });
                     });
                 },
             });
