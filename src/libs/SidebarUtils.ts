@@ -538,10 +538,10 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
     }
 
     welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPartOne');
+    welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPartTwo');
     if (ReportUtils.isConciergeChatReport(report)) {
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPartTwo');
-    } 
-
+        welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPartThree');
+    }
     const isMultipleParticipant = participantAccountIDs.length > 1;
     delete participantPersonalDetails[currentUserAccountID];
         
@@ -554,7 +554,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
 
             if (index === displayNamesWithTooltips.length - 1) {
-                return `${formattedText}.`;
+                return `${formattedText}`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
                 return `${formattedText} ${Localize.translateLocal('common.and')}`;
@@ -567,7 +567,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         })
         .join(' ');
 
-    welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayNamesWithTooltipsText}${welcomeMessage.phrase2 ?? ''}`;   
+    welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayNamesWithTooltipsText}${welcomeMessage.phrase2}${welcomeMessage.phrase3 ?? ''}`;   
     return welcomeMessage;
 }
 
@@ -577,7 +577,6 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
 
 function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: string): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
-    const workspaceName = ReportUtils.getPolicyName(report);
     
     if (report?.description) {
         welcomeMessage.messageHtml = report.description;
@@ -585,33 +584,48 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: strin
         return welcomeMessage;
     }
 
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
-    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
-    } else if (ReportUtils.isDomainRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
-    } else if (ReportUtils.isAdminRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
-    } else if (ReportUtils.isAnnounceRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo');
-    } else if (ReportUtils.isInvoiceRoom(report)) {
+    if (ReportUtils.isInvoiceRoom(report)) {
         welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
         welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartThree');
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}${welcomeMessage.phrase2}${ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}`;
-    } else {
-        // Message for user created rooms or other room types.
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
-        welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartThree');
-        welcomeMessage.phrase4 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartFour');
-    }   
-    welcomeMessage.messageText = `${welcomeMessage.phrase1}${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''}${welcomeMessage.phrase2 ?? ''}${welcomeMessage.phrase3 ?? ''}${participantName}${welcomeMessage.phrase4 ?? ''}`;
+        return welcomeMessage;
+    }
+
+    const isAdminRoom = ReportUtils.isAdminRoom(report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+    const isDomainRoom = ReportUtils.isDomainRoom(report);
+
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+
+    const displayName = (isArchivedRoom || isAdminRoom || isAnnounceRoom) ? ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
+    const displayNameOnly = isArchivedRoom || isDomainRoom || isAdminRoom || isAnnounceRoom;
+
+    if (displayNameOnly) {
+        if (isArchivedRoom) {
+            welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
+            welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
+        } else if (isDomainRoom) {
+            welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne');
+            welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
+        } else if (isAdminRoom) {
+            welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne');
+            welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+        } else if (isAnnounceRoom) {
+            welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne');
+            welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo');
+        } 
+        welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayName}${welcomeMessage.phrase2}`;
+        return welcomeMessage;
+    } 
+
+    welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+    welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartThree');
+    
+    welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayName}${welcomeMessage.phrase2}${participantName}${welcomeMessage.phrase3}`;
     return welcomeMessage;
 }
 

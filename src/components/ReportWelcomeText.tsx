@@ -51,7 +51,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
     const isDomainRoom = ReportUtils.isDomainRoom(report);
     const isSpecialRoom = isAdminRoom || isAnnounceRoom || isDomainRoom || isInvoiceRoom;
-    const isChatRoom = ReportUtils.isChatRoom(report) && !isSpecialRoom;
+    const isChatRoom = ReportUtils.isChatRoom(report);
+    const isDefaultChatRoom = isChatRoom && !isSpecialRoom;
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat || isSpecialRoom);
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
@@ -77,7 +78,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             return translate('reportActionsView.sayHello');
         }
 
-        if (isChatRoom) {
+        if (isDefaultChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
 
@@ -90,7 +91,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
+    }, [isDefaultChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
 
     const RoomDescription = (props: RoomDescriptionProps) => (
         <PressableWithoutFeedback
@@ -108,6 +109,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
     };
+    
+    const getDisplayName = () => (!(isDefaultChatRoom || isDomainRoom) || isArchivedRoom || isAdminRoom || isAnnounceRoom) ? 
+        ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
 
     const ArchivedMessage = () => (
         <Text>
@@ -137,16 +141,16 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                            <Text style={[styles.textStrong]}>{getDisplayName()}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
                         </Text>
                     ))}
-                {isChatRoom &&
+                {isDefaultChatRoom &&
                     (welcomeMessage?.messageHtml ? (
                         <RoomDescription
                             onPress={roomOnPress}
                             style={styles.renderHTML} />
-                    ) : isArchivedRoom ? <ArchiveMessage /> : (
+                    ) : isArchivedRoom ? <ArchivedMessage /> : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
                             {welcomeMessage.showReportName && (
@@ -155,13 +159,12 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     onPress={navigateToReport}
                                     suppressHighlighting
                                 >
-                                    {ReportUtils.getReportName(report)}
+                                    {getDisplayName()}
                                 </Text>
                             )}
                             {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
-                            {welcomeMessage.phrase3 && <Text>{welcomeMessage.phrase3}</Text>}
                             <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                            {welcomeMessage.phrase4 && <Text>{welcomeMessage.phrase4}</Text>}
+                            {welcomeMessage.phrase3 && <Text>{welcomeMessage.phrase3}</Text>}
                         </Text>
                     ))}
                 {isSelfDM && (
@@ -172,14 +175,14 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {(isAdminRoom || isAnnounceRoom) && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
-                        <Text style={[styles.textStrong]}>{ReportUtils.getReportName(report)}</Text>
+                        <Text style={[styles.textStrong]}>{getDisplayName()}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>                    
                     </Text>
                 )}
                 {isDomainRoom && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
-                        <Text style={[styles.textStrong]}>{report?.reportName}</Text>
+                        <Text style={[styles.textStrong]}>{getDisplayName()}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>                    
                     </Text>
                 )}
@@ -220,15 +223,21 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                         </Text>
                                     )}
                                 </UserDetailsTooltip>
-                                {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
+                                {index === displayNamesWithTooltips.length - 1}
                                 {index === displayNamesWithTooltips.length - 2 && <Text>{` ${translate('common.and')} `}</Text>}
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
-                        {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
+                        <Text>{welcomeMessage.phrase2}</Text>
+                        {welcomeMessage.phrase3 && <Text>{welcomeMessage.phrase3}</Text>}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) || moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.INVOICE)) && (
+                {(!isChatRoom || isInvoiceRoom) && 
+                 (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || 
+                  moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || 
+                  moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) || 
+                  moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT) || 
+                  moneyRequestOptions.includes(CONST.IOU.TYPE.INVOICE)) && (
                     <Text>{translate('reportActionsView.usePlusButton', {additionalText, type: isInvoiceRoom ? report?.chatType : undefined} )}</Text>
                 )}
             </View>

@@ -712,6 +712,14 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
 }
 
 /**
+ * Whether the provided report is an archived room
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+    return !!report?.private_isArchived;
+}
+
+/**
  * Returns the policy of the report
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
@@ -746,7 +754,12 @@ function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound =
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
+
+    let policyName: string = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
+
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
+        policyName += ` (${Localize.translateLocal('common.archived')})`;
+    }
 
     return policyName;
 }
@@ -1370,14 +1383,6 @@ function hasExpenses(reportID?: string): boolean {
  */
 function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID);
-}
-
-/**
- * Whether the provided report is an archived room
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !!report?.private_isArchived;
 }
 
 /**
@@ -6535,7 +6540,7 @@ function getMoneyRequestOptionsText(
         .map((item, i) => Localize.translateLocal(`reportActionsView.iouTypes.${item}`));
 
     if (moneyRequestOptionsList.length > 1) {
-        return `${moneyRequestOptionsList.slice(0, moneyRequestOptionsList.length - 1).join(', ')} or ${moneyRequestOptionsList.pop()}`;
+        return `${moneyRequestOptionsList.slice(0, moneyRequestOptionsList.length - 1).join(', ')} ${Localize.translateLocal(`common.or`)} ${moneyRequestOptionsList.pop()}`;
     } 
     
     return moneyRequestOptionsList[0];
