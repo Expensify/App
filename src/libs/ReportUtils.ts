@@ -4654,7 +4654,7 @@ function buildOptimisticIOUReportAction(
         currency,
         IOUTransactionID: transactionID,
         IOUReportID,
-        type
+        type,
     };
 
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegate);

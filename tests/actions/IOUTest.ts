@@ -423,7 +423,6 @@ describe('actions/IOU', () => {
             const comment = 'Giv money plz';
             const chatReportID = '1234';
             const iouReportID = '5678';
-            const delegate = '';
             let chatReport: OnyxEntry<OnyxTypes.Report> = {
                 reportID: chatReportID,
                 type: CONST.REPORT.TYPE.CHAT,
@@ -467,7 +466,6 @@ describe('actions/IOU', () => {
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     participantAccountIDs: [RORY_ACCOUNT_ID, CARLOS_ACCOUNT_ID],
-                    delegate,
                 },
             };
             let newIOUAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
