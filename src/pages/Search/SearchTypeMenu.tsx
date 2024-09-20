@@ -4,7 +4,6 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -179,6 +178,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout));
     };
 
