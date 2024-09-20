@@ -34,7 +34,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
-type SavedSearchMenuItem = MenuItemBaseProps & {
+type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
     hash: string;
     query: string;
@@ -119,6 +119,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             },
             rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
             styles: [styles.alignItemsCenter],
+            pendingAction: item.pendingAction,
         };
 
         if (!isNarrow) {
