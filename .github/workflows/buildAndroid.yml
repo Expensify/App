@@ -112,6 +112,7 @@ jobs:
 
       - name: Upload Android AAB artifact
         if: ${{ steps.build.outputs.AAB_PATH != '' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: android-artifact-aab
@@ -119,6 +120,7 @@ jobs:
 
       - name: Upload Android APK artifact
         if: ${{ steps.build.outputs.APK_PATH != '' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: android-artifact-apk
@@ -126,6 +128,7 @@ jobs:
 
       - name: Upload Android sourcemaps artifact
         if: ${{ steps.build.outputs.SHOULD_UPLOAD_SOURCEMAPS == 'true' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: android-artifact-sourcemaps
