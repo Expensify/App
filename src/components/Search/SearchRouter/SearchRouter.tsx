@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -109,7 +110,8 @@ function SearchRouter() {
     });
 
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.POPOVER;
-    const isFullWidth = isSmallScreenWidth;
+    const isFullScreen = isSmallScreenWidth;
+    const modalWidth = isFullScreen ? styles.w100 : {width: variables.popoverWidth};
 
     return (
         <Modal
@@ -120,9 +122,8 @@ function SearchRouter() {
             onClose={closeSearchRouter}
         >
             <FocusTrapForModal active={isSearchRouterDisplayed}>
-                <View style={[styles.flex1, styles.p2]}>
+                <View style={[styles.flex1, styles.p3, modalWidth, styles.mh100, !isFullScreen && styles.mh85vh]}>
                     <SearchRouterInput
-                        isFullWidth={isFullWidth}
                         onChange={onSearchChange}
                         onSubmit={() => {
                             onSearchSubmit(currentQuery);

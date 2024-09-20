@@ -68,6 +68,7 @@ function SearchRouterList({currentSearch, reportForContextualSearch, recentSearc
                 {
                     text: `${translate('search.searchIn')}${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
+                    // We will change it to different behaviour when Search 2.5 autocomplete will be implemented
                     query: `in:${reportForContextualSearch.reportID}`,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
@@ -115,7 +116,7 @@ function SearchRouterList({currentSearch, reportForContextualSearch, recentSearc
             sections={sections}
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
-            containerStyle={styles.mt3}
+            containerStyle={styles.mh100}
         />
     );
 }

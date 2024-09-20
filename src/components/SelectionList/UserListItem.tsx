@@ -47,8 +47,7 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
-    // console.log('%%%%%\n', 'onFocus', item);
-    // console.log('%%%%%\n', 'pressable', pressable);
+
     return (
         <BaseListItem
             item={item}

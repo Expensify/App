@@ -855,7 +855,7 @@ type OnyxValuesMapping = {
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch[];
-    [ONYXKEYS.RECENT_SEARCHES]: OnyxTypes.RecentSearchItem[];
+    [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
