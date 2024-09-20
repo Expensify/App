@@ -131,6 +131,12 @@ const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: Translat
         text: 'common.links',
         query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.LINKS),
     },
+    {
+        key: CONST.SEARCH.STATUS.CHAT.PINNED,
+        icon: Expensicons.Pin,
+        text: 'search.filters.pinned',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.PINNED),
+    },
 ];
 
 function getOptions(type: SearchDataTypes) {
