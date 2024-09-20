@@ -246,7 +246,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (isLoadingHoldUseExplained) {
             return;
         }
-        setShouldShowHoldMenu(true);
+        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     useEffect(() => {
