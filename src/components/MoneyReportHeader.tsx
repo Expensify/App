@@ -147,7 +147,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-            if (!type || !chatReport || !moneyRequestReport) {
+            if (!type || !chatReport) {
                 return;
             }
             setPaymentType(type);
