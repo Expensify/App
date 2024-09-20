@@ -50,7 +50,7 @@ function TroubleshootPage() {
     const illustrationStyle = getLightbulbIllustrationStyle();
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
-    const [shouldMaskOnyxState] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {selector: (value) => value ?? true});
+    const [shouldMaskOnyxState] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -136,7 +136,7 @@ function TroubleshootPage() {
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={shouldMaskOnyxState}
+                                        isOn={shouldMaskOnyxState ?? true}
                                         onToggle={setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
