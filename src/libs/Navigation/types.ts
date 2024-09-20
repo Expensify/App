@@ -194,6 +194,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
     };
