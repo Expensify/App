@@ -19,15 +19,18 @@ type EmptyCardViewProps = {
 
     /** Subtitle of the empty state */
     subtitle: string;
+
+    /** Whether the header buttons be displayed */
+    areHeaderButtonsDisplayed: boolean;
 };
 
-function EmptyCardView({title, subtitle}: EmptyCardViewProps) {
+function EmptyCardView({title, subtitle, areHeaderButtonsDisplayed}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout);
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, areHeaderButtonsDisplayed);
 
     return (
         <ScrollView>

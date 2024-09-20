@@ -51,7 +51,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const isBankAccountVerified = bankAccountsList?.[paymentBankAccountID]?.accountData?.approvedBy !== 'Automatic';
+    // TODO: change approvedBy check for more accurate verification status
+    const isBankAccountVerified = bankAccountsList?.[paymentBankAccountID]?.accountData?.approvedBy === 'Automatic';
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
@@ -128,6 +129,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
             {shouldUseNarrowLayout && isBankAccountVerified && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView
+                    areHeaderButtonsDisplayed={isBankAccountVerified}
                     title={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'issueAndManageCards' : 'verificationInProgress'}`)}
                     subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
                 />
