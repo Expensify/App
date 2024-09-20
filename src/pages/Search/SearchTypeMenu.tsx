@@ -178,8 +178,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout));
+        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item ?? ({} as SaveSearchItem), key, shouldUseNarrowLayout));
     };
 
     const renderSavedSearchesSection = useCallback(
