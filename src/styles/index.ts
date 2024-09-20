@@ -3603,29 +3603,17 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchPressable: {
-            height: variables.componentSizeNormal,
-        },
-
-        searchContainer: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingHorizontal: 24,
-            backgroundColor: theme.hoverComponentBG,
-            borderRadius: variables.componentBorderRadiusRounded,
-            justifyContent: 'center',
-        },
-
-        searchContainerHovered: {
-            backgroundColor: theme.border,
-        },
-
         searchInputStyle: {
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
+        },
+
+        searchRouterInputStyle: {
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderWidth: 2,
+            borderColor: theme.borderFocus,
+            paddingHorizontal: 8,
         },
 
         searchTableHeaderActive: {
@@ -4332,10 +4320,6 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
             alignItems: 'center',
             marginBottom: 8,
-        },
-
-        purposeMenuItemSelected: {
-            backgroundColor: theme.activeComponentBG,
         },
 
         willChangeTransform: {
@@ -5107,6 +5091,11 @@ const styles = (theme: ThemeColors) =>
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
+        },
+
+        pendingStateCardIllustration: {
+            width: 233,
+            height: 162,
         },
 
         computerIllustrationContainer: {
