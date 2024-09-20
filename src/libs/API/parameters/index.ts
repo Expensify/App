@@ -305,12 +305,15 @@ export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyComp
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
+export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
+export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
+export type {default as ExportMembersSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';
