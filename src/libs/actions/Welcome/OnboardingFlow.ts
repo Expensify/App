@@ -19,10 +19,6 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
-});
-
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
     key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
