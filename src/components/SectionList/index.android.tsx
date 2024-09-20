@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import {AnimatedSectionList} from '.';
+import AnimatedSectionList from './AnimatedSectionList';
 import type {SectionListProps, SectionListRef} from './types';
 
 function SectionListWithRef<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, ref: SectionListRef<ItemT, SectionT>) {

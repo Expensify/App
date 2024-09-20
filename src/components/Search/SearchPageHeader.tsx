@@ -144,7 +144,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
 
     const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
-
+    console.log('%%%%%\n', 'isDeleteExpensesConfirmModalVisible', isDeleteExpensesConfirmModalVisible);
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
@@ -234,7 +234,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-
+                    console.log('i go here');
                     setIsDeleteExpensesConfirmModalVisible(true);
                 },
             });
