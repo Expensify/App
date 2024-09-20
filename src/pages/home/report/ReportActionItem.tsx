@@ -64,7 +64,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -81,11 +80,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-
-type ReportActionItemOnyxProps = {
-    /** IOU report for this action, if any */
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-};
 
 type ReportActionItemProps = {
     /** Report for this action */
@@ -142,7 +136,7 @@ type ReportActionItemProps = {
 
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
-} & ReportActionItemOnyxProps;
+};
 
 function ReportActionItem({
     action,
@@ -151,7 +145,6 @@ function ReportActionItem({
     linkedReportActionID,
     displayAsGroup,
     index,
-    iouReport,
     isMostRecentIOUReportAction,
     parentReportAction,
     shouldDisplayNewMarker,
@@ -195,8 +188,11 @@ function ReportActionItem({
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`, {
-        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null
-    })
+        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
+    });
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action) ?? -1}`, {
+        initialValue: {} as OnyxTypes.Report
+    });
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1000,47 +996,36 @@ function ReportActionItem({
     );
 }
 
-export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
-    iouReport: {
-        key: ({action}) => {
-            const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? -1}`;
-        },
-        initialValue: {} as OnyxTypes.Report,
-    },
-})(
-    memo(ReportActionItem, (prevProps, nextProps) => {
-        const prevParentReportAction = prevProps.parentReportAction;
-        const nextParentReportAction = nextProps.parentReportAction;
-        return (
-            prevProps.displayAsGroup === nextProps.displayAsGroup &&
-            prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
-            prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-            lodashIsEqual(prevProps.action, nextProps.action) &&
-            lodashIsEqual(prevProps.iouReport, nextProps.iouReport) &&
-            lodashIsEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
-            lodashIsEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
-            lodashIsEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
-            prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum &&
-            prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
-            prevProps.report?.parentReportActionID === nextProps.report?.parentReportActionID &&
-            // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
-            ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
-            prevProps.action.actionName === nextProps.action.actionName &&
-            prevProps.report.reportName === nextProps.report.reportName &&
-            prevProps.report.description === nextProps.report.description &&
-            ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
-            prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-            prevProps.report?.total === nextProps.report?.total &&
-            prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
-            prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
-            lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
-            lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-            lodashIsEqual(prevParentReportAction, nextParentReportAction)
-        );
-    }),
-);
+export default memo(ReportActionItem, (prevProps, nextProps) => {
+    const prevParentReportAction = prevProps.parentReportAction;
+    const nextParentReportAction = nextProps.parentReportAction;
+    return (
+        prevProps.displayAsGroup === nextProps.displayAsGroup &&
+        prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
+        prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
+        lodashIsEqual(prevProps.action, nextProps.action) &&
+        lodashIsEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+        lodashIsEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
+        lodashIsEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
+        prevProps.report?.statusNum === nextProps.report?.statusNum &&
+        prevProps.report?.stateNum === nextProps.report?.stateNum &&
+        prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
+        prevProps.report?.parentReportActionID === nextProps.report?.parentReportActionID &&
+        // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
+        ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
+        prevProps.action.actionName === nextProps.action.actionName &&
+        prevProps.report.reportName === nextProps.report.reportName &&
+        prevProps.report.description === nextProps.report.description &&
+        ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
+        prevProps.report.managerID === nextProps.report.managerID &&
+        prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
+        prevProps.report?.total === nextProps.report?.total &&
+        prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
+        prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
+        prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+        lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
+        lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+        lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
+        lodashIsEqual(prevParentReportAction, nextParentReportAction)
+    );
+});
