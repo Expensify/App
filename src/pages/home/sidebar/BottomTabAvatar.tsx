@@ -54,11 +54,6 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
-        if (route.name === SCREENS.WORKSPACE.INITIAL) {
-            Navigation.dismissModal();
-            return;
-        }
-
         interceptAnonymousUser(() => {
             const rootState = navigationRef.getRootState();
             const lastSettingsOrWorkspaceNavigatorRoute = rootState.routes.findLast(
