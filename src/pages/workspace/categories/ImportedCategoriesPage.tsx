@@ -33,7 +33,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -53,11 +52,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const columnRoles = getColumnRoles();
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
-
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
-
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
@@ -111,6 +105,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             importPolicyCategories(policyID, categories);
         }
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
+
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
