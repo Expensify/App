@@ -305,9 +305,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     ratesToUpdate.forEach((rate) => {
         const rateID = rate.customUnitRateID ?? '';
         optimisticRates[rateID] = {
-            ...rate,
             attributes: {
-                ...rate?.attributes,
                 taxRateExternalID: null,
                 taxClaimablePercentage: null,
             },
@@ -316,7 +314,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         };
-        successRates[rateID] = {...rate, pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null}};
+        successRates[rateID] = {pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null}};
         failureRates[rateID] = {
             attributes: {...rate?.attributes},
             pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
