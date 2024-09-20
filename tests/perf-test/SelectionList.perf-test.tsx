@@ -76,6 +76,14 @@ jest.mock('../../src/hooks/useKeyboardState', () => ({
     })),
 }));
 
+jest.mock('../../src/hooks/useScreenWrapperTransitionStatus', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true, // Required in order to ensures ES6 module compatibility
+    default: jest.fn(() => ({
+        didScreenTransitionEnd: true,
+    })),
+}));
+
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
