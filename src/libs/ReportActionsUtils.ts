@@ -215,11 +215,11 @@ function isActionOfType<T extends ReportActionName[]>(
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line
         return reportAction?.message ?? reportAction?.originalMessage;
     }
 
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line
     return reportAction.originalMessage;
 }
 
@@ -596,7 +596,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 
     // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
     // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line
     if (String(reportAction.sequenceNumber) === key) {
         Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
         return true;
@@ -1771,7 +1771,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line
     getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,
