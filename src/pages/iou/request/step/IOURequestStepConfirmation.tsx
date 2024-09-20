@@ -631,7 +631,6 @@ function IOURequestStepConfirmation({
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                             onGrant={() => {
-                                IOU.updateLastLocationPermissionPrompt();
                                 createTransaction(selectedParticipantList, true);
                             }}
                             onDeny={() => {
