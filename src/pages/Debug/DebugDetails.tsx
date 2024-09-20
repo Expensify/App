@@ -166,7 +166,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             />
                         );
                     })}
-                    {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
+                    {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.numberFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
@@ -182,7 +182,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
                         />
                     ))}
-                    {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
+                    {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.constantFields')}</Text>
                 <View style={styles.mb5}>
@@ -196,7 +196,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             defaultValue={String(value)}
                         />
                     ))}
-                    {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
+                    {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.dateTimeFields')}</Text>
                 <View style={styles.mb5}>
@@ -210,7 +210,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             defaultValue={String(value)}
                         />
                     ))}
-                    {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
+                    {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.booleanFields')}</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
@@ -224,7 +224,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             defaultValue={value}
                         />
                     ))}
-                    {booleanFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
+                    {booleanFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>
