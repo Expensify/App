@@ -36,11 +36,11 @@ import SearchRouterInput from './SearchRouter/SearchRouterInput';
 import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
-    content: string;
+    text: string;
     isCannedQuery: boolean;
 };
 
-function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps) {
     const styles = useThemeStyles();
 
     // If the icon is present, the header bar should be taller and use different font.
@@ -61,7 +61,7 @@ function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperPr
                             additionalStyles={[styles.mr2]}
                         />
                     )}
-                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{content}</Text>} />
+                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
                 </View>
             ) : (
@@ -70,8 +70,7 @@ function HeaderWrapper({icon, children, content, isCannedQuery}: HeaderWrapperPr
                         disabled
                         isFullWidth
                         wrapperStyle={styles.searchRouterInputResultsStyle}
-                        defaultValue={content}
-                        shouldShowRightComponent
+                        defaultValue={text}
                         rightComponent={children}
                     />
                 </View>
@@ -144,7 +143,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
 
     const headerIcon = getHeaderContent(type).icon;
-    const headerContent = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -290,7 +289,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     return (
         <HeaderWrapper
             icon={headerIcon}
-            content={headerContent}
+            text={headerText}
             isCannedQuery={isCannedQuery}
         >
             {headerButtonsOptions.length > 0 ? (

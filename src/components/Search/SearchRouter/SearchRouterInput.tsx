@@ -8,8 +8,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
+    /** Callback triggered when the input text changes */
     onChange?: (searchTerm: string) => void;
 
+    /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
     /** Whether the input is full width */
@@ -24,14 +26,11 @@ type SearchRouterInputProps = {
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Should render component on the right */
-    shouldShowRightComponent?: boolean;
-
     /** Component to be displayed on the right */
     rightComponent?: ReactNode;
 };
 
-function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', disabled = false, wrapperStyle, shouldShowRightComponent = false, rightComponent}: SearchRouterInputProps) {
+function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', disabled = false, wrapperStyle, rightComponent}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
     const [value, setValue] = useState(defaultValue);
@@ -61,7 +60,7 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
                     autoCapitalize="none"
                 />
             </View>
-            {shouldShowRightComponent && rightComponent}
+            {rightComponent}
         </View>
     );
 }
