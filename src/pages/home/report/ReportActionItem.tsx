@@ -86,8 +86,6 @@ type ReportActionItemOnyxProps = {
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
-    emojiReactions: OnyxEntry<OnyxTypes.ReportActionReactions>;
-
     /** The transaction (linked with the report action) route error */
     linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
@@ -155,7 +153,6 @@ function ReportActionItem({
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
-    emojiReactions,
     index,
     iouReport,
     isMostRecentIOUReportAction,
@@ -200,6 +197,7 @@ function ReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1011,10 +1009,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    emojiReactions: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
-        initialValue: {},
-    },
     linkedTransactionRouteError: {
         key: ({action}) =>
             `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
@@ -1028,7 +1022,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-            lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             lodashIsEqual(prevProps.action, nextProps.action) &&
             lodashIsEqual(prevProps.iouReport, nextProps.iouReport) &&
             lodashIsEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
