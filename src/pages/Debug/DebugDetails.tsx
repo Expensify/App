@@ -42,11 +42,13 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
+    const arr = [];
+    arr[2] = 'lalala';
     const booleanFields = useMemo(
         () =>
             Object.entries(data ?? {})
                 .filter(([, value]) => typeof value === 'boolean')
-                .sort((a, b) => a[0].localeCompare(b[0])) as Array<[string, boolean]>,
+                .sort((a, b) => a.at(0).localeCompare(b[0])) as Array<[string, boolean]>,
         [data],
     );
     const constantFields = useMemo(
