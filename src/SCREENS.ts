@@ -516,7 +516,7 @@ const SCREENS = {
         PURPOSE: 'Onboarding_Purpose',
         WORK: 'Onboarding_Work',
         EMPLOYEES: 'Onboarding_Employees',
-        ACCOUNTING: 'Onboarding_accounting',
+        ACCOUNTING: 'Onboarding_Accounting',
     },
 
     WELCOME_VIDEO: {
