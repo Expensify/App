@@ -14,6 +14,8 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,6 +33,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -50,6 +53,10 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const columnRoles = getColumnRoles();
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
+
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
