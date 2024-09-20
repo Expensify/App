@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
@@ -139,10 +139,10 @@ function ReportPreview({
         ...styles.alignItemsCenter,
         opacity: previewMessageOpacity.value,
     }));
-    const checkMarkOpacity = useSharedValue(iouSettled ? 1 : 0);
+    const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
     const checkMarkStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
-        opacity: checkMarkOpacity.value,
+        transform: [{scale: checkMarkScale.value}],
     }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
@@ -427,11 +427,11 @@ function ReportPreview({
 
         if (isPaidAnimationRunning) {
             // eslint-disable-next-line react-compiler/react-compiler
-            checkMarkOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION});
+            checkMarkScale.value = withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
         } else {
-            checkMarkOpacity.value = 1;
+            checkMarkScale.value = 1;
         }
-    }, [isPaidAnimationRunning, iouSettled, checkMarkOpacity]);
+    }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
     return (
         <OfflineWithFeedback
