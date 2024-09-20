@@ -59,7 +59,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
-import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -285,12 +284,6 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
-});
-
-let onboarding: OnyxEntry<Onboarding | []>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => (onboarding = value),
 });
 
 /**
@@ -7516,9 +7509,8 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
  */
 function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
-    const hasCompletedGuidedSetup = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
 
-    if (hasCompletedGuidedSetup ?? isInviteOnboardingComplete ?? !introSelected?.choice) {
+    if (isInviteOnboardingComplete ?? !introSelected?.choice) {
         return;
     }
 

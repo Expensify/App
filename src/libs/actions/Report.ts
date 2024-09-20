@@ -100,7 +100,6 @@ import type {
     ReportActionReactions,
     ReportUserIsTyping,
 } from '@src/types/onyx';
-import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
@@ -275,12 +274,6 @@ Onyx.connect({
 
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
-
-let onboarding: OnyxEntry<Onboarding | []>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => (onboarding = value),
-});
 
 registerPaginationConfig({
     initialCommand: WRITE_COMMANDS.OPEN_REPORT,
@@ -853,18 +846,21 @@ function openReport(
     };
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? true;
-    const hasCompletedGuidedSetup = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
 
-    if (!hasCompletedGuidedSetup && introSelected && !isInviteOnboardingComplete) {
+    if (introSelected && !isInviteOnboardingComplete) {
         const {choice, inviteType} = introSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
         if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
             const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
-            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+            if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
+                const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
+                onboardingMessage.tasks = updatedTasks;
+            }
 
-            Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
+            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+            introSelected.isInviteOnboardingComplete = true;
 
             optimisticData.push(...onboardingData.optimisticData, {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1022,6 +1018,7 @@ function openReport(
             paginationConfig,
         ).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+            Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
