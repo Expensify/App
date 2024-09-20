@@ -9,7 +9,6 @@ import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
 import {EnvironmentProvider} from '@src/components/withEnvironment';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import './fonts.css';
 
@@ -22,9 +21,7 @@ Onyx.init({
 
 const decorators = [
     (Story: React.ElementType) => (
-        <ComposeProviders
-            components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider, WindowDimensionsProvider]}
-        >
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider]}>
             <Story />
         </ComposeProviders>
     ),

@@ -37,9 +37,6 @@ const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 
-// Some existing old commands (6+ years) exempted from the auth writes count check
-const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
-
 /**
  * The API commands that require the skew calculation
  */
@@ -133,15 +130,12 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 });
             }
 
-            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR && !exemptedCommandsWithAuthWrites.includes(response.data?.phpCommandName ?? '')) {
-                if (response.data) {
-                    const {phpCommandName, authWriteCommands} = response.data;
-                    // eslint-disable-next-line max-len
-                    const message = `The API call (${phpCommandName}) did more Auth write requests than allowed. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
-                        ', ',
-                    )}. Check the APIWriteCommands class in Web-Expensify`;
-                    alert('Too many auth writes', message);
-                }
+            if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
+                const {phpCommandName, authWriteCommands} = response.data;
+                const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
+                    ', ',
+                )}. If you modified this command, you MUST refactor it to remove the extra Auth writes. Otherwise, update the allowed write count in Web-Expensify APIWriteCommands.`;
+                alert('Too many auth writes', message);
             }
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue

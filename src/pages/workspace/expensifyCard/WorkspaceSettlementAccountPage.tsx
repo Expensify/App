@@ -53,11 +53,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         const options = eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
             return {
-                value: bankAccount.accountData?.bankAccountID,
+                value: bankAccountID,
                 text: bankAccount.title,
                 leftElement: icon && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
@@ -70,16 +71,15 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     </View>
                 ),
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: bankAccount.accountData?.bankAccountID?.toString(),
-                isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
+                keyForList: bankAccountID?.toString(),
+                isSelected: bankAccountID === paymentBankAccountID,
             };
         });
         return options;
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
-        Card.updateSettlementAccount(workspaceAccountID, domainName, value, paymentBankAccountID);
+        Card.updateSettlementAccount(workspaceAccountID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 

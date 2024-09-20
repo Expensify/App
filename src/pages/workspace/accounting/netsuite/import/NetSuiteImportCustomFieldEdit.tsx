@@ -12,6 +12,7 @@ import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/act
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -72,9 +73,21 @@ function NetSuiteImportCustomFieldEdit({
                 });
 
                 if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
-                    updateNetSuiteCustomSegments(policyID, updatedRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
+                    updateNetSuiteCustomSegments(
+                        policyID,
+                        updatedRecords as NetSuiteCustomSegment[],
+                        allRecords as NetSuiteCustomSegment[],
+                        `${importCustomField}_${valueIndex}`,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    );
                 } else {
-                    updateNetSuiteCustomLists(policyID, updatedRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
+                    updateNetSuiteCustomLists(
+                        policyID,
+                        updatedRecords as NetSuiteCustomList[],
+                        allRecords as NetSuiteCustomList[],
+                        `${importCustomField}_${valueIndex}`,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    );
                 }
             }
 
@@ -115,7 +128,7 @@ function NetSuiteImportCustomFieldEdit({
                     submitButtonText={translate('common.save')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
-                    isSubmitDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                    isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -129,7 +142,7 @@ function NetSuiteImportCustomFieldEdit({
                     />
                 </FormProvider>
             ),
-        [config?.syncOptions?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
+        [config?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate, valueIndex],
     );
 
     const renderSelection = useMemo(

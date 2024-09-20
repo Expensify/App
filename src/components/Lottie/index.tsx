@@ -1,39 +1,97 @@
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useContext, useEffect, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
-import useSplashScreen from '@hooks/useSplashScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
+import CONST from '@src/CONST';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
+    shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieView>) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, ref: ForwardedRef<LottieView>) {
     const appState = useAppState();
-    const {isSplashHidden} = useSplashScreen();
+    const {splashScreenState} = useSplashScreenStateContext();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
 
     useNetwork({onReconnect: () => setIsError(false)});
 
     const [animationFile, setAnimationFile] = useState<string | AnimationObject | {uri: string}>();
+    const [isInteractionComplete, setIsInteractionComplete] = useState(false);
 
     useEffect(() => {
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
 
+    useEffect(() => {
+        if (!shouldLoadAfterInteractions) {
+            return;
+        }
+
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            setIsInteractionComplete(true);
+        });
+
+        return () => {
+            interactionTask.cancel();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
-    // If the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
+    const browser = Browser.getBrowser();
+    const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
+    const navigationContainerRef = useContext(NavigationContainerRefContext);
+    const navigator = useContext(NavigationContext);
+
+    useEffect(() => {
+        if (!browser || !navigationContainerRef || !navigator) {
+            return;
+        }
+        const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
+            setHasNavigatedAway(false);
+        });
+        return unsubscribeNavigationFocus;
+    }, [browser, navigationContainerRef, navigator]);
+
+    useEffect(() => {
+        if (!browser || !navigationContainerRef || !navigator) {
+            return;
+        }
+        const unsubscribeNavigationBlur = navigator.addListener('blur', () => {
+            const state = navigationContainerRef.getRootState();
+            const targetRouteName = state?.routes?.[state?.index ?? 0]?.name;
+            if (!isSideModalNavigator(targetRouteName)) {
+                setHasNavigatedAway(true);
+            }
+        });
+        return unsubscribeNavigationBlur;
+    }, [browser, navigationContainerRef, navigator]);
+
+    // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
     // we'll just render an empty view as the fallback to prevent
     // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
-    // 2. heavy rendering, see issue: https://github.com/Expensify/App/issues/34696
-    if (isError || appState.isBackground || !animationFile || !isSplashHidden) {
+    // 2. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
+    // 3. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
+    if (
+        hasNavigatedAway ||
+        isError ||
+        appState.isBackground ||
+        !animationFile ||
+        splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+        (!isInteractionComplete && shouldLoadAfterInteractions)
+    ) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 

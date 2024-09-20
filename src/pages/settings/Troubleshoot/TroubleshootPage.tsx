@@ -57,11 +57,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            let dataToShare = value;
-            if (shouldMaskOnyxState) {
-                dataToShare = ExportOnyxState.maskFragileData(value);
-            }
-
+            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);

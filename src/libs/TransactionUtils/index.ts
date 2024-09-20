@@ -16,6 +16,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -183,6 +184,11 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
+/** Check if the receipt has the source file */
+function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return !!transaction?.receipt?.source;
+}
+
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -255,7 +261,14 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
+        updatedTransaction.comment = {
+            ...(updatedTransaction?.comment ?? {}),
+            customUnit: {
+                ...updatedTransaction?.comment?.customUnit,
+                customUnitRateID: transactionChanges.customUnitRateID,
+                defaultP2PRate: null,
+            },
+        };
         shouldStopSmartscan = true;
     }
 
@@ -824,7 +837,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();
+    return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
 /**
@@ -904,6 +917,14 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
+function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
+    return transactionIDs.filter(
+        (transactionID) =>
+            !ReportUtils.isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID) &&
+            !ReportUtils.isReportApproved(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
+    );
+}
+
 /**
  * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
  *
@@ -925,7 +946,7 @@ type FieldsToChange = {
 function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1039,7 +1060,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID ?? '',
-        transactionIDList: reviewDuplicates?.duplicates ?? [],
+        transactionIDList: removeSettledAndApprovedTransactions(reviewDuplicates?.duplicates ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -1125,7 +1146,9 @@ export {
     buildTransactionsMergeParams,
     getReimbursable,
     isPayAtEndExpense,
+    removeSettledAndApprovedTransactions,
     getCardName,
+    hasReceiptSource,
 };
 
 export type {TransactionChanges};
