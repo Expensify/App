@@ -1,10 +1,14 @@
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import withPrepareCentralPaneScreen from '@src/components/withPrepareCentralPaneScreen';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import getRootNavigatorScreenOptions from '../getRootNavigatorScreenOptions';
 
 const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 
@@ -25,6 +29,11 @@ const CENTRAL_PANE_SETTINGS_SCREENS = {
 const Stack = createSplitStackNavigator<SettingsSplitNavigatorParamList>();
 
 function SettingsSplitNavigator() {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
+
     return (
         <FocusTrapForScreens>
             <Stack.Navigator
@@ -35,13 +44,22 @@ function SettingsSplitNavigator() {
                     name={SCREENS.SETTINGS.ROOT}
                     getComponent={loadInitialSettingsPage}
                 />
-                {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => (
-                    <Stack.Screen
-                        key={screenName}
-                        name={screenName as keyof Screens}
-                        getComponent={componentGetter}
-                    />
-                ))}
+                {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
+                    const options = {...screenOptions.centralPaneNavigator};
+
+                    if (screenName === SCREENS.SETTINGS.WORKSPACES) {
+                        options.animationEnabled = false;
+                    }
+
+                    return (
+                        <Stack.Screen
+                            key={screenName}
+                            name={screenName as keyof Screens}
+                            getComponent={componentGetter}
+                            options={options}
+                        />
+                    );
+                })}
             </Stack.Navigator>
         </FocusTrapForScreens>
     );
