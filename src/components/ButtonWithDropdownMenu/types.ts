@@ -68,6 +68,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
+
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
     options: Array<DropdownOption<TValueType>>;

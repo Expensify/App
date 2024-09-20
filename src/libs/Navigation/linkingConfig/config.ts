@@ -478,6 +478,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
                             path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.route,
@@ -506,6 +508,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
@@ -690,11 +701,24 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
+                        [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_TAGS_IMPORTED.route,
+                        },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
                         },
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                orderWeight: Number,
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_APPROVER]: {
+                            path: ROUTES.WORKSPACE_TAG_APPROVER.route,
                             parse: {
                                 orderWeight: Number,
                                 tagName: (tagName: string) => decodeURIComponent(tagName),
@@ -1136,6 +1160,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {
+                    screens: {
+                        [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: ROUTES.SEARCH_SAVED_SEARCH_RENAME.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
                     screens: {
                         [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
@@ -1144,6 +1173,58 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
                         [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.DEBUG]: {
+                    screens: {
+                        [SCREENS.DEBUG.REPORT]: {
+                            path: ROUTES.DEBUG_REPORT.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_REPORT_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_REPORT_TAB_JSON.route,
+                                    exact: true,
+                                },
+                                actions: {
+                                    path: ROUTES.DEBUG_REPORT_TAB_ACTIONS.route,
+                                    exact: true,
+                                },
+                            },
+                        },
+                        [SCREENS.DEBUG.REPORT_ACTION]: {
+                            path: ROUTES.DEBUG_REPORT_ACTION.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_REPORT_ACTION_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_REPORT_ACTION_TAB_JSON.route,
+                                    exact: true,
+                                },
+                                preview: {
+                                    path: ROUTES.DEBUG_REPORT_ACTION_TAB_PREVIEW.route,
+                                    exact: true,
+                                },
+                            },
+                        },
+                        [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
+                            path: ROUTES.DEBUG_REPORT_ACTION_CREATE.route,
+                            exact: true,
+                        },
+                        [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+                            path: ROUTES.DETAILS_CONSTANT_PICKER_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
+                            path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
+                            exact: true,
+                        },
                     },
                 },
             },
