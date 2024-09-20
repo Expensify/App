@@ -598,7 +598,7 @@ function ComposerWithSuggestions(
     const clear = useCallback(() => {
         'worklet';
 
-        forceClearInput(animatedRef, textInputRef);
+        forceClearInput(animatedRef);
     }, [animatedRef]);
 
     const getCurrentText = useCallback(() => {
