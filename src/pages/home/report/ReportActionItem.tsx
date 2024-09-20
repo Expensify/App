@@ -88,9 +88,6 @@ type ReportActionItemOnyxProps = {
 
     emojiReactions: OnyxEntry<OnyxTypes.ReportActionReactions>;
 
-    /** The user's wallet account */
-    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
-
     /** The transaction (linked with the report action) route error */
     linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
@@ -164,7 +161,6 @@ function ReportActionItem({
     isMostRecentIOUReportAction,
     parentReportAction,
     shouldDisplayNewMarker,
-    userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
     onPress = undefined,
@@ -203,6 +199,7 @@ function ReportActionItem({
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
+    const userWallet = useOnyx(ONYXKEYS.USER_WALLET);
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1017,9 +1014,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     emojiReactions: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         initialValue: {},
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
     },
     linkedTransactionRouteError: {
         key: ({action}) =>
