@@ -24,7 +24,7 @@ import type {AccountData, BankAccount} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type AccountListItem = ListItem & {
+type BankAccountListItem = ListItem & {
     value?: number;
     bankAccount: BankAccount;
 };
@@ -59,7 +59,7 @@ function ChooseTransferAccountPage() {
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const selectedAccountID = walletTransfer?.selectedAccountID;
     const data = useMemo(() => {
-        const options = Object.values(bankAccountsList ?? {}).map((bankAccount): AccountListItem => {
+        const options = Object.values(bankAccountsList ?? {}).map((bankAccount): BankAccountListItem => {
             const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
             const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
