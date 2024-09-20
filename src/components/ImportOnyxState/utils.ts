@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep';
 import type {UnknownRecord} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -9,7 +10,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
-    const dataCopy = {...data};
+    const dataCopy = cloneDeep(data);
     if (typeof dataCopy !== 'object' || dataCopy === null) {
         return dataCopy;
     }
