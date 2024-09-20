@@ -1119,7 +1119,7 @@ When using `SelectionList` alongside other components (e.g., `Text`, `Button`), 
 
 ## Solution
 
-The correct approach is to replace Avoid using `ScrollView`. You can add props like `ListHeaderComponent` and `ListFooterComponent` to add other components before or after the list while keeping the layout scrollable.
+The correct approach is avoid using `ScrollView`. You can add props like `listHeaderComponent` and `listFooterComponent` to add other components before or after the list while keeping the layout scrollable.
 
 ## Wrong Approach (Using `SelectionList`)
 
