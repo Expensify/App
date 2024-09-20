@@ -854,6 +854,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
     },
+    WORKSPACE_TAG_APPROVER: {
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${tagName}/approver` as const,
+    },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
         getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tag-list/${orderWeight}` as const,
@@ -1474,6 +1478,14 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable/destination',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/destination',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/destination` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',

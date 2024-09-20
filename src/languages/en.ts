@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {startCase} from 'lodash';
+import startCase from 'lodash/startCase';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -3198,6 +3198,8 @@ export default {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            tagRules: 'Tag rules',
+            approverDescription: 'Approver',
             importTags: 'Import tags',
             importedTagsMessage: (columnCounts: number) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
