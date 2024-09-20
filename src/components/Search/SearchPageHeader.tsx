@@ -58,7 +58,7 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
                 }
                 subtitle={
                     <Text
-                        numberOfLines={2}
+                        numberOfLines={1}
                         style={[styles.textLarge, subtitleStyles]}
                     >
                         {subtitle}
