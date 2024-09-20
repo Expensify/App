@@ -73,6 +73,7 @@ import type {
     GoToRoomParams,
     ImportedTagsMessageParams,
     ImportFieldParams,
+    ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
     IncorrectZipFormatParams,
     InstantSummaryParams,
@@ -755,6 +756,7 @@ const translations = {
         singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
@@ -3255,6 +3257,8 @@ const translations = {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            tagRules: 'Tag rules',
+            approverDescription: 'Approver',
             importTags: 'Import tags',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
@@ -3337,6 +3341,7 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
+            importMembers: 'Import members',
         },
         card: {
             header: 'Unlock free Expensify Cards',

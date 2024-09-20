@@ -538,7 +538,12 @@ type ImportedTagsMessageParams = {
     columnCounts: number;
 };
 
+type ImportMembersSuccessfullDescriptionParams = {
+    members: number;
+};
+
 export type {
+    ImportMembersSuccessfullDescriptionParams,
     ImportedTagsMessageParams,
     ImportTagsSuccessfullDescriptionParams,
     MissingPropertyParams,

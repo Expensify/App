@@ -72,6 +72,7 @@ import type {
     GoToRoomParams,
     ImportedTagsMessageParams,
     ImportFieldParams,
+    ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
     IncorrectZipFormatParams,
     InstantSummaryParams,
@@ -750,6 +751,7 @@ const translations = {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importSuccessfullTitle: 'Importar categorías',
         importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
@@ -3304,6 +3306,8 @@ const translations = {
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
+            tagRules: 'Reglas de etiquetas',
+            approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
@@ -3386,6 +3390,7 @@ const translations = {
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
+            importMembers: 'Importar miembros',
         },
         accounting: {
             settings: 'configuración',

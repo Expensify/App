@@ -995,6 +995,17 @@ function getWorkspaceAccountID(policyID: string) {
     return policy.workspaceAccountID ?? 0;
 }
 
+function getTagApproverRule(policyID: string, tagName: string) {
+    const policy = getPolicy(policyID);
+
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const approverRule = approvalRules.find((rule) =>
+        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.TAG && value === tagName),
+    );
+
+    return approverRule;
+}
+
 function getDomainNameForPolicy(policyID?: string): string {
     if (!policyID) {
         return '';
@@ -1115,6 +1126,7 @@ export {
     getWorkspaceAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
+    getTagApproverRule,
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
