@@ -52,7 +52,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const columnRoles = getColumnRoles();
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
-    
+
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
