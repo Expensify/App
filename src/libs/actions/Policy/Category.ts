@@ -18,6 +18,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -27,6 +28,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -519,7 +521,27 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
+    const policy = PolicyUtils.getPolicy(policyID);
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
+
+    const policyCategoryRule = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], policyCategory.oldName);
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
+
+    // Its related by name, so the corresponding rule has to be updated to handle offline scenario
+    if (policyCategoryRule) {
+        const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyCategoryRule.id);
+        policyCategoryRule.applyWhen = policyCategoryRule.applyWhen.map((ruleCondition) => {
+            const {value, field, condition} = ruleCondition;
+
+            if (value === policyCategory.oldName && field === CONST.POLICY.FIELDS.CATEGORY && condition === CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+                return {...ruleCondition, value: policyCategory.newName};
+            }
+
+            return ruleCondition;
+        });
+        updatedApprovalRules[indexToUpdate] = policyCategoryRule;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -537,6 +559,15 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         previousCategoryName: policyCategory.oldName,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: updatedApprovalRules,
                     },
                 },
             },
@@ -571,6 +602,15 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         name: policyCategory.oldName,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules,
                     },
                 },
             },
@@ -1001,17 +1041,19 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
-function downloadCategoriesCSV(policyID: string) {
+function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
         policyID,
     });
+
+    const fileName = 'Categories.csv';
 
     const formData = new FormData();
     Object.entries(finalParameters).forEach(([key, value]) => {
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), 'Categories.csv', '', false, formData, CONST.NETWORK.METHOD.POST);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
@@ -1150,7 +1192,8 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const approvalRules = policy?.rules?.approvalRules ?? [];
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
-    const existingCategoryApproverRule = updatedApprovalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
+
     let newApprover = approver;
 
     if (!existingCategoryApproverRule) {
@@ -1158,7 +1201,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
             approver,
             applyWhen: [
                 {
-                    condition: 'matches',
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
                     field: 'category',
                     value: categoryName,
                 },
@@ -1180,26 +1223,11 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 value: {
                     rules: {
                         approvalRules: updatedApprovalRules,
-                        pendingFields: {
-                            approvalRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
                     },
                 },
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        pendingFields: {
-                            approvalRules: null,
-                        },
-                    },
-                },
-            },
-        ],
+
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1207,9 +1235,6 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 value: {
                     rules: {
                         approvalRules,
-                        pendingFields: {
-                            approvalRules: null,
-                        },
                     },
                 },
             },
@@ -1226,7 +1251,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 }
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = PolicyUtils.getPolicy(policyID);
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
@@ -1241,7 +1266,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
             },
             applyWhen: [
                 {
-                    condition: 'matches',
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
                     field: 'category',
                     value: categoryName,
                 },
@@ -1260,22 +1285,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 value: {
                     rules: {
                         expenseRules: updatedExpenseRules,
-                        pendingFields: {
-                            expenseRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        pendingFields: {
-                            expenseRules: null,
-                        },
                     },
                 },
             },
@@ -1287,9 +1296,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 value: {
                     rules: {
                         expenseRules,
-                        pendingFields: {
-                            expenseRules: null,
-                        },
                     },
                 },
             },

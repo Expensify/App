@@ -128,7 +128,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
                         <View style={[styles.flexRow, styles.mt3]}>
                             <Button
-                                medium
                                 onPress={requestLimitIncrease}
                                 text={translate('workspace.expensifyCard.requestLimitIncrease')}
                                 style={shouldUseNarrowLayout && styles.flex1}

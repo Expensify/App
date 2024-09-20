@@ -1,4 +1,5 @@
-import {isEmpty, isEqual} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -205,9 +206,11 @@ function IOURequestStepDistance({
      */
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID, index.toString(), Navigation.getActiveRoute()));
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID ?? reportID, index.toString(), Navigation.getActiveRoute()),
+            );
         },
-        [action, transactionID, report?.reportID],
+        [action, transactionID, report?.reportID, reportID],
     );
 
     const navigateToParticipantPage = useCallback(() => {

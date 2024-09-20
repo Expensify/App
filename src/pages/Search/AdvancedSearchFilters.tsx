@@ -1,19 +1,21 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys} from '@components/Search/types';
+import type {AdvancedFiltersKeys, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -173,7 +175,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         filters[fieldName]
     ) {
         const filterArray = filters[fieldName] ?? [];
-        return filterArray.join(', ');
+        return filterArray.sort(localeCompare).join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
@@ -220,22 +222,39 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const onFormSubmit = () => {
-        const query = SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters);
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
+
+    const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query,
+                query: queryString,
             }),
         );
+    };
+
+    const onSaveSearch = () => {
+        const savedSearchKeys = Object.keys(savedSearches ?? {});
+        if (savedSearches && savedSearchKeys.includes(String(queryJSON.hash))) {
+            // If the search is already saved, return early to prevent unnecessary API calls
+            Navigation.dismissModal();
+            return;
+        }
+
+        SearchActions.saveSearch({
+            queryJSON,
+        });
+
+        applyFiltersAndNavigate();
     };
 
     const filters = typeFiltersKeys[currentType].map((key) => {
@@ -296,10 +315,19 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
+
+            {!SearchUtils.isCannedSearchQuery(queryJSON) && (
+                <Button
+                    text={translate('search.saveSearch')}
+                    onPress={onSaveSearch}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
-                onSubmit={onFormSubmit}
+                onSubmit={applyFiltersAndNavigate}
                 enabledWhenOffline
             />
         </>
