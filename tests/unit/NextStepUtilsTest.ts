@@ -113,7 +113,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -143,7 +148,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -173,7 +183,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -203,7 +218,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -234,7 +254,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -267,7 +292,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {
@@ -298,7 +328,12 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}'s`,
+                            text: `${currentUserEmail}`,
+                            clickToCopyText: `${currentUserEmail}`,
+                            type: 'strong',
+                        },
+                        {
+                            text: "'s",
                             type: 'strong',
                         },
                         {

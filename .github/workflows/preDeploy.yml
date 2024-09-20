@@ -13,6 +13,9 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  prettier:
+    uses: ./.github/workflows/prettier.yml
+
   test:
     uses: ./.github/workflows/test.yml
 

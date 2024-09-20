@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import deburr from 'lodash/deburr';
 import CONST from '@src/CONST';
 
 /**
@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
  * @returns The sanitized string
  */
 function sanitizeString(str: string): string {
-    return _.deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
+    return deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
 }
 
 /**
