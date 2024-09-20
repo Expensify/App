@@ -4,7 +4,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -64,19 +64,7 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeOnyxProps = {
-    /** The NVP describing a user's block status */
-    blockedFromConcierge: OnyxEntry<OnyxTypes.BlockedFromConcierge>;
-
-    /** Whether the composer input should be shown */
-    shouldShowComposeInput: OnyxEntry<boolean>;
-
-    /** Whether user is currently using the imported state */
-    isUsingImportedState: OnyxEntry<boolean>;
-};
-
-type ReportActionComposeProps = ReportActionComposeOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
+type ReportActionComposeProps = WithCurrentUserPersonalDetailsProps &
     Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string) => void;
@@ -113,7 +101,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 let onSubmitAction = noop;
 
 function ReportActionCompose({
-    blockedFromConcierge,
     currentUserPersonalDetails,
     disabled = false,
     isComposerFullSize = false,
@@ -121,14 +108,12 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     isEmptyChat,
     lastReportAction,
     shouldShowEducationalTooltip,
     onComposerFocus,
     onComposerBlur,
-    isUsingImportedState,
 }: ReportActionComposeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -138,6 +123,9 @@ function ReportActionCompose({
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const navigation = useNavigation();
+    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: true});
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
 
     /**
      * Updates the Highlight state of the composer
@@ -581,18 +569,6 @@ function ReportActionCompose({
 
 ReportActionCompose.displayName = 'ReportActionCompose';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<ReportActionComposeProps, ReportActionComposeOnyxProps>({
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        shouldShowComposeInput: {
-            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-        isUsingImportedState: {
-            key: ONYXKEYS.IS_USING_IMPORTED_STATE,
-        },
-    })(memo(ReportActionCompose)),
-);
+export default withCurrentUserPersonalDetails(memo(ReportActionCompose));
 export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};
