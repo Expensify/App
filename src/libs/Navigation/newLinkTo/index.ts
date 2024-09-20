@@ -24,7 +24,7 @@ function shouldDispatchAction(currentState: NavigationState<RootStackParamList>,
     return true;
 }
 
-export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route) {
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -49,7 +49,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         return;
     }
 
-    if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+    if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+        action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+    } else if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }

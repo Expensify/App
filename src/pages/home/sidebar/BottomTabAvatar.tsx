@@ -9,8 +9,10 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -52,7 +54,37 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
-        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
+        interceptAnonymousUser(() => {
+            const rootState = navigationRef.getRootState();
+            const lastSettingsOrWorkspaceNavigatorRoute = rootState.routes.findLast(
+                (rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+            );
+
+            // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
+            if (lastSettingsOrWorkspaceNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                const params = lastSettingsOrWorkspaceNavigatorRoute.params as AuthScreensParamList[typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR];
+
+                // Screens of this navigator should always have policyID
+                if ('params' in params && params.params?.policyID) {
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(params.params.policyID));
+                }
+                return;
+            }
+
+            // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
+            if (
+                lastSettingsOrWorkspaceNavigatorRoute &&
+                lastSettingsOrWorkspaceNavigatorRoute.state &&
+                lastSettingsOrWorkspaceNavigatorRoute.state.routes.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES
+            ) {
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                return;
+            }
+
+            // Otherwise we should simply open the settings navigator.
+            // This case also covers if there is no route to remember.
+            Navigation.navigate(ROUTES.SETTINGS);
+        });
     }, [isCreateMenuOpen, shouldUseNarrowLayout, route.name]);
 
     let children;
