@@ -1153,6 +1153,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        INCORRECT_MAGIC_CODE: 451,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
