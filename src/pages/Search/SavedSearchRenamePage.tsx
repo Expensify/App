@@ -35,7 +35,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
         SearchActions.saveSearch({
             queryJSON,
-            name: newName,
+            newName,
         });
 
         applyFiltersAndNavigate();
