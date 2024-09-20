@@ -3,7 +3,6 @@ import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {runOnUI, scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -67,11 +66,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
     const scrollToHeader = (headerIndex: number) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        runOnUI(() => {
-            'worklet';
-
-            scrollTo(emojiListRef, 0, calculatedOffset, true);
-        })();
+        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
     };
 
     /**
