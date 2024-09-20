@@ -298,7 +298,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
             />
         );
@@ -318,7 +317,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
             />
         );
