@@ -1,6 +1,6 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +82,7 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs: 1});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs: 1});
     });
 
     test('[SidebarLinks] should render list itmes', async () => {
@@ -104,7 +104,7 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should scroll through the list of items ', async () => {
@@ -142,7 +142,7 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should click on list item', async () => {
@@ -161,6 +161,6 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 });

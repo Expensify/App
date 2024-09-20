@@ -5,7 +5,7 @@ import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
@@ -187,7 +187,7 @@ test('[ChatFinderPage] should render list with cached options', async () => {
             }),
         )
         .then(() =>
-            measurePerformance(
+            measureRenders(
                 <ChatFinderPageWithCachedOptions
                     route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
                     navigation={navigation}
@@ -221,7 +221,7 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
             }),
         )
         .then(() =>
-            measurePerformance(
+            measureRenders(
                 <ChatFinderPageWrapper
                     route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
                     navigation={navigation}

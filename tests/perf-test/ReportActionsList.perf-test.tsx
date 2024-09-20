@@ -1,7 +1,7 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -123,7 +123,7 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });
 
 test('[ReportActionsList] should render list items', async () => {
@@ -138,7 +138,7 @@ test('[ReportActionsList] should render list items', async () => {
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });
 
 test('[ReportActionsList] should scroll through list of items', async () => {
@@ -170,5 +170,5 @@ test('[ReportActionsList] should scroll through list of items', async () => {
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
     });
 
-    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
 });
