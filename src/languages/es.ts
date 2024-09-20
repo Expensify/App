@@ -4118,6 +4118,7 @@ export default {
         expenseType: 'Tipo de gasto',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
+        searchIn: 'Buscar en ',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

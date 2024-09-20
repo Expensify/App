@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -23,16 +24,33 @@ const SEARCH_DEBOUNCE_DELAY = 200;
 
 function SearchRouter() {
     const styles = useThemeStyles();
-
+    const [betas] = useOnyx(`${ONYXKEYS.BETAS}`);
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+
     const [currentQuery, setCurrentQuery] = useState<SearchQueryJSON | undefined>(undefined);
+    const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
+        return state.routes.at(-1)?.params?.reportID;
+    });
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => {
         const dateA = new Date(a.timestamp);
         const dateB = new Date(b.timestamp);
         return dateB.getTime() - dateA.getTime();
     });
+
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: true,
+    });
+    const searchOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return [] as unknown as OptionsListUtils.Options;
+        }
+        const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
+        return optionList;
+    }, [areOptionsInitialized, betas, options]);
+
+    const contextualReportData = searchOptions.recentReports?.find((option) => option.reportID === contextualReportID);
 
     const clearUserQuery = () => {
         setCurrentQuery(undefined);
@@ -93,20 +111,6 @@ function SearchRouter() {
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.POPOVER;
     const isFullWidth = isSmallScreenWidth;
 
-    const {options, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: true,
-    });
-
-    const [betas] = useOnyx(`${ONYXKEYS.BETAS}`);
-
-    const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return [];
-        }
-        const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
-        return optionList.recentReports.slice(0, 5);
-    }, [areOptionsInitialized, betas, options]);
-
     return (
         <Modal
             type={modalType}
@@ -127,8 +131,9 @@ function SearchRouter() {
 
                     <SearchRouterList
                         currentSearch={currentQuery}
+                        reportForContextualSearch={contextualReportData}
                         recentSearches={sortedRecentSearches}
-                        recentReports={searchOptions}
+                        recentReports={searchOptions?.recentReports?.slice(0, 5)}
                         onRecentSearchSelect={onSearchSubmit}
                         closeAndClearRouter={closeAndClearRouter}
                     />

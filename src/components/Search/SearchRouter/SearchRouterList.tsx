@@ -20,6 +20,7 @@ type ItemWithQuery = {
 
 type SearchRouterListProps = {
     currentSearch: SearchQueryJSON | undefined;
+    reportForContextualSearch?: OptionData;
     recentSearches: ItemWithQuery[] | undefined;
     recentReports: OptionData[];
     onRecentSearchSelect: (query: SearchQueryJSON | undefined, shouldAddToRecentSearch?: boolean) => void;
@@ -42,7 +43,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SingleIconListI
     return <SingleIconListItem {...(props as SingleIconListItemProps<ListItemWithSingleIcon & ItemWithQuery>)} />;
 }
 
-function SearchRouterList({currentSearch, recentSearches, recentReports, onRecentSearchSelect, closeAndClearRouter}: SearchRouterListProps) {
+function SearchRouterList({currentSearch, reportForContextualSearch, recentSearches, recentReports, onRecentSearchSelect, closeAndClearRouter}: SearchRouterListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const sections: Array<SectionListDataType<OptionData | (ListItemWithSingleIcon & ItemWithQuery)>> = [];
@@ -56,6 +57,20 @@ function SearchRouterList({currentSearch, recentSearches, recentReports, onRecen
                     query: currentSearch?.inputQuery,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
+                },
+            ],
+        });
+    }
+
+    if (reportForContextualSearch) {
+        sections.push({
+            data: [
+                {
+                    text: `${translate('search.searchIn')}${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                    singleIcon: Expensicons.MagnifyingGlass,
+                    query: `in:${reportForContextualSearch.reportID}`,
+                    itemStyle: styles.activeComponentBG,
+                    keyForList: 'contextualSearch',
                 },
             ],
         });
