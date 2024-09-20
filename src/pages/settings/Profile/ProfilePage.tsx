@@ -170,7 +170,7 @@ function ProfilePage() {
                                 text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
                                 icon={Expensicons.QrCode}
-                                style={[styles.alignSelfStart, styles.pt3]}
+                                style={[styles.alignSelfStart, styles.mt6]}
                             />
                         </Section>
                         <Section
