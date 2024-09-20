@@ -85,9 +85,6 @@ import ReportAttachmentsContext from './ReportAttachmentsContext';
 type ReportActionItemOnyxProps = {
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The transaction (linked with the report action) route error */
-    linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
 
 type ReportActionItemProps = {
@@ -163,7 +160,6 @@ function ReportActionItem({
     onPress = undefined,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    linkedTransactionRouteError,
     hideThreadReplies = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
@@ -198,6 +194,9 @@ function ReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`, {
+        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null
+    })
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1009,11 +1008,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    linkedTransactionRouteError: {
-        key: ({action}) =>
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
-        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
-    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
@@ -1046,7 +1040,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-            lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),
