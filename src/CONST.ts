@@ -1153,6 +1153,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        INCORRECT_MAGIC_CODE: 451,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -2163,7 +2164,15 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
-        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        RULE_CONDITIONS: {
+            MATCHES: 'matches',
+        },
+        FIELDS: {
+            TAG: 'tag',
+            CATEGORY: 'category',
+            FIELD_LIST_TITLE: 'text_title',
+            TAX: 'tax',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
