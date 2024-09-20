@@ -456,13 +456,13 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
         params.referrer = referrer;
     }
 
-    ref.dispatch({
-        ...StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+    ref.dispatch(
+        StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
             policyID: null,
             screen: SCREENS.REPORT,
             params,
         }),
-    });
+    );
 }
 
 const dismissModal = (reportID?: string, ref = navigationRef) => {
