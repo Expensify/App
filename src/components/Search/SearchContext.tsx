@@ -1,6 +1,5 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import {isTransactionListItemType} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
@@ -22,7 +21,7 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
     return (data ?? [])
         .filter(
             (item) =>
-                !isTransactionListItemType(item) &&
+                !SearchUtils.isTransactionListItemType(item) &&
                 !SearchUtils.isReportActionListItemType(item) &&
                 item.reportID &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
@@ -45,7 +44,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     }, []);
 
     const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => {
-        // When selecting transaction we also have to manage reports to which these transactions belong to. We do this for sake of properly exporting to CSV.
+        // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
         const selectedReports = getReportsFromSelectedTransactions(data, selectedTransactions);
 
         setSearchContextData((prevState) => ({

@@ -19,10 +19,10 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchSelectionModeHeader from './SearchSelectedModeHeader';
+import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
 
-const TOO_CLOSE_TO_TOP_DISTANCE = 5;
+const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTNACE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
@@ -38,10 +38,6 @@ function SearchPageBottomTab() {
     const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.value,
-        left: 0,
-        right: 0,
-        position: 'absolute',
-        zIndex: 9,
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -104,7 +100,7 @@ function SearchPageBottomTab() {
                             isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
                         />
                     </View>
-                    <Animated.View style={[styles.appBG, topBarAnimatedStyle]}>
+                    <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
                         <SearchTypeMenu queryJSON={queryJSON} />
                         {shouldUseNarrowLayout && (
                             <SearchStatusBar
@@ -124,7 +120,7 @@ function SearchPageBottomTab() {
                 <Search
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
-                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentMargin] : undefined}
+                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
                 />
             )}
         </ScreenWrapper>

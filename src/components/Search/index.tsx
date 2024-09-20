@@ -180,7 +180,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                containerStyle={shouldUseNarrowLayout && styles.searchListContentMargin}
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
             />
         );
     }
@@ -199,7 +199,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     if (shouldShowEmptyState) {
         return (
-            <View style={[shouldUseNarrowLayout && styles.searchListContentMargin, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout && styles.searchListContentContainerStyles, styles.flex1]}>
                 <EmptySearchView type={type} />
             </View>
         );
@@ -298,7 +298,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
             sections={[{data: sortedSelectedData, isDisabled: false}]}
-            turnOnSelectionModeOnLongPress
+            turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
             onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
             onCheckboxPress={toggleTransaction}
             onSelectAll={toggleAllTransactions}

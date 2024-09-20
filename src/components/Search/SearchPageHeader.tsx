@@ -130,9 +130,9 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -151,7 +151,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
 
         clearSelectedTransactions();
-        setDeleteExpensesConfirmModalVisible(false);
+        setIsDeleteExpensesConfirmModalVisible(false);
         SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
     };
 
@@ -169,7 +169,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 if (isOffline) {
-                    setOfflineModalVisible(true);
+                    setIsOfflineModalVisible(true);
                     return;
                 }
 
@@ -177,7 +177,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {
-                        setDownloadErrorModalVisible(true);
+                        setIsDownloadErrorModalVisible(true);
                     },
                 );
             },
@@ -193,7 +193,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setOfflineModalVisible(true);
+                        setIsOfflineModalVisible(true);
                         return;
                     }
 
@@ -212,7 +212,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setOfflineModalVisible(true);
+                        setIsOfflineModalVisible(true);
                         return;
                     }
 
@@ -231,11 +231,11 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setOfflineModalVisible(true);
+                        setIsOfflineModalVisible(true);
                         return;
                     }
 
-                    setDeleteExpensesConfirmModalVisible(true);
+                    setIsDeleteExpensesConfirmModalVisible(true);
                 },
             });
         }
@@ -321,10 +321,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 )}
             </HeaderWrapper>
             <ConfirmModal
-                isVisible={deleteExpensesConfirmModalVisible}
+                isVisible={isDeleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={() => {
-                    setDeleteExpensesConfirmModalVisible(false);
+                    setIsDeleteExpensesConfirmModalVisible(false);
                 }}
                 title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
                 prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
@@ -336,19 +336,19 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
+                isVisible={isOfflineModalVisible}
+                onClose={() => setIsOfflineModalVisible(false)}
             />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
             />
         </>
     );
