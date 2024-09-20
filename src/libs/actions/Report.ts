@@ -3404,6 +3404,7 @@ function completeOnboarding(
         );
         const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
         const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
+            delegateEmail,
             currentTask.reportID,
             task.title,
             0,
@@ -3415,7 +3416,7 @@ function completeOnboarding(
         currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
         const completedTaskReportAction = task.autoCompleted
-            ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+            ? ReportUtils.buildOptimisticTaskReportAction(delegateEmail, currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
             : null;
 
         return {
