@@ -111,7 +111,7 @@ function ConfirmModal({
     success = true,
     danger = false,
     onCancel = () => {},
-    onBackdropPress = () => {},
+    onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = true,
     shouldSetModalVisibility = true,

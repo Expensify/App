@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, ScrollViewProps, SectionListData, SectionListRenderItemInfo} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -10,7 +10,6 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import ScrollView from '@components/ScrollView';
 import SectionList from '@components/SectionList';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
@@ -74,7 +73,6 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldStopPropagation = false,
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
-        shouldUseCustomScrollView = false,
         rightHandSideComponent,
         isLoadingNewOptions = false,
         onLayout,
@@ -83,6 +81,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         isAlternateTextMultilineSupported = false,
+        alternateTextNumberOfLines = 2,
         textInputRef,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
@@ -425,9 +424,6 @@ function BaseSelectionList<TItem extends ListItem>(
         </>
     );
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    const scrollComponent = shouldUseCustomScrollView ? (props: ScrollViewProps) => <ScrollView {...props} /> : undefined;
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -467,6 +463,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
                     isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
+                    alternateTextNumberOfLines={alternateTextNumberOfLines}
                     onFocus={() => {
                         if (isDisabled) {
                             return;
@@ -706,7 +703,6 @@ function BaseSelectionList<TItem extends ListItem>(
                             {!listHeaderContent && header()}
                             <SectionList
                                 removeClippedSubviews={removeClippedSubviews}
-                                renderScrollComponent={scrollComponent}
                                 ref={listRef}
                                 sections={slicedSections}
                                 stickySectionHeadersEnabled={false}

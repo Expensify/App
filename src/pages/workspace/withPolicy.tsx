@@ -8,6 +8,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NavigatorsParamList = BottomTabNavigatorParamList & AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
 
@@ -56,6 +57,7 @@ function getPolicyIDFromRoute(route: PolicyRoute): string {
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
+    isLoadingPolicy: boolean;
 };
 
 type WithPolicyProps = WithPolicyOnyxProps & {
@@ -65,6 +67,7 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
     policyDraft: {} as OnyxTypes.Policy,
+    isLoadingPolicy: false,
 };
 
 /*
@@ -76,8 +79,9 @@ export default function <TProps extends WithPolicyProps, TRef>(
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
 
-        const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+        const isLoadingPolicy = isLoadingOnyxValue(policyResults, policyDraftResults);
 
         if (policyID.length > 0) {
             Policy.updateLastAccessedWorkspace(policyID);
@@ -89,6 +93,7 @@ export default function <TProps extends WithPolicyProps, TRef>(
                 {...(props as TProps)}
                 policy={policy}
                 policyDraft={policyDraft}
+                isLoadingPolicy={isLoadingPolicy}
                 ref={ref}
             />
         );

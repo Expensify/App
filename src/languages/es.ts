@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AccountOwnerParams,
@@ -68,6 +67,7 @@ import type {
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -77,7 +77,7 @@ import type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
@@ -96,7 +96,7 @@ import type {
     UnapprovedParams,
     UnshareParams,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -269,6 +269,7 @@ export default {
         comma: 'la coma',
         semicolon: 'el punto y coma',
         please: 'Por favor',
+        rename: 'Renombrar',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un email o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -342,6 +343,7 @@ export default {
         default: 'Predeterminado',
         update: 'Actualizar',
         member: 'Miembro',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
         rate: 'Tarifa',
@@ -373,7 +375,6 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        importSpreadsheet: 'Importar hoja de cálculo',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -635,6 +636,8 @@ export default {
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
     writeCapabilityPage: {
@@ -654,6 +657,7 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
+        tooltip: '¡Comienza aquí!',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -677,9 +681,14 @@ export default {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importSuccessfullTitle: 'Importar categorías',
+        importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
+        sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
         invalidFileMessage:
-            'El archivo que ha cargado está vacío o contiene datos no válidos. Asegúrese de que el archivo tiene el formato correcto y contiene la información necesaria antes de volver a cargarlo.',
+            'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
+        importSpreadsheet: 'Importar hoja de cálculo',
+        downloadCSV: 'Descargar CSV',
     },
     receipt: {
         upload: 'Subir recibo',
@@ -829,13 +838,13 @@ export default {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
-        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) =>
-            `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
+        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+            `estableció la ${translatedChangedField} a ${newMerchant}, lo que estableció el importe a ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
-        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
-            `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
+        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+            `cambió la ${translatedChangedField} a ${newMerchant} (previamente ${oldMerchant}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
@@ -1096,6 +1105,7 @@ export default {
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
             testCrash: 'Prueba de fallo',
+            debugMode: 'Modo depuración',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1645,6 +1655,10 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: '¿Cuál es tu nombre legal?',
+        enterDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
+        enterAddress: '¿Cuál es tu dirección?',
+        enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         legalName: 'Nombre completo',
@@ -1786,7 +1800,7 @@ export default {
         connectManually: 'Conectar manualmente',
         desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haz clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
-        toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir tarjetas corporativas, y cobrar y pagar facturas todo desde un mismo lugar.',
+        toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir Tarjetas Expensify, y cobrar y pagar facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: {
@@ -2247,6 +2261,21 @@ export default {
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
+            memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
+            adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
+            auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Administrador';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Miembro';
+                    default:
+                        return 'Miembro';
+                }
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2836,6 +2865,44 @@ export default {
         companyCards: {
             addCompanyCards: 'Agregar tarjetas de empresa',
             selectCardFeed: 'Seleccionar feed de tarjetas',
+            addCardFeed: 'Añadir alimentación de tarjeta',
+            addNewCard: {
+                cardProviders: {
+                    amex: 'Tarjetas de empresa American Express',
+                    mastercard: 'Tarjetas comerciales Mastercard',
+                    visa: 'Tarjetas comerciales Visa',
+                },
+                yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
+                enableFeed: {
+                    title: (provider: string) => `Habilita tu feed ${provider}`,
+                    heading:
+                        'Tenemos una integración directa con el emisor de su tarjeta y podemos importar los datos de sus transacciones a Expensify de forma rápida y precisa.\n\nPara empezar, simplemente:',
+                    visa: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_HELP}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Visa.\n\n2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_HELP}) para comprobar que admiten un feed personalizado para su programa, y pídales que lo activen.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                    amex: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_HELP}) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentación, Amex le enviará una carta de producción.\n\n3. *Una vez que tenga la información de alimentación, continúe con la siguiente pantalla.*`,
+                    mastercard: `1. Visite [este artículo de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Mastercard.\n\n 2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_HELP}) para verificar que admiten un feed personalizado para su programa, y pídales que lo habiliten.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                },
+                whatBankIssuesCard: '¿Qué banco emite estas tarjetas?',
+                enterNameOfBank: 'Introduzca el nombre del banco',
+                feedDetails: {
+                    visa: {
+                        title: '¿Cuáles son los datos de alimentación de Visa?',
+                        processorLabel: 'ID del procesador',
+                        bankLabel: 'Identificación de la institución financiera (banco)',
+                        companyLabel: 'Empresa ID',
+                    },
+                    amex: {
+                        title: `¿Cuál es el nombre del archivo de entrega de Amex?`,
+                        fileNameLabel: 'Nombre del archivo de entrega',
+                    },
+                    mastercard: {
+                        title: `¿Cuál es el identificador de distribución de Mastercard?`,
+                        distributionLabel: 'ID de distribución',
+                    },
+                },
+                error: {
+                    pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
+                },
+            },
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             customFeed: 'Fuente personalizada',
@@ -2912,11 +2979,11 @@ export default {
                 `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
-            addMailingAddress: 'Añadir dirección de postal',
+            addShippingDetails: 'Añadir detalles de envío',
             issuedCard: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta llegará en 2-3 días laborables.`,
-            issuedCardNoMailingAddress: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se añada una dirección postal.`,
+            issuedCardNoShippingDetails: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se agreguen los detalles de envío.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
-            addedAddress: (assignee: string) => `${assignee} ha añadido la dirección. Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            addedShippingDetails: (assignee: string) => `${assignee} agregó los detalles de envío. La Tarjeta Expensify llegará en 2-3 días hábiles.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2952,7 +3019,6 @@ export default {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
-            importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
             subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
@@ -2982,7 +3048,7 @@ export default {
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
-                subtitle: 'Obtén información y control sobre tus gastos',
+                subtitle: 'Obtén información y control sobre tus gastos.',
                 disableCardTitle: 'Deshabilitar la Tarjeta Expensify',
                 disableCardPrompt: 'No puedes deshabilitar la Tarjeta Expensify porque ya está en uso. Por favor, contacta con Concierge para conocer los pasos a seguir.',
                 disableCardButton: 'Chatear con Concierge',
@@ -3012,6 +3078,20 @@ export default {
                 disableCardTitle: 'Deshabilitar tarjetas de empresa',
                 disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
                 disableCardButton: 'Chatear con Concierge',
+                cardDetails: 'Datos de la tarjeta',
+                cardNumber: 'Número de la tarjeta',
+                cardholder: 'Titular de la tarjeta',
+                cardName: 'Nombre de la tarjeta',
+                integrationExport: (integration: string, type: string) => `Exportación a ${integration} ${type}`,
+                integrationExportTitleFirstPart: (integration: string) => `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente`,
+                integrationExportTitleLinkPart: 'opción de exportación',
+                integrationExportTitleSecondPart: 'para cambiar las cuentas disponibles.',
+                lastUpdated: 'Última actualización',
+                transactionStartDate: 'Fecha de inicio de transacciones',
+                updateCard: 'Actualizar tarjeta',
+                unassignCard: 'Desasignar tarjeta',
+                unassign: 'Desasignar',
+                unassignCardDescription: 'Desasignar esta tarjeta eliminará todas las transacciones en informes en borrador de la cuenta del titular.',
                 assignCard: 'Asignar tarjeta',
                 cardFeedName: 'Nombre del feed de tarjeta',
                 cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
@@ -3032,6 +3112,12 @@ export default {
                     'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
                 emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
                 emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
+                pendingFeedTitle: `Estamos revisando tu solicitud...`,
+                pendingFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de`,
+                giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
+                updating: 'Actualizando...',
+                noAccountsFound: 'No se han encontrado cuentas',
+                noAccountsFoundDescription: (connection: string) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -3148,6 +3234,11 @@ export default {
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
+            tagRules: 'Reglas de etiquetas',
+            approverDescription: 'Aprobador',
+            importTags: 'Importar categorías',
+            importedTagsMessage: (columnCounts: number) =>
+                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -3217,6 +3308,7 @@ export default {
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
+            makeAuditor: 'Hacer auditor',
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
@@ -3250,6 +3342,8 @@ export default {
                     }
                 }
             },
+            errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
+            goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
             setup: 'Configurar',
             lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
@@ -3400,6 +3494,10 @@ export default {
                             return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importando proveedores';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importando listas personalizadas';
                         case 'intacctCheckConnection':
                             return 'Comprobando la conexión a Sage Intacct';
                         case 'intacctImportDimensions':
@@ -3813,6 +3911,7 @@ export default {
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
                 unlockFeatureGoToSubtitle: 'Ir a',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                enableFeatureSubtitle: (featureName: string) => `y habilita ${featureName} para desbloquear esta función.`,
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -3900,9 +3999,23 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' y ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+            }
+            const workflowWord = Str.pluralize('del flujo', 'de los flujos', submittersNames.length);
+            const chatWord = Str.pluralize('del chat', 'de los chats', submittersNames.length);
+            return `te eliminó ${workflowWord} de trabajo de aprobaciones y ${chatWord} del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`;
+        },
     },
     roomMembersPage: {
-        memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón invitar que está más arriba.',
+        memberNotFound: 'Miembro no encontrado.',
+        useInviteButton: 'Para invitar a un nuevo miembro al chat, por favor, utiliza el botón invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a esta sala, pide a un miembro de la sala que te añada. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
         error: {
@@ -3973,6 +4086,12 @@ export default {
                 buttonText: 'Reserva un viaje',
             },
         },
+        saveSearch: 'Guardar búsqueda',
+        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
+        savedSearchesMenuItemTitle: 'Guardadas',
+        searchName: 'Nombre de la búsqueda',
+        deleteSavedSearch: 'Eliminar búsqueda guardada',
+        deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
             delete: 'Eliminar',
@@ -3990,12 +4109,9 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
-            has: 'Tiene',
             link: 'Enlace',
-            is: 'Está',
             pinned: 'Fijado',
             unread: 'No leído',
-            draft: 'Borrador',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
@@ -4825,7 +4941,7 @@ export default {
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams = {}) => `${surcharge}% de recargo aplicado`,
-        customUnitOutOfPolicy: 'La unidad ya no es válida',
+        customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
         duplicatedTransaction: 'Duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
@@ -5167,7 +5283,12 @@ export default {
     },
     delegate: {
         switchAccount: 'Cambiar de cuenta:',
-        role: (role: DelegateRole): string => {
+        copilotDelegatedAccess: 'Copilot: Acceso delegado',
+        copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
+        addCopilot: 'Agregar copiloto',
+        membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
+        youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
+        role: (role?: string): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Completo';
@@ -5178,9 +5299,50 @@ export default {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        accessLevel: 'Nivel de acceso',
+        confirmCopilot: 'Confirma tu copiloto a continuación.',
+        accessLevelDescription: 'Elige un nivel de acceso a continuación. Tanto el acceso Completo como el Limitado permiten a los copilotos ver todas las conversaciones y gastos.',
+        roleDescription: (role?: string): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Permite a otro miembro realizar todas las acciones en tu cuenta, en tu nombre. Incluye chat, presentaciones, aprobaciones, pagos, actualizaciones de configuración y más.';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Permite a otro miembro realizar la mayoría de las acciones en tu cuenta, en tu nombre. Excluye aprobaciones, pagos, rechazos y retenciones.';
+                default:
+                    return '';
+            }
+        },
+        makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
         notAllowed: 'No tan rápido...',
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
         notAllowedMessageHyperLinked: ' copiloto con acceso',
         notAllowedMessageEnd: ' limitado',
+    },
+    debug: {
+        debug: 'Depuración',
+        details: 'Detalles',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Previa',
+        nothingToPreview: 'Nada que previsualizar',
+        editJson: 'Editar JSON:',
+        preview: 'Previa:',
+        missingProperty: ({propertyName}) => `Falta ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
+        invalidValue: ({expectedValues}) => `Valor inválido - Esperado: ${expectedValues}`,
+        missingValue: 'Valor en falta',
+        createReportAction: 'Crear Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        hint: 'Los cambios de datos no se enviarán al backend',
+        textFields: 'Campos de texto',
+        numberFields: 'Campos numéricos',
+        booleanFields: 'Campos booleanos',
+        constantFields: 'Campos constantes',
+        dateTimeFields: 'Campos de fecha y hora',
+        date: 'Fecha',
+        time: 'Hora',
+        none: 'Ninguno',
     },
 } satisfies EnglishTranslation;

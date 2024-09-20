@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,6 +21,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -30,22 +30,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 
-type CategorySettingsPageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
-type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
+type CategorySettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({
     route: {
         params: {backTo, policyID, categoryName},
     },
-    policyCategories,
     navigation,
 }: CategorySettingsPageProps) {
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
@@ -83,7 +77,7 @@ function CategorySettingsPage({
     }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
-        const categoryApprover = CategoryUtils.getCategoryApprover(policy?.rules?.approvalRules ?? [], categoryName);
+        const categoryApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver;
         return categoryApprover ?? '';
     }, [categoryName, policy?.rules?.approvalRules]);
 
@@ -133,6 +127,8 @@ function CategorySettingsPage({
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
     return (
         <AccessOrNotFoundWrapper
@@ -257,18 +253,16 @@ function CategorySettingsPage({
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <OfflineWithFeedback pendingAction={policy?.rules?.pendingFields?.approvalRules}>
-                                        <MenuItemWithTopDescription
-                                            title={approverText}
-                                            description={translate('workspace.rules.categoryRules.approver')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                            disabled={!policy?.areWorkflowsEnabled}
-                                        />
-                                    </OfflineWithFeedback>
-                                    {!policy?.areWorkflowsEnabled && (
+                                    <MenuItemWithTopDescription
+                                        title={approverText}
+                                        description={translate('workspace.rules.categoryRules.approver')}
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                        }}
+                                        shouldShowRightIcon
+                                        disabled={approverDisabled}
+                                    />
+                                    {approverDisabled && (
                                         <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
                                             <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
                                             <TextLink
@@ -281,16 +275,14 @@ function CategorySettingsPage({
                                         </Text>
                                     )}
                                     {policy?.tax?.trackingEnabled && (
-                                        <OfflineWithFeedback pendingAction={policy?.rules?.pendingFields?.expenseRules}>
-                                            <MenuItemWithTopDescription
-                                                title={defaultTaxRateText}
-                                                description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
-                                                }}
-                                                shouldShowRightIcon
-                                            />
-                                        </OfflineWithFeedback>
+                                        <MenuItemWithTopDescription
+                                            title={defaultTaxRateText}
+                                            description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                            }}
+                                            shouldShowRightIcon
+                                        />
                                     )}
 
                                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
@@ -333,8 +325,4 @@ function CategorySettingsPage({
 
 CategorySettingsPage.displayName = 'CategorySettingsPage';
 
-export default withOnyx<CategorySettingsPageProps, CategorySettingsPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(CategorySettingsPage);
+export default CategorySettingsPage;

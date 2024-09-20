@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
+import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: string) => `report_${item}`;
@@ -267,6 +268,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     ref={flashListRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
+                    CellRendererComponent={OptionRowRendererComponent}
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
                     data={data}
                     testID="lhn-options-list"

@@ -19,11 +19,13 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,7 +44,6 @@ import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -58,7 +59,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
@@ -71,12 +73,20 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
-    useEffect(
-        () => () => {
-            SearchInputManager.searchInput = '';
-        },
-        [],
-    );
+    useEffect(() => {
+        setSearchValue(userSearchPhrase ?? '');
+    }, [isFocusedScreen, setSearchValue, userSearchPhrase]);
+
+    useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    useEffect(() => {
+        if (isFocusedScreen) {
+            return;
+        }
+        setSelectedMembers([]);
+    }, [isFocusedScreen]);
 
     /**
      * Get members for the current room
@@ -90,6 +100,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     }, [report]);
 
     useEffect(() => {
+        UserSearchPhraseActions.clearUserSearchPhrase();
         getRoomMembers();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -103,7 +114,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
         setSearchValue('');
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID));
-    }, [report]);
+    }, [report, setSearchValue]);
 
     /**
      * Remove selected users from the room
@@ -114,7 +125,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             Report.removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
-        SearchInputManager.searchInput = '';
+        UserSearchPhraseActions.clearUserSearchPhrase();
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -189,12 +200,12 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             return;
         }
         if (shouldShowTextInput) {
-            setSearchValue(SearchInputManager.searchInput);
+            setSearchValue(userSearchPhrase ?? '');
         } else {
-            SearchInputManager.searchInput = '';
+            UserSearchPhraseActions.clearUserSearchPhrase();
             setSearchValue('');
         }
-    }, [isFocusedScreen, shouldShowTextInput]);
+    }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
@@ -212,7 +223,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 (isPolicyExpenseChat && isAdmin) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID;
+                details.accountID === report.ownerAccountID ||
+                details.isOptimisticPersonalDetail;
 
             result.push({
                 keyForList: String(accountID),
@@ -253,7 +265,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
 
-    const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
+    const headerMessage = searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '';
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
@@ -284,7 +296,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
@@ -371,7 +382,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         textInputValue={searchValue}
                         onChangeText={(value) => {
-                            SearchInputManager.searchInput = value;
                             setSearchValue(value);
                         }}
                         headerMessage={headerMessage}
