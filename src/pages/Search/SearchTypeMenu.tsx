@@ -133,9 +133,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftVertical: 15,
                 tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
                 renderTooltipContent: () => {
-                    if (index !== 0) {
-                        return null;
-                    }
                     SearchActions.dismissSavedSearchRenameTooltip();
                     return (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
