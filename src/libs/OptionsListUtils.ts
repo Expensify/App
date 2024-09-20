@@ -497,7 +497,6 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     }
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     // Use Object.assign to merge all error objects into one since it is faster and uses less memory than spread operator
-    // eslint-disable-next-line prefer-object-spread
     const errorSources = Object.assign({}, reportErrors, reportErrorFields, reportActionErrors);
 
     // Combine all error messages keyed by microtime into one object

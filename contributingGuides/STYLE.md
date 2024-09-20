@@ -33,6 +33,7 @@
     - [`var`, `const` and `let`](#var-const-and-let)
 - [Object / Array Methods](#object--array-methods)
 - [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
+- [Object Merging: Spread Operator vs. Object.assign](#object-merging-spread-operator-vs-objectassign)
 - [JSDocs](#jsdocs)
 - [Component props](#component-props)
 - [Destructuring](#destructuring)
@@ -735,6 +736,27 @@ const name = user?.name || "default name";
 
 // GOOD
 const name = user?.name ?? "default name";
+```
+
+## Object Merging: Spread Operator vs. Object.assign
+
+Avoid using the spread operator `({...obj})` in performance-critical situations where object merging occurs frequently (e.g., in loops or repeated function calls). The spread operator creates unnecessary intermediate objects, which can lead to higher memory usage and slower execution.
+
+Instead, consider using `Object.assign()` in these scenarios for better performance. The ESLint `prefer-object-spread` rule has been disabled to allow developers to make informed choices between readability and performance.
+
+- Use the spread operator for simple, small object merges where performance isn't a concern.
+- Use Object.assign() when working with large objects or in performance-sensitive contexts.
+
+```ts
+// BAD: Using the spread operator in a performance-critical loop
+const errorSources = {
+    reportErrors,
+    ...reportErrorFields,
+    ...reportActionErrors,
+};
+
+// GOOD: Using Object.assign() for better performance in frequent merges
+const errorSources = Object.assign({}, reportErrors, reportErrorFields, reportActionErrors);
 ```
 
 ## JSDocs
