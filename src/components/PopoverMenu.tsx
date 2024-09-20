@@ -110,6 +110,12 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Used to apply styles specifically to the header text */
     headerStyles?: StyleProp<TextStyle>;
 
+    /** Modal container styles  */
+    innerContainerStyle?: ViewStyle;
+
+    /** These styles will be applied to the scroll view content container which wraps all of the child views */
+    scrollContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 };
@@ -139,6 +145,8 @@ function PopoverMenu({
     shouldShowSelectedItemCheck = false,
     containerStyles,
     headerStyles,
+    innerContainerStyle,
+    scrollContainerStyle,
     shouldUseScrollView = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -269,12 +277,13 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
+            innerContainerStyle={innerContainerStyle}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    <WrapComponent>
+                    <WrapComponent contentContainerStyle={scrollContainerStyle}>
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
                             return (

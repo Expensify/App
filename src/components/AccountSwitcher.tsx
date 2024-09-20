@@ -203,6 +203,8 @@ function AccountSwitcher() {
                     }}
                     containerStyles={{maxHeight: windowHeight / 2, width: 'fit-content', maxWidth: '100%'}}
                     headerStyles={styles.pt0}
+                    innerContainerStyle={styles.pb0}
+                    scrollContainerStyle={styles.pb4}
                     shouldUseScrollView
                 />
             )}
