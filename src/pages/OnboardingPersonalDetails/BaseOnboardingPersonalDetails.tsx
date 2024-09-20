@@ -57,10 +57,8 @@ function BaseOnboardingPersonalDetails({
             Report.completeOnboarding(
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                {
-                    firstName,
-                    lastName,
-                },
+                firstName,
+                lastName,
                 onboardingAdminsChatReportID ?? undefined,
                 onboardingPolicyID,
             );
