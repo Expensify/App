@@ -8,6 +8,7 @@ import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRoot
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import getRootNavigatorScreenOptions from '../getRootNavigatorScreenOptions';
 
 const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 
