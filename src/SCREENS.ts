@@ -179,6 +179,7 @@ const SCREENS = {
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
+        DEBUG: 'Debug',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -363,6 +364,8 @@ const SCREENS = {
             SAGE_INTACCT_EXPORT_DATE: 'Policy_Accounting_Sage_Intacct_Export_Date',
             SAGE_INTACCT_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Reimbursable_Expenses',
             SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Expenses',
+            SAGE_INTACCT_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Reimbursable_Destination',
+            SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Destination',
             SAGE_INTACCT_DEFAULT_VENDOR: 'Policy_Accounting_Sage_Intacct_Default_Vendor',
             SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
@@ -435,6 +438,7 @@ const SCREENS = {
         TAX_CREATE: 'Workspace_Tax_Create',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
+        TAG_APPROVER: 'Tag_Approver',
         TAG_LIST_VIEW: 'Tag_List_View',
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
@@ -552,6 +556,13 @@ const SCREENS = {
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    DEBUG: {
+        REPORT: 'Debug_Report',
+        REPORT_ACTION: 'Debug_Report_Action',
+        REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
+        DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
+        DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

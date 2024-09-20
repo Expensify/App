@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {memo, useEffect} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';

@@ -53,21 +53,6 @@ function SearchRouter() {
         clearUserQuery();
     }, [currentQuery, closeSearchRouter]);
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            if (!currentQuery) {
-                return;
-            }
-
-            onSearchSubmit();
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: false,
-        },
-    );
-
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         closeSearchRouter();
         clearUserQuery();
