@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
 
-const SEARCH_DEBOUNCE_DELAY = 200;
+const SEARCH_DEBOUNCE_DELAY = 150;
 
 function SearchRouter() {
     const styles = useThemeStyles();

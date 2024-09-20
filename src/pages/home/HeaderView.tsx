@@ -265,12 +265,12 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            <SearchButton />
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
+                            <SearchButton />
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}
