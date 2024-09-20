@@ -13,6 +13,7 @@ import type {
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {SaveSearchParams} from '@libs/API/parameters';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -275,6 +276,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
@@ -289,6 +296,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAG_APPROVER]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -622,6 +634,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {
@@ -1181,7 +1199,9 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
+    [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1405,6 +1425,10 @@ type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
 };
 
+type SearchSavedSearchParamList = {
+    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -1414,6 +1438,29 @@ type RestrictedActionParamList = {
 type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: {
         policyID: string;
+    };
+};
+
+type DebugParamList = {
+    [SCREENS.DEBUG.REPORT]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION]: {
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+        fieldName: string;
+        fieldValue?: string;
+        backTo?: string;
+    };
+    [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
+        fieldName: string;
+        fieldValue?: string;
+        backTo?: string;
     };
 };
 
@@ -1487,6 +1534,8 @@ export type {
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
     SearchAdvancedFiltersParamList,
+    SearchSavedSearchParamList,
     RestrictedActionParamList,
     MissingPersonalDetailsParamList,
+    DebugParamList,
 };

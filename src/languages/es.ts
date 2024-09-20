@@ -269,6 +269,7 @@ export default {
         comma: 'la coma',
         semicolon: 'el punto y coma',
         please: 'Por favor',
+        rename: 'Renombrar',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un email o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -342,6 +343,7 @@ export default {
         default: 'Predeterminado',
         update: 'Actualizar',
         member: 'Miembro',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
         rate: 'Tarifa',
@@ -679,7 +681,9 @@ export default {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importSuccessfullTitle: 'Importar categorías',
+        importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
         invalidFileMessage:
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
@@ -1101,6 +1105,7 @@ export default {
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
             testCrash: 'Prueba de fallo',
+            debugMode: 'Modo depuración',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -2256,6 +2261,21 @@ export default {
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
+            memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
+            adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
+            auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Administrador';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Miembro';
+                    default:
+                        return 'Miembro';
+                }
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2999,7 +3019,6 @@ export default {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
-            importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
             subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
@@ -3093,7 +3112,9 @@ export default {
                     'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
                 emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
                 emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
-                giveItNameInstruction: 'Dale a la tarjeta un nombre que la distinga de las demás.',
+                pendingFeedTitle: `Estamos revisando tu solicitud...`,
+                pendingFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de`,
+                giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
                 noAccountsFoundDescription: (connection: string) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
@@ -3213,6 +3234,11 @@ export default {
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
+            tagRules: 'Reglas de etiquetas',
+            approverDescription: 'Aprobador',
+            importTags: 'Importar categorías',
+            importedTagsMessage: (columnCounts: number) =>
+                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -3282,6 +3308,7 @@ export default {
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
+            makeAuditor: 'Hacer auditor',
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
@@ -3315,6 +3342,8 @@ export default {
                     }
                 }
             },
+            errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
+            goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
             setup: 'Configurar',
             lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
@@ -3882,6 +3911,7 @@ export default {
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
                 unlockFeatureGoToSubtitle: 'Ir a',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                enableFeatureSubtitle: (featureName: string) => `y habilita ${featureName} para desbloquear esta función.`,
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -4056,6 +4086,12 @@ export default {
                 buttonText: 'Reserva un viaje',
             },
         },
+        saveSearch: 'Guardar búsqueda',
+        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
+        savedSearchesMenuItemTitle: 'Guardadas',
+        searchName: 'Nombre de la búsqueda',
+        deleteSavedSearch: 'Eliminar búsqueda guardada',
+        deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
             delete: 'Eliminar',
@@ -5282,5 +5318,31 @@ export default {
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
         notAllowedMessageHyperLinked: ' copiloto con acceso',
         notAllowedMessageEnd: ' limitado',
+    },
+    debug: {
+        debug: 'Depuración',
+        details: 'Detalles',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Previa',
+        nothingToPreview: 'Nada que previsualizar',
+        editJson: 'Editar JSON:',
+        preview: 'Previa:',
+        missingProperty: ({propertyName}) => `Falta ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
+        invalidValue: ({expectedValues}) => `Valor inválido - Esperado: ${expectedValues}`,
+        missingValue: 'Valor en falta',
+        createReportAction: 'Crear Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        hint: 'Los cambios de datos no se enviarán al backend',
+        textFields: 'Campos de texto',
+        numberFields: 'Campos numéricos',
+        booleanFields: 'Campos booleanos',
+        constantFields: 'Campos constantes',
+        dateTimeFields: 'Campos de fecha y hora',
+        date: 'Fecha',
+        time: 'Hora',
+        none: 'Ninguno',
     },
 } satisfies EnglishTranslation;
