@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import path from 'path';
 import portfinder from 'portfinder';
@@ -9,7 +10,6 @@ import {merge} from 'webpack-merge';
 import type Environment from './types';
 import getCommonConfiguration from './webpack.common';
 
-process.env.NODE_ENV = 'development';
 const BASE_PORT = 8082;
 
 /**
@@ -56,14 +56,13 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     },
                 },
                 headers: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'Document-Policy': 'js-profiling',
                 },
             },
             plugins: [
                 new DefinePlugin({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'process.env.PORT': port,
+                    'process.env.NODE_ENV': JSON.stringify('development'),
                 }),
                 new ReactRefreshWebpackPlugin(),
             ],
