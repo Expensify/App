@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -42,7 +42,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             },
             canEvict: false,
         });
-        const getReportAction = useCallback(() => {
+        const linkedReportAction = useMemo(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
@@ -53,14 +53,12 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             return reportAction;
         }, [reportActions, props.route.params.reportActionID, parentReportAction]);
 
-        const reportAction = getReportAction();
-
         const {shouldUseNarrowLayout} = useResponsiveLayout();
 
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(reportAction))) {
+            if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
@@ -69,7 +67,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         // Perform all the loading checks
         const isLoadingReport = isLoadingReportData && !report?.reportID;
-        const isLoadingReportAction = isEmptyObject(reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
+        const isLoadingReportAction = isEmptyObject(reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
         const shouldHideReport = !isLoadingReport && (!report?.reportID || !ReportUtils.canAccessReport(report, policies, betas));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -79,8 +77,8 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         // Perform the access/not found checks
         // Be sure to avoid showing the not-found page while the parent report actions are still being read from Onyx. The parentReportAction will be undefined while it's being read from Onyx
-        // and then reportAction will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
-        if (shouldHideReport || (parentReportAction !== undefined && isEmptyObject(reportAction))) {
+        // and then linkedReportAction will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
+        if (shouldHideReport || (parentReportAction !== undefined && isEmptyObject(linkedReportAction))) {
             return <NotFoundPage />;
         }
 
@@ -91,6 +89,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 report={report}
                 parentReport={parentReport}
                 reportActions={reportActions}
+                reportAction={linkedReportAction}
                 parentReportAction={parentReportAction}
                 ref={ref}
             />
