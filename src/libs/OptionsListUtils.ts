@@ -1571,7 +1571,7 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false} = {}) {
+function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false} = {}) {
     return lodashOrderBy(
         options,
         [
@@ -1582,6 +1582,12 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
 
                 if (option.isSelfDM) {
                     return 0;
+                }
+                if (preferRecentExpenseReports && !!option?.lastMoneyRequestTime) {
+                    return 1;
+                }
+                if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
+                    return 1;
                 }
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
@@ -1599,8 +1605,10 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
+            preferRecentExpenseReports ? (option) => new Date(option?.lastIOUTime ?? '1970-01-01').getTime() : 0,
+            preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
-        ['asc'],
+        ['asc', 'desc', 'desc'],
     );
 }
 
@@ -1978,6 +1986,18 @@ function getOptions(
             } else {
                 recentReportOptions.push(reportOption);
             }
+            
+            // Add a field to sort the recent reports by the time of last IOU request
+            if (!!action) {
+                const iouReportID = reportOption.iouReportID;
+                if (iouReportID) {
+                    const iouReportActions = allSortedReportActions[iouReportID] ?? [];
+                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === "IOU");
+                    if (lastIOUAction) {
+                        reportOption.lastIOUTime = lastIOUAction.lastModified;
+                    }
+            }
+        }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
@@ -2027,7 +2047,8 @@ function getOptions(
             recentReportOptions.push(...personalDetailsOptions);
             personalDetailsOptions = [];
         }
-        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action});
+        // recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action});
+        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action, preferRecentExpenseReports: !!action});
     }
 
     return {
@@ -2391,6 +2412,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         excludeLogins = [],
         preferChatroomsOverThreads = false,
         preferPolicyExpenseChat = false,
+        action?,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
@@ -2472,7 +2494,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     return {
         personalDetails,
-        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat}),
+        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports: !!action}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],
