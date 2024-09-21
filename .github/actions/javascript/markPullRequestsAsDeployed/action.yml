@@ -13,8 +13,7 @@ inputs:
         required: true
     GITHUB_TOKEN:
         description: "Github token for authentication"
-        required: false
-        default: "${{ github.token }}"
+        required: true
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
