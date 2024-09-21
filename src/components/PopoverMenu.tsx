@@ -131,7 +131,7 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
-    isPaneMenu = false
+    isPaneMenu = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
