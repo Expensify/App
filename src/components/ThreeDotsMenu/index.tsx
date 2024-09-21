@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
 import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
