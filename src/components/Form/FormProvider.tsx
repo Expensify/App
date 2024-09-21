@@ -39,48 +39,36 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     }
 }
 
-type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = 
-    FormProps<TFormID> & {
-        /** Children to render. */
-        children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
+type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TFormID> & {
+    /** Children to render. */
+    children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
-        /** Callback to validate the form */
-        validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+    /** Callback to validate the form */
+    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** Should validate function be called when input loose focus */
-        shouldValidateOnBlur?: boolean;
+    /** Should validate function be called when input loose focus */
+    shouldValidateOnBlur?: boolean;
 
-        /** Should validate function be called when the value of the input is changed */
-        shouldValidateOnChange?: boolean;
+    /** Should validate function be called when the value of the input is changed */
+    shouldValidateOnChange?: boolean;
 
-        /** Whether to remove invisible characters from strings before validation and submission */
-        shouldTrimValues?: boolean;
+    /** Whether to remove invisible characters from strings before validation and submission */
+    shouldTrimValues?: boolean;
 
-        /** Styles that will be applied to the submit button only */
-        submitButtonStyles?: StyleProp<ViewStyle>;
+    /** Styles that will be applied to the submit button only */
+    submitButtonStyles?: StyleProp<ViewStyle>;
 
-        /** Whether to apply flex to the submit button */
-        submitFlexEnabled?: boolean;
+    /** Whether to apply flex to the submit button */
+    submitFlexEnabled?: boolean;
 
-        /** Whether button is disabled */
-        isSubmitDisabled?: boolean;
-    };
+    /** Whether button is disabled */
+    isSubmitDisabled?: boolean;
+};
 
 function FormProvider(
-    {
-        formID,
-        validate,
-        shouldValidateOnBlur = true,
-        shouldValidateOnChange = true,
-        children,
-        enabledWhenOffline = false,
-        onSubmit,
-        shouldTrimValues = true,
-        ...rest
-    }: FormProviderProps,
+    {formID, validate, shouldValidateOnBlur = true, shouldValidateOnChange = true, children, enabledWhenOffline = false, onSubmit, shouldTrimValues = true, ...rest}: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [formState] = useOnyx(formID);
     const [draftValues] = useOnyx(`${formID}Draft`);
@@ -386,6 +374,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
+export default forwardRef(FormProvider);
 
 export type {FormProviderProps};
