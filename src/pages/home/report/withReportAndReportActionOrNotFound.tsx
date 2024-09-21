@@ -19,7 +19,19 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type WithReportAndReportActionOrNotFoundProps = StackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
     typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT
->;
+> & {
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
+
+    /** The reportAction from the current route */
+    reportAction: OnyxTypes.ReportAction;
+
+    /** The parent report if the current report is a thread and it has a parent */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The report's parentReportAction */
+    parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
+};
 
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
