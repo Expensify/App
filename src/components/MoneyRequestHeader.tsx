@@ -145,7 +145,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             onPress={markAsCash}
                         />
                     )}
-                    {isDuplicate && !shouldUseNarrowLayout && reportID && (
+                    {isDuplicate && !shouldUseNarrowLayout && (
                         <Button
                             success
                             text={translate('iou.reviewDuplicates')}
@@ -166,14 +166,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                         />
                     </View>
                 )}
-                {isDuplicate && shouldUseNarrowLayout && reportID && (
+                {isDuplicate && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             success
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? ''));
                             }}
                         />
                     </View>
