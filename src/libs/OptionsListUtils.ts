@@ -1611,7 +1611,8 @@ function orderOptions(
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
-            preferRecentExpenseReports ? (option) => new Date(option?.lastIOUTime ?? '1970-01-01').getTime() : 0,
+            // For Submit Expense flow, prioritze the most recent expense reports and then policy expense chats (without expense requests)
+            preferRecentExpenseReports ? (option) => option?.lastIOUTime ?? '' : '',
             preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
         ['asc', 'desc', 'desc'],
@@ -2057,7 +2058,6 @@ function getOptions(
             recentReportOptions.push(...personalDetailsOptions);
             personalDetailsOptions = [];
         }
-        // recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action});
         recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action, preferRecentExpenseReports: !!action});
     }
 
