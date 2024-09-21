@@ -728,6 +728,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
+    WORKSPACE_MEMBERS_IMPORT: {
+        route: 'settings/workspaces/:policyID/members/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members/import` as const,
+    },
+    WORKSPACE_MEMBERS_IMPORTED: {
+        route: 'settings/workspaces/:policyID/members/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members/imported` as const,
+    },
     POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
@@ -853,6 +861,10 @@ const ROUTES = {
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
+    },
+    WORKSPACE_TAG_APPROVER: {
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${tagName}/approver` as const,
     },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
