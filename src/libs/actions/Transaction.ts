@@ -482,9 +482,11 @@ function mockGetBackupRoute(transactionID: string) {
 
 
 function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION_STATE.CURRENT) {
+    /** For testing, remove when new API endpoint ready, waypoints: Bandung, Jakarta */
     if (routeType === CONST.TRANSACTION_STATE.BACKUP)
     {
         mockGetBackupRoute(transactionID);
+        return;
     }
     
     const parameters: GetRouteParams = {
