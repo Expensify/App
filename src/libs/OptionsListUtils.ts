@@ -222,6 +222,8 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'> & {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
+    preferRecentExpenseReports?: boolean;
+    action?: IOUAction;
 };
 
 /**
@@ -1571,7 +1573,11 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false} = {}) {
+function orderOptions(
+    options: ReportUtils.OptionData[],
+    searchValue: string | undefined,
+    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false} = {},
+) {
     return lodashOrderBy(
         options,
         [
@@ -1583,7 +1589,7 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
                 if (option.isSelfDM) {
                     return 0;
                 }
-                if (preferRecentExpenseReports && !!option?.lastMoneyRequestTime) {
+                if (preferRecentExpenseReports && !!option?.lastIOUTime) {
                     return 1;
                 }
                 if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
@@ -1986,18 +1992,18 @@ function getOptions(
             } else {
                 recentReportOptions.push(reportOption);
             }
-            
+
             // Add a field to sort the recent reports by the time of last IOU request
-            if (!!action) {
+            if (action) {
                 const iouReportID = reportOption.iouReportID;
                 if (iouReportID) {
                     const iouReportActions = allSortedReportActions[iouReportID] ?? [];
-                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === "IOU");
+                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === 'IOU');
                     if (lastIOUAction) {
                         reportOption.lastIOUTime = lastIOUAction.lastModified;
                     }
+                }
             }
-        }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
@@ -2412,7 +2418,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         excludeLogins = [],
         preferChatroomsOverThreads = false,
         preferPolicyExpenseChat = false,
-        action?,
+        action,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
