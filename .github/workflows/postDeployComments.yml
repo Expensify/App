@@ -112,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ inputs.android }}
           DESKTOP: ${{ inputs.desktop }}
-          IOS: ${{ inputs.IOS }}
+          IOS: ${{ inputs.ios }}
           WEB: ${{ inputs.web }}
           DATE: ${{ inputs.date }}
           NOTE: ${{ inputs.note }}
