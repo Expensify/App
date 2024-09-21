@@ -507,7 +507,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
             throw new Error('Invalid route type');
     }
 
-    API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType === 'draft'));
+    API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
 /**
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
