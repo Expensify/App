@@ -1,4 +1,4 @@
-import {mapValues} from 'lodash';
+import mapValues from 'lodash/mapValues';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
