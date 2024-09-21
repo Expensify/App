@@ -111,7 +111,11 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...{...props, report, parentReport, reportMetadata, isLoadingReportData, betas, policies, reportActions, parentReportAction}}
+                {...props}
+                report={report}
+                parentReport={parentReport}
+                reportActions={reportActions}
+                parentReportAction={parentReportAction}
                 ref={ref}
             />
         );
