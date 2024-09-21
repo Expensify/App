@@ -5775,6 +5775,12 @@ const CONST = {
         REPORT_ACTIONS: 'actions',
         REPORT_ACTION_PREVIEW: 'preview',
     },
+
+    TRANSACTION_STATE: {
+        CURRENT: 'current',
+        DRAFT: 'draft',
+        BACKUP: 'backup',
+    }
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
