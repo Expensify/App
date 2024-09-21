@@ -12713,10 +12713,15 @@ async function run() {
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
+    const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
     function getDeployMessage(deployer, deployVerb, prTitle) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-        message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
+        message += ` by https://github.com/${deployer} in version: ${version} `;
+        if (date) {
+            message += `on ${date}`;
+        }
+        message += `🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
