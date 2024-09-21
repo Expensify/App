@@ -88,7 +88,7 @@ on:
         description: The date when this deploy occurred
         required: false
         type: string
-      deployerNote:
+      note:
         description: Any additional note you want to include with the deploy comment
         required: false
         type: string
@@ -123,3 +123,4 @@ jobs:
           IOS: ${{ inputs.IOS }}
           WEB: ${{ inputs.web }}
           DATE: ${{ inputs.date }}
+          NOTE: ${{ inputs.note }}
