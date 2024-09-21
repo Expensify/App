@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -20,24 +19,12 @@ import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
 
-type FlagCommentPageWithOnyxProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-    /** The parent report if the current report is a thread and it has a parent */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-    /** The report action from the parent report */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-};
-
 type FlagCommentPageNavigationProps = StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
-type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageNavigationProps & FlagCommentPageWithOnyxProps;
+type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageNavigationProps;
 
 type Severity = ValueOf<typeof CONST.MODERATION>;
 
@@ -59,7 +46,7 @@ function getReportID(route: FlagCommentPageNavigationProps['route']) {
     return route.params.reportID.toString();
 }
 
-function FlagCommentPage({parentReportAction, route, report, parentReport, reportActions}: FlagCommentPageProps) {
+function FlagCommentPage({parentReportAction, route, report, parentReport, reportAction}: FlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -114,24 +101,8 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         },
     ];
 
-    const getActionToFlag = useCallback((): OnyxTypes.ReportAction | null => {
-        let reportAction = reportActions?.[`${route.params.reportActionID.toString()}`];
-
-        // Handle threads if needed
-        if (reportAction?.reportActionID === undefined && parentReportAction) {
-            reportAction = parentReportAction;
-        }
-
-        if (!reportAction) {
-            return null;
-        }
-
-        return reportAction;
-    }, [reportActions, route.params.reportActionID, parentReportAction]);
-
     const flagComment = (severity: Severity) => {
         let reportID: string | undefined = getReportID(route);
-        const reportAction = getActionToFlag();
 
         // Handle threads if needed
         if (ReportUtils.isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
@@ -164,7 +135,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             testID={FlagCommentPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), report)}>
+                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(reportAction, report)}>
                     <HeaderWithBackButton title={translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
