@@ -1,0 +1,125 @@
+name: Post Deploy Comments
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: The version that was deployed
+        required: true
+        type: string
+      env:
+        description: The environment that was deployed (staging or prod)
+        required: true
+        type: string
+      isCP:
+        description: Was the deploy a CP?
+        required: true
+        type: boolean
+      android:
+        description: Android deploy status
+        required: true
+        type: string
+      ios:
+        description: iOS deploy status
+        required: true
+        type: string
+      web:
+        description: Web deploy status
+        required: true
+        type: string
+      desktop:
+        description: Desktop deploy status
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version that was deployed
+        required: true
+        type: string
+      env:
+        description: The environment that was deployed (staging or prod)
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      isCP:
+        description: Was the deploy a CP?
+        required: true
+        type: boolean
+      android:
+        description: Android deploy status
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
+          - cancelled
+          - skipped
+      ios:
+        description: iOS deploy status
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
+          - cancelled
+          - skipped
+      web:
+        description: Web deploy status
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
+          - cancelled
+          - skipped
+      desktop:
+        description: Desktop deploy status
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
+          - cancelled
+          - skipped
+      date:
+        description: The date when this deploy occurred
+        required: false
+        type: string
+      deployerNote:
+        description: Any additional note you want to include with the deploy comment
+        required: false
+        type: string
+
+jobs:
+  postDeployComments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Get pull request list
+        id: getPullRequestList
+        uses: ./.github/actions/javascript/getDeployPullRequestList
+        with:
+          TAG: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ github.token }}
+          IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
+
+      - name: Comment on issues
+        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
+        with:
+          PR_LIST: ${{ steps.getPullRequestList.outputs.PR_LIST }}
+          IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
+          DEPLOY_VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ github.token }}
+          ANDROID: ${{ inputs.android }}
+          DESKTOP: ${{ inputs.desktop }}
+          IOS: ${{ inputs.IOS }}
+          WEB: ${{ inputs.web }}
+          DATE: ${{ inputs.date }}
