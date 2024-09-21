@@ -12713,6 +12713,7 @@ async function run() {
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
+    const note = core.getInput('NOTE');
     function getDeployMessage(deployer, deployVerb, prTitle) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
@@ -12722,6 +12723,9 @@ async function run() {
             // eslint-disable-next-line max-len
             message +=
                 '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+        }
+        if (note) {
+            message += `\n\n_Note:_ ${note}`;
         }
         return message;
     }
