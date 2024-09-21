@@ -18,9 +18,6 @@ type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
     report: OnyxEntry<Report>;
 
-    /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoadingApp: OnyxEntry<boolean>;
-
     /** The draft report corresponding to the reportID in the route params */
     reportDraft: OnyxEntry<Report>;
 };
@@ -90,7 +87,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 report={report}
-                isLoadingApp={isLoadingApp}
                 reportDraft={reportDraft}
                 ref={ref}
             />
