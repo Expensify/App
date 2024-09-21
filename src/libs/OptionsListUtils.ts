@@ -1995,10 +1995,14 @@ function getOptions(
 
             // Add a field to sort the recent reports by the time of last IOU request
             if (action) {
-                const iouReportID = reportOption.iouReportID;
-                if (iouReportID) {
+                const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) =>
+                    ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
+                );
+
+                if (reportPreviewAction) {
+                    const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(reportPreviewAction);
                     const iouReportActions = allSortedReportActions[iouReportID] ?? [];
-                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === 'IOU');
+                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                     if (lastIOUAction) {
                         reportOption.lastIOUTime = lastIOUAction.lastModified;
                     }
