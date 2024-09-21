@@ -51,8 +51,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    // TODO: change approvedBy check for more accurate verification status
-    const isBankAccountVerified = bankAccountsList?.[paymentBankAccountID]?.accountData?.approvedBy === 'Automatic';
+    const isBankAccountVerified = bankAccountsList?.[paymentBankAccountID]?.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 

@@ -20,7 +20,7 @@ type EmptyCardViewProps = {
     /** Subtitle of the empty state */
     subtitle: string;
 
-    /** Whether the header buttons be displayed */
+    /** Whether the header buttons are displayed */
     areHeaderButtonsDisplayed: boolean;
 };
 
