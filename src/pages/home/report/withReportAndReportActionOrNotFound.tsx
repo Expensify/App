@@ -2,7 +2,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,34 +16,10 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type OnyxProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The parent report if the current report is a thread and it has a parent */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The report metadata */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** The report's parentReportAction */
-    parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
-
-    /** The policies which the user has access to */
-    policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: OnyxEntry<boolean>;
-};
-
-type WithReportAndReportActionOrNotFoundProps = OnyxProps &
-    StackScreenProps<FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT>;
+type WithReportAndReportActionOrNotFoundProps = StackScreenProps<
+    FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
+    typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT
+>;
 
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,

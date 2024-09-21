@@ -25,6 +25,12 @@ import withReportAndReportActionOrNotFound from './home/report/withReportAndRepo
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
 
 type FlagCommentPageWithOnyxProps = {
+    /** The report currently being looked at */
+    report: OnyxEntry<OnyxTypes.Report>;
+    /** The parent report if the current report is a thread and it has a parent */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    /** Array of report actions for this report */
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
     /** The report action from the parent report */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 };
