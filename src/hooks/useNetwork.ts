@@ -32,8 +32,10 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
+    // If the network status is undefined, we don't treat it as offline. Otherwise, we utilize the isOffline prop.
     const isOfflineResult = useMemo(() => (networkStatus === CONST.NETWORK.NETWORK_STATUS.UNKNOWN ? false : isOffline), [isOffline, networkStatus]);
 
+    // Used to get the last time the user went offline
     const [lastOfflineAt, setLastOfflineAt] = useState(() => (isOfflineResult ? DateUtils.getLocalDateFromDatetime(preferredLocale) : undefined));
     useEffect(() => {
         if (!isOffline) {
@@ -44,6 +46,7 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
+    // Used to get the last time the user went back online after being offline.
     const [lastOnlineAt, setLastOnlineAt] = useState(() => (isOfflineResult ? undefined : DateUtils.getLocalDateFromDatetime(preferredLocale)));
     useEffect(() => {
         if (isOffline) {
@@ -54,6 +57,5 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
-    // If the network status is undefined, we don't treat it as offline. Otherwise, we utilize the isOffline prop.
     return {isOffline: isOfflineResult, lastOfflineAt, lastOnlineAt};
 }

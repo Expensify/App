@@ -238,9 +238,9 @@ function ReportActionsList({
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions[index + 1];
 
+            // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
             const isCurrentMessageOffline = wasMessageReceivedWhileOffline(reportAction, lastOfflineAt, lastOnlineAt, preferredLocale);
             const isNextMessageOffline = (nextMessage && wasMessageReceivedWhileOffline(nextMessage, lastOfflineAt, lastOnlineAt, preferredLocale)) || !nextMessage;
-
             if (isCurrentMessageOffline && !isNextMessageOffline) {
                 return true;
             }
