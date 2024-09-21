@@ -29,6 +29,7 @@ function SavedSearchItemThreeDotMenu({menuItems}: SavedSearchItemThreeDotMenuPro
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
+                isPaneMenu
             />
         </View>
     );

@@ -37,6 +37,7 @@ function ThreeDotsMenu({
     shouldSetModalVisibility = true,
     disabled = false,
     modal = {},
+    isPaneMenu = false
 }: ThreeDotsMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -107,6 +108,7 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                isPaneMenu={isPaneMenu}
             />
         </>
     );

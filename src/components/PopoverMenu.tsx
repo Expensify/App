@@ -103,6 +103,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to show the selected option checkmark */
     shouldShowSelectedItemCheck?: boolean;
+
+    /** Is this in the Pane */
+    isPaneMenu?: boolean;
 };
 
 function PopoverMenu({
@@ -128,6 +131,7 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
+    isPaneMenu = false
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -304,6 +308,7 @@ function PopoverMenu({
                             interactive={item.interactive}
                             isSelected={item.isSelected}
                             badgeText={item.badgeText}
+                            isPaneMenu={isPaneMenu}
                         />
                     ))}
                 </ScrollView>

@@ -45,6 +45,9 @@ type ThreeDotsMenuProps = ThreeDotsMenuOnyxProps & {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility?: boolean;
+    
+    /** Is this in the Pane */
+    isPaneMenu?: boolean;
 };
 
 export default ThreeDotsMenuProps;
