@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import * as Environment from './Environment/Environment';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -18,10 +19,6 @@ function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
 function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | undefined): boolean {
     // Allow using P2P distance request for TrackExpense outside of the beta, because that project doesn't want to be limited by the more cautious P2P distance beta
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;
-}
-
-function canUseWorkflowsAdvancedApproval(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKFLOWS_ADVANCED_APPROVAL) || canUseAllBetas(betas);
 }
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
@@ -54,6 +51,17 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 /**
+ * New Search Router is under construction and for now should be displayed only in dev to allow developers to work on it.
+ * We are not using BETA for this feature, as betas are heavier to cleanup,
+ * and the development of new router is expected to take 2-3 weeks at most
+ *
+ * After everything is implemented this function can be removed, as we will always use SearchRouter in the App.
+ */
+function canUseNewSearchRouter() {
+    return Environment.isDevelopment();
+}
+
+/**
  * Link previews are temporarily disabled.
  */
 function canUseLinkPreviews(): boolean {
@@ -65,7 +73,6 @@ export default {
     canUseLinkPreviews,
     canUseDupeDetection,
     canUseP2PDistanceRequests,
-    canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
     canUseWorkspaceFeeds,
     canUseCompanyCardFeeds,
@@ -73,4 +80,5 @@ export default {
     canUseNewDotCopilot,
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
+    canUseNewSearchRouter,
 };

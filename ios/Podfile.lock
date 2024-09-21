@@ -27,20 +27,18 @@ PODS:
   - AppAuth/ExternalUserAgent (1.7.5):
     - AppAuth/Core
   - boost (1.84.0)
-  - BVLinearGradient (2.8.1):
-    - React-Core
   - DoubleConversion (1.1.6)
-  - EXAV (14.0.6):
+  - EXAV (14.0.7):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXImageLoader (4.7.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (51.0.17):
+  - Expo (51.0.31):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
-  - ExpoImage (1.12.12):
+  - ExpoImage (1.12.15):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
@@ -51,7 +49,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (1.12.18):
+  - ExpoModulesCore (1.12.23):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1689,7 +1687,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.12.2):
+  - react-native-keyboard-controller (1.12.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2362,7 +2360,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.120):
+  - RNLiveMarkdown (0.1.143):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2382,9 +2380,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.120)
+    - RNLiveMarkdown/common (= 0.1.143)
     - Yoga
-  - RNLiveMarkdown/common (0.1.120):
+  - RNLiveMarkdown/common (0.1.143):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2407,13 +2405,13 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.26):
+  - rnmapbox-maps (10.1.30):
     - MapboxMaps (~> 10.18.2)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.26)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.30)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.26):
+  - rnmapbox-maps/DynamicLibrary (10.1.30):
     - DoubleConversion
     - hermes-engine
     - MapboxMaps (~> 10.18.2)
@@ -2453,7 +2451,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.2.0):
+  - RNReactNativeHapticFeedback (2.3.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2584,7 +2582,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNShare (10.0.2):
+  - RNShare (11.0.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2692,7 +2690,6 @@ PODS:
 DEPENDENCIES:
   - AirshipServiceExtension
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
-  - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -2856,8 +2853,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
-  BVLinearGradient:
-    :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
@@ -3102,15 +3097,14 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
-  BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
-  EXAV: 62e66b067185d630fe4cb4aa6eb0e48f72e67e0f
+  EXAV: afa491e598334bbbb92a92a2f4dd33d7149ad37f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
-  Expo: 675a5642b5860771507237259da50b921c03a9f3
+  Expo: 4773e11951abd0f666f67023f0cb1d48c3e8a32b
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
-  ExpoImage: 2ccccff1219ebc765e344f3338f2430af2df4824
+  ExpoImage: f77df382153d716f332f974438a803c4527f60b0
   ExpoImageManipulator: aea99205c66043a00a0af90e345395637b9902fa
-  ExpoModulesCore: 606b7ca7c74186324975750c8a6f97b643f54ec9
+  ExpoModulesCore: 335282d855cc34fb5540e170204e729a51464bbb
   FBLazyVector: 38bb611218305c3bc61803e287b8a81c6f63b619
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10
@@ -3184,7 +3178,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: 5075321af7b1c834cfb9582230659d032c963278
+  react-native-keyboard-controller: b9b2ba987e3c6f4b6534740e88d11dccc34f69dc
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
   react-native-pager-view: 94195f1bf32e7f78359fa20057c97e632364a08b
@@ -3235,14 +3229,14 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: cfc927fc0b1182e364237c72692e079107c6f5f1
+  RNLiveMarkdown: e44918843c2638692348f39eafc275698baf0444
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
+  rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
-  RNReactNativeHapticFeedback: a15b431d2903bc2eb3474ff8d9a05d3e67a70199
+  RNReactNativeHapticFeedback: 31833c3ef341d716dbbd9d64e940f0c230db46f6
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
-  RNShare: a3c2fbbca5682530b65ff405b34c91dad1e22442
+  RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 1079f96b39a35753d481a20e30603fd6fc4f6fa9
   SDWebImage: 066c47b573f408f18caa467d71deace7c0f8280d

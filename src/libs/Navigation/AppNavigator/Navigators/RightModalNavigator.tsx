@@ -84,6 +84,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ProfileModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.DEBUG}
+                        component={ModalStackNavigators.DebugModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
                         component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                     />
@@ -106,10 +110,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.ROOM_MEMBERS}
                         component={ModalStackNavigators.RoomMembersModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ROOM_INVITE}
-                        component={ModalStackNavigators.RoomInviteModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.MONEY_REQUEST}
@@ -186,6 +186,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
                         component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}
+                        component={ModalStackNavigators.SearchSavedSearchModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
+                        component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

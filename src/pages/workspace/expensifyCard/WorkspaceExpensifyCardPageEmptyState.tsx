@@ -1,10 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -15,6 +17,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,6 +38,7 @@ const expensifyCardFeatures: FeatureListItem[] = [
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
     },
 ];
+
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
@@ -46,6 +50,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
     const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountList ?? {});
 
@@ -60,6 +65,15 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         }
     }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
 
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        if (!policy) {
+            return;
+        }
+        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        setIsCurrencyModalOpen(false);
+        startFlow();
+    }, [policy, startFlow]);
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
@@ -67,6 +81,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
+            showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -76,12 +91,29 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
-                    onCtaPress={startFlow}
+                    onCtaPress={() => {
+                        if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                            setIsCurrencyModalOpen(true);
+                            return;
+                        }
+                        startFlow();
+                    }}
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={Illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
                 />
+                <ConfirmModal
+                    title={translate('workspace.common.expensifyCard')}
+                    isVisible={isCurrencyModalOpen}
+                    onConfirm={confirmCurrencyChangeAndHideModal}
+                    onCancel={() => setIsCurrencyModalOpen(false)}
+                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                    confirmText={translate('workspace.bankAccount.updateToUSD')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
             </View>
         </WorkspacePageWithSections>
     );

@@ -10,6 +10,8 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
+type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
 type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
@@ -66,6 +68,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
+
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
     options: Array<DropdownOption<TValueType>>;
@@ -94,6 +99,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
+    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
+    shouldUseStyleUtilityForAnchorPosition?: boolean;
+
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
@@ -104,6 +112,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 export type {
     PaymentType,
     WorkspaceMemberBulkActionType,
+    RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,
     ButtonWithDropdownMenuProps,
