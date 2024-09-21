@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,7 +9,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -61,12 +61,12 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether to apply flex to the submit button */
     submitFlexEnabled?: boolean;
 
-        /** Whether button is disabled */
-        isSubmitDisabled?: boolean;
+    /** Whether button is disabled */
+    isSubmitDisabled?: boolean;
 
-        /** Whether HTML is allowed in form inputs */
-        allowHTML?: boolean;
-    };
+    /** Whether HTML is allowed in form inputs */
+    allowHTML?: boolean;
+};
 
 function FormProvider(
     {
