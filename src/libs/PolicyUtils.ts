@@ -1008,7 +1008,7 @@ function getDomainNameForPolicy(policyID?: string): string {
         return '';
     }
 
-    return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
+    return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID.toLowerCase()}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
 }
 
 function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
