@@ -2680,6 +2680,7 @@ export default {
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
                     requiredFieldError: (fieldName: string) => `Please enter the ${fieldName}`,
+                    label: (importedTypes: string[]) => `Imported as ${importedTypes.join(' and ')}`,
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
