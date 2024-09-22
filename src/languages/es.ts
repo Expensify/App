@@ -2724,7 +2724,7 @@ export default {
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
                     requiredFieldError: (fieldName: string) => `Por favor, introduzca el ${fieldName}`,
-                    label: (importedTypes: string[]) => `Imported as ${importedTypes.join(' and ')}`,
+                    label: (importedTypes: string[]) => `Importados como ${importedTypes.join(' y ')}`,
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
                         addText: 'Añadir segmento/registro personalizado',
