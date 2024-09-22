@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
 import type {FieldItemType} from './ReviewFields';
@@ -26,7 +27,7 @@ function ReviewTag() {
                 !tag
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: tag,
+                          text: PolicyUtils.getCleanedTagName(tag),
                           value: tag,
                       },
             ),

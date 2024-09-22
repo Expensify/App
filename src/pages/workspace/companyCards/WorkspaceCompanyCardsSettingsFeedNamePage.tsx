@@ -40,7 +40,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`)
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames[lastSelectedFeed] ?? '';
+    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {

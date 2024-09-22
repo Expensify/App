@@ -25,6 +25,7 @@ function ButtonWithDropdownMenu<IValueType>({
     menuHeaderText = '',
     customText,
     style,
+    disabledStyle,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -157,6 +158,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled || !!options[0].disabled}
                     style={[styles.w100, style]}
+                    disabledStyle={disabledStyle}
                     isLoading={isLoading}
                     text={selectedItem.text}
                     onPress={(event) => onPress(event, options[0].value)}
