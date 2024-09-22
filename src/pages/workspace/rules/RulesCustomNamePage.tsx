@@ -40,7 +40,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue;
+    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue;
 
     const validateCustomName = ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
