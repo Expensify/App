@@ -24,7 +24,7 @@ type ReportActionsListItemRendererProps = {
     index: number;
 
     /** Report for this action */
-    report: Report;
+    report: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;

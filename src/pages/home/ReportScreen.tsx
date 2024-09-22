@@ -440,7 +440,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (report && !shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+        if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
             return;
         }
 
@@ -773,7 +773,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        {shouldShowMostRecentReportAction && report && (
+                                        {shouldShowMostRecentReportAction && (
                                             <ReportActionsListItemRenderer
                                                 reportAction={mostRecentReportAction}
                                                 reportActions={reportActions}
