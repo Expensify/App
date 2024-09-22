@@ -665,6 +665,15 @@ function getPaddingLeft(paddingLeft: number): ViewStyle {
 }
 
 /**
+ * Get variable padding-right as style
+ */
+function getPaddingRight(paddingRight: number): ViewStyle {
+    return {
+        paddingRight,
+    };
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
@@ -982,6 +991,13 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
             height: variables.componentSizeLarge,
         };
     }
+
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
+        return {
+            height: variables.componentSizeSmall,
+        };
+    }
+
     return {
         height: variables.componentSizeNormal,
     };
@@ -1119,6 +1135,7 @@ const staticStyleUtils = {
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
     getPaddingLeft,
+    getPaddingRight,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1294,7 +1311,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getButtonBackgroundColorStyle: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.PRESSED:
-                return {backgroundColor: theme.buttonPressedBG};
+                return isMenuItem ? {backgroundColor: theme.buttonHoveredBG} : {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
                 return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:

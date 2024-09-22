@@ -2,11 +2,12 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -60,14 +61,15 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
+    const canEdit = ReportUtils.canEditReportDescription(report, policy);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom={false}
             testID={RoomDescriptionPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(report, policy)}>
-                <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
+            <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
+            {canEdit && (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
@@ -102,7 +104,12 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                         />
                     </View>
                 </FormProvider>
-            </FullPageNotFoundView>
+            )}
+            {!canEdit && (
+                <ScrollView style={[styles.flexGrow1, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={Parser.replace(description)} />
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }

@@ -362,6 +362,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
+            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
         })
         .then(endSignOnTransition);
@@ -496,6 +497,10 @@ function updateLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
+function updateLastRoute(screen: string) {
+    Onyx.set(ONYXKEYS.LAST_ROUTE, screen);
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -513,5 +518,6 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    updateLastRoute,
     KEYS_TO_PRESERVE,
 };

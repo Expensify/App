@@ -23,6 +23,9 @@ type ThumbnailImageProps = {
     /** Source URL for the preview image */
     previewSourceURL: string | ImageSourcePropType;
 
+    /** alt text for the image */
+    altText?: string;
+
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
@@ -61,6 +64,7 @@ type UpdateImageSizeParams = {
 
 function ThumbnailImage({
     previewSourceURL,
+    altText,
     style,
     isAuthTokenRequired,
     imageWidth = 200,
@@ -132,6 +136,7 @@ function ThumbnailImage({
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
+                    altText={altText}
                     onMeasure={updateImageSize}
                     onLoadFailure={() => setFailedToLoad(true)}
                     isAuthTokenRequired={isAuthTokenRequired}

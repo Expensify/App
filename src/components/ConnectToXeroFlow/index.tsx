@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';

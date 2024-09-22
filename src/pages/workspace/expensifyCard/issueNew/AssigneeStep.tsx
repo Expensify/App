@@ -22,8 +22,8 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {IssueNewCardData} from '@src/types/onyx/Card';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -43,11 +43,18 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const submit = (assignee: ListItem) => {
+        const data: Partial<IssueNewCardData> = {
+            assigneeEmail: assignee?.login ?? '',
+        };
+
+        if (isEditing && issueNewCard?.data?.cardTitle === Card.getCardDefaultName(PersonalDetailsUtils.getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
+            // If the card title is the default card title, update it with the new assignee's name
+            data.cardTitle = Card.getCardDefaultName(PersonalDetailsUtils.getUserNameByEmail(assignee?.login ?? '', 'firstName'));
+        }
+
         Card.setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
-            data: {
-                assigneeEmail: assignee?.login ?? '',
-            },
+            data,
             isEditing: false,
         });
     };
@@ -57,7 +64,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
+        Navigation.goBack();
         Card.clearIssueNewCardFlow();
     };
 
@@ -93,7 +100,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             });
         });
 
-        membersList = OptionsListUtils.sortItemsAlphabetically(membersList);
+        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
 
         return membersList;
     }, [isOffline, policy?.employeeList]);

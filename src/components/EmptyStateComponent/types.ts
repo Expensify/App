@@ -13,12 +13,14 @@ type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
 type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
     title: string;
-    subtitle: string;
+    subtitle: string | React.ReactNode;
     buttonText?: string;
     buttonAction?: () => void;
+    containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
+    lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
 };
 

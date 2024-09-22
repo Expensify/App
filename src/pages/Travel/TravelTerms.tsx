@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Travel from '@userActions/Travel';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function TravelTerms() {
     const styles = useThemeStyles();
@@ -22,6 +24,8 @@ function TravelTerms() {
     const {canUseSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
+    const isLoading = travelSettings?.isLoading;
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
@@ -98,6 +102,7 @@ function TravelTerms() {
                                 message={errorMessage}
                                 isAlertVisible={!!errorMessage}
                                 containerStyles={[styles.mh0, styles.mt5]}
+                                isLoading={isLoading}
                             />
                         </ScrollView>
                     )}

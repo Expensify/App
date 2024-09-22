@@ -178,7 +178,8 @@ function ReportActionItem({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const blockedFromConcierge = useBlockedFromConcierge();
-    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(report.reportID, action) ?? '-1', [report.reportID, action]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(report.reportID, action) || '-1', [report.reportID, action]);
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         selector: (draftMessagesForReport) => {
             const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
@@ -187,7 +188,7 @@ function ReportActionItem({
     });
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
@@ -380,8 +381,8 @@ function ReportActionItem({
     }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
-        (emoji: Emoji) => {
-            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions);
+        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
+            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
         },
         [report, action, emojiReactions],
     );
@@ -394,6 +395,7 @@ function ReportActionItem({
             action,
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+            isDisabled: false,
         }),
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
@@ -640,7 +642,9 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -651,7 +655,7 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
+        } else if (ReportActionsUtils.isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getWorkspaceNameUpdatedMessage(action)} />;
@@ -661,10 +665,17 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action)} />;
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getRemovedFromApprovalChainMessage(action)} />;
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
-            children = <IssueCardMessage action={action} />;
+            children = (
+                <IssueCardMessage
+                    action={action}
+                    policyID={report.policyID}
+                />
+            );
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
@@ -719,6 +730,7 @@ function ReportActionItem({
                                 action={action}
                                 draftMessage={draftMessage}
                                 reportID={report.reportID}
+                                policyID={report.policyID}
                                 index={index}
                                 ref={textInputRef}
                                 shouldDisableEmojiPicker={
@@ -756,7 +768,7 @@ function ReportActionItem({
                             reportAction={action}
                             emojiReactions={emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji) => {
+                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
 
@@ -764,7 +776,7 @@ function ReportActionItem({
                                         Session.signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji);
+                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -1033,6 +1045,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
+            prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&

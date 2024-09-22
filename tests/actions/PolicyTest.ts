@@ -12,7 +12,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
-const ESH_PARTICIPANT: Participant = {hidden: false, role: 'admin'};
+const ESH_PARTICIPANT_ANNOUNCE_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const WORKSPACE_NAME = "Esh's Workspace";
 
 OnyxUpdateManager();
@@ -78,17 +80,19 @@ describe('actions/Policy', () => {
             expect(workspaceReports.length).toBe(3);
             workspaceReports.forEach((report) => {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT});
                 switch (report?.chatType) {
                     case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
+                        expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT_ADMINS_ROOM});
                         adminReportID = report.reportID;
                         break;
                     }
                     case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE: {
+                        expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT_ANNOUNCE_ROOM});
                         announceReportID = report.reportID;
                         break;
                     }
                     case CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT: {
+                        expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT_EXPENSE_CHAT});
                         expenseReportID = report.reportID;
                         break;
                     }

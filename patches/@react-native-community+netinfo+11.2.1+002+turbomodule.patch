@@ -106,7 +106,7 @@ index 0d617ed..97439e6 100644
 +  }
  }
 diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
-index 2c3280b..296bbfd 100644
+index 2c3280b..52ea692 100644
 --- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
 +++ b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
 @@ -9,13 +9,11 @@ package com.reactnativecommunity.netinfo;
@@ -146,7 +146,8 @@ index 2c3280b..296bbfd 100644
      }
  
 -    @Override
-     public void onCatalystInstanceDestroy() {
+-    public void onCatalystInstanceDestroy() {
++    public void invalidate() {
          mAmazonConnectivityChecker.unregister();
          mConnectivityReceiver.unregister();
 -        mConnectivityReceiver.hasListener = false;
@@ -254,7 +255,7 @@ index fcd4a5e..1bf0b62 100644
  }
 diff --git a/node_modules/@react-native-community/netinfo/android/src/newarch/com/reactnativecommunity/netinfo/NetInfoModule.java b/node_modules/@react-native-community/netinfo/android/src/newarch/com/reactnativecommunity/netinfo/NetInfoModule.java
 new file mode 100644
-index 0000000..61e44c4
+index 0000000..26c83b6
 --- /dev/null
 +++ b/node_modules/@react-native-community/netinfo/android/src/newarch/com/reactnativecommunity/netinfo/NetInfoModule.java
 @@ -0,0 +1,51 @@
@@ -300,8 +301,8 @@ index 0000000..61e44c4
 +    }
 +    
 +    @Override
-+    public void onCatalystInstanceDestroy() {
-+        implementation.onCatalystInstanceDestroy();
++    public void invalidate() {
++        implementation.invalidate();
 +    }
 +
 +    @Override
@@ -311,7 +312,7 @@ index 0000000..61e44c4
 +}
 diff --git a/node_modules/@react-native-community/netinfo/android/src/oldarch/com/reactnativecommunity/netinfo/NetInfoModule.java b/node_modules/@react-native-community/netinfo/android/src/oldarch/com/reactnativecommunity/netinfo/NetInfoModule.java
 new file mode 100644
-index 0000000..4738d63
+index 0000000..c61a84d
 --- /dev/null
 +++ b/node_modules/@react-native-community/netinfo/android/src/oldarch/com/reactnativecommunity/netinfo/NetInfoModule.java
 @@ -0,0 +1,59 @@
@@ -349,8 +350,8 @@ index 0000000..4738d63
 +    }
 +
 +    @Override
-+    public void onCatalystInstanceDestroy() {
-+        implementation.onCatalystInstanceDestroy();
++    public void invalidate() {
++        implementation.invalidate();
 +    }
 +
 +
