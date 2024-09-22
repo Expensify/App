@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
@@ -53,7 +54,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         nextScreen();
     };
 
-    const shouldPageBeBlocked = !isEmpty(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     return (
         <ConnectionLayout
