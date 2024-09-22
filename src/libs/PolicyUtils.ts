@@ -828,13 +828,17 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
-function getNetSuiteImportCustomFieldLabel(policy: Policy | undefined, importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, translate: LocaleContextProps['translate']): string | undefined {
+function getNetSuiteImportCustomFieldLabel(
+    policy: Policy | undefined,
+    importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
+    translate: LocaleContextProps['translate'],
+): string | undefined {
     const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
     if (fieldData.length === 0) {
         return undefined;
     }
 
-    const mappingSet = new Set(fieldData.map(item => item.mapping));
+    const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet).map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, importedTypes);
 }
@@ -1138,7 +1142,7 @@ export {
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
-    getNetSuiteImportCustomFieldLabel
+    getNetSuiteImportCustomFieldLabel,
 };
 
 export type {MemberEmailsToAccountIDs};
