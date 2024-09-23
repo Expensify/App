@@ -283,7 +283,7 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    <WrapComponent contentContainerStyle={scrollContainerStyle}>
+                    <WrapComponent contentContainerStyle={shouldUseScrollView && scrollContainerStyle}>
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
                             return (
