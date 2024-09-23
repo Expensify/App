@@ -189,8 +189,9 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
-    ANIMATION_PAY_BUTTON_DURATION: 200,
-    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_DURATION: 200,
+    ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -5764,6 +5765,7 @@ const CONST = {
         ICON_HEIGHT: 160,
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
+        MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     },
 
