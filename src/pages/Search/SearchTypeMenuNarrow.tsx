@@ -84,8 +84,22 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             };
         });
 
+        if (title && !currentSavedSearch) {
+            items.push({
+                text: title,
+                onSelected: closeMenu,
+                isSelected: !currentSavedSearch,
+                icon: Expensicons.Filters,
+                iconFill: theme.iconSuccessFill,
+                success: true,
+                containerStyle: undefined,
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: false,
+            });
+        }
+
         return items;
-    }, [typeMenuItems, activeItemIndex, title, theme, singleExecution]);
+    }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu, currentSavedSearch]);
 
     const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
