@@ -99,6 +99,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
+    const hasValidAccount = !!policy?.achAccount?.accountNumber;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -267,10 +268,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: ' to ',
                     },
                     {
-                        text: 'pay',
+                        text: hasValidAccount ? 'pay' : ' finish setting up',
                     },
                     {
-                        text: ' %expenses.',
+                        text: hasValidAccount ? ' %expenses.' : ' a bank account.',
                     },
                 ],
             };
