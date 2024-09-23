@@ -126,7 +126,7 @@ function ProfilePage() {
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart]}>
+                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
                                 ) : (
