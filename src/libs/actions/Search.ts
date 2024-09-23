@@ -157,22 +157,7 @@ function clearAdvancedFilters() {
 }
 
 function setShouldShowSavedSearchRenameTooltip() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP,
-        value: true,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP,
-            value: true,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
+    Onyx.set(ONYXKEYS.NVP_SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
 }
 
 function dismissSavedSearchRenameTooltip() {
