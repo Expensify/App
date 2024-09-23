@@ -23,7 +23,7 @@ import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
-const TOO_CLOSE_TO_BOTTOM_DISTNACE = 10;
+const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
 function SearchPageBottomTab() {
@@ -52,7 +52,7 @@ function SearchPageBottomTab() {
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 topBarOffset.value = clamp(topBarOffset.value - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight);
-            } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTNACE) {
+            } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                 topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
             }
             scrollOffset.value = currentOffset;
@@ -91,7 +91,7 @@ function SearchPageBottomTab() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             {!selectionMode?.isEnabled ? (
-                <View style={styles.zIndex10}>
+                <>
                     <View style={[styles.zIndex10, styles.appBG]}>
                         <TopBar
                             activeWorkspaceID={policyID}
@@ -112,7 +112,7 @@ function SearchPageBottomTab() {
                             />
                         )}
                     </Animated.View>
-                </View>
+                </>
             ) : (
                 <SearchSelectionModeHeader queryJSON={queryJSON} />
             )}

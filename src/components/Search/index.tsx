@@ -199,7 +199,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     if (shouldShowEmptyState) {
         return (
-            <View style={[shouldUseNarrowLayout && styles.searchListContentContainerStyles, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout && styles.searchListContentContainerStyles, styles.flex1, styles.mt3]}>
                 <EmptySearchView type={type} />
             </View>
         );
@@ -334,7 +334,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             getItemHeight={getItemHeightMemoized}
             shouldSingleExecuteRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
+            listHeaderWrapperStyle={[styles.ph8, styles.pv5]}
             containerStyle={[styles.pv0]}
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}

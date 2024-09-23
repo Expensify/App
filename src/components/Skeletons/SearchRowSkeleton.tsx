@@ -121,7 +121,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     }
 
     return (
-        <View style={[styles.mt3, styles.flex1, containerStyle]}>
+        <View style={[styles.flex1, containerStyle]}>
             <ItemListSkeletonView
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
