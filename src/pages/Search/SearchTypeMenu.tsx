@@ -59,7 +59,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
+    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const personalDetails = usePersonalDetails();
