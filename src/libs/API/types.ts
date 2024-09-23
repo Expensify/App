@@ -251,6 +251,10 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS: 'UpdateQuickbooksOnlineSyncCustomers',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES: 'UpdateQuickbooksOnlineSyncClasses',
     UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'UpdateQuickbooksOnlineNonReimbursableBillDefaultVendor',
+    UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC: 'UpdateQuickbooksOnlineAutoSync',
+    UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE: 'UpdateQuickbooksOnlineSyncPeople',
+    UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID: 'UpdateQuickbooksOnlineReimbursementAccountID',
+    UPDATE_QUICKBOOKS_ONLINE_EXPORT: 'UpdateQuickbooksOnlineExport',
     UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
@@ -669,6 +673,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
