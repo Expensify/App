@@ -39,6 +39,8 @@ function AccountSwitcher() {
     const {canUseNewDotCopilot} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [user] = useOnyx(ONYXKEYS.USER);
     const buttonRef = useRef<HTMLDivElement>(null);
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
@@ -133,6 +135,7 @@ function AccountSwitcher() {
                 }}
                 ref={buttonRef}
                 interactive={canSwitchAccounts}
+                pressDimmingValue={canSwitchAccounts ? undefined : 1}
                 wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
             >
                 <View style={[styles.flexRow, styles.gap3]}>
@@ -147,7 +150,7 @@ function AccountSwitcher() {
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge]}
+                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
                                 {processedTextArray.length !== 0
                                     ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))
@@ -170,6 +173,14 @@ function AccountSwitcher() {
                         >
                             {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                         </Text>
+                        {!!user?.isDebugModeEnabled && (
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                numberOfLines={1}
+                            >
+                                AccountID: {session?.accountID}
+                            </Text>
+                        )}
                     </View>
                 </View>
             </PressableWithFeedback>

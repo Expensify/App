@@ -5,6 +5,8 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
+import * as SearchUtils from '@libs/SearchUtils';
 import SignInButton from '@pages/home/sidebar/SignInButton';
 import * as Session from '@userActions/Session';
 import Timing from '@userActions/Timing';
@@ -20,9 +23,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean};
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; isCustomSearchQuery?: boolean};
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, isCustomSearchQuery = false}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -60,6 +63,19 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}
                     </View>
                 </View>
                 {displaySignIn && <SignInButton />}
+                {isCustomSearchQuery && (
+                    <PressableWithoutFeedback
+                        accessibilityLabel={translate('common.cancel')}
+                        style={[styles.textBlue]}
+                        onPress={() => {
+                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+                        }}
+                    >
+                        <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
+                    </PressableWithoutFeedback>
+                )}
+                {/* This is only temporary for development and will be cleaned up in: https://github.com/Expensify/App/issues/49122 */}
+                <SearchButton />
                 {displaySearch && (
                     <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback

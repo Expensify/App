@@ -1,9 +1,9 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
@@ -12,17 +12,19 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import SettlementButton from '@components/SettlementButton';
+import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -38,33 +40,13 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
-type ReportPreviewOnyxProps = {
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<Policy>;
-
-    /** ChatReport associated with iouReport */
-    chatReport: OnyxEntry<Report>;
-
-    /** Active IOU Report for current report */
-    iouReport: OnyxEntry<Report>;
-
-    /** All the transactions, used to update ReportPreview label and status */
-    transactions: OnyxCollection<Transaction>;
-
-    /** All of the transaction violations */
-    transactionViolations: OnyxCollection<TransactionViolations>;
-
-    /** The user's wallet account */
-    userWallet: OnyxEntry<UserWallet>;
-};
-
-type ReportPreviewProps = ReportPreviewOnyxProps & {
+type ReportPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
@@ -100,24 +82,24 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
 };
 
 function ReportPreview({
-    iouReport,
-    policy,
     iouReportID,
     policyID,
     chatReportID,
-    chatReport,
     action,
     containerStyles,
     contextMenuAnchor,
-    transactions,
-    transactionViolations,
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    userWallet,
 }: ReportPreviewProps) {
+    const policy = usePolicy(policyID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -136,6 +118,7 @@ function ReportPreview({
         [transactions, iouReportID, action],
     );
 
+    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
@@ -149,6 +132,18 @@ function ReportPreview({
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const previewMessageOpacity = useSharedValue(1);
+    const previewMessageStyle = useAnimatedStyle(() => ({
+        ...styles.flex1,
+        ...styles.flexRow,
+        ...styles.alignItemsCenter,
+        opacity: previewMessageOpacity.value,
+    }));
+    const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
+    const checkMarkStyle = useAnimatedStyle(() => ({
+        ...styles.defaultCheckmarkWrapper,
+        transform: [{scale: checkMarkScale.value}],
+    }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
@@ -196,24 +191,30 @@ function ReportPreview({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-        if (!type) {
-            return;
-        }
-        setPaymentType(type);
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (isDelegateAccessRestricted) {
-            setIsNoDelegateAccessMenuVisible(true);
-        } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
-            setIsHoldMenuVisible(true);
-        } else if (chatReport && iouReport) {
-            if (ReportUtils.isInvoiceReport(iouReport)) {
-                IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
-            } else {
-                IOU.payMoneyRequest(type, chatReport, iouReport);
+    const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
+    const confirmPayment = useCallback(
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+            if (!type) {
+                return;
             }
-        }
-    };
+            setPaymentType(type);
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true);
+            } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+                setIsHoldMenuVisible(true);
+            } else if (chatReport && iouReport) {
+                setIsPaidAnimationRunning(true);
+                HapticFeedback.longPress();
+                if (ReportUtils.isInvoiceReport(iouReport)) {
+                    IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
+                } else {
+                    IOU.payMoneyRequest(type, chatReport, iouReport);
+                }
+            }
+        },
+        [chatReport, iouReport, isDelegateAccessRestricted],
+    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -277,14 +278,14 @@ function ReportPreview({
         return !Number.isNaN(amount) && amount === 0;
     }
 
-    const getPreviewMessage = () => {
+    const previewMessage = useMemo(() => {
         if (isScanning) {
             return translate('common.receipt');
         }
 
         let payerOrApproverName;
         if (isPolicyExpenseChat) {
-            payerOrApproverName = ReportUtils.getPolicyName(chatReport);
+            payerOrApproverName = ReportUtils.getPolicyName(chatReport, undefined, policy);
         } else if (isInvoiceRoom) {
             payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
@@ -302,11 +303,27 @@ function ReportPreview({
             payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
-    };
+    }, [
+        isScanning,
+        isPolicyExpenseChat,
+        policy,
+        chatReport,
+        isInvoiceRoom,
+        invoiceReceiverPolicy,
+        managerID,
+        isApproved,
+        iouSettled,
+        iouReport?.isWaitingOnBankAccount,
+        hasNonReimbursableTransactions,
+        translate,
+    ]);
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
+    const shouldShowPayButton = useMemo(
+        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
+        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
+    );
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
@@ -389,6 +406,33 @@ function ReportPreview({
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
+    useEffect(() => {
+        if (!isPaidAnimationRunning) {
+            return;
+        }
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        previewMessageOpacity.value = withTiming(0.75, {duration: CONST.ANIMATION_PAID_DURATION / 2}, () => {
+            // eslint-disable-next-line react-compiler/react-compiler
+            previewMessageOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION / 2});
+        });
+        // We only want to animate the text when the text changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [previewMessage, previewMessageOpacity]);
+
+    useEffect(() => {
+        if (!iouSettled) {
+            return;
+        }
+
+        if (isPaidAnimationRunning) {
+            // eslint-disable-next-line react-compiler/react-compiler
+            checkMarkScale.value = withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
+        } else {
+            checkMarkScale.value = 1;
+        }
+    }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -418,12 +462,12 @@ function ReportPreview({
                             />
                         )}
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
-                            <View style={styles.expenseAndReportPreviewTextButtonContainer}>
+                            <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
-                                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
-                                        </View>
+                                        <Animated.View style={previewMessageStyle}>
+                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{previewMessage}</Text>
+                                        </Animated.View>
                                         {shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
@@ -443,12 +487,12 @@ function ReportPreview({
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
                                                 {iouSettled && (
-                                                    <View style={styles.defaultCheckmarkWrapper}>
+                                                    <Animated.View style={checkMarkStyle}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
                                                         />
-                                                    </View>
+                                                    </Animated.View>
                                                 )}
                                             </View>
                                         </View>
@@ -473,7 +517,9 @@ function ReportPreview({
                                     </View>
                                 </View>
                                 {shouldShowSettlementButton && (
-                                    <SettlementButton
+                                    <AnimatedSettlementButton
+                                        isPaidAnimationRunning={isPaidAnimationRunning}
+                                        onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
@@ -549,23 +595,4 @@ function ReportPreview({
 
 ReportPreview.displayName = 'ReportPreview';
 
-export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-})(ReportPreview);
+export default ReportPreview;

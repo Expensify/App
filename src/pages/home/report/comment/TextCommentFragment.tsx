@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {memo, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
@@ -67,9 +67,9 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         let htmlContent = htmlWithDeletedTag;
-
         if (containsOnlyEmojis) {
-            htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>');
+            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji islarge>');
+            htmlContent = Str.replaceAll(htmlContent, '<blockquote>', '<blockquote isemojisonly>');
         } else if (CONST.REGEX.ALL_EMOJIS.test(text ?? '')) {
             htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji ismedium>');
         }

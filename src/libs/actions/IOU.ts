@@ -891,9 +891,8 @@ function buildOnyxDataForMoneyRequest(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -1267,9 +1266,8 @@ function buildOnyxDataForInvoice(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -1644,9 +1642,8 @@ function buildOnyxDataForTrackExpense(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -2493,7 +2490,9 @@ function getUpdateMoneyRequestParams(
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    let updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
+    let updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction> = transaction
+        ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport)
+        : null;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
@@ -2516,7 +2515,7 @@ function getUpdateMoneyRequestParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(updatedTransaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2545,7 +2544,7 @@ function getUpdateMoneyRequestParams(
     // - we're updating the distance rate while the waypoints are still pending
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -2680,7 +2679,8 @@ function getUpdateMoneyRequestParams(
     }
 
     // Update recently used categories if the category is changed
-    if ('category' in transactionChanges) {
+    const hasModifiedCategory = 'category' in transactionChanges;
+    if (hasModifiedCategory) {
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
@@ -2704,7 +2704,8 @@ function getUpdateMoneyRequestParams(
     }
 
     // Update recently used categories if the tag is changed
-    if ('tag' in transactionChanges) {
+    const hasModifiedTag = 'tag' in transactionChanges;
+    if (hasModifiedTag) {
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
@@ -2747,15 +2748,14 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && ('tag' in transactionChanges || 'category' in transactionChanges)) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 currentTransactionViolations,
-                !!policy.requiresTag,
+                policy,
                 policyTagList ?? {},
-                !!policy.requiresCategory,
                 policyCategories ?? {},
                 PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
             ),
@@ -3170,9 +3170,13 @@ function updateMoneyRequestDistanceRate(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    updatedTaxAmount?: number,
+    updatedTaxCode?: string,
 ) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
+        ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
+        ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -3184,7 +3188,9 @@ function updateMoneyRequestDistanceRate(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, params, onyxData);
+    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
+    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
 }
 
 /** Edits an existing distance expense */
@@ -5455,9 +5461,8 @@ function editRegularMoneyRequest(
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             currentTransactionViolations,
-            !!policy.requiresTag,
+            policy,
             policyTags,
-            !!policy.requiresCategory,
             policyCategories,
             PolicyUtils.hasDependentTags(policy, policyTags),
         );
@@ -6445,7 +6450,7 @@ function getReportFromHoldRequestsOnyxData(
         chatReport.reportID,
         chatReport.policyID ?? iouReport.policyID ?? '',
         recipient.accountID ?? 1,
-        (firstHoldTransaction?.amount ?? 0) * -1,
+        holdTransactions.reduce((acc, transaction) => acc + transaction.amount, 0) * (ReportUtils.isIOUReport(iouReport) ? 1 : -1),
         getCurrency(firstHoldTransaction),
         false,
         newParentReportActionID,

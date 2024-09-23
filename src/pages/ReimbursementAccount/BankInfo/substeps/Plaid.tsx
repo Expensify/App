@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,26 +10,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {PlaidData, ReimbursementAccount} from '@src/types/onyx';
 
-type PlaidOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-};
-
-type PlaidProps = PlaidOnyxProps & SubStepProps;
+type PlaidProps = SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
+function Plaid({onNext}: PlaidProps) {
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -52,7 +42,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
         };
 
         ReimbursementAccountActions.updateReimbursementAccountDraft(bankAccountData);
-        onNext();
+        onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
@@ -97,15 +87,4 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
 
 Plaid.displayName = 'Plaid';
 
-export default withOnyx<PlaidProps, PlaidOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(Plaid);
+export default Plaid;

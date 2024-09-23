@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {startCase} from 'lodash';
+import startCase from 'lodash/startCase';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -78,7 +78,7 @@ import type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
@@ -98,7 +98,7 @@ import type {
     UnapprovedParams,
     UnshareParams,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -352,6 +352,7 @@ export default {
         default: 'Default',
         update: 'Update',
         member: 'Member',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Currency',
         rate: 'Rate',
@@ -396,6 +397,7 @@ export default {
         sent: 'Sent',
         links: 'Links',
         days: 'days',
+        rename: 'Rename',
     },
     location: {
         useCurrent: 'Use current location',
@@ -685,8 +687,11 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importMembersSuccessfullDescription: (members: number) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
+        importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         sizeNotMet: 'File size must be greater than 0 bytes',
         invalidFileMessage:
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
@@ -841,11 +846,12 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `the ${valueName} to ${newValueToDisplay}`,
-        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
+        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+            `set the ${translatedChangedField} to ${newMerchant}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
-        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
-            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
+        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+            `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
@@ -1097,6 +1103,7 @@ export default {
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
             testCrash: 'Test crash',
+            debugMode: 'Debug mode',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2225,6 +2232,21 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            memberAlternateText: 'Members can submit and approve reports.',
+            adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
+            auditorAlternateText: 'Auditors can view and comment on reports.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Admin';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Member';
+                    default:
+                        return 'Member';
+                }
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2825,11 +2847,11 @@ export default {
                         companyLabel: 'Company ID',
                     },
                     amex: {
-                        title: `What's the Amex delivery file name`,
+                        title: `What's the Amex delivery file name?`,
                         fileNameLabel: 'Delivery file name',
                     },
                     mastercard: {
-                        title: `What's the Mastercard distribution ID`,
+                        title: `What's the Mastercard distribution ID?`,
                         distributionLabel: 'Distribution ID',
                     },
                 },
@@ -2950,7 +2972,6 @@ export default {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             importCategories: 'Import categories',
-            importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -3010,6 +3031,20 @@ export default {
                 disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
+                cardDetails: 'Card details',
+                cardNumber: 'Card number',
+                cardholder: 'Cardholder',
+                cardName: 'Card name',
+                integrationExport: (integration: string, type: string) => `${integration} ${type} export`,
+                integrationExportTitleFirstPart: (integration: string) => `Choose the ${integration} account where transactions should be exported. Select a different`,
+                integrationExportTitleLinkPart: 'export option',
+                integrationExportTitleSecondPart: 'to change the available accounts.',
+                lastUpdated: 'Last updated',
+                transactionStartDate: 'Transaction start date',
+                updateCard: 'Update card',
+                unassignCard: 'Unassign card',
+                unassign: 'Unassign',
+                unassignCardDescription: 'Unassign this card will remove all transactions on draft reports from the cardholder’s account.',
                 assignCard: 'Assign card',
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
@@ -3029,6 +3064,12 @@ export default {
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
                 emptyAddedFeedTitle: 'Assign company cards',
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
+                pendingFeedTitle: `We're reviewing your request...`,
+                pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
+                giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
+                updating: 'Updating...',
+                noAccountsFound: 'No accounts found',
+                noAccountsFoundDescription: (connection: string) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
                 title: 'Workflows',
@@ -3145,6 +3186,11 @@ export default {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            tagRules: 'Tag rules',
+            approverDescription: 'Approver',
+            importTags: 'Import tags',
+            importedTagsMessage: (columnCounts: number) =>
+                `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -3214,6 +3260,7 @@ export default {
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
+            makeAuditor: 'Make auditor',
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
@@ -3223,6 +3270,7 @@ export default {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
+            importMembers: 'Import members',
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -3314,6 +3362,8 @@ export default {
                     }
                 }
             },
+            errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
+            goToODToFix: 'Go to Expensify Classic to fix this issue.',
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
@@ -3461,6 +3511,10 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importing vendors';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importing custom lists';
                         case 'netSuiteSyncImportCustomLists':
                             return 'Importing custom lists';
                         case 'netSuiteSyncImportSubsidiaries':
@@ -3809,6 +3863,7 @@ export default {
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid. ',
                 unlockFeatureGoToSubtitle: 'Go to',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `and enable workflows, then add ${featureName} to unlock this feature.`,
+                enableFeatureSubtitle: (featureName: string) => `and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
                 title: 'Category rules',
@@ -3982,6 +4037,12 @@ export default {
                 buttonText: 'Book a trip',
             },
         },
+        saveSearch: 'Save search',
+        saveSearchTooltipText: 'You can rename your saved search',
+        deleteSavedSearch: 'Delete saved search',
+        deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
+        searchName: 'Search name',
+        savedSearchesMenuItemTitle: 'Saved',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             delete: 'Delete',
@@ -4369,7 +4430,7 @@ export default {
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
-        customUnitOutOfPolicy: 'Unit no longer valid',
+        customUnitOutOfPolicy: 'Rate not valid for this workspace',
         duplicatedTransaction: 'Duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
@@ -4742,5 +4803,31 @@ export default {
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',
         notAllowedMessageEnd: ' copilot',
+    },
+    debug: {
+        debug: 'Debug',
+        details: 'Details',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Preview',
+        nothingToPreview: 'Nothing to preview',
+        editJson: 'Edit JSON:',
+        preview: 'Preview:',
+        missingProperty: ({propertyName}) => `Missing ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
+        invalidValue: ({expectedValues}) => `Invalid value - Expected: ${expectedValues}`,
+        missingValue: 'Missing value',
+        createReportAction: 'Create Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        hint: "Data changes won't be sent to the backend",
+        textFields: 'Text fields',
+        numberFields: 'Number fields',
+        booleanFields: 'Boolean fields',
+        constantFields: 'Constant fields',
+        dateTimeFields: 'DateTime fields',
+        date: 'Date',
+        time: 'Time',
+        none: 'None',
     },
 } satisfies TranslationBase;

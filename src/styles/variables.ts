@@ -225,6 +225,7 @@ export default {
     googleEmptyListViewHeight: 14,
     hoverDimValue: 1,
     pressDimValue: 0.8,
+    dimAnimationDuration: 50,
     qrShareHorizontalPadding: 32,
     menuIconSize: 48,
 
