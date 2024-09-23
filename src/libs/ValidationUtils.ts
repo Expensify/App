@@ -21,7 +21,7 @@ import StringUtils from './StringUtils';
 function validateCardNumber(value: string): boolean {
     let sum = 0;
     for (let i = 0; i < value.length; i++) {
-        let intVal = parseInt(value.substr(i, 1), 10);
+        let intVal = parseInt(value.charAt(i), 10);
         if (i % 2 === 0) {
             intVal *= 2;
             if (intVal > 9) {
