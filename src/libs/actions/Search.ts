@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {ExportSearchItemsToCSVParams, SetNameValuePairParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
@@ -161,22 +161,7 @@ function setShouldShowSavedSearchRenameTooltip() {
 }
 
 function dismissSavedSearchRenameTooltip() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP,
-        value: false,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP,
-            value: false,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
 }
 
 export {
