@@ -332,4 +332,18 @@ function removePendingDelegate(email: string) {
     });
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate};
+function isConnectedAsDelegate() {
+    return !!delegatedAccess?.delegate;
+}
+
+export {
+    connect,
+    disconnect,
+    clearDelegatorErrors,
+    addDelegate,
+    requestValidationCode,
+    clearAddDelegateErrors,
+    removePendingDelegate,
+    isConnectedAsDelegate,
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
+};
