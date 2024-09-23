@@ -1,11 +1,13 @@
-import React, {memo, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
+import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,7 +49,9 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -105,8 +109,16 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialR
     return undefined;
 }
 
+function getCentralPaneScreenListeners(screenName: CentralPaneName) {
+    if (screenName === SCREENS.REPORT) {
+        return {beforeRemove: beforeRemoveReportOpenedFromSearchRHP};
+    }
+
+    return {};
+}
+
 function initializePusher() {
-    Pusher.init({
+    return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
@@ -150,7 +162,7 @@ Onyx.connect({
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
-        if (timezone?.automatic && timezone?.selected !== currentTimezone) {
+        if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
@@ -224,6 +236,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         [StyleUtils, shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, styles],
     );
     const modal = useRef<OnyxTypes.Modal>({});
+    const [didPusherInit, setDidPusherInit] = useState(false);
 
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
@@ -261,7 +274,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher().then(() => {
+            setDidPusherInit(true);
+        });
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
@@ -554,11 +569,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
+                                listeners={getCentralPaneScreenListeners(centralPaneName)}
                             />
                         );
                     })}
                 </RootStack.Navigator>
+                <SearchRouter />
             </View>
+            {didPusherInit && <ActiveGuidesEventListener />}
         </ComposeProviders>
     );
 }
