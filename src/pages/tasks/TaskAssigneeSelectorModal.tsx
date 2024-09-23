@@ -124,9 +124,10 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
         if (!route.params?.reportID) {
             return;
         }
-        if (report && !ReportUtils.isTaskReport(report)) {
+        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        if (reportOnyx && !ReportUtils.isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModal(reportOnyx.reportID);
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
