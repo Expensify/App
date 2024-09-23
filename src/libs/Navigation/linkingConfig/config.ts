@@ -478,6 +478,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
                             path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.route,
@@ -566,6 +568,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_IMPORTED.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.route,
@@ -710,6 +718,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                orderWeight: Number,
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_APPROVER]: {
+                            path: ROUTES.WORKSPACE_TAG_APPROVER.route,
                             parse: {
                                 orderWeight: Number,
                                 tagName: (tagName: string) => decodeURIComponent(tagName),
