@@ -216,7 +216,7 @@ const ONYXKEYS = {
     NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
 
     /** Whether to show save search rename tooltip */
-    SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP: 'should_show_saved_search_rename_tooltip',
+    SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP: 'shouldSshowSavedSearchRenameTooltip',
 
     /**  Whether to hide gbr tooltip */
     NVP_SHOULD_HIDE_GBR_TOOLTIP: 'nvp_should_hide_gbr_tooltip',
