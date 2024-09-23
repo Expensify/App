@@ -41,6 +41,8 @@ import * as Session from '@userActions/Session';
 import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
+import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -235,6 +237,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, onboardingIsMediumOrLargerScreenWidth),
         [StyleUtils, shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, styles],
     );
+    const [shouldShowOnboardingNavigator, setShouldShowOnboardingNavigator] = useState(false);
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
 
@@ -253,8 +256,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             initialReportID = initialReport?.reportID ?? '';
         }
 
+        Welcome.isOnboardingFlowCompleted({
+            onNotCompleted: () => setShouldShowOnboardingNavigator(true),
+            onCompleted: () => setShouldShowOnboardingNavigator(false),
+        });
+
         isInitialRender.current = false;
     }
+
+    useEffect(() => {
+        if (!shouldShowOnboardingNavigator) {
+            return;
+        }
+        OnboardingFlow.startOnboardingFlow();
+    }, [shouldShowOnboardingNavigator]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -526,17 +541,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
                     />
-                    <RootStack.Screen
-                        name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                        options={onboardingScreenOptions}
-                        component={OnboardingModalNavigator}
-                        listeners={{
-                            focus: () => {
-                                Modal.setDisableDismissOnEscape(true);
-                            },
-                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
-                        }}
-                    />
+                    {shouldShowOnboardingNavigator && (
+                        <RootStack.Screen
+                            name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                            options={onboardingScreenOptions}
+                            component={OnboardingModalNavigator}
+                            listeners={{
+                                focus: () => {
+                                    Modal.setDisableDismissOnEscape(true);
+                                },
+                                beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                            }}
+                        />
+                    )}
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
