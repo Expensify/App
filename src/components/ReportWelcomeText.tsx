@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,18 +12,13 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
-type ReportWelcomeTextOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
+type ReportWelcomeTextProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
@@ -31,7 +26,9 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
     policy: OnyxEntry<Policy>;
 };
 
-function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
+function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -185,8 +182,4 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
 
 ReportWelcomeText.displayName = 'ReportWelcomeText';
 
-export default withOnyx<ReportWelcomeTextProps, ReportWelcomeTextOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(ReportWelcomeText);
+export default ReportWelcomeText;
