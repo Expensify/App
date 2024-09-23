@@ -225,7 +225,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
-        setInstanceID(Math.random().toString(36).substr(2, 5));
+        setInstanceID(Math.random().toString(36).slice(2, 7));
         onPopoverShow.current();
 
         // After we have called the action, reset it.
