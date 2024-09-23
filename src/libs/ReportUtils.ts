@@ -630,14 +630,6 @@ Onyx.connect({
     },
 });
 
-let isFirstTimeNewExpensifyUser = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    callback: (value) => {
-        isFirstTimeNewExpensifyUser = value ?? false;
-    },
-});
-
 let onboarding: OnyxEntry<Onboarding | []>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -1341,26 +1333,13 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         });
     }
 
-    if (isFirstTimeNewExpensifyUser) {
-        // Filter out the systemChat report from the reports list, as we don't want to drop the user into that report over Concierge when they first log in
-        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
-        if (reportsValues.length === 1) {
-            return reportsValues[0];
-        }
+    // Filter out the system chat (Expensify chat) because the composer is disabled in it,
+    // and it prompts the user to use the Concierge chat instead.
+    reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
 
-        return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
-    }
-
-    // If we only have two reports and one of them is the system chat, filter it out so we don't
-    // overwrite showing the concierge chat
-    const hasSystemChat = reportsValues.find((report) => isSystemChat(report)) ?? false;
-    if (reportsValues.length === 2 && hasSystemChat) {
-        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
-    }
-
-    // We are getting the last read report from the metadata of the report.
+    // At least two reports remain: self DM and Concierge chat.
+    // Return the most recently visited report. Get the last read report from the report metadata.
     const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
-
     return adminReport ?? lastRead;
 }
 
