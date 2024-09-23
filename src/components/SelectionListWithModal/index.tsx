@@ -4,7 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import type {BaseSelectionListProps, ListItem, ReportListItemType, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,15 +32,17 @@ function SelectionListWithModal<TItem extends ListItem>(
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
-        const selectedItems = sections[0].data.filter((item) => item.isSelected);
+        const selectedItems = sections[0].data.filter((item) => !!item.isSelected || (item as unknown as ReportListItemType)?.transactions?.some((transaction) => transaction.isSelected));
         if (!isSmallScreenWidth) {
             if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
             }
             return;
         }
-        if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
+        if (!wasSelectionOnRef.current && selectedItems.length > 0) {
             wasSelectionOnRef.current = true;
+        }
+        if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
