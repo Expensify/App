@@ -28,7 +28,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
