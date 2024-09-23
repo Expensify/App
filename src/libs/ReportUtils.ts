@@ -2143,7 +2143,14 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         return report.reportName;
     }
 
-    let participantAccountIDs = participants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
+    let participantAccountIDs =
+        participants?.map((participant) => participant.accountID) ??
+        Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => {
+                const pendingMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+                return !(pendingMember && pendingMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            });
     if (shouldApplyLimit) {
         participantAccountIDs = participantAccountIDs.slice(0, 5);
     }
