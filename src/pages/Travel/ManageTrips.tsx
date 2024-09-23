@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {Linking, View} from 'react-native';
+import {Linking, NativeModules, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import * as Link from '@userActions/Link';
@@ -37,6 +38,7 @@ function ManageTrips() {
     const {translate} = useLocalize();
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [shouldReturnToOldDotAfterBooking] = useOnyx(ONYXKEYS.SHOULD_RETURN_TO_OLD_DOT_AFTER_BOOKING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policy = usePolicy(activePolicyID);
 
@@ -78,9 +80,18 @@ function ManageTrips() {
                         if (ctaErrorMessage) {
                             setCtaErrorMessage('');
                         }
-                        Link.openTravelDotLink(activePolicyID)?.catch(() => {
-                            setCtaErrorMessage(translate('travel.errorMessage'));
-                        });
+                        Link.openTravelDotLink(activePolicyID)
+                            ?.then(() => {
+                                if (!NativeModules.HybridAppModule || !shouldReturnToOldDotAfterBooking) {
+                                    return;
+                                }
+
+                                Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
+                                NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                            })
+                            ?.catch(() => {
+                                setCtaErrorMessage(translate('travel.errorMessage'));
+                            });
                     }}
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}

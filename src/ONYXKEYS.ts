@@ -433,6 +433,9 @@ const ONYXKEYS = {
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
+    /** Decides if we should return to OldDot after booking */
+    SHOULD_RETURN_TO_OLD_DOT_AFTER_BOOKING: 'shouldReturnToClassicExperienceAfterBooking',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -996,6 +999,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
+    [ONYXKEYS.SHOULD_RETURN_TO_OLD_DOT_AFTER_BOOKING]: boolean | undefined;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
