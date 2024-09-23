@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
