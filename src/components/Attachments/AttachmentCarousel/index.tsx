@@ -70,6 +70,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
+    const prevInitialPageRef = useRef<number | null>(null);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -88,7 +89,11 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             return;
         }
 
-        const initialPage = targetAttachments.findIndex(compareImage);
+        let initialPage = targetAttachments.findIndex(compareImage);
+
+        if (initialPage === -1 && prevInitialPageRef.current != null && targetAttachments[prevInitialPageRef.current]) {
+            initialPage = prevInitialPageRef.current;
+        }
 
         // Dismiss the modal when deleting an attachment during its display in preview.
         if (initialPage === -1 && attachments.find(compareImage)) {
@@ -107,6 +112,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(targetAttachments[initialPage]);
             }
         }
+        // Capture previous initialPage
+        prevInitialPageRef.current = initialPage;
+
     }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
