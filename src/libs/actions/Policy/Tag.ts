@@ -230,7 +230,7 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
         tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_TAGS_SREADSHEET, parameters, onyxData);
+    API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 }
 
 function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
