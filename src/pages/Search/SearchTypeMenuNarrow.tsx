@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {MenuItemBaseProps} from '@components/MenuItem';
@@ -24,6 +25,7 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
 
 type SavedSearchMenuItem = MenuItemBaseProps & {
@@ -39,6 +41,22 @@ type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
     title?: string;
     savedSearchesMenuItems: SavedSearchMenuItem[];
+};
+
+type PopoverMenuItemType = {
+    text: string;
+    onSelected: () => void;
+    isSelected: boolean;
+    icon?: IconAsset;
+    iconFill: string;
+    iconRight: React.FC<SvgProps>;
+    shouldShowRightIcon: boolean;
+    success: boolean;
+    containerStyle:
+        | {
+              backgroundColor: string;
+          }[]
+        | undefined;
 };
 
 function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title, savedSearchesMenuItems}: SearchTypeMenuNarrowProps) {
@@ -65,7 +83,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
 
     const popoverMenuItems = useMemo(() => {
-        const items = typeMenuItems.map((item, index) => {
+        const items: PopoverMenuItemType[] = typeMenuItems.map((item, index) => {
             const isSelected = title ? false : index === activeItemIndex;
 
             return {
@@ -89,7 +107,6 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 text: title,
                 onSelected: closeMenu,
                 isSelected: !currentSavedSearch,
-                icon: Expensicons.Filters,
                 iconFill: theme.iconSuccessFill,
                 success: true,
                 containerStyle: undefined,
