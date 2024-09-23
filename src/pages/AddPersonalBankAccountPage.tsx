@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
