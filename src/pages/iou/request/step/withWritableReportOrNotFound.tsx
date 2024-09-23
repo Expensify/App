@@ -57,17 +57,15 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`);
 
-        const reportOrDefault = report ?? {reportID: ''};
-
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
 
-        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(reportOrDefault);
+        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report ?? {reportID: ''});
 
         useEffect(() => {
-            if (!!reportOrDefault?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
+            if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
             ReportActions.openReport(route.params.reportID);
