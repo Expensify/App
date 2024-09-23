@@ -3210,9 +3210,13 @@ function updateMoneyRequestDistanceRate(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    updatedTaxAmount?: number,
+    updatedTaxCode?: string,
 ) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
+        ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
+        ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -3224,7 +3228,9 @@ function updateMoneyRequestDistanceRate(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, params, onyxData);
+    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
+    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
 }
 
 /** Edits an existing distance expense */
@@ -6493,7 +6499,7 @@ function getReportFromHoldRequestsOnyxData(
         chatReport.reportID,
         chatReport.policyID ?? iouReport.policyID ?? '',
         recipient.accountID ?? 1,
-        (firstHoldTransaction?.amount ?? 0) * -1,
+        holdTransactions.reduce((acc, transaction) => acc + transaction.amount, 0) * (ReportUtils.isIOUReport(iouReport) ? 1 : -1),
         getCurrency(firstHoldTransaction),
         false,
         newParentReportActionID,

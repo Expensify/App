@@ -32,6 +32,9 @@ type CardFeeds = {
 
     /** User-friendly feed nicknames */
     companyCardNicknames: Record<string, string>;
+
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
 };
 
 /** Data required to be sent to add a new card */

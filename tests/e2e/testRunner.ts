@@ -155,7 +155,7 @@ const runTests = async (): Promise<void> => {
                 const removeListener = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
 
-                    const metrics = MeasureUtils.stop();
+                    const metrics = MeasureUtils.stop('done');
                     const test = server.getTestConfig();
 
                     if (server.isReadyToAcceptTestResults) {
@@ -195,7 +195,8 @@ const runTests = async (): Promise<void> => {
                 });
                 MeasureUtils.start(appPackage, {
                     onAttachFailed: async () => {
-                        MeasureUtils.stop();
+                        Logger.warn('The PID has changed, trying to restart the test...');
+                        MeasureUtils.stop('retry');
                         resetTimeout();
                         removeListener();
                         // something went wrong, let's wait a little bit and try again
@@ -268,7 +269,9 @@ const runTests = async (): Promise<void> => {
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
             const onError = (e: Error) => {
-                MeasureUtils.stop();
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                Logger.error(`Unexpected error during test execution: ${e}. `);
+                MeasureUtils.stop('error');
                 server.clearAllTestDoneListeners();
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
