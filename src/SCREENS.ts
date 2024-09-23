@@ -408,6 +408,8 @@ const SCREENS = {
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
+        MEMBERS_IMPORT: 'Members_Import',
+        MEMBERS_IMPORTED: 'Members_Imported',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
