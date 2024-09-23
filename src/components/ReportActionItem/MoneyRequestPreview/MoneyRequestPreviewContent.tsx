@@ -136,7 +136,7 @@ function MoneyRequestPreviewContent({
     const duplicates = useMemo(() => TransactionUtils.removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
-    const shouldShowKeepButton = allDuplicates.length === duplicates.length;
+    const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
     const hasDuplicates = duplicates.length > 0;
 
@@ -448,7 +448,6 @@ function MoneyRequestPreviewContent({
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
-                    medium
                     style={styles.p4}
                     onPress={navigateToReviewFields}
                 />

@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -53,6 +53,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
 
+    /** Invoked on mount and layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
+
     /** A function that is called when the button is clicked on */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -76,6 +79,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
 
     /** Additional button styles. Specific to the OpacityView of the button */
     innerStyles?: StyleProp<ViewStyle>;
@@ -187,11 +193,12 @@ function Button(
 
         small = false,
         large = false,
-        medium = false,
+        medium = !small && !large,
 
         isLoading = false,
         isDisabled = false,
 
+        onLayout = () => {},
         onPress = () => {},
         onLongPress = () => {},
         onPressIn = () => {},
@@ -202,6 +209,7 @@ function Button(
         enterKeyEventListenerPriority = 0,
 
         style = [],
+        disabledStyle,
         innerStyles = [],
         textStyles = [],
         textHoverStyles = [],
@@ -289,8 +297,9 @@ function Button(
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
-                                    small={medium}
-                                    medium={large}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             ) : (
                                 <Icon
@@ -323,7 +332,11 @@ function Button(
                 />
             )}
             <PressableWithFeedback
+                dataSet={{
+                    listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
+                }}
                 ref={ref}
+                onLayout={onLayout}
                 onPress={(event) => {
                     if (event?.type === 'click') {
                         const currentTarget = event?.currentTarget as HTMLElement;
@@ -375,6 +388,7 @@ function Button(
                     danger && !isDisabled ? styles.buttonDangerHovered : undefined,
                     hoverStyles,
                 ]}
+                disabledStyle={disabledStyle}
                 id={id}
                 accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}

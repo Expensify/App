@@ -1,8 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -23,7 +22,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
@@ -39,29 +37,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
-type WorkspaceWorkflowsPageOnyxProps = {
-    /** Beta features list */
-    betas: OnyxEntry<Beta[]>;
-};
-type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPageProps) {
+function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const policyApproverEmail = policy?.approver;
-    const canUseAdvancedApproval = Permissions.canUseWorkflowsAdvancedApproval(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -170,13 +161,13 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 onToggle: (isEnabled: boolean) => {
                     Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
-                subMenuItems: canUseAdvancedApproval ? (
+                subMenuItems: (
                     <>
                         {approvalWorkflows.map((workflow, index) => (
                             <OfflineWithFeedback
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
-                                pendingAction={policy?.pendingFields?.employeeList}
+                                pendingAction={workflow.pendingAction}
                             >
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
@@ -195,17 +186,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             onPress={addApprovalAction}
                         />
                     </>
-                ) : (
-                    <MenuItemWithTopDescription
-                        title={policyApproverName ?? ''}
-                        titleStyle={styles.textNormalThemeText}
-                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                        description={translate('workflowsPage.approver')}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
-                        shouldShowRightIcon
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                        brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
                 ),
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
@@ -240,7 +220,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     ) : (
                         <>
                             {shouldShowBankAccount && (
-                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.mbn3, styles.pb1, styles.pt1]}>
+                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                     <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                                 </View>
                             )}
@@ -301,12 +281,10 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         translate,
         preferredLocale,
         onPressAutoReportingFrequency,
-        canUseAdvancedApproval,
         approvalWorkflows,
         theme.success,
         theme.spinner,
         addApprovalAction,
-        policyApproverName,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
@@ -374,10 +352,4 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default withPolicy(
-    withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    })(WorkspaceWorkflowsPage),
-);
+export default withPolicy(WorkspaceWorkflowsPage);

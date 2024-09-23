@@ -246,13 +246,14 @@ function AttachmentModal({
         }
 
         if (typeof sourceURL === 'string') {
-            fileDownload(sourceURL, file?.name ?? '');
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? FileUtils.getFileName(`${sourceURL}`) : file?.name;
+            fileDownload(sourceURL, fileName ?? '');
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, sourceState, file]);
+    }, [isAuthTokenRequiredState, sourceState, file, type]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -460,7 +461,7 @@ function AttachmentModal({
     let headerTitleNew = headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
-    if (!isEmptyObject(report)) {
+    if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;

@@ -60,6 +60,11 @@ function CardSection() {
         Navigation.resetToHome();
     }, []);
 
+    const viewPurchases = useCallback(() => {
+        const query = SearchUtils.buildQueryStringFromFilterValues({merchant: CONST.EXPENSIFY_MERCHANT});
+        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+    }, []);
+
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
@@ -90,7 +95,7 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+    if (SubscriptionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;
@@ -174,8 +179,7 @@ function CardSection() {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}))}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
+                        onPress={viewPurchases}
                     />
                 )}
 

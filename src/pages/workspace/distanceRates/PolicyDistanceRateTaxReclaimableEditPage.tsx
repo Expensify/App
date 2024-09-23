@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -22,7 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateTaxReclaimableOnEditForm';
 
-type PolicyDistanceRateTaxReclaimableEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
+type PolicyDistanceRateTaxReclaimableEditPageProps = WithPolicyOnyxProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
 
 function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanceRateTaxReclaimableEditPageProps) {
     const styles = useThemeStyles();

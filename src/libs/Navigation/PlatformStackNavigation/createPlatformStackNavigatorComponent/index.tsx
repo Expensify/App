@@ -2,14 +2,11 @@ import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useEffect, useMemo} from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import React, {useMemo} from 'react';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
-    CustomCodePropsWithTransformedState,
     PlatformNavigationBuilderOptions,
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
@@ -22,17 +19,19 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
-    const transformState = options?.transformState;
+    const useCustomState = options?.useCustomState ?? (() => ({stateToRender: undefined, searchRoute: undefined}));
     const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
-    const onIsSmallScreenWidthChange = options?.onIsSmallScreenWidthChange;
+    const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
 
     function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
-        const styles = useThemeStyles();
-        const windowDimensions = useWindowDimensions();
-
-        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        const {
+            navigation,
+            state: originalState,
+            descriptors,
+            NavigationContent,
+        } = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
             RouterOptions,
             StackActionHelpers<ParamListBase>,
@@ -54,29 +53,27 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 
         const customCodeProps = useMemo<CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
-                state,
+                state: originalState,
                 navigation,
                 descriptors,
                 displayName,
             }),
-            [state, navigation, descriptors],
+            [originalState, navigation, descriptors],
         );
 
-        const {stateToRender, searchRoute} = useMemo(
-            () => transformState?.({...customCodeProps, styles, windowDimensions}) ?? {stateToRender: state, searchRoute: undefined},
-            [customCodeProps, state, styles, windowDimensions],
-        );
-
-        const customCodePropsWithTransformedState = useMemo<
-            CustomCodePropsWithTransformedState<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>
-        >(
+        const {stateToRender, searchRoute} = useCustomState(customCodeProps);
+        const state = useMemo(() => stateToRender ?? originalState, [originalState, stateToRender]);
+        const customCodePropsWithCustomState = useMemo<CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
                 ...customCodeProps,
+                state,
                 searchRoute,
-                stateToRender,
             }),
-            [customCodeProps, searchRoute, stateToRender],
+            [customCodeProps, state, searchRoute],
         );
+
+        // Executes custom effects defined in "useCustomEffects" navigator option.
+        useCustomEffects(customCodePropsWithCustomState);
 
         const Content = useMemo(
             () => (
@@ -84,27 +81,22 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     <StackView
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        state={stateToRender}
+                        state={state}
                         descriptors={descriptors}
                         navigation={navigation}
                     />
 
                     {ExtraContent && (
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        <ExtraContent {...customCodePropsWithTransformedState} />
+                        <ExtraContent {...customCodePropsWithCustomState} />
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithTransformedState, descriptors, navigation, props, stateToRender],
+            [NavigationContent, customCodePropsWithCustomState, descriptors, navigation, props, state],
         );
 
-        useEffect(() => {
-            onIsSmallScreenWidthChange?.({...customCodePropsWithTransformedState, windowDimensions});
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        }, [windowDimensions.isSmallScreenWidth]);
-
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithTransformedState}>{Content}</NavigationContentWrapper>;
+        return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithCustomState}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;
 

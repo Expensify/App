@@ -7,7 +7,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList} from '@navigation/types';
+import type {ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList, RoomMembersNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,8 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
         | PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
         | PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
         | PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
-        | PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
+        | PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
+        | PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -84,7 +85,7 @@ export default function (
                 }
 
                 if (shouldShowNotFoundPage) {
-                    return <NotFoundPage />;
+                    return <NotFoundPage isReportRelatedPage />;
                 }
             }
 

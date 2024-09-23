@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -12,6 +12,7 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -20,7 +21,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -47,32 +47,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
-type MoneyRequestViewTransactionOnyxProps = {
-    /** Violations detected in this transaction */
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
-};
-
-type MoneyRequestViewOnyxPropsWithoutTransaction = {
-    /** The policy object for the current route */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    /** Collection of tags attached to a policy */
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The actions from the parent report */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** The distance rates from the policy */
-    distanceRates: Record<string, MileageRate>;
-};
-
-type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutTransaction & {
+type MoneyRequestViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -85,8 +60,6 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
     /** Updated transaction to show in duplicate transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
-
-type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
@@ -115,28 +88,29 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
     return originalMessage?.IOUTransactionID ?? -1;
 };
 
-function MoneyRequestView({
-    report,
-    parentReport,
-    parentReportActions,
-    policyCategories,
-    policyTagList,
-    policy,
-    transactionViolations,
-    shouldShowAnimatedBackground,
-    distanceRates,
-    readonly = false,
-    updatedTransaction,
-}: MoneyRequestViewProps) {
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction}: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const parentReportID = report?.parentReportID ?? '-1';
+    const policyID = report?.policyID ?? '-1';
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
         selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
     });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+        canEvict: false,
+    });
+    const [distanceRates = {}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: () => DistanceRequestUtils.getMileageRates(policy, true),
+    });
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -194,14 +168,18 @@ function MoneyRequestView({
     const canEditMerchant = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const hasReceipt = TransactionUtils.hasReceipt(updatedTransaction ?? transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
     const canEditDistance = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
     const canEditDistanceRate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isRequestor = currentUserPersonalDetails.accountID === parentReportAction?.actorAccountID;
+
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
@@ -257,6 +235,8 @@ function MoneyRequestView({
         }
         return TransactionUtils.getDescription(updatedTransaction ?? null);
     }, [updatedTransaction]);
+    const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : updatedTransaction?.modifiedMerchant ?? merchantTitle;
 
     const saveBillable = useCallback(
         (newBillable: boolean) => {
@@ -292,7 +272,7 @@ function MoneyRequestView({
     let receiptURIs;
     const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
-        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
@@ -362,6 +342,8 @@ function MoneyRequestView({
                     onPress={() =>
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
                     }
+                    brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={getErrorForField('customUnitRateID')}
                 />
             </OfflineWithFeedback>
         </>
@@ -380,7 +362,7 @@ function MoneyRequestView({
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
-        isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
+        isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
@@ -400,9 +382,12 @@ function MoneyRequestView({
         return [imageViolations, allViolations];
     }, [transactionViolations, translate]);
 
+    const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-    const shouldShowAuditMessage = !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage =
+        !isReceiptBeingScanned && (hasReceipt || receiptRequiredViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -454,7 +439,7 @@ function MoneyRequestView({
                 {shouldShowReceiptAudit && (
                     <ReceiptAudit
                         notes={receiptViolations}
-                        shouldShowAuditResult={shouldShowAuditMessage}
+                        shouldShowAuditResult={!!shouldShowAuditMessage}
                     />
                 )}
                 {(hasReceipt || errors) && (
@@ -496,7 +481,7 @@ function MoneyRequestView({
                                     image={receiptURIs?.image}
                                     isLocalFile={receiptURIs?.isLocalFile}
                                     filename={receiptURIs?.filename}
-                                    transaction={transaction}
+                                    transaction={updatedTransaction ?? transaction}
                                     enablePreviewModal
                                     readonly={readonly}
                                 />
@@ -562,7 +547,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            title={updatedTransaction?.modifiedMerchant ?? merchantTitle}
+                            title={updatedMerchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
@@ -688,32 +673,4 @@ function MoneyRequestView({
 
 MoneyRequestView.displayName = 'MoneyRequestView';
 
-export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestViewOnyxPropsWithoutTransaction>({
-    // Fallback to empty string will fetch the whole collection (e.g., policy_), so we need to fallback to -1 (policy_-1)
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`,
-    },
-    policyTagList: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`,
-    },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report?.parentReportID : '-1'}`,
-        canEvict: false,
-    },
-    distanceRates: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
-        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
-    },
-})(
-    withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
-        transactionViolations: {
-            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`,
-        },
-    })(MoneyRequestView),
-);
+export default MoneyRequestView;

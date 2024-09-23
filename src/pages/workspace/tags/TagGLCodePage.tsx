@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -28,7 +28,7 @@ type WorkspaceEditTagGLCodePageOnyxProps = {
     policyTags: OnyxEntry<PolicyTagLists>;
 };
 
-type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
+type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
 
 function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
@@ -40,15 +40,19 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName));
+    }, [orderWeight, route.params.policyID, tagName]);
+
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName));
+            goBack();
         },
-        [glCode, route.params.policyID, tagName, orderWeight],
+        [glCode, route.params.policyID, tagName, orderWeight, goBack],
     );
 
     return (
@@ -65,7 +69,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.glCode')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}

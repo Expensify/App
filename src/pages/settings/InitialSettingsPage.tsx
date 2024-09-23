@@ -11,6 +11,7 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import MenuItem from '@components/MenuItem';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -104,11 +105,14 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
+    const {setInitialURL} = useContext(InitialURLContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
+
+    const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();
@@ -149,6 +153,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                         ? {
                               action: () => {
                                   NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                                  setInitialURL(undefined);
                               },
                           }
                         : {
@@ -184,7 +189,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, setInitialURL]);
 
     /**
      * Retuns a list of menu items data for workspace section
@@ -216,8 +221,8 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 icon: Expensicons.CreditCard,
                 routeName: ROUTES.SETTINGS_SUBSCRIPTION,
                 brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
-                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
+                badgeText: freeTrialText,
+                badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
             });
         }
 
@@ -226,7 +231,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate, allConnectionSyncProgresses]);
+    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -330,7 +335,6 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                                 shouldStackHorizontally={item.shouldStackHorizontally}
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
-                                hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={
@@ -347,19 +351,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 </View>
             );
         },
-        [
-            styles.pb4,
-            styles.mh3,
-            styles.sectionTitle,
-            styles.sectionMenuItem,
-            styles.hoveredComponentBG,
-            translate,
-            userWallet?.currentBalance,
-            isExecuting,
-            singleExecution,
-            activeCentralPaneRoute,
-            waitForNavigate,
-        ],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, isExecuting, singleExecution, activeCentralPaneRoute, waitForNavigate],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -367,11 +359,11 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb3]}>
+        <View style={[styles.ph5, styles.pv5]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
@@ -430,13 +422,14 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
+            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                contentContainerStyle={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100]}
+                showsVerticalScrollIndicator={false}
             >
-                {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}
                 {generalMenuItems}

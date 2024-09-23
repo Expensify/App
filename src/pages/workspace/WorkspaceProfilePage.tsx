@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -23,6 +22,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -45,7 +45,7 @@ type WorkspaceProfilePageOnyxProps = {
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
@@ -270,7 +270,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
                                     onPress={onPressShare}
-                                    medium
                                     icon={Expensicons.QrCode}
                                 />
                                 {isOwner && (
@@ -279,7 +278,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
-                                        medium
                                         icon={Expensicons.Trashcan}
                                     />
                                 )}

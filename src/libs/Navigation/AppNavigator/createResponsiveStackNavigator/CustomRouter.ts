@@ -16,8 +16,12 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
-    const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
-    const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
+    const nonModalRoutes = state.routes.filter(
+        (route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    );
+    const modalRoutes = state.routes.filter(
+        (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    );
 
     // It's safe to modify this state before returning in getRehydratedState.
 

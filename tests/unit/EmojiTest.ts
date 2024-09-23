@@ -155,11 +155,6 @@ describe('EmojiTest', () => {
     it('correct suggests emojis accounting for keywords', () => {
         const thumbEmojisEn: Emoji[] = [
             {
-                name: 'hand_with_index_finger_and_thumb_crossed',
-                code: '🫰',
-                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-            },
-            {
                 code: '👍',
                 name: '+1',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
@@ -168,16 +163,16 @@ describe('EmojiTest', () => {
                 code: '👎',
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ];
 
         const thumbEmojisEs: Emoji[] = [
             {
-                name: 'mano_con_dedos_cruzados',
-                code: '🫰',
-                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-            },
-            {
                 code: '👍',
                 name: '+1',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
@@ -186,6 +181,11 @@ describe('EmojiTest', () => {
                 code: '👎',
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ];
 
@@ -194,11 +194,6 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojisEs);
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
-            {
-                name: 'mano_con_dedos_cruzados',
-                code: '🫰',
-                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-            },
             {
                 code: '🤙',
                 name: 'mano_llámame',
@@ -213,6 +208,11 @@ describe('EmojiTest', () => {
                 code: '👎',
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ]);
     });

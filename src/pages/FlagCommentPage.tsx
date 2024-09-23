@@ -31,7 +31,7 @@ type FlagCommentPageWithOnyxProps = {
 
 type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
-type FlagCommentPageProps = FlagCommentPageNavigationProps & WithReportAndReportActionOrNotFoundProps & FlagCommentPageWithOnyxProps;
+type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageNavigationProps & FlagCommentPageWithOnyxProps;
 
 type Severity = ValueOf<typeof CONST.MODERATION>;
 

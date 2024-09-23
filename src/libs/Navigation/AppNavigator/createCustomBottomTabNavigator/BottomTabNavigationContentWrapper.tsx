@@ -1,14 +1,10 @@
-import type {EventMapBase, ParamListBase} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {NavigationContentWrapperProps, PlatformSpecificEventMap, PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {NavigationContentWrapperProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-function BottomTabNavigationContentWrapper({
-    children,
-    displayName,
-}: NavigationContentWrapperProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamListBase>) {
+function BottomTabNavigationContentWrapper({children, displayName}: NavigationContentWrapperProps) {
     const styles = useThemeStyles();
 
     return (

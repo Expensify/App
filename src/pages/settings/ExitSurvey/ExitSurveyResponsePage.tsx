@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,13 +34,10 @@ import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyResponsePageOnyxProps = {
-    draftResponse: string;
-};
+type ExitSurveyResponsePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
-type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
-
-function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyResponsePageProps) {
+function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps) {
+    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE]});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -119,7 +116,10 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     );
 
     return (
-        <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
+        <ScreenWrapper
+            testID={ExitSurveyResponsePage.displayName}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -179,9 +179,4 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
 
 ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
-export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
-    draftResponse: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT,
-        selector: (value) => value?.[INPUT_IDS.RESPONSE] ?? '',
-    },
-})(ExitSurveyResponsePage);
+export default ExitSurveyResponsePage;

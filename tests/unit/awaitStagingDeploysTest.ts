@@ -33,8 +33,8 @@ type MockedFunctionListResponse = jest.MockedFunction<() => Promise<MockListResp
 
 const consoleSpy = jest.spyOn(console, 'log');
 const mockGetInput = jest.fn();
-const mockListPlatformDeploysForTag: MockedFunctionListResponse = jest.fn();
-const mockListPlatformDeploys: MockedFunctionListResponse = jest.fn();
+const mockListDeploysForTag: MockedFunctionListResponse = jest.fn();
+const mockListDeploys: MockedFunctionListResponse = jest.fn();
 const mockListPreDeploys: MockedFunctionListResponse = jest.fn();
 const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     const defaultReturn = Promise.resolve({data: {workflow_runs: []}});
@@ -44,11 +44,11 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     }
 
     if (args.branch !== undefined) {
-        return mockListPlatformDeploysForTag();
+        return mockListDeploysForTag();
     }
 
-    if (args.workflow_id === 'platformDeploy.yml') {
-        return mockListPlatformDeploys();
+    if (args.workflow_id === 'deploy.yml') {
+        return mockListDeploys();
     }
 
     if (args.workflow_id === 'preDeploy.yml') {
@@ -89,7 +89,7 @@ describe('awaitStagingDeploys', () => {
         mockGetInput.mockImplementation(() => undefined);
 
         // First ping
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
@@ -101,7 +101,7 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Second ping
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
@@ -113,7 +113,7 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Third ping
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
@@ -125,7 +125,7 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Fourth ping
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
@@ -149,12 +149,12 @@ describe('awaitStagingDeploys', () => {
         mockGetInput.mockImplementation(() => 'my-tag');
 
         // First ping
-        mockListPlatformDeploysForTag.mockResolvedValueOnce({
+        mockListDeploysForTag.mockResolvedValueOnce({
             data: {
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
@@ -166,12 +166,12 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Second ping
-        mockListPlatformDeploysForTag.mockResolvedValueOnce({
+        mockListDeploysForTag.mockResolvedValueOnce({
             data: {
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW],
             },
@@ -183,12 +183,12 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Third ping
-        mockListPlatformDeploysForTag.mockResolvedValueOnce({
+        mockListDeploysForTag.mockResolvedValueOnce({
             data: {
                 workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
-        mockListPlatformDeploys.mockResolvedValueOnce({
+        mockListDeploys.mockResolvedValueOnce({
             data: {
                 workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },

@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import type {WorkspaceCompanyCardFeedName} from '@src/types/form/WorkspaceCompanyCardFeedName';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
 
-type WorkspaceCompanyCardsSettingsFeedNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME>;
+type WorkspaceCompanyCardsSettingsFeedNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME>;
 
 function WorkspaceCompanyCardsSettingsFeedNamePage({
     route: {
@@ -40,7 +40,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`)
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames[lastSelectedFeed] ?? '';
+    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {

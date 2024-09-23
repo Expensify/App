@@ -1,9 +1,9 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import {useMemo} from 'react';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,13 +13,13 @@ import type {ThemeStyles} from '@src/styles';
 function useModalScreenOptions(getScreenOptions?: (styles: ThemeStyles) => PlatformStackNavigationOptions) {
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
 
     if (isSafari()) {
         const customInterpolator = createModalCardStyleInterpolator(styleUtils);
-        cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+        cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(shouldUseNarrowLayout, false, false, props);
     }
 
     const defaultSubRouteOptions = useMemo(

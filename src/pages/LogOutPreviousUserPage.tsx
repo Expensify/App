@@ -31,7 +31,7 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & PlatformSta
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
-    const initialURL = useContext(InitialURLContext);
+    const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
         const sessionEmail = session?.email;

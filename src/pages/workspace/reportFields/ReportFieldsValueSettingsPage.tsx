@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,9 +10,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -26,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldsValueSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
+type ReportFieldsValueSettingsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
 
 function ReportFieldsValueSettingsPage({
     policy,
@@ -58,18 +59,17 @@ function ReportFieldsValueSettingsPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const oldValueName = usePrevious(currentValueName);
 
-    if (!currentValueName || hasAccountingConnections) {
+    if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
         return <NotFoundPage />;
     }
-
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
             ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
         } else {
             ReportField.deleteReportFieldsListValue([valueIndex]);
         }
-
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
@@ -99,7 +99,7 @@ function ReportFieldsValueSettingsPage({
                 testID={ReportFieldsValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={currentValueName}
+                    title={currentValueName ?? oldValueName}
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
@@ -125,7 +125,7 @@ function ReportFieldsValueSettingsPage({
                         </View>
                     </View>
                     <MenuItemWithTopDescription
-                        title={currentValueName}
+                        title={currentValueName ?? oldValueName}
                         description={translate('common.value')}
                         shouldShowRightIcon={!reportFieldID}
                         interactive={!reportFieldID}

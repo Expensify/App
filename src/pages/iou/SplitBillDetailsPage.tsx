@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import type {ComponentType} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -83,6 +84,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
     const isEditingSplitBill = session?.accountID === reportAction?.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const [isConfirmed, setIsConfirmed] = useState(false);
 
     const {
         amount: splitAmount,
@@ -94,10 +96,10 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         billable: splitBillable,
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
-    const onConfirm = useCallback(
-        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? -1, session?.email ?? ''),
-        [reportID, reportAction, draftTransaction, session?.accountID, session?.email],
-    );
+    const onConfirm = useCallback(() => {
+        setIsConfirmed(true);
+        IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? -1, session?.email ?? '');
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email]);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -149,6 +151,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             onToggleBillable={(billable) => {
                                 IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {billable});
                             }}
+                            isConfirmed={isConfirmed}
                         />
                     )}
                 </View>
@@ -176,7 +179,7 @@ const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPag
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },
     },
-})(withReportAndReportActionOrNotFound(SplitBillDetailsPage));
+})(withReportAndReportActionOrNotFound(SplitBillDetailsPage) as ComponentType<SplitBillDetailsPageProps>);
 
 export default withOnyx<Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageTransactionOnyxProps>, SplitBillDetailsPageOnyxPropsWithoutTransaction>({
     report: {

@@ -16,7 +16,7 @@ type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCR
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {q, isCustomQuery} = route.params;
+    const {q} = route.params;
 
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
@@ -39,12 +39,7 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {queryJSON && (
-                    <Search
-                        isCustomQuery={isCustomQuery}
-                        queryJSON={queryJSON}
-                    />
-                )}
+                {queryJSON && <Search queryJSON={queryJSON} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

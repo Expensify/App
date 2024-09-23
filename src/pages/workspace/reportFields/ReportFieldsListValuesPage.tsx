@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -26,6 +25,7 @@ import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -49,7 +49,7 @@ type ValueListItem = ListItem & {
     orderWeight?: number;
 };
 
-type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
+type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
 function ReportFieldsListValuesPage({
     policy,
@@ -59,6 +59,8 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
+    // See https://github.com/Expensify/App/issues/48724 for more details
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {selectionMode} = useMobileSelectionMode();
@@ -268,7 +270,6 @@ function ReportFieldsListValuesPage({
         return (
             <Button
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
-                medium
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
@@ -314,9 +315,9 @@ function ReportFieldsListValuesPage({
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMedia={Illustrations.FolderWithPapers}
+                        headerStyles={styles.emptyFolderDarkBG}
+                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (

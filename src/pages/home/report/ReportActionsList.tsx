@@ -278,7 +278,7 @@ function ReportActionsList({
         }
 
         const mostRecentReportActionCreated = sortedVisibleReportActions[0]?.created ?? '';
-        if (mostRecentReportActionCreated <= unreadMarkerTime) {
+        if (mostRecentReportActionCreated === unreadMarkerTime) {
             return;
         }
 
@@ -626,7 +626,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        loadNewerChats(false);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {

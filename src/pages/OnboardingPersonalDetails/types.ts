@@ -1,12 +1,12 @@
 import type {RouteProp} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type OnboardingPersonalDetailsProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>;
+type OnboardingPersonalDetailsProps = Record<string, unknown> & PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>;
 
 type BaseOnboardingPersonalDetailsOnyxProps = {
     /** Saved onboarding purpose selected by the user */

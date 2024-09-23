@@ -133,14 +133,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
-    useEffect(() => {
-        if (isEmptyObject(loginData)) {
-            return;
-        }
-        User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -206,7 +198,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <ErrorMessageRow
                         errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
-                        onClose={() => User.clearContactMethod(contactMethod)}
+                        onClose={() => {
+                            User.clearContactMethod(contactMethod);
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        }}
                         canDismissError
                     />
                 )}
@@ -236,7 +231,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     >
                         <MenuItem
                             title={translate('contacts.setAsDefault')}
-                            icon={Expensicons.Profile}
+                            icon={Expensicons.Star}
                             onPress={setAsDefault}
                         />
                     </OfflineWithFeedback>

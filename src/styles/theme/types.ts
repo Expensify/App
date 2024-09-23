@@ -72,7 +72,7 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
-    receiptDropUIBG: Color;
+    fileDropUIBG: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;

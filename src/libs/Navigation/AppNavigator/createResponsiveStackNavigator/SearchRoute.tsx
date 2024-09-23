@@ -1,9 +1,8 @@
-import type {EventMapBase} from '@react-navigation/native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CustomCodePropsWithTransformedState, PlatformSpecificEventMap, PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-function SearchRoute({searchRoute, descriptors}: CustomCodePropsWithTransformedState<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase>) {
+function SearchRoute({searchRoute, descriptors}: ExtraContentProps) {
     const styles = useThemeStyles();
 
     if (!searchRoute) {

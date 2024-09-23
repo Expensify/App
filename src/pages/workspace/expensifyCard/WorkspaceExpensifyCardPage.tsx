@@ -1,11 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -16,7 +16,7 @@ import type SCREENS from '@src/SCREENS';
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
 
-type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID ?? '-1';
@@ -36,7 +36,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     useFocusEffect(fetchExpensifyCards);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && Object.keys(cardSettings).length === 1));
+    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && !cardsList));
 
     return (
         <AccessOrNotFoundWrapper

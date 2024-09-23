@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -131,10 +131,6 @@ function ReportActionsView({
         Report.updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
 
-    useLayoutEffect(() => {
-        setCurrentReportActionID('');
-    }, [route]);
-
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
         if (!reportActionID && !prevReportActionID) {
@@ -145,6 +141,9 @@ function ReportActionsView({
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         // eslint-disable-next-line react-compiler/react-compiler
         listOldID = newID;
+
+        setCurrentReportActionID('');
+
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, reportActionID]);

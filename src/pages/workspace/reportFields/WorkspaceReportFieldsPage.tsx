@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -11,6 +10,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -19,6 +19,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -31,6 +32,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -49,7 +51,7 @@ type ReportFieldForList = ListItem & {
     orderWeight?: number;
 };
 
-type WorkspaceReportFieldsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
+type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
 function WorkspaceReportFieldsPage({
     route: {
@@ -126,6 +128,8 @@ function WorkspaceReportFieldsPage({
         ];
     }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections[0].data);
+
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
         const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
@@ -183,7 +187,6 @@ function WorkspaceReportFieldsPage({
         return (
             <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 <Button
-                    medium
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                     icon={Expensicons.Plus}
@@ -216,7 +219,7 @@ function WorkspaceReportFieldsPage({
     };
 
     const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             {isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
@@ -287,10 +290,11 @@ function WorkspaceReportFieldsPage({
                         title={translate('workspace.reportFields.emptyReportFields.title')}
                         subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                        headerMedia={LottieAnimations.GenericEmptyState}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {!shouldShowEmptyState && !isLoading && (

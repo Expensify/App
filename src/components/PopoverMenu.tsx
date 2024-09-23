@@ -1,13 +1,15 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useLayoutEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -20,6 +22,7 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
@@ -42,6 +45,9 @@ type PopoverMenuItem = MenuItemProps & {
      *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
      */
     shouldCallAfterModalHide?: boolean;
+
+    /** Whether to close all modals */
+    shouldCloseAllModals?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -94,6 +100,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
+
+    /** Whether to show the selected option checkmark */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
 function PopoverMenu({
@@ -118,13 +127,16 @@ function PopoverMenu({
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
     restoreFocusType,
+    shouldShowSelectedItemCheck = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
+    const {windowHeight} = useWindowDimensions();
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
@@ -136,10 +148,14 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
-            Modal.close(() => {
-                onItemSelected(selectedItem, index);
-                selectedItem.onSelected?.();
-            });
+            onItemSelected(selectedItem, index);
+            Modal.close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -242,7 +258,7 @@ function PopoverMenu({
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <ScrollView style={isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
@@ -255,6 +271,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
+                            shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                             titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
@@ -263,9 +280,12 @@ function PopoverMenu({
                             focused={focusedIndex === menuIndex}
                             displayInDefaultIconColor={item.displayInDefaultIconColor}
                             shouldShowRightIcon={item.shouldShowRightIcon}
+                            shouldShowRightComponent={item.shouldShowRightComponent}
                             iconRight={item.iconRight}
+                            rightComponent={item.rightComponent}
                             shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                             label={item.label}
+                            style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                             isLabelHoverable={item.isLabelHoverable}
                             floatRightAvatars={item.floatRightAvatars}
                             floatRightAvatarSize={item.floatRightAvatarSize}
@@ -282,10 +302,11 @@ function PopoverMenu({
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}
                             interactive={item.interactive}
+                            isSelected={item.isSelected}
                             badgeText={item.badgeText}
                         />
                     ))}
-                </View>
+                </ScrollView>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

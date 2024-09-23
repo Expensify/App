@@ -5,6 +5,7 @@ import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -26,6 +27,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -36,6 +38,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import * as Modal from '@userActions/Modal';
 import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -71,10 +74,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
+    const {windowWidth} = useWindowDimensions();
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
@@ -338,9 +343,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            const isAuditor = policyEmployee.role === CONST.POLICY.ROLE.AUDITOR;
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            } else if (isAuditor) {
+                roleBadge = <Badge text={translate('common.auditor')} />;
             }
 
             result.push({
@@ -413,7 +421,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     };
 
     const getHeaderContent = () => (
-        <>
+        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
@@ -424,7 +432,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
             )}
-        </>
+        </View>
     );
 
     useEffect(() => {
@@ -452,7 +460,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
-    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
+    const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         if (!isEmptyObject(errors)) {
             return;
         }
@@ -484,23 +492,43 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             const email = personalDetails?.[accountID]?.login ?? '';
             return policy?.employeeList?.[email]?.role;
         });
-        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.ADMIN)) {
-            options.push({
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-            });
+
+        const memberOption = {
+            text: translate('workspace.people.makeMember'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+            icon: Expensicons.User,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+        };
+        const adminOption = {
+            text: translate('workspace.people.makeAdmin'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+            icon: Expensicons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+        };
+
+        const auditorOption = {
+            text: translate('workspace.people.makeAuditor'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
+            icon: Expensicons.UserEye,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
+        };
+
+        const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
+        const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
+
+        if (hasAtLeastOneNonMemberRole) {
+            options.push(memberOption);
         }
 
-        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.USER)) {
-            options.push({
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-            });
+        if (hasAtLeastOneNonAdminRole) {
+            options.push(adminOption);
         }
+
+        if (hasAtLeastOneNonAuditorRole) {
+            options.push(auditorOption);
+        }
+
         return options;
     };
 
@@ -509,7 +537,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return null;
         }
         return (
-            <View style={styles.w100}>
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
@@ -524,7 +552,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
@@ -536,6 +563,35 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             </View>
         );
     };
+
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems = [
+            {
+                icon: Expensicons.Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        Modal.close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
+                },
+            },
+            {
+                icon: Expensicons.Download,
+                text: translate('spreadsheet.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        Modal.close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Member.downloadMembersCSV(policyID);
+                },
+            },
+        ];
+
+        return menuItems;
+    }, [policyID, translate, isOffline]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -549,6 +605,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
+            shouldShowThreeDotsButton
+            threeDotsMenuItems={threeDotsMenuItems}
+            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             shouldShowNonAdmin
             onBackButtonPress={() => {
                 if (selectionMode?.isEnabled) {
@@ -562,6 +621,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {() => (
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    <ConfirmModal
+                        isVisible={isOfflineModalVisible}
+                        onConfirm={() => setIsOfflineModalVisible(false)}
+                        title={translate('common.youAppearToBeOffline')}
+                        prompt={translate('common.thisFeatureRequiresInternet')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                    />
+
                     <ConfirmModal
                         danger
                         title={translate('workspace.people.removeMembersTitle')}
@@ -602,7 +670,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             textInputRef={textInputRef}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
                         />
                     </View>

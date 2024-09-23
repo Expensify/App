@@ -42,6 +42,9 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
             if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
                 errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
             }
+            if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
+            }
             if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
                 errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
             }

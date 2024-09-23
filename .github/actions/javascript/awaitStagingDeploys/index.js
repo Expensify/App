@@ -12138,7 +12138,7 @@ function run() {
         GithubUtils_1.default.octokit.actions.listWorkflowRuns({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            workflow_id: 'platformDeploy.yml',
+            workflow_id: 'deploy.yml',
             event: 'push',
             branch: tag,
         }),

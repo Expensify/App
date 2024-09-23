@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -12,17 +11,20 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Card from '@userActions/Card';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceExpensifyCardBankAccountsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
+type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
 
 function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankAccountsProps) {
     const {translate} = useLocalize();
@@ -53,7 +55,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            const bankAccountID = bankAccount.accountData?.bankAccountID;
+            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount?.methodID;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
@@ -74,26 +76,32 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceExpensifyCardBankAccounts.displayName}
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                title={translate('workspace.expensifyCard.chooseBankAccount')}
-            />
-            <View style={styles.flex1}>
-                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                {renderBankOptions()}
-                <MenuItem
-                    icon={Expensicons.Plus}
-                    title={translate('workspace.expensifyCard.addNewBankAccount')}
-                    onPress={handleAddBankAccount}
+            <ScreenWrapper
+                testID={WorkspaceExpensifyCardBankAccounts.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                    title={translate('workspace.expensifyCard.chooseBankAccount')}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={styles.flex1}>
+                    <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                    {renderBankOptions()}
+                    <MenuItem
+                        icon={Expensicons.Plus}
+                        title={translate('workspace.expensifyCard.addNewBankAccount')}
+                        onPress={handleAddBankAccount}
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -42,6 +42,7 @@ function ValidateContactActionPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={ValidateContactActionPage.displayName}
+            offlineIndicatorStyle={themeStyles.mtAuto}
         >
             <HeaderWithBackButton
                 title={account?.primaryLogin ?? ''}
