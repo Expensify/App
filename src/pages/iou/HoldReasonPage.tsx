@@ -25,7 +25,7 @@ type HoldReasonPageRouteParams = {
     /** Link to previous page */
     backTo: Route;
 
-    hash?: number
+    hash?: number;
 };
 
 type HoldReasonPageProps = {
