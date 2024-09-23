@@ -22,6 +22,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingEmployeesProps} from './types';
 
+type OnboardingListItem = ListItem & {
+    keyForList: OnboardingCompanySizeType;
+};
 function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingEmployeesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -31,8 +34,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySizeType | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
 
-    const companySizeOptions: ListItem[] = useMemo(() => {
-        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): ListItem => {
+    const companySizeOptions: OnboardingListItem[] = useMemo(() => {
+        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): OnboardingListItem => {
             return {
                 text: translate(`onboarding.employees.${companySize}`),
                 keyForList: companySize,
