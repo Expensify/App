@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -14,7 +13,6 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -25,19 +23,14 @@ type WorkspaceListItem = ListItem & {
     value: string;
 };
 
-type IOURequestStepSendFromOnyxProps = {
-    /** The list of all policies */
-    allPolicies: OnyxCollection<Policy>;
-};
-
-type IOURequestStepSendFromProps = IOURequestStepSendFromOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM> &
+type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
-function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestStepSendFromProps) {
+function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
 
@@ -101,12 +94,4 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
 
 IOURequestStepSendFrom.displayName = 'IOURequestStepSendFrom';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepSendFromProps, IOURequestStepSendFromOnyxProps>({
-            allPolicies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
-        })(IOURequestStepSendFrom),
-    ),
-);
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSendFrom));
