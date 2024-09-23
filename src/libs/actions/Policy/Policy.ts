@@ -3575,6 +3575,7 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
                           [groupID]: {
                               category,
                               groupID,
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                           },
                       },
                   },
@@ -3588,13 +3589,35 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `policy_${policyID}`,
                   value: {
-                      mccGroup,
+                      mccGroup: {
+                          ...mccGroup,
+                          [groupID]: {
+                              ...mccGroup[groupID],
+                              pendingAction: null,
+                          },
+                      },
                   },
               },
           ]
         : [];
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData: [], failureData});
+    const successData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      mccGroup: {
+                          [groupID]: {
+                              pendingAction: null,
+                          },
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
 }
 /**
  * Call the API to set the receipt required amount for the given policy

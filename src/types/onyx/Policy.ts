@@ -1242,6 +1242,9 @@ type MccGroup = {
 
     /** ID of the Merchant Category Code */
     groupID: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of verified reimbursement bank account linked to policy */
