@@ -94,7 +94,11 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                     }}
                     onPress={(event) => {
                         event.preventDefault();
-                        Navigation.navigate(navigationRoute);
+                        if (!isEmpty(htmlAttribAccountID)) {
+                            Navigation.navigate(ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute()));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
                     }}
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}
