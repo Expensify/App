@@ -199,7 +199,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     if (shouldShowEmptyState) {
         return (
-            <View style={[shouldUseNarrowLayout && styles.searchListContentContainerStyles, styles.flex1, styles.mt3]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView type={type} />
             </View>
         );
