@@ -51,14 +51,7 @@ type MenuItemListProps = {
     iconHeight?: number;
 };
 
-function MenuItemList({
-    menuItems = [],
-    shouldUseSingleExecution = false,
-    wrapperStyle = {},
-    icon = undefined,
-    iconWidth = undefined,
-    iconHeight = undefined,
-}: MenuItemListProps) {
+function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
 
