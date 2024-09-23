@@ -75,8 +75,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            shouldEnableKeyboardAvoidingView
             testID="BaseOnboardingEmployees"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

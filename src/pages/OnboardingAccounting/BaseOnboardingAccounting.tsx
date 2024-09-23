@@ -175,8 +175,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            shouldEnableKeyboardAvoidingView
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -186,12 +184,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 onBackButtonPress={OnboardingFlow.goBack}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text style={[styles.textHeadlineH1]}>{translate('onboarding.accounting.title')}</Text>
-                </View>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text style={[styles.textNormalThemeText, styles.colorMuted]}>{translate('onboarding.accounting.description')}</Text>
-                </View>
+                <Text style={[styles.textHeadlineH1, styles.mb3]}>{translate('onboarding.accounting.title')}</Text>
+                <Text style={[styles.textNormalThemeText, styles.colorMuted, styles.mb5]}>{translate('onboarding.accounting.description')}</Text>
             </View>
             <SelectionList
                 sections={[{data: accountingOptions}]}
