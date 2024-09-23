@@ -3645,7 +3645,7 @@ function completeOnboarding(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {hasCompletedGuidedSetupFlow: null},
+            value: {hasCompletedGuidedSetupFlow: false},
         },
     );
 
