@@ -251,7 +251,7 @@ function AdvancedSearchFilters() {
         }
 
         if (savedSearches === undefined) {
-            SearchActions.setShouldShowSavedSearchRenameTooltip();
+            SearchActions.showSavedSearchRenameTooltip();
         }
 
         SearchActions.saveSearch({
