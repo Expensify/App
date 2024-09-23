@@ -3,10 +3,11 @@ import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
@@ -20,23 +21,14 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspacePageWithSectionsOnyxProps = {
-    /** From Onyx */
-    /** Bank account attached to free plan */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** User Data from Onyx */
-    user: OnyxEntry<User>;
-};
-
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    WorkspacePageWithSectionsOnyxProps & {
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -59,9 +51,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Option to show the loading page while the API is calling */
         shouldShowLoading?: boolean;
-
-        /** Should show the back button. It is used when in RHP. */
-        shouldShowBackButton?: boolean;
 
         /** Whether the offline indicator should be shown in wide screen devices */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -96,9 +85,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
-
-        /** Callback to be called when the back button is pressed */
-        onBackButtonPress?: () => void;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -118,13 +104,11 @@ function WorkspacePageWithSections({
     headerText,
     policy,
     policyDraft,
-    reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     route,
     shouldUseScrollView = false,
     showLoadingAsFirstRender = true,
     shouldSkipVBBACall = true,
     shouldShowBackButton = false,
-    user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     includeSafeAreaPaddingBottom = false,
@@ -134,10 +118,16 @@ function WorkspacePageWithSections({
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
     onBackButtonPress,
+    shouldShowThreeDotsButton,
+    threeDotsMenuItems,
+    threeDotsAnchorPosition,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '-1';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+
+    const [user] = useOnyx(ONYXKEYS.USER);
+    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
@@ -149,7 +139,6 @@ function WorkspacePageWithSections({
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
-
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
         firstRender.current = false;
@@ -197,6 +186,9 @@ function WorkspacePageWithSections({
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {headerContent}
                 </HeaderWithBackButton>
@@ -224,14 +216,4 @@ function WorkspacePageWithSections({
 
 WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspacePageWithSectionsProps, WorkspacePageWithSectionsOnyxProps>({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    })(WorkspacePageWithSections),
-);
+export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);
