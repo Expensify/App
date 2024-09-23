@@ -14,6 +14,7 @@ Connecting a personal bank account to Expensify allows you to get reimbursed for
 Plaid is an encrypted third-party financial data platform that Expensify uses to securely verify your banking information.
 {% include end-info.html %}
 
+![Click Add Bank Account and then click Continue.]
 ({{site.url}}/assets/images/addbankaccount_01.png){:width="100%"}
 
 5. Follow the prompts to add the bank account details with Plaid.
@@ -21,6 +22,7 @@ Plaid is an encrypted third-party financial data platform that Expensify uses to
 7. Choose which account you want to connect to Expensify.
 8. Click **Save & continue**.
 
+![Choose which account you want to connect to Expensify and then click Save & continue.]
 ({{site.url}}/assets/images/addbankaccount_03.png){:width="100%"}
 
 Once connected, all payments and reimbursements will be deposited directly into that bank account. 
