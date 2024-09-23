@@ -1936,6 +1936,8 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
 
+    const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
+
     if (includeRecentReports) {
         for (const reportOption of allReportOptions) {
             /**
@@ -1995,7 +1997,7 @@ function getOptions(
             }
 
             // Add a field to sort the recent reports by the time of last IOU request for create actions
-            if (action === CONST.IOU.ACTION.CREATE) {
+            if (preferRecentExpenseReports) {
                 const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) =>
                     ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
                 );
@@ -2061,7 +2063,7 @@ function getOptions(
         recentReportOptions = orderOptions(recentReportOptions, searchValue, {
             preferChatroomsOverThreads: true,
             preferPolicyExpenseChat: !!action,
-            preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            preferRecentExpenseReports,
         });
     }
 
