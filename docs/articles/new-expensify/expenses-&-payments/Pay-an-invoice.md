@@ -33,7 +33,6 @@ To pay an invoice,
 You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
 {% include faq-begin.md %}
-# FAQ
 
 **Can someone else pay an invoice besides the person who received it?**
 
@@ -54,6 +53,7 @@ You will need to work with the vendor to discuss alternative payment options. Yo
 You can add additional payment methods to your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet). Click **Account Settings** > **Wallet** > click **Add Bank Account**.
 
 You will be prompted to choose a payment method when paying future invoices. 
+
 {% include faq-end.md %}
 
 </div>

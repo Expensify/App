@@ -87,6 +87,10 @@ export default {
         marginVertical: 24,
     },
 
+    mvAuto: {
+        marginVertical: 'auto',
+    },
+
     mhv5: {
         marginVertical: -20,
     },
@@ -679,6 +683,10 @@ export default {
 
     gap7: {
         gap: 28,
+    },
+
+    gap8: {
+        gap: 32,
     },
 
     rowGap4: {
