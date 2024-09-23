@@ -72,7 +72,7 @@ function getAccountingIntegrationData(
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
-                    CONST.QUICKBOOKS_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
                     CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT,

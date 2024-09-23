@@ -193,6 +193,10 @@ function AvatarWithImagePicker({
         setError(null, {});
     }, [isFocused]);
 
+    useEffect(() => {
+        setError(null, {});
+    }, [source, avatarID]);
+
     /**
      * Check if the attachment extension is allowed.
      */
@@ -330,7 +334,7 @@ function AvatarWithImagePicker({
     );
 
     return (
-        <View style={style}>
+        <View style={[styles.w100, style]}>
             <View style={styles.w100}>
                 <AttachmentModal
                     headerTitle={headerTitle}

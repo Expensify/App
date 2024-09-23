@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {startCase} from 'lodash';
+import startCase from 'lodash/startCase';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -275,6 +275,8 @@ export default {
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
             pleaseCompleteForm: 'Please complete the form above to continue.',
             pleaseSelectOne: 'Please select an option above.',
+            invalidRateError: 'Please enter a valid rate.',
+            lowRateError: 'Rate must be greater than 0.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -352,6 +354,7 @@ export default {
         default: 'Default',
         update: 'Update',
         member: 'Member',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Currency',
         rate: 'Rate',
@@ -396,6 +399,7 @@ export default {
         sent: 'Sent',
         links: 'Links',
         days: 'days',
+        rename: 'Rename',
     },
     location: {
         useCurrent: 'Use current location',
@@ -685,8 +689,11 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importMembersSuccessfullDescription: (members: number) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
+        importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         sizeNotMet: 'File size must be greater than 0 bytes',
         invalidFileMessage:
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
@@ -1098,6 +1105,7 @@ export default {
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
             testCrash: 'Test crash',
+            debugMode: 'Debug mode',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2226,6 +2234,21 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            memberAlternateText: 'Members can submit and approve reports.',
+            adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
+            auditorAlternateText: 'Auditors can view and comment on reports.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Admin';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Member';
+                    default:
+                        return 'Member';
+                }
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2826,11 +2849,11 @@ export default {
                         companyLabel: 'Company ID',
                     },
                     amex: {
-                        title: `What's the Amex delivery file name`,
+                        title: `What's the Amex delivery file name?`,
                         fileNameLabel: 'Delivery file name',
                     },
                     mastercard: {
-                        title: `What's the Mastercard distribution ID`,
+                        title: `What's the Mastercard distribution ID?`,
                         distributionLabel: 'Distribution ID',
                     },
                 },
@@ -2951,7 +2974,6 @@ export default {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             importCategories: 'Import categories',
-            importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -3044,6 +3066,8 @@ export default {
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
                 emptyAddedFeedTitle: 'Assign company cards',
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
+                pendingFeedTitle: `We're reviewing your request...`,
+                pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
@@ -3164,6 +3188,11 @@ export default {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            tagRules: 'Tag rules',
+            approverDescription: 'Approver',
+            importTags: 'Import tags',
+            importedTagsMessage: (columnCounts: number) =>
+                `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -3233,6 +3262,7 @@ export default {
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
+            makeAuditor: 'Make auditor',
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
@@ -3242,20 +3272,9 @@ export default {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
+            importMembers: 'Import members',
         },
         card: {
-            header: 'Unlock free Expensify Cards',
-            headerWithEcard: 'Cards are ready!',
-            noVBACopy: 'Connect a bank account to issue Expensify Cards to your workspace members and access exclusive benefits like:',
-            VBANoECardCopy: 'Add a work email to issue unlimited Expensify Cards to your workspace members and enjoy exclusive benefits like:',
-            VBAWithECardCopy: 'Access these incredible benefits and more:',
-            benefit1: 'Cash back on every US purchase',
-            benefit2: 'Unlimited virtual and physical cards',
-            benefit3: 'No personal liability',
-            benefit4: 'Customizable limits and spend controls',
-            addWorkEmail: 'Add work email address',
-            checkingDomain: "Hang tight! We're still working on enabling your Expensify Cards. Check back here in a few minutes.",
-            issueAndManageCards: 'Issue and manage your Expensify Cards',
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
             issueNewCard: {
@@ -3291,25 +3310,6 @@ export default {
                 deactivateConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
             },
         },
-        reimburse: {
-            captureReceipts: 'Capture receipts',
-            fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            viewAllReceipts: 'View all receipts',
-            reimburseReceipts: 'Reimburse receipts',
-            trackDistance: 'Track distance',
-            trackDistanceCopy: 'Set the per mile/km rate and choose a default unit to track.',
-            trackDistanceRate: 'Rate',
-            trackDistanceUnit: 'Unit',
-            trackDistanceChooseUnit: 'Choose a default unit to track.',
-            unlockNextDayReimbursements: 'Unlock next-day reimbursements',
-            captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
-            captureNoVBACopyAfterEmail: ' and download the Expensify app to track expenses on the go.',
-            unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members quickly and easily.',
-            fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
-            updateCustomUnitError: "Your changes couldn't be saved because the workspace was modified while you were offline. Please try again.",
-            invalidRateError: 'Please enter a valid rate.',
-            lowRateError: 'Rate must be greater than 0.',
-        },
         accounting: {
             settings: 'settings',
             title: 'Connections',
@@ -3333,6 +3333,8 @@ export default {
                     }
                 }
             },
+            errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
+            goToODToFix: 'Go to Expensify Classic to fix this issue.',
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
@@ -3531,16 +3533,6 @@ export default {
             notReadyHeading: 'Not ready to export',
             notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system. Please approve or pay these expenses before exporting them.',
         },
-        bills: {
-            manageYourBills: 'Manage your bills',
-            askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
-            askYourVendorsAfterEmail: " and we'll scan them for you to pay.",
-            viewAllBills: 'View all bills',
-            unlockOnlineBillPayment: 'Unlock online bill payment',
-            unlockNoVBACopy: 'Connect your bank account to pay bills online for free!',
-            hassleFreeBills: 'Hassle-free bills!',
-            VBACopy: "You're all set to make payments from your bank account!",
-        },
         invoices: {
             invoiceClientsAndCustomers: 'Invoice clients and customers',
             invoiceFirstSectionCopy: 'Send beautiful, professional invoices directly to your clients and customers right from the Expensify app.',
@@ -3564,13 +3556,6 @@ export default {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
-        },
-        travel: {
-            unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
-            noVBACopy: 'Connect your bank account to let workspace members book their flights, hotels, and cars by starting a chat with Concierge.',
-            packYourBags: 'Pack your bags!',
-            VBACopy: 'Members with the Expensify card can chat with Concierge to book travel!',
-            bookTravelWithConcierge: 'Book travel with Concierge',
         },
         invite: {
             member: 'Invite member',
@@ -3832,6 +3817,7 @@ export default {
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid. ',
                 unlockFeatureGoToSubtitle: 'Go to',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `and enable workflows, then add ${featureName} to unlock this feature.`,
+                enableFeatureSubtitle: (featureName: string) => `and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
                 title: 'Category rules',
@@ -4005,6 +3991,12 @@ export default {
                 buttonText: 'Book a trip',
             },
         },
+        saveSearch: 'Save search',
+        saveSearchTooltipText: 'You can rename your saved search',
+        deleteSavedSearch: 'Delete saved search',
+        deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
+        searchName: 'Search name',
+        savedSearchesMenuItemTitle: 'Saved',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             delete: 'Delete',
@@ -4765,5 +4757,31 @@ export default {
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',
         notAllowedMessageEnd: ' copilot',
+    },
+    debug: {
+        debug: 'Debug',
+        details: 'Details',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Preview',
+        nothingToPreview: 'Nothing to preview',
+        editJson: 'Edit JSON:',
+        preview: 'Preview:',
+        missingProperty: ({propertyName}) => `Missing ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
+        invalidValue: ({expectedValues}) => `Invalid value - Expected: ${expectedValues}`,
+        missingValue: 'Missing value',
+        createReportAction: 'Create Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        hint: "Data changes won't be sent to the backend",
+        textFields: 'Text fields',
+        numberFields: 'Number fields',
+        booleanFields: 'Boolean fields',
+        constantFields: 'Constant fields',
+        dateTimeFields: 'DateTime fields',
+        date: 'Date',
+        time: 'Time',
+        none: 'None',
     },
 } satisfies TranslationBase;
