@@ -123,11 +123,18 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new EnvironmentPlugin({JEST_WORKER_ID: null}),
+        new EnvironmentPlugin({JEST_WORKER_ID: ''}),
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,
         }),
+        ...(file === '.env.production' || file === '.env.staging'
+            ? [
+                  new IgnorePlugin({
+                      resourceRegExp: /@welldone-software\/why-did-you-render/,
+                  }),
+              ]
+            : []),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
@@ -165,7 +172,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
             // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
             {
-                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.js'),
+                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'),
                 type: 'asset/source',
             },
 
@@ -215,6 +222,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
     resolve: {
         alias: {
+            lodash: 'lodash-es',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-config': 'react-web-config',
             // eslint-disable-next-line @typescript-eslint/naming-convention
