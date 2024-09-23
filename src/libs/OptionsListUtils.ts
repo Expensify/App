@@ -1994,8 +1994,8 @@ function getOptions(
                 recentReportOptions.push(reportOption);
             }
 
-            // Add a field to sort the recent reports by the time of last IOU request
-            if (action) {
+            // Add a field to sort the recent reports by the time of last IOU request for create actions
+            if (action === CONST.IOU.ACTION.CREATE) {
                 const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) =>
                     ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
                 );
@@ -2058,7 +2058,11 @@ function getOptions(
             recentReportOptions.push(...personalDetailsOptions);
             personalDetailsOptions = [];
         }
-        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action, preferRecentExpenseReports: !!action});
+        recentReportOptions = orderOptions(recentReportOptions, searchValue, {
+            preferChatroomsOverThreads: true,
+            preferPolicyExpenseChat: !!action,
+            preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+        });
     }
 
     return {
@@ -2504,7 +2508,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     return {
         personalDetails,
-        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports: !!action}),
+        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],
