@@ -1,7 +1,6 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -14,7 +13,6 @@ import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWork from '@pages/OnboardingWork';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
