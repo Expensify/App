@@ -2,8 +2,7 @@ import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -35,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -51,11 +49,7 @@ type WorkspaceMenuItem = {
     routeName?:
         | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
         | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.CARD
-        | typeof SCREENS.WORKSPACE.REIMBURSE
-        | typeof SCREENS.WORKSPACE.BILLS
         | typeof SCREENS.WORKSPACE.INVOICES
-        | typeof SCREENS.WORKSPACE.TRAVEL
         | typeof SCREENS.WORKSPACE.DISTANCE_RATES
         | typeof SCREENS.WORKSPACE.WORKFLOWS
         | typeof SCREENS.WORKSPACE.CATEGORIES
@@ -70,12 +64,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.RULES;
 };
 
-type WorkspaceInitialPageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
@@ -88,13 +77,14 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories, route}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -426,10 +416,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
 
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
-        policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
-        },
-    })(WorkspaceInitialPage),
-);
+export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);

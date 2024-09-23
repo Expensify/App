@@ -134,7 +134,6 @@ const WRITE_COMMANDS = {
     UPDATE_WORKSPACE_AVATAR: 'UpdateWorkspaceAvatar',
     DELETE_WORKSPACE_AVATAR: 'DeleteWorkspaceAvatar',
     UPDATE_WORKSPACE_GENERAL_SETTINGS: 'UpdateWorkspaceGeneralSettings',
-    UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE: 'UpdateWorkspaceCustomUnitAndRate',
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
     UPDATE_WORKSPACE_MEMBERS_ROLE: 'UpdateWorkspaceMembersRole',
     CREATE_WORKSPACE: 'CreateWorkspace',
@@ -527,7 +526,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS]: Parameters.UpdateWorkspaceGeneralSettingsParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: Parameters.UpdateWorkspaceMembersRoleParams;
-    [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE]: Parameters.UpdateWorkspaceCustomUnitAndRateParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
@@ -849,7 +847,6 @@ const READ_COMMANDS = {
     BEGIN_SIGNIN: 'BeginSignIn',
     SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN: 'SignInWithShortLivedAuthToken',
     SIGN_IN_WITH_SUPPORT_AUTH_TOKEN: 'SignInWithSupportAuthToken',
-    OPEN_WORKSPACE_REIMBURSE_VIEW: 'OpenWorkspaceReimburseView',
     OPEN_WORKSPACE: 'OpenWorkspace',
     OPEN_WORKSPACE_MEMBERS_PAGE: 'OpenWorkspaceMembersPage',
     OPEN_POLICY_CATEGORIES_PAGE: 'OpenPolicyCategoriesPage',
@@ -908,7 +905,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
     [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: Parameters.SignInWithSupportAuthTokenParams;
-    [READ_COMMANDS.OPEN_WORKSPACE_REIMBURSE_VIEW]: Parameters.OpenWorkspaceReimburseViewParams;
     [READ_COMMANDS.OPEN_WORKSPACE]: Parameters.OpenWorkspaceParams;
     [READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE]: Parameters.OpenWorkspaceMembersPageParams;
     [READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE]: Parameters.OpenPolicyCategoriesPageParams;
