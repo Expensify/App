@@ -94,6 +94,7 @@ function AddressSearch(
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
+    const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
     const query = useMemo(
         () => ({
@@ -325,6 +326,8 @@ function AddressSearch(
     const filteredPredefinedPlaces = useMemo(() => {
         if (!searchValue) {
             return predefinedPlaces ?? [];
+        } else if (shouldHidePredefinedPlaces) {
+            return [];
         }
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue]);
@@ -429,6 +432,7 @@ function AddressSearch(
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
+                                setShouldHidePredefinedPlaces(!isOffline);
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
