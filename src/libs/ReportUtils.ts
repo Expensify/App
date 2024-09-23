@@ -760,12 +760,7 @@ function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound =
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-
-    let policyName: string = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
-
-    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-        policyName += ` (${Localize.translateLocal('common.archived')})`;
-    }
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }
@@ -2705,7 +2700,6 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant(ownerAccountID) || login || report?.reportName;
-
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report?.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
@@ -3752,6 +3746,7 @@ function getReportName(
             if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
+
             return formatReportLastMessageText(formattedName);
         }
 

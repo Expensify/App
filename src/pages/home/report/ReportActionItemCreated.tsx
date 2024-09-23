@@ -86,9 +86,7 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
                     </OfflineWithFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText
-                            report={{
-                                ...report,
-                                ownerAccountID: policy?.ownerAccountID}}
+                            report={report}
                             policy={policy}
                         />
                     </View>

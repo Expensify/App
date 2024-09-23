@@ -64,6 +64,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const additionalText = !isPolicyExpenseChat && ReportUtils.getMoneyRequestOptionsText(moneyRequestOptions);
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
+    const reportDisplayName = (!(isDefaultChatRoom || isDomainRoom) || isArchivedRoom || isAdminRoom || isAnnounceRoom) ? 
+        ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
+    const ownerAccountID = policy?.ownerAccountID || report?.ownerAccountID;
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -78,7 +81,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             return translate('reportActionsView.sayHello');
         }
 
-        if (isDefaultChatRoom) {
+        if (isChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
 
@@ -91,7 +94,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         return translate('reportActionsView.sayHello');
-    }, [isDefaultChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
 
     const RoomDescription = (props: RoomDescriptionProps) => (
         <PressableWithoutFeedback
@@ -109,16 +112,6 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
     };
-    
-    const getDisplayName = () => (!(isDefaultChatRoom || isDomainRoom) || isArchivedRoom || isAdminRoom || isAnnounceRoom) ? 
-        ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
-
-    const ArchivedMessage = () => (
-        <Text>
-        <Text>{welcomeMessage.phrase1}</Text>
-        <Text style={[styles.textStrong]}>{ReportUtils.getReportName(report)}</Text>
-        <Text>{welcomeMessage.phrase2}</Text>
-    </Text>);
 
     return (
         <>
@@ -126,47 +119,32 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
-                {isPolicyExpenseChat &&
-                    (welcomeMessage?.messageHtml ? (
-                        <RoomDescription
-                            onPress={() => {
-                                if (!canEditPolicyDescription) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
-                            }} 
-                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]} />
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                            <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{getDisplayName()}</Text>
-                            <Text>{welcomeMessage.phrase3}</Text>
-                        </Text>
-                    ))}
-                {isDefaultChatRoom &&
-                    (welcomeMessage?.messageHtml ? (
-                        <RoomDescription
-                            onPress={roomOnPress}
-                            style={styles.renderHTML} />
-                    ) : isArchivedRoom ? <ArchivedMessage /> : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            {welcomeMessage.showReportName && (
-                                <Text
-                                    style={[styles.textStrong]}
-                                    onPress={navigateToReport}
-                                    suppressHighlighting
-                                >
-                                    {getDisplayName()}
-                                </Text>
-                            )}
-                            {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
-                            <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                            {welcomeMessage.phrase3 && <Text>{welcomeMessage.phrase3}</Text>}
-                        </Text>
-                    ))}
+                {isPolicyExpenseChat && (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(ownerAccountID)}</Text>
+                        <Text>{welcomeMessage.phrase2}</Text>
+                        <Text style={[styles.textStrong]}>{reportDisplayName}</Text>
+                        <Text>{welcomeMessage.phrase3}</Text>
+                    </Text>
+                )}
+                {isDefaultChatRoom && (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>
+                        {welcomeMessage.showReportName && (
+                            <Text
+                                style={[styles.textStrong]}
+                                onPress={navigateToReport}
+                                suppressHighlighting
+                            >
+                                {reportDisplayName}
+                            </Text>
+                        )}
+                        {welcomeMessage.phrase2 && <Text>{welcomeMessage.phrase2}</Text>}
+                        {!isArchivedRoom && <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(ownerAccountID)}</Text>}
+                        {welcomeMessage.phrase3 && <Text>{welcomeMessage.phrase3}</Text>}
+                    </Text>
+                )}
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
@@ -175,28 +153,30 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {(isAdminRoom || isAnnounceRoom) && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
-                        <Text style={[styles.textStrong]}>{getDisplayName()}</Text>
+                        <Text style={[styles.textStrong]}>{reportDisplayName}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>                    
                     </Text>
                 )}
                 {isDomainRoom && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
-                        <Text style={[styles.textStrong]}>{getDisplayName()}</Text>
+                        <Text style={[styles.textStrong]}>{reportDisplayName}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>                    
                     </Text>
                 )}
-                {isInvoiceRoom && (welcomeMessage?.messageHtml ? (
-                    <RoomDescription
-                        onPress={roomOnPress}
-                        style={styles.renderHTML} />
-                ) : isArchivedRoom ? <ArchivedMessage /> : (
+                {isInvoiceRoom && (isArchivedRoom ? (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>   
-                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                        <Text style={[styles.textStrong]}>{reportDisplayName}</Text>
+                        <Text>{welcomeMessage.phrase2}</Text>  
+                    </Text>
+                ) : (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>   
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(ownerAccountID)}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>  
                         <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
-                        <Text>{welcomeMessage.phrase3}</Text>                   
+                        <Text>{welcomeMessage.phrase3}</Text>                 
                     </Text>
                 ))}
                 {isSystemChat && (

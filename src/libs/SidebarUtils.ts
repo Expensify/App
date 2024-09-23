@@ -586,24 +586,16 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: strin
         return welcomeMessage;
     }
 
-    if (ReportUtils.isInvoiceRoom(report)) {
-        welcomeMessage.showReportName = false;
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
-        welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartThree');
-        welcomeMessage.messageText = `${welcomeMessage.phrase1}${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}${welcomeMessage.phrase2}${ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}`;
-        return welcomeMessage;
-    }
-
     const isAdminRoom = ReportUtils.isAdminRoom(report);
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
     const isDomainRoom = ReportUtils.isDomainRoom(report);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
 
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
 
-    const displayName = (isArchivedRoom || isAdminRoom || isAnnounceRoom) ? ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
-    const displayNameOnly = isArchivedRoom || isDomainRoom || isAdminRoom || isAnnounceRoom;
+    const displayName = (isArchivedRoom || isAdminRoom || isAnnounceRoom || isInvoiceRoom) ? ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
+    const displayNameOnly = isArchivedRoom || isDomainRoom || isAdminRoom || isAnnounceRoom || isInvoiceRoom;
 
     if (displayNameOnly) {
         if (isArchivedRoom) {
@@ -618,7 +610,14 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: strin
         } else if (isAnnounceRoom) {
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo');
-        } 
+        } else if (isInvoiceRoom) {
+            welcomeMessage.showReportName = false;
+            welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
+            welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
+            welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartThree');
+            welcomeMessage.messageText = `${welcomeMessage.phrase1}${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}${welcomeMessage.phrase2}${ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}`;
+            return welcomeMessage;
+        }
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayName}${welcomeMessage.phrase2}`;
         return welcomeMessage;
     } 

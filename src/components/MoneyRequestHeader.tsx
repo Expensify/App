@@ -127,10 +127,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
-                    report={{
-                        ...report,
-                        ownerAccountID: parentReport?.ownerAccountID,
-                    }}
+                    report={report}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
