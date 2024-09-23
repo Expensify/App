@@ -137,7 +137,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     // };
 
     // We need to check what is defined to know what we need to add.
-    const WorkspaceNavigator = state.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+    const workspaceNavigator = state.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+    const reportNavigator = state.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const rhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
@@ -223,7 +224,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             adaptedState: getRoutesWithIndex(routes),
         };
     }
-    if (WorkspaceNavigator) {
+    if (workspaceNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
@@ -242,7 +243,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             ),
         );
 
-        routes.push(WorkspaceNavigator);
+        routes.push(workspaceNavigator);
 
         return {
             adaptedState: getRoutesWithIndex(routes),
@@ -275,6 +276,19 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     }
 
     // We need to make sure that this if only handles states where we deeplink to the bottom tab directly
+
+    // If policyID is defined, it should be passed to the reportNavigator params.
+    if (reportNavigator && policyID) {
+        const routes = [];
+        const reportNavigatorWithPolicyID = {...reportNavigator};
+        reportNavigatorWithPolicyID.params = {...reportNavigatorWithPolicyID.params, policyID};
+        routes.push(reportNavigatorWithPolicyID);
+
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+        };
+    }
+
     return {
         adaptedState: state,
     };
