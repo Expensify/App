@@ -61,6 +61,7 @@ function SuggestionEmoji(
 ) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    const isInitialFocusRef = useRef(true);
     suggestionValuesRef.current = suggestionValues;
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
@@ -155,6 +156,10 @@ function SuggestionEmoji(
             if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !newValue || (selectionStart === 0 && selectionEnd === 0)) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
+                return;
+            }
+            if (isInitialFocusRef.current) {
+                isInitialFocusRef.current = false;
                 return;
             }
             const leftString = newValue.substring(0, selectionEnd);
