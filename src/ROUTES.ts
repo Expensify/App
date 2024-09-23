@@ -382,9 +382,13 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
-        route: ':type/edit/reason/:transactionID?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
-            `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
+        route: ':type/edit/reason/:transactionID?/:hash?',
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, hash?: number) => {
+            const route = hash
+                ? (`${type}/edit/reason/${transactionID}/${hash}/?backTo=${backTo}&reportID=${reportID}` as const)
+                : (`${type}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
+            return route;
+        },
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
