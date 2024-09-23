@@ -818,7 +818,7 @@ describe('DebugUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             });
-            expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteTask');
+            expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteAction');
         });
         it('returns correct reason when report has a child report awaiting action from the user', () => {
             const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow({
