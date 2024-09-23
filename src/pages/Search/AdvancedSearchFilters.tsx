@@ -250,6 +250,10 @@ function AdvancedSearchFilters() {
             return;
         }
 
+        if (savedSearches === undefined) {
+            SearchActions.setShouldShowSavedSearchRenameTooltip();
+        }
+
         SearchActions.saveSearch({
             queryJSON,
         });
