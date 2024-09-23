@@ -146,7 +146,7 @@ const onboardingCompanySize = {
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
     LARGE: '1001+',
-};
+} as const;
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 

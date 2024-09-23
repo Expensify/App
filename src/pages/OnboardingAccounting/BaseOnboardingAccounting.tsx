@@ -133,7 +133,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 onPress={() => {
                     if (userReportedIntegration === undefined) {
                         setError(translate('onboarding.purpose.errorSelection'));
-                        // eslint-disable-next-line no-useless-return
                         return;
                     }
 
