@@ -179,34 +179,33 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             shouldEnableMaxHeight
             shouldEnableKeyboardAvoidingView
             testID="BaseOnboardingAccounting"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    progressBarPercentage={75}
-                    onBackButtonPress={OnboardingFlow.goBack}
-                />
-                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                        <Text style={[styles.textHeadlineH1]}>{translate('onboarding.accounting.title')}</Text>
-                    </View>
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textNormalThemeText, styles.colorMuted]}>{translate('onboarding.accounting.description')}</Text>
-                    </View>
+            <HeaderWithBackButton
+                shouldShowBackButton
+                progressBarPercentage={75}
+                onBackButtonPress={OnboardingFlow.goBack}
+            />
+            <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
+                    <Text style={[styles.textHeadlineH1]}>{translate('onboarding.accounting.title')}</Text>
                 </View>
-                <SelectionList
-                    sections={[{data: accountingOptions}]}
-                    onSelectRow={(item) => {
-                        setUserReportedIntegration(item.keyForList);
-                        setError('');
-                    }}
-                    shouldUpdateFocusedIndex
-                    ListItem={RadioListItem}
-                    footerContent={footerContent}
-                    shouldShowTooltips={false}
-                />
-                {shouldUseNarrowLayout && <OfflineIndicator />}
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <Text style={[styles.textNormalThemeText, styles.colorMuted]}>{translate('onboarding.accounting.description')}</Text>
+                </View>
             </View>
+            <SelectionList
+                sections={[{data: accountingOptions}]}
+                onSelectRow={(item) => {
+                    setUserReportedIntegration(item.keyForList);
+                    setError('');
+                }}
+                shouldUpdateFocusedIndex
+                ListItem={RadioListItem}
+                footerContent={footerContent}
+                shouldShowTooltips={false}
+            />
+            {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

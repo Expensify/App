@@ -75,31 +75,30 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             shouldEnableMaxHeight
             shouldEnableKeyboardAvoidingView
             testID="BaseOnboardingEmployees"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
-                    onBackButtonPress={OnboardingFlow.goBack}
-                />
-                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeadlineH1]}>{translate('onboarding.employees.title')}</Text>
-                    </View>
+            <HeaderWithBackButton
+                shouldShowBackButton
+                progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
+                onBackButtonPress={OnboardingFlow.goBack}
+            />
+            <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <Text style={[styles.textHeadlineH1]}>{translate('onboarding.employees.title')}</Text>
                 </View>
-                <SelectionList
-                    sections={[{data: companySizeOptions}]}
-                    onSelectRow={(item) => {
-                        setSelectedCompanySize(item.keyForList);
-                        setError('');
-                    }}
-                    initiallyFocusedOptionKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
-                    shouldUpdateFocusedIndex
-                    ListItem={RadioListItem}
-                    footerContent={footerContent}
-                />
-                {shouldUseNarrowLayout && <OfflineIndicator />}
             </View>
+            <SelectionList
+                sections={[{data: companySizeOptions}]}
+                onSelectRow={(item) => {
+                    setSelectedCompanySize(item.keyForList);
+                    setError('');
+                }}
+                initiallyFocusedOptionKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
+                shouldUpdateFocusedIndex
+                ListItem={RadioListItem}
+                footerContent={footerContent}
+            />
+            {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

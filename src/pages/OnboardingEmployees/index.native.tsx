@@ -2,12 +2,12 @@ import React from 'react';
 import BaseOnboardingEmployees from './BaseOnboardingEmployees';
 import type {OnboardingEmployeesProps} from './types';
 
-function OnboardingEmployees({...rest}: OnboardingEmployeesProps) {
+function OnboardingEmployees(props: OnboardingEmployeesProps) {
     return (
         <BaseOnboardingEmployees
             shouldUseNativeStyles
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...props}
         />
     );
 }

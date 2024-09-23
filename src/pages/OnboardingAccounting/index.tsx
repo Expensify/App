@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BaseOnboardingAccounting from './BaseOnboardingAccounting';
 import type {OnboardingAccountingProps} from './types';
 
-function OnboardingAccounting({...rest}: OnboardingAccountingProps) {
+function OnboardingAccounting(props: OnboardingAccountingProps) {
     const styles = useThemeStyles();
     return (
         <FocusTrapForScreens>
@@ -13,7 +13,7 @@ function OnboardingAccounting({...rest}: OnboardingAccountingProps) {
                 <BaseOnboardingAccounting
                     shouldUseNativeStyles={false}
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
+                    {...props}
                 />
             </View>
         </FocusTrapForScreens>
