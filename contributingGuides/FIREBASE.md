@@ -25,4 +25,8 @@ The following table shows the metrics that are being tracked.
 | `trie_initialization`   | Data     | Data     | Data     |
 
 
+## Additional Resources
 
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Firebase Performance Monitoring](https://firebase.google.com/docs/perf-mon)
+- [Firebase Crashlytics](https://firebase.google.com/docs/crashlytics)
