@@ -9,7 +9,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ReportTypingIndicatorProps = {
-    // eslint-disable-next-line react/no-unused-prop-types -- This is used by withOnyx
     reportID: string;
 };
 
