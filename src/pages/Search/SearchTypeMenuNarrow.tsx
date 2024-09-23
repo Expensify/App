@@ -53,9 +53,9 @@ type PopoverMenuItemType = {
     shouldShowRightIcon: boolean;
     success: boolean;
     containerStyle:
-        | {
+        | Array<{
               backgroundColor: string;
-          }[]
+          }>
         | undefined;
 };
 
