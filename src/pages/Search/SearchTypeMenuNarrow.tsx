@@ -84,20 +84,6 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             };
         });
 
-        if (title) {
-            items.push({
-                text: title,
-                onSelected: closeMenu,
-                isSelected: !currentSavedSearch,
-                icon: Expensicons.Filters,
-                iconFill: theme.iconSuccessFill,
-                success: true,
-                containerStyle: undefined,
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: false,
-            });
-        }
-
         return items;
     }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu, currentSavedSearch]);
 
@@ -109,6 +95,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         text: item.title ?? '',
         styles: [styles.textSupporting],
         onSelected: item.onPress,
+        icon: Expensicons.Bookmark,
         shouldShowRightComponent: true,
         rightComponent: (
             <ThreeDotsMenu
