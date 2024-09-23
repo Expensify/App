@@ -15,7 +15,7 @@ The following table shows the metrics that are being tracked.
 | `calc_most_recent_last_modified_action`    | Data     | Data     | Data     |
 | `chat_render`    | Data     | Data     | Data     |
 | `load_search_options`    | Data     | Data     | Data     |
-| `js_loaded`    | Data     | Data     | Data     |
+| `js_loaded`    | The time it takes for the JavaScript bundle to load. | **Android:** Starts in the `onCreate` method.<br><br>**iOS:** Starts in the AppDelegate's `didFinishLaunchingWithOptions` method.    | Stops at the first render of the app via native module on the JS side.     |
 | `search_filter_options`    | Data     | Data     | Data     |
 | `open_report_thread`   | Data     | Data     | Data     |
 | `open_report_from_preview`   | Data     | Data     | Data     |
