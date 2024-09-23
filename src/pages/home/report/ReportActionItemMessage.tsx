@@ -4,13 +4,16 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -120,14 +123,35 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
         // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
         // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
-
         return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
+    };
+
+    const openWorkspaceInvoicesPage = () => {
+        const policyID = ReportUtils.getReport(reportID)?.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+        // Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID))
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
     };
 
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
-                renderReportActionItemFragments(isApprovedOrSubmittedReportAction)
+                <>
+                    {renderReportActionItemFragments(isApprovedOrSubmittedReportAction)}
+                    {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && (
+                        <Button
+                            style={[styles.mt2, styles.alignSelfStart]}
+                            success
+                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
+                            onPress={openWorkspaceInvoicesPage}
+                        />
+                    )}
+                </>
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
             )}

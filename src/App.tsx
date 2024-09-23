@@ -20,6 +20,7 @@ import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
+import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -30,7 +31,6 @@ import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeCont
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
-import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
@@ -38,6 +38,7 @@ import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
+import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
@@ -56,7 +57,7 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
@@ -64,47 +65,49 @@ function App({url}: AppProps) {
 
     return (
         <StrictModeWrapper>
-            <InitialURLContextProvider url={url}>
-                <GestureHandlerRootView style={fill}>
-                    <ComposeProviders
-                        components={[
-                            OnyxProvider,
-                            ThemeProvider,
-                            ThemeStylesProvider,
-                            ThemeIllustrationsProvider,
-                            SafeAreaProvider,
-                            PortalProvider,
-                            SafeArea,
-                            LocaleContextProvider,
-                            HTMLEngineProvider,
-                            WindowDimensionsProvider,
-                            KeyboardStateProvider,
-                            PopoverContextProvider,
-                            CurrentReportIDContextProvider,
-                            ScrollOffsetContextProvider,
-                            ReportAttachmentsProvider,
-                            PickerStateProvider,
-                            EnvironmentProvider,
-                            CustomStatusBarAndBackgroundContextProvider,
-                            ActiveElementRoleProvider,
-                            ActiveWorkspaceContextProvider,
-                            ReportIDsContextProvider,
-                            PlaybackContextProvider,
-                            FullScreenContextProvider,
-                            VolumeContextProvider,
-                            VideoPopoverMenuContextProvider,
-                            KeyboardProvider,
-                        ]}
-                    >
-                        <CustomStatusBarAndBackground />
-                        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                            <ColorSchemeWrapper>
-                                <Expensify />
-                            </ColorSchemeWrapper>
-                        </ErrorBoundary>
-                    </ComposeProviders>
-                </GestureHandlerRootView>
-            </InitialURLContextProvider>
+            <SplashScreenStateContextProvider>
+                <InitialURLContextProvider url={url}>
+                    <GestureHandlerRootView style={fill}>
+                        <ComposeProviders
+                            components={[
+                                OnyxProvider,
+                                ThemeProvider,
+                                ThemeStylesProvider,
+                                ThemeIllustrationsProvider,
+                                SafeAreaProvider,
+                                PortalProvider,
+                                SafeArea,
+                                LocaleContextProvider,
+                                HTMLEngineProvider,
+                                KeyboardStateProvider,
+                                PopoverContextProvider,
+                                CurrentReportIDContextProvider,
+                                ScrollOffsetContextProvider,
+                                ReportAttachmentsProvider,
+                                PickerStateProvider,
+                                EnvironmentProvider,
+                                CustomStatusBarAndBackgroundContextProvider,
+                                ActiveElementRoleProvider,
+                                ActiveWorkspaceContextProvider,
+                                ReportIDsContextProvider,
+                                PlaybackContextProvider,
+                                FullScreenContextProvider,
+                                VolumeContextProvider,
+                                VideoPopoverMenuContextProvider,
+                                KeyboardProvider,
+                                SearchRouterContextProvider,
+                            ]}
+                        >
+                            <CustomStatusBarAndBackground />
+                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                <ColorSchemeWrapper>
+                                    <Expensify />
+                                </ColorSchemeWrapper>
+                            </ErrorBoundary>
+                        </ComposeProviders>
+                    </GestureHandlerRootView>
+                </InitialURLContextProvider>
+            </SplashScreenStateContextProvider>
         </StrictModeWrapper>
     );
 }

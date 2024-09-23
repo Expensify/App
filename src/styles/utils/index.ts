@@ -991,6 +991,13 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
             height: variables.componentSizeLarge,
         };
     }
+
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
+        return {
+            height: variables.componentSizeSmall,
+        };
+    }
+
     return {
         height: variables.componentSizeNormal,
     };
@@ -1304,7 +1311,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getButtonBackgroundColorStyle: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.PRESSED:
-                return {backgroundColor: theme.buttonPressedBG};
+                return isMenuItem ? {backgroundColor: theme.buttonHoveredBG} : {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
                 return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:

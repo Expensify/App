@@ -40,7 +40,7 @@ function ExportWithDropdownMenu({
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -119,7 +119,7 @@ function ExportWithDropdownMenu({
                 }}
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
-                style={[isSmallScreenWidth && styles.flexGrow1]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal

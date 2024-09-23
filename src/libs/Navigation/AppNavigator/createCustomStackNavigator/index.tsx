@@ -4,8 +4,8 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
@@ -36,7 +36,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
 }
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
@@ -56,12 +56,12 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             return;
         }
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     const {stateToRender, searchRoute} = useMemo(() => {
         const routes = reduceCentralPaneRoutes(state.routes);
 
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
             const lastRoute = routes[routes.length - 1];
@@ -98,7 +98,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             },
             searchRoute: undefined,
         };
-    }, [state, isSmallScreenWidth]);
+    }, [state, shouldUseNarrowLayout]);
 
     return (
         <NavigationContent>

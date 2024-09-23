@@ -1,3 +1,4 @@
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -114,6 +115,9 @@ type CustomBaseTextInputProps = {
 
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
     isMarkdownEnabled?: boolean;
+
+    /** List of markdowns that won't be styled as a markdown */
+    excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;

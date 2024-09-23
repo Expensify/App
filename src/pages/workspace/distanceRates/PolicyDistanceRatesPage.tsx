@@ -240,7 +240,6 @@ function PolicyDistanceRatesPage({
             {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
-                        medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         style={[shouldUseNarrowLayout && styles.flex1]}
@@ -249,7 +248,6 @@ function PolicyDistanceRatesPage({
                     />
 
                     <Button
-                        medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
                         style={[shouldUseNarrowLayout && styles.flex1]}
@@ -274,7 +272,7 @@ function PolicyDistanceRatesPage({
     );
 
     const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
         </View>
     );

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -9,13 +10,15 @@ import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -78,8 +81,13 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
-    const isViewAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.VIEW;
-    const canModifyReceipt = isViewAction && transactionItem.canDelete;
+    let source = transactionItem?.receipt?.source ?? '';
+    if (source) {
+        const filename = getFileName(source);
+        const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+        const isReceiptPDF = Str.isPDF(filename);
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+    }
 
     return (
         <View
@@ -91,12 +99,12 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
             ]}
         >
             <ReceiptImage
-                source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
+                source={source}
                 isEReceipt={transactionItem.hasEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={canModifyReceipt ? Expensicons.ReceiptPlus : Expensicons.ReceiptSlash}
+                fallbackIcon={Expensicons.Receipt}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
@@ -251,7 +259,7 @@ function TransactionListItemRow({
     shouldShowTransactionCheckbox,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 

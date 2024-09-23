@@ -2,15 +2,14 @@ import Log from '@libs/Log';
 
 type MemoizeStatsEntry = {
     didHit: boolean;
-    cacheRetrievalTime: number;
-    fnTime?: number;
+    processingTime: number;
     cacheSize: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
+    return entry.didHit !== undefined && entry.processingTime !== undefined;
 }
 
 class MemoizeStats {
@@ -18,7 +17,7 @@ class MemoizeStats {
 
     private hits = 0;
 
-    private avgCacheRetrievalTime = 0;
+    private avgCacheTime = 0;
 
     private avgFnTime = 0;
 
@@ -39,14 +38,13 @@ class MemoizeStats {
 
     private cumulateEntry(entry: MemoizeStatsEntry) {
         this.calls++;
-        this.hits += entry.didHit ? 1 : 0;
-
         this.cacheSize = entry.cacheSize;
 
-        this.avgCacheRetrievalTime = this.calculateCumulativeAvg(this.avgCacheRetrievalTime, this.hits, entry.cacheRetrievalTime);
-
-        if (entry.fnTime !== undefined) {
-            this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.fnTime);
+        if (entry.didHit) {
+            this.hits++;
+            this.avgCacheTime = this.calculateCumulativeAvg(this.avgCacheTime, this.hits, entry.processingTime);
+        } else {
+            this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.processingTime);
         }
     }
 
@@ -80,7 +78,7 @@ class MemoizeStats {
             track: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
                 entry[cacheProp] = value;
             },
-            trackTime: <P extends keyof Pick<MemoizeStatsEntry, 'cacheRetrievalTime' | 'fnTime'>>(cacheProp: P, startTime: number, endTime = performance.now()) => {
+            trackTime: <P extends keyof Pick<MemoizeStatsEntry, 'processingTime'>>(cacheProp: P, startTime: number, endTime = performance.now()) => {
                 entry[cacheProp] = endTime - startTime;
             },
             get: <P extends keyof MemoizeStatsEntry>(cacheProp: P) => entry[cacheProp],
@@ -92,7 +90,7 @@ class MemoizeStats {
         this.isEnabled = true;
         this.calls = 0;
         this.hits = 0;
-        this.avgCacheRetrievalTime = 0;
+        this.avgCacheTime = 0;
         this.avgFnTime = 0;
         this.cacheSize = 0;
     }
@@ -103,7 +101,7 @@ class MemoizeStats {
         return {
             calls: this.calls,
             hits: this.hits,
-            avgCacheRetrievalTime: this.avgCacheRetrievalTime,
+            avgCacheTime: this.avgCacheTime,
             avgFnTime: this.avgFnTime,
             cacheSize: this.cacheSize,
         };
