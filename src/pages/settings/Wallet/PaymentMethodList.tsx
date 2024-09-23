@@ -312,7 +312,21 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, shouldShowRightIcon, onPress]);
+    }, [
+        shouldShowAssignedCards,
+        bankAccountList,
+        styles,
+        filterType,
+        isOffline,
+        cardList,
+        actionPaymentMethodType,
+        activePaymentMethodID,
+        StyleUtils,
+        shouldShowRightIcon,
+        onPress,
+        isLoadingBankAccountList,
+        isLoadingCardList,
+    ]);
 
     /**
      * Render placeholder when there are no payments methods
