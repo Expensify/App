@@ -1,8 +1,6 @@
-import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type Response from '@src/types/onyx/Response';
-import {confirmReadyToOpenApp, openApp} from './actions/App';
 import * as Delegate from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
@@ -87,6 +85,14 @@ function reauthenticate(command = ''): Promise<void> {
             return;
         }
 
+        // If we reauthenticated due to an expired delegate token, restore the delegate's original account.
+        // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
+        if (Delegate.isConnectedAsDelegate()) {
+            Log.info('Reauthenticated while connected as a delegate. Restoring original account.');
+            Delegate.restoreDelegateSession(response);
+            return;
+        }
+
         // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
         updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
 
@@ -97,19 +103,6 @@ function reauthenticate(command = ''): Promise<void> {
 
         // The authentication process is finished so the network can be unpaused to continue processing requests
         NetworkStore.setIsAuthenticating(false);
-
-        // If we reauthenticated while connected as a delegate, that means we made an API call with an expired delegate token and reauthenticated using the original user's credentials.
-        // If this happens, clear the delegate keys and restore the user's original account.
-        // Delegate tokens expire once every 5 days so this shouldn't happen too often.
-        if (Delegate.isConnectedAsDelegate()) {
-            console.log('>>>> Reauthenticated while connected as a delegate. Clearing delegate keys and restoring original account.');
-            Onyx.clear(Delegate.KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() => {
-                debugger;
-                console.log('>>>> Opening app after clearing delegate keys');
-                confirmReadyToOpenApp();
-                openApp();
-            });
-        }
     });
 }
 

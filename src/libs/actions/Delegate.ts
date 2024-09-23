@@ -10,8 +10,10 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
+import type Response from '@src/types/onyx/Response';
 import {confirmReadyToOpenApp, openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
+import updateSessionUser from './Session/updateSessionUser';
 
 let delegatedAccess: DelegatedAccess;
 Onyx.connect({
@@ -320,6 +322,10 @@ function clearAddDelegateErrors(email: string, fieldName: string) {
     });
 }
 
+function isConnectedAsDelegate() {
+    return !!delegatedAccess?.delegate;
+}
+
 function removePendingDelegate(email: string) {
     if (!delegatedAccess?.delegates) {
         return;
@@ -332,18 +338,17 @@ function removePendingDelegate(email: string) {
     });
 }
 
-function isConnectedAsDelegate() {
-    return !!delegatedAccess?.delegate;
+function restoreDelegateSession(authenticateResponse: Response) {
+    Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() => {
+        updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
+        updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
+
+        NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
+        NetworkStore.setIsAuthenticating(false);
+
+        confirmReadyToOpenApp();
+        openApp();
+    });
 }
 
-export {
-    connect,
-    disconnect,
-    clearDelegatorErrors,
-    addDelegate,
-    requestValidationCode,
-    clearAddDelegateErrors,
-    removePendingDelegate,
-    isConnectedAsDelegate,
-    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
-};
+export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate, restoreDelegateSession, isConnectedAsDelegate};
