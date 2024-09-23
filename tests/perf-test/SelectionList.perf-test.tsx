@@ -81,7 +81,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
     const sections = [
         {
-            data: Array.from({length: 1000}, (element, index) => ({
+            data: Array.from({length: 500}, (element, index) => ({
                 text: `Item ${index}`,
                 keyForList: `item-${index}`,
                 isSelected: selectedIds.includes(`item-${index}`),
