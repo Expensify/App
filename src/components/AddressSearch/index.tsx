@@ -326,11 +326,12 @@ function AddressSearch(
     const filteredPredefinedPlaces = useMemo(() => {
         if (!searchValue) {
             return predefinedPlaces ?? [];
-        } else if (shouldHidePredefinedPlaces) {
+        }
+        if (shouldHidePredefinedPlaces) {
             return [];
         }
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [predefinedPlaces, searchValue]);
+    }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
     const listEmptyComponent = useMemo(
         () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
