@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
@@ -42,22 +42,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDistanceOnyxProps = {
-    /** backup version of the original transaction  */
-    transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** Whether the confirmation step should be skipped */
-    skipConfirmation: OnyxEntry<boolean>;
-};
-
-type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
+type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -65,16 +50,17 @@ type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
 
 function IOURequestStepDistance({
     report,
-    policy,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transactionBackup,
-    personalDetails,
     currentUserPersonalDetails,
-    skipConfirmation,
 }: IOURequestStepDistanceProps) {
+    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID ?? '-1'}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? '-1'}`);
+
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -520,28 +506,7 @@ function IOURequestStepDistance({
 
 IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 
-const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
-    transactionBackup: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
-        },
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '-1'}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-})(IOURequestStepDistance);
-
-const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceWithOnyx);
+const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistance);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
