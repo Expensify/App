@@ -261,7 +261,14 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
+        updatedTransaction.comment = {
+            ...(updatedTransaction?.comment ?? {}),
+            customUnit: {
+                ...updatedTransaction?.comment?.customUnit,
+                customUnitRateID: transactionChanges.customUnitRateID,
+                defaultP2PRate: null,
+            },
+        };
         shouldStopSmartscan = true;
     }
 
@@ -830,7 +837,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();
+    return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
 /**
@@ -975,7 +982,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
     // Helper function to check if all comments are equal
     function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+        return items.every((item) => lodashIsEqual(getDescription(item), getDescription(firstTransaction)));
     }
 
     // Helper function to check if all fields are equal for a given key
@@ -1000,8 +1007,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
-
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
