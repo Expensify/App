@@ -25,7 +25,7 @@ type ProcessMoneyReportHoldMenuProps = {
     isVisible: boolean;
 
     /** The report currently being looked at */
-    moneyRequestReport: OnyxTypes.Report;
+    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Not held amount of expense report */
     nonHeldAmount?: string;
@@ -62,8 +62,8 @@ function ProcessMoneyReportHoldMenu({
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport.reportID)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport.reportID));
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '-1')) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? '-1'));
             }
         } else if (chatReport && paymentType) {
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);

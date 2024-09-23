@@ -61,8 +61,8 @@ type MoneyReportHeaderProps = {
 };
 
 function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyReportHeaderProps) {
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? ''}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? ''}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? '-1'}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const requestParentReportAction = useMemo(() => {
@@ -112,7 +112,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID ?? '');
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? ''}`, {selector: ReportUtils.getArchiveReason});
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});
 
     const shouldShowPayButton = useMemo(
         () => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined),
@@ -394,7 +394,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                 </View>
             )}
-            {isHoldMenuVisible && moneyRequestReport && requestType !== undefined && (
+            {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
