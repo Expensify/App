@@ -189,8 +189,9 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
-    ANIMATION_PAY_BUTTON_DURATION: 200,
-    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_DURATION: 200,
+    ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -1151,9 +1152,9 @@ const CONST = {
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        INCORRECT_MAGIC_CODE: 451,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -1263,6 +1264,7 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        PRESENCE_ACTIVE_GUIDES: 'presence-activeGuides',
     },
 
     EMOJI_SPACER: 'SPACER',
@@ -2163,7 +2165,15 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
-        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        RULE_CONDITIONS: {
+            MATCHES: 'matches',
+        },
+        FIELDS: {
+            TAG: 'tag',
+            CATEGORY: 'category',
+            FIELD_LIST_TITLE: 'text_title',
+            TAX: 'tax',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
@@ -2805,6 +2815,7 @@ const CONST = {
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
+        DEBUG: 'debug',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4140,6 +4151,7 @@ const CONST = {
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -5516,6 +5528,7 @@ const CONST = {
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
+                PINNED: 'pinned',
             },
         },
         TABLE_COLUMNS: {
@@ -5752,7 +5765,15 @@ const CONST = {
         ICON_HEIGHT: 160,
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
+        MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    },
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
     },
 } as const;
 
