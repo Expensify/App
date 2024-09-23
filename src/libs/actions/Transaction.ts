@@ -126,6 +126,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
         const clonedWaypoints = lodashClone(recentWaypoints);
+        waypoint.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
         clonedWaypoints.unshift(waypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
     }
@@ -467,6 +468,11 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
+function getRecentWaypoints()
+{
+    return recentWaypoints;
+}
+
 export {
     addStop,
     createInitialWaypoints,
@@ -480,4 +486,5 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
+    getRecentWaypoints,
 };

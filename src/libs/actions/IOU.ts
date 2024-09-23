@@ -70,6 +70,7 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
+import { getRecentWaypoints } from './Transaction';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -5107,6 +5108,7 @@ function createDistanceRequest(
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
+
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
@@ -5211,6 +5213,13 @@ function createDistanceRequest(
             customUnitRateID,
         };
     }
+
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter(item => !item.pendingAction)
+    onyxData?.failureData?.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+        value: recentServerValidatedWaypoints,
+    } )
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
