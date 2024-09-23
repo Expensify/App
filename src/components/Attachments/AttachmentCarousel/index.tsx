@@ -71,6 +71,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
     const prevInitialPageRef = useRef<number | null>(null);
+    const prevInitialAttachmentRef = useRef<Attachment | null>(null);
+    const isAttachmentSimilar = (attachment1: Attachment, attachment2: Attachment) => attachment1.file?.name === attachment2.file?.name && attachment1.reportActionID === attachment2.reportActionID;
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -80,6 +82,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         } else {
             targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
+        console.log("[wildebug] ~ file: index.tsx:84 ~ useEffect ~ targetAttachments:", targetAttachments)
 
         if (isEqual(attachments, targetAttachments)) {
             if (attachments.length === 0) {
@@ -90,8 +93,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         }
 
         let initialPage = targetAttachments.findIndex(compareImage);
+        const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.toString().startsWith(prefix));
 
-        if (initialPage === -1 && prevInitialPageRef.current != null && targetAttachments[prevInitialPageRef.current]) {
+        if (initialPage === -1 && prevInitialPageRef.current != null
+            && prevInitialAttachmentRef.current != null
+            && targetAttachments[prevInitialPageRef.current]
+            && isUploading
+            && isAttachmentSimilar(prevInitialAttachmentRef.current, targetAttachments[prevInitialPageRef.current])) {
             initialPage = prevInitialPageRef.current;
         }
 
@@ -114,6 +122,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         }
         // Capture previous initialPage
         prevInitialPageRef.current = initialPage;
+        prevInitialAttachmentRef.current = targetAttachments[initialPage];
 
     }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
 
