@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React, {useRef} from 'react';
 import type {ComponentType, ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -68,7 +67,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
-            shouldLoadForEmptyConnection={isEmpty(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
+            shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
