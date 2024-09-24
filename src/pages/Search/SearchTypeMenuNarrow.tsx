@@ -110,6 +110,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         styles: [styles.textSupporting],
         onSelected: item.onPress,
         icon: Expensicons.Bookmark,
+        iconFill: currentSavedSearch?.hash === item.hash ? theme.iconSuccessFill : theme.icon,
         shouldShowRightComponent: true,
         rightComponent: (
             <ThreeDotsMenu
