@@ -368,7 +368,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             connectionName={connectedIntegration}
                         />
                     )}
-                    {shouldShowSubmitButton && (
+                    {shouldShowSubmitButton && shouldUseNarrowLayout && (
                         <Button
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
