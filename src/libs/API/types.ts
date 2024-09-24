@@ -50,7 +50,7 @@ const WRITE_COMMANDS = {
     ADD_PAYMENT_CARD: 'AddPaymentCard',
     ADD_PAYMENT_CARD_GBP: 'AddPaymentCardGBP',
     VERIFY_SETUP_INTENT: 'User_VerifySetupIntent',
-    VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE: 'verifySetupIntentAndRequestPolicyOwnerChange',
+    VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE: 'VerifySetupIntentAndRequestPolicyOwnerChange',
     TRANSFER_WALLET_BALANCE: 'TransferWalletBalance',
     DELETE_PAYMENT_CARD: 'DeletePaymentCard',
     UPDATE_PRONOUNS: 'UpdatePronouns',
