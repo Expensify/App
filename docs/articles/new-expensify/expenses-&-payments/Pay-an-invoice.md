@@ -32,9 +32,9 @@ To pay an invoice,
 
 You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
-![Click Pay Button on the Invoice]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoice_01.png)){:width="100%"}
+![Click Pay Button on the Invoice]({{site.url}}/assets/images/invoice_01.png){:width="100%"}
 
-![Choose how to pay the invoice from the options]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoice_02.png)){:width="100%"}
+![Choose how to pay the invoice from the options]({{site.url}}/assets/images/invoice_02.png){:width="100%"}
 
 {% include faq-begin.md %}
 
