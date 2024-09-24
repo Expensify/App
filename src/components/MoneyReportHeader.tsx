@@ -285,6 +285,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or banners are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown}
