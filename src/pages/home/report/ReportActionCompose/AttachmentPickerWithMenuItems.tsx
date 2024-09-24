@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -35,12 +35,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>, PopoverMenuItem>;
 
-type AttachmentPickerWithMenuItemsOnyxProps = {
-    /** The policy tied to the report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
-
-type AttachmentPickerWithMenuItemsProps = AttachmentPickerWithMenuItemsOnyxProps & {
+type AttachmentPickerWithMenuItemsProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -99,7 +94,6 @@ type AttachmentPickerWithMenuItemsProps = AttachmentPickerWithMenuItemsOnyxProps
  */
 function AttachmentPickerWithMenuItems({
     report,
-    policy,
     reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
@@ -125,6 +119,7 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 
     /**
      * Returns the list of IOU Options
@@ -351,9 +346,4 @@ function AttachmentPickerWithMenuItems({
 
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withOnyx<AttachmentPickerWithMenuItemsProps, AttachmentPickerWithMenuItemsOnyxProps>({
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
-        initialValue: {} as OnyxTypes.Policy,
-    },
-})(AttachmentPickerWithMenuItems);
+export default AttachmentPickerWithMenuItems;
