@@ -25,6 +25,7 @@ Onyx.connect({
 
         currentUserAccountID = value?.accountID ?? -1;
         currentUserEmail = value?.email ?? '';
+        
     },
 });
 
@@ -37,13 +38,13 @@ Onyx.connect({
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-
+    const currentUserDisplayName = ReportUtils.getDisplayNameForParticipant(currentUserAccountID);
     messages?.forEach((part) => {
         const isEmail = Str.isValidEmail(part.text);
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
+        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail || part.text === currentUserDisplayName) {
             tagType = 'strong';
             content = 'You';
         } else if (isEmail) {
@@ -271,7 +272,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: hasValidAccount ? 'pay' : ' finish setting up',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a bank account.',
+                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
                     },
                 ],
             };
