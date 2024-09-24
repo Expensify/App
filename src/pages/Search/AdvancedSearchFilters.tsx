@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -248,6 +249,10 @@ function AdvancedSearchFilters() {
             // If the search is already saved, return early to prevent unnecessary API calls
             Navigation.dismissModal();
             return;
+        }
+
+        if (isEmptyObject(savedSearches)) {
+            SearchActions.showSavedSearchRenameTooltip();
         }
 
         SearchActions.saveSearch({
