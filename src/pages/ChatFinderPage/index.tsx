@@ -106,16 +106,24 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             {
                 data: searchOptions.personalDetails,
                 transform: (option) => {
-                    // TODO: there are probably more fields we'd like to add to the search string
                     return (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
                 },
             },
             {
                 data: searchOptions.recentReports,
                 transform: (option) => {
-                    let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
-                    searchStringForTree += option.reportID ?? '';
-                    searchStringForTree += option.name ?? '';
+                    let searchStringForTree = option.text ?? ''
+                    searchStringForTree += option.login ?? '';
+
+                    if (option.isThread) {
+                        if (option.alternateText) {
+                            searchStringForTree += option.alternateText;
+                        }
+                    } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+                        if (option.subtitle) {
+                            searchStringForTree += option.subtitle;
+                        }
+                    }
 
                     return searchStringForTree;
                 },
