@@ -116,6 +116,10 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
+    if (!NativeModules.HybridAppModule) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
