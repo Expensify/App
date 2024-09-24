@@ -3755,9 +3755,9 @@ function getReportName(
             return `${reportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
-            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
+            return formatReportLastMessageText(modifiedMessage);
         }
-
         if (isTripRoom(report)) {
             return report?.reportName ?? '';
         }
