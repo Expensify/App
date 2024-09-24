@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,11 +11,8 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
-import {isCentralPaneName} from '@libs/NavigationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -24,7 +21,6 @@ import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -66,32 +62,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
     }, [activeWorkspaceID, transactionViolations]);
-
-    useEffect(() => {
-        const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
-        const routes = navigationState?.routes;
-        const currentRoute = routes?.[navigationState?.index ?? 0];
-        // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
-        // To prevent this, the value of the bottomTabRoute?.name is checked here
-        if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && !isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
-            return;
-        }
-
-        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
-        if (NativeModules.HybridAppModule) {
-            return;
-        }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isLoadingApp]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
