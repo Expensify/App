@@ -8,6 +8,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -53,6 +54,8 @@ function Composer(
     const [contextMenuHidden, setContextMenuHidden] = useState(!showSoftInputOnFocus);
 
     const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+    const keyboardState = useKeyboardState();
+    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
 
     useEffect(() => {
         if (autoFocus === !!autoFocusInputRef.current) {
@@ -113,13 +116,11 @@ function Composer(
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     useEffect(() => {
-        if (!showSoftInputOnFocus) {
+        if (!showSoftInputOnFocus || !isKeyboardShown) {
             return;
         }
-        setTimeout(() => {
-            setContextMenuHidden(false);
-        }, CONST.ANIMATED_TRANSITION);
-    }, [showSoftInputOnFocus]);
+        setContextMenuHidden(false);
+    }, [showSoftInputOnFocus, isKeyboardShown]);
 
     return (
         <RNMarkdownTextInput
