@@ -542,7 +542,12 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type AuthenticationErrorParams = {
+    connectionName: string;
+};
+
 export type {
+    AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportedTagsMessageParams,
     ImportTagsSuccessfullDescriptionParams,
