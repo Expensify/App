@@ -21,11 +21,6 @@ type HasCompletedOnboardingFlowProps = {
     onNotCompleted?: () => void;
 };
 
-type HasOpenedForTheFirstTimeFromHybridAppProps = {
-    onFirstTimeInHybridApp?: () => void;
-    onSubsequentRuns?: () => void;
-};
-
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -37,9 +32,6 @@ let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
 });
 
 let resolveTryNewDotStatus: (value?: Promise<void>) => void | undefined;
-const tryNewDotStatusPromise = new Promise<void>((resolve) => {
-    resolveTryNewDotStatus = resolve;
-});
 
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;

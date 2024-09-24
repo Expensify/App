@@ -1,5 +1,5 @@
-import {type OnyxValue} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxValue} from 'react-native-onyx';
+import type ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Selector to get the value of hasCompletedGuidedSetupFlow from the Onyx store
