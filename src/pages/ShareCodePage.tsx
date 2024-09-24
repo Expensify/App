@@ -123,6 +123,9 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
                         logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
                         logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                         logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        svgLogo={svgLogo}
+                        svgLogoFillColor={svgLogoFillColor}
+                        logoBackgroundColor={logoBackgroundColor}
                     />
                 </View>
 
