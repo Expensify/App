@@ -20,7 +20,6 @@ import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
-import {handleHybridAppOnboarding} from './libs/actions/Welcome';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
@@ -117,14 +116,6 @@ function Expensify({
         }
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
-
-    useEffect(() => {
-        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || tryNewDotData === undefined) {
-            return;
-        }
-
-        handleHybridAppOnboarding();
-    }, [splashScreenState, tryNewDotData]);
 
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);

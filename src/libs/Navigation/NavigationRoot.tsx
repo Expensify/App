@@ -11,8 +11,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
+import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
@@ -92,7 +92,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
 
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [hasCompletedGuidedSetupFlow = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
@@ -170,6 +170,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         }, 0);
         parseAndLogRoute(state);
 
+        console.log(`state = `, state);
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
     };

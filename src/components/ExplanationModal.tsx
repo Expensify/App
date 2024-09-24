@@ -10,21 +10,6 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 function ExplanationModal() {
     const {translate} = useLocalize();
 
-    const onClose = useCallback(() => {
-        Welcome.completeHybridAppOnboarding();
-
-        // We need to check if standard NewDot onboarding is completed.
-        Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () => {
-                setTimeout(() => {
-                    Navigation.isNavigationReady().then(() => {
-                        OnboardingFlow.startOnboardingFlow();
-                    });
-                }, variables.welcomeVideoDelay);
-            },
-        });
-    }, []);
-
     return (
         <FeatureTrainingModal
             title={translate('onboarding.explanationModal.title')}
@@ -32,7 +17,7 @@ function ExplanationModal() {
             secondaryDescription={translate('onboarding.explanationModal.secondaryDescription')}
             confirmText={translate('footer.getStarted')}
             videoURL={CONST.WELCOME_VIDEO_URL}
-            onClose={onClose}
+            onClose={Welcome.completeHybridAppOnboarding}
         />
     );
 }

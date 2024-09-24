@@ -9,6 +9,7 @@ import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useOnboardingFlow from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -41,8 +42,6 @@ import * as Session from '@userActions/Session';
 import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
-import * as Welcome from '@userActions/Welcome';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -237,10 +236,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, onboardingIsMediumOrLargerScreenWidth),
         [StyleUtils, shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, styles],
     );
-    const [shouldShowOnboardingNavigator, setShouldShowOnboardingNavigator] = useState(false);
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
-
+    const {isOnboardingCompleted} = useOnboardingFlow();
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
     if (isInitialRender.current) {
@@ -256,21 +254,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             initialReportID = initialReport?.reportID ?? '';
         }
 
-        Welcome.isOnboardingFlowCompleted({
-            // When onboarding is not completed, we want to display the onboarding navigator
-            onNotCompleted: () => setShouldShowOnboardingNavigator(true),
-        });
-
         isInitialRender.current = false;
     }
-
-    // Start the onboarding flow after onboarding navigator is mounted
-    useEffect(() => {
-        if (!shouldShowOnboardingNavigator) {
-            return;
-        }
-        OnboardingFlow.startOnboardingFlow();
-    }, [shouldShowOnboardingNavigator]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -542,7 +527,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
                     />
-                    {shouldShowOnboardingNavigator && (
+                    {!isOnboardingCompleted && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                             options={onboardingScreenOptions}
