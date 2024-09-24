@@ -389,6 +389,7 @@ function Search({queryJSON}: SearchProps) {
                 getItemHeight={getItemHeightMemoized}
                 shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                shouldPreventDefault={false}
                 listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
                 containerStyle={[styles.pv0]}
                 showScrollIndicator={false}
