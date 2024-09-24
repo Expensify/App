@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,10 +12,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import navigationRef from '@navigation/navigationRef';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -83,9 +84,11 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             return;
         }
         interceptAnonymousUser(() => {
-            const currentSearchParams = SearchUtils.getCurrentSearchParams();
-            if (currentSearchParams) {
-                const {q, ...rest} = currentSearchParams;
+            const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+            const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
+
+            if (lastSearchRoute) {
+                const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
                 const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
 
                 Navigation.navigate(
