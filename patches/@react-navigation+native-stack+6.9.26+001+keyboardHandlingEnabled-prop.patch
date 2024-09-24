@@ -97,7 +97,7 @@ index 3d74b14..d886b7b 100644
 +    keyboardHandlingEnabled?: boolean;
  };
  export type NativeStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, NativeStackNavigationOptions, NativeStackNavigationEventMap> & StackRouterOptions & NativeStackNavigationConfig;
- export type NativeStackDescriptor = Descriptor<NativeStackNavigationOptions, StackNavigationProp<ParamListBase>, RouteProp<ParamListBase>>;
+ export type NativeStackDescriptor = Descriptor<NativeStackNavigationOptions, NativeStackNavigationProp<ParamListBase>, RouteProp<ParamListBase>>;
 diff --git a/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts.map b/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts.map
 index 39c4fd5..91f0d7a 100644
 --- a/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts.map
@@ -133,7 +133,7 @@ index 206fb0b..7a34a8e 100644
 +   */
 +  keyboardHandlingEnabled?: boolean;
  };
- 
+
  export type NativeStackNavigatorProps = DefaultNavigatorOptions<
 diff --git a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
 index a005c43..03d8b50 100644
@@ -145,7 +145,7 @@ index a005c43..03d8b50 100644
      freezeOnBlur,
 +    keyboardHandlingEnabled,
    } = options;
- 
+
    let {
 @@ -289,6 +290,7 @@ const SceneView = ({
        onNativeDismissCancelled={onNativeDismissCancelled}
