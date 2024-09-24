@@ -9,6 +9,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -429,17 +430,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     <RootStack.Screen
                         name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                         options={screenOptions.fullScreen}
-                        component={ReportsSplitNavigator}
+                        getComponent={withPrepareCentralPaneScreen(() => ReportsSplitNavigator)}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                         options={screenOptions.fullScreen}
-                        component={SettingsSplitNavigator}
+                        getComponent={withPrepareCentralPaneScreen(() => SettingsSplitNavigator)}
                     />
                     <RootStack.Screen
                         name={SCREENS.SEARCH.CENTRAL_PANE}
                         options={screenOptions.fullScreen}
-                        component={SearchPage}
+                        getComponent={withPrepareCentralPaneScreen(() => SearchPage)}
                         initialParams={{q: buildSearchQueryString()}}
                     />
                     <RootStack.Screen

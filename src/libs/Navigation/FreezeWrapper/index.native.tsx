@@ -16,7 +16,7 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const currentRoute = useRoute();
-
+    console.log('currentRoute', currentRoute);
     useEffect(() => {
         const index = navigation.getState()?.routes.findIndex((route) => route.key === currentRoute.key) ?? 0;
         screenIndexRef.current = index;
@@ -26,6 +26,9 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
             const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0);
+            if (shouldSetScreenBlurred(navigationIndex)) {
+                console.log('diff', navigation.getState()?.index ?? 0, screenIndexRef.current ?? 0);
+            }
             setIsScreenBlurred(shouldSetScreenBlurred(navigationIndex));
         });
         return () => unsubscribe();

@@ -2,7 +2,7 @@ import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@rea
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
@@ -20,21 +20,21 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
-    const stateToRender = useMemo(() => {
-        const routes = state.routes.slice(-3);
-        return {
-            ...state,
-            routes,
-            index: routes.length - 1,
-        };
-    }, [state]);
+    // const stateToRender = useMemo(() => {
+    //     const routes = state.routes.slice(-3);
+    //     return {
+    //         ...state,
+    //         routes,
+    //         index: routes.length - 1,
+    //     };
+    // }, [state]);
 
     return (
         <NavigationContent>
             <StackView
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                state={stateToRender}
+                state={state}
                 descriptors={descriptors}
                 navigation={navigation}
             />

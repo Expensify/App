@@ -165,6 +165,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
+
+        console.log('state', state);
     };
 
     return (
