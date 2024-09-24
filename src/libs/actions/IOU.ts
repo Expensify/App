@@ -7617,7 +7617,12 @@ function detachReceipt(transactionID: string) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: newTransaction,
+            value: {
+                ...newTransaction,
+                pendingFields: {
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
         },
     ];
 
@@ -7628,6 +7633,9 @@ function detachReceipt(transactionID: string) {
             value: {
                 ...(transaction ?? null),
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
+                pendingFields: {
+                    receipt: null,
+                },
             },
         },
     ];
