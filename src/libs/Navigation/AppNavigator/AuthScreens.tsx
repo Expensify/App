@@ -444,6 +444,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         initialParams={{q: buildSearchQueryString()}}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                        options={screenOptions.fullScreen}
+                        getComponent={withPrepareCentralPaneScreen(() => WorkspaceSplitNavigator)}
+                    />
+                    <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
                         options={{
                             ...screenOptions.fullScreen,
@@ -518,11 +523,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={screenOptions.rightModalNavigator}
                         component={RightModalNavigator}
                         listeners={modalScreenListenersWithCancelSearch}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                        options={screenOptions.fullScreen}
-                        component={WorkspaceSplitNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
