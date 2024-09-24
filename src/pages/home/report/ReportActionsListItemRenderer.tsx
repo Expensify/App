@@ -170,22 +170,22 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                ReportUtils.isPolicyExpenseChat(report) &&
-                [
-                    CONST.REPORT.ACTIONS.TYPE.IOU,
-                    CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                ].some((type) => type === reportAction.actionName) ||
-                ReportUtils.isInvoiceRoom(report) &&
-                [
-                    CONST.REPORT.ACTIONS.TYPE.IOU,
-                    CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                ].some((type) => type === reportAction.actionName)
+                (ReportUtils.isPolicyExpenseChat(report) &&
+                    [
+                        CONST.REPORT.ACTIONS.TYPE.IOU,
+                        CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    ].some((type) => type === reportAction.actionName)) ||
+                (ReportUtils.isInvoiceRoom(report) &&
+                    [
+                        CONST.REPORT.ACTIONS.TYPE.IOU,
+                        CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    ].some((type) => type === reportAction.actionName))
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
