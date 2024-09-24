@@ -121,7 +121,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 
                 if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
                     Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
-                    return;
+                    return null;
                 }
 
                 return stackRouter.getStateForAction(state, newAction, configOptions);
