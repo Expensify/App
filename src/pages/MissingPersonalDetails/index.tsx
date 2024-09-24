@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
@@ -14,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -28,9 +30,15 @@ function MissingPersonalDetails() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+
+    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, cardListMetadata, draftValuesMetadata);
+
+    if (isLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
 

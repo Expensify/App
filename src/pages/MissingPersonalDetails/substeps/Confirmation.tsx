@@ -39,7 +39,7 @@ function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepPro
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('personalInfoStep.legalName')}
-                        title={`${values[INPUT_IDS.LEGAL_FIRST_NAME]} ${values[INPUT_IDS.LEGAL_LAST_NAME]}`}
+                        title={`${values[INPUT_IDS.LEGAL_FIRST_NAME].trim()} ${values[INPUT_IDS.LEGAL_LAST_NAME].trim()}`}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(PERSONAL_DETAILS_STEP_INDEXES.LEGAL_NAME);
@@ -55,9 +55,9 @@ function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepPro
                     />
                     <MenuItemWithTopDescription
                         description={translate('personalInfoStep.address')}
-                        title={`${values[INPUT_IDS.ADDRESS_LINE_1]}, ${values[INPUT_IDS.ADDRESS_LINE_2] ? `${values[INPUT_IDS.ADDRESS_LINE_2]}, ` : ''}${values[INPUT_IDS.CITY]}, ${
-                            values[INPUT_IDS.STATE]
-                        }, ${values[INPUT_IDS.ZIP_POST_CODE]}, ${values[INPUT_IDS.COUNTRY]}`}
+                        title={`${values[INPUT_IDS.ADDRESS_LINE_1].trim()}, ${values[INPUT_IDS.ADDRESS_LINE_2].trim() ? `${values[INPUT_IDS.ADDRESS_LINE_2].trim()}, ` : ''}${values[
+                            INPUT_IDS.CITY
+                        ].trim()}, ${values[INPUT_IDS.STATE].trim()}, ${values[INPUT_IDS.ZIP_POST_CODE].trim().toUpperCase()}, ${values[INPUT_IDS.COUNTRY]}`}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(PERSONAL_DETAILS_STEP_INDEXES.ADDRESS);
