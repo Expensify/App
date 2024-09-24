@@ -1689,7 +1689,7 @@ describe('actions/IOU', () => {
                             {
                                 id: '123',
                                 role: 'user',
-                                type: 'free',
+                                type: CONST.POLICY.TYPE.TEAM,
                                 name: '',
                                 owner: '',
                                 outputCurrency: '',
@@ -1844,7 +1844,7 @@ describe('actions/IOU', () => {
                             {
                                 id: '123',
                                 role: 'user',
-                                type: 'free',
+                                type: CONST.POLICY.TYPE.TEAM,
                                 name: '',
                                 owner: '',
                                 outputCurrency: '',
@@ -2577,7 +2577,7 @@ describe('actions/IOU', () => {
                     {
                         id: '123',
                         role: 'user',
-                        type: 'free',
+                        type: CONST.POLICY.TYPE.TEAM,
                         name: '',
                         owner: '',
                         outputCurrency: '',

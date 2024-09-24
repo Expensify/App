@@ -364,7 +364,7 @@ describe('OptionsListUtils', () => {
         id: policyID,
         name: 'Hero Policy',
         role: 'user',
-        type: 'free',
+        type: CONST.POLICY.TYPE.TEAM,
         owner: '',
         outputCurrency: '',
         isPolicyExpenseChatEnabled: false,

@@ -54,7 +54,7 @@ const policy: Policy = {
     id: '1',
     name: 'Vikings Policy',
     role: 'user',
-    type: 'free',
+    type: CONST.POLICY.TYPE.TEAM,
     owner: '',
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
