@@ -57,6 +57,18 @@ Only workspace admins can send invoices. Invoices can be sent directly from Expe
 
 {% include end-selector.html %}
 
+![Go to Account Settings click Workspace]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoices_01.png)){:width="100%"}
+
+![Click More Features for the workspace and enable Invoices]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoices_02.png)){:width="100%"}
+
+![Click the green button Send Invoice]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoices_03.png)){:width="100%"}
+
+![Enter Invoice amount]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoices_04.png)){:width="100%"}
+
+![Choose a recipient]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoices_05.png)){:width="100%"}
+
+![Add Invoice details and Send Invoice]({{site.url}}/assets/images/[image-name.png](https://github.com/Expensify/App/blob/main/docs/assets/images/invoices_06.png)){:width="100%"}
+
 # Receive invoice payment 
 
 If you have not [connected a business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account) to receive invoice payments, you will see an **Invoice balance** in your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet). Expensify will automatically transfer these invoice payments once a business bank account is connected.
