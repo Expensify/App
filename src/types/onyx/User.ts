@@ -30,6 +30,9 @@ type User = {
     /** Whether the form is being submitted */
     loading?: boolean;
 
+    /** Whether the user is Expensify Guide */
+    isGuide?: boolean;
+
     /** Whether the debug mode is currently enabled */
     isDebugModeEnabled?: boolean;
 };

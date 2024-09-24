@@ -6,7 +6,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimation from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
@@ -45,6 +45,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [primaryLogin = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
@@ -124,8 +125,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
-                    headerMedia: LottieAnimation.TripsEmptyState,
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
+                    headerMedia: LottieAnimations.TripsEmptyState,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
                     headerContentStyles: StyleUtils.getWidthAndHeightStyle(335, 220),
                     title: translate('travel.title'),
@@ -140,23 +140,29 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
                 return {
-                    headerMedia: Illustrations.EmptyState,
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w184, variables.h112),
+                    headerMedia: LottieAnimations.GenericEmptyState,
+                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     buttonText: undefined,
                     buttonAction: undefined,
+                    headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
     }, [type, StyleUtils, translate, theme, styles, subtitleComponent, onBookATripPress]);
 
     return (
         <EmptyStateComponent
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...content}
             SkeletonComponent={SearchRowSkeleton}
+            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+            headerMedia={content.headerMedia}
+            headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
+            title={content.title}
+            subtitle={content.subtitle}
+            buttonText={content.buttonText}
+            buttonAction={content.buttonAction}
+            headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
+            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
         />
     );
 }
