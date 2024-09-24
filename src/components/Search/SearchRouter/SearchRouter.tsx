@@ -21,7 +21,7 @@ import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
 
-const SEARCH_DEBOUNCE_DELAY = 200;
+const SEARCH_DEBOUNCE_DELAY = 150;
 
 function SearchRouter() {
     const styles = useThemeStyles();
@@ -31,7 +31,7 @@ function SearchRouter() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
 
-    const [currentQuery, setCurrentQuery] = useState<SearchQueryJSON | undefined>(undefined);
+    const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state.routes.at(-1)?.params?.reportID;
     });
@@ -56,7 +56,7 @@ function SearchRouter() {
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
     const clearUserQuery = () => {
-        setCurrentQuery(undefined);
+        setUserSearchQuery(undefined);
     };
 
     const onSearchChange = debounce((userQuery: string) => {
@@ -71,7 +71,7 @@ function SearchRouter() {
             // eslint-disable-next-line
             console.log('parsedQuery', queryJSON);
 
-            setCurrentQuery(queryJSON);
+            setUserSearchQuery(queryJSON);
         } else {
             // Handle query parsing error
         }
@@ -116,12 +116,12 @@ function SearchRouter() {
                     <SearchRouterInput
                         onChange={onSearchChange}
                         onSubmit={() => {
-                            onSearchSubmit(currentQuery);
+                            onSearchSubmit(userSearchQuery);
                         }}
                     />
 
                     <SearchRouterList
-                        currentQuery={currentQuery}
+                        currentQuery={userSearchQuery}
                         reportForContextualSearch={contextualReportData}
                         recentSearches={sortedRecentSearches}
                         recentReports={searchOptions?.recentReports?.slice(0, 5)}
