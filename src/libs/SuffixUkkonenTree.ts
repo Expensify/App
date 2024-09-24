@@ -1,5 +1,3 @@
-import enEmojis from '@assets/emojis/en';
-
 const CHAR_CODE_A = 'a'.charCodeAt(0);
 const ALPHABET_SIZE = 28;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
@@ -24,13 +22,12 @@ function stringToArray(input: string) {
             res.push(charCode);
         }
     }
-    console.log("stringToArray", res)
     return res;
 }
 
 const aToZRegex = /[^a-z]/gi;
 // The character that separates the different options in the search string
-const delimiterChar = '{';
+const DELIMITER_CHAR = String.fromCharCode(DELIMITER_CHAR_CODE + CHAR_CODE_A);
 
 type PrepareDataParams<T> = {
     data: T[];
@@ -70,7 +67,7 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array
                 return curr;
             }
 
-            return `${acc}${delimiterChar}${curr}`;
+            return `${acc}${DELIMITER_CHAR}${curr}`;
         }, '');
 
     return [str, searchIndexList];
@@ -78,36 +75,32 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array
 
 /**
  * Makes a tree from an input string
- * **Important:** As we only support an alphabet of 26 characters, the input string should only contain characters from a-z.
- * Thus, all input data must be cleaned before being passed to this function.
- * If you then use this tree for search you should clean your search input as well (so that a search query of "testuser@myEmail.com" becomes "testusermyemailcom").
  */
-function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
+function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     const start1 = performance.now();
-    const strings = [];
+    const stringForList: string[] = [];
 
     // We might received multiple lists of data that we want to search in
     // thus indexes is a list of those data lists
-    const indexes: Array<Array<T | undefined>> = [];
+    const indexesForList: Array<Array<T | undefined>> = [];
 
-    for (const {data, transform} of compose) {
+    for (const {data, transform} of lists) {
         const [str, searchIndexList] = prepareData({data, transform});
-        strings.push(str);
-        indexes.push(searchIndexList);
+        stringForList.push(str);
+        indexesForList.push(searchIndexList);
     }
-    const stringToSearch = `${strings.join('')}|`; // End Character
-    console.log("Search String length", stringToSearch.length);
-    console.log(stringToSearch)
+    const stringToSearch = `${stringForList.join('')}|`; // End Character
     console.log('building search strings', performance.now() - start1);
 
     const a = stringToArray(stringToSearch);
-    const N = 25000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
+    console.log('Search String length', stringToSearch.length);
+    const N = 25_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
-    const t = Array.from({length: N}, () => Array(ALPHABET_SIZE).fill(-1) as number[]);
-    const l = Array(N).fill(0) as number[];
-    const r = Array(N).fill(0) as number[];
-    const p = Array(N).fill(0) as number[];
-    const s = Array(N).fill(0) as number[];
+    const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
+    const l = Array<number>(N).fill(0);
+    const r = Array<number>(N).fill(0);
+    const p = Array<number>(N).fill(0);
+    const s = Array<number>(N).fill(0);
     const end = performance.now();
     console.log('Allocating memory took:', end - start, 'ms');
 
@@ -212,58 +205,98 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
      * This function will return the index(es) of found occurrences within this big string.
      * So, when searching for "an", it would return [1, 4, 11].
      */
-    function findSubstring(searchString: string) {
-        const occurrences: number[] = [];
-        const cleanedSearchString = cleanedString(searchString);
-        const numericSearchQuery = stringToArray(cleanedSearchString);
+    // function findSubstring(searchString: string) {
+    //     const occurrences: number[] = [];
+    //     // const cleanedSearchString = cleanedString(searchString);
+    //     // const numericSearchQuery = stringToArray(cleanedSearchString);
 
-        function dfs(node: number, depth: number) {
+    //     function dfs(node: number, depth: number) {
+    //         const leftRange = l[node];
+    //         const rightRange = r[node];
+    //         const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
+
+    //         for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
+    //             if (searchString.charCodeAt(depth + i) - CHAR_CODE_A !== a[leftRange + i]) {
+    //                 return;
+    //             }
+    //         }
+
+    //         let isLeaf = true;
+    //         for (let i = 0; i < ALPHABET_SIZE; ++i) {
+    //             if (t[node][i] !== -1) {
+    //                 isLeaf = false;
+    //                 dfs(t[node][i], depth + rangeLen);
+    //             }
+    //         }
+
+    //         if (isLeaf && depth >= searchString.length) {
+    //             occurrences.push(a.length - (depth + rangeLen));
+    //         }
+    //     }
+
+    //     dfs(0, 0);
+    //     return occurrences;
+    // }
+
+    // TODO: replace, other search function is broken in edge cases we need to address first
+    function findSubstring(sString: string) {
+        const s = stringToArray(sString);
+        const occurrences: number[] = [];
+        const st: Array<[number, number]> = [[0, 0]];
+
+        while (st.length > 0) {
+            const [node, depth] = st.pop()!;
+
+            let isLeaf = true;
             const leftRange = l[node];
             const rightRange = r[node];
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
-            for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
-                if (numericSearchQuery[depth + i] !== a[leftRange + i]) {
-                    return;
+            let matches = true;
+            for (let i = 0; i < rangeLen && depth + i < s.length; i++) {
+                if (s[depth + i] !== a[leftRange + i]) {
+                    matches = false;
+                    break;
                 }
             }
 
-            let isLeaf = true;
-            for (let i = 0; i < ALPHABET_SIZE; ++i) {
+            if (!matches) {
+                continue;
+            }
+
+            for (let i = ALPHABET_SIZE - 1; i >= 0; --i) {
                 if (t[node][i] !== -1) {
                     isLeaf = false;
-                    dfs(t[node][i], depth + rangeLen);
+                    st.push([t[node][i], depth + rangeLen]);
                 }
             }
 
-            if (isLeaf && depth >= searchString.length) {
+            if (isLeaf && depth + rangeLen >= s.length) {
                 occurrences.push(a.length - (depth + rangeLen));
             }
         }
 
-        dfs(0, 0);
         return occurrences;
     }
 
     function findInSearchTree(searchInput: string): T[][] {
         const now = performance.now();
-        const cleanedSearchInput = searchInput.toLowerCase().replace(aToZRegex, '');
-        const result = findSubstring(cleanedSearchInput);
-        console.log('FindSubstring index result for searchInput', cleanedSearchInput, result);
-        
+        const result = findSubstring(searchInput);
+        console.log('FindSubstring index result for searchInput', searchInput, result);
+
         // Map the results to the original options
-        const mappedResults = Array.from({length: compose.length}, () => new Set<T>());
+        const mappedResults = Array.from({length: lists.length}, () => new Set<T>());
         result.forEach((index) => {
             let offset = 0;
-            for (let i = 0; i < indexes.length; i++) {
+            for (let i = 0; i < indexesForList.length; i++) {
                 const relativeIndex = index - offset + 1;
-                if (relativeIndex < indexes[i].length && relativeIndex >= 0) {
-                    const option = indexes[i][relativeIndex];
+                if (relativeIndex < indexesForList[i].length && relativeIndex >= 0) {
+                    const option = indexesForList[i][relativeIndex];
                     if (option) {
                         mappedResults[i].add(option);
                     }
                 } else {
-                    offset += indexes[i].length;
+                    offset += indexesForList[i].length;
                 }
             }
         });
@@ -279,40 +312,4 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
     };
 }
 
-function performanceProfile<T>(input: PrepareDataParams<T>, search = 'sasha') {
-    // TODO: For emojis we could precalculate the makeTree function during build time using a babel plugin
-    // maybe babel plugin that just precalculates the result of function execution (so that it can be generic purpose plugin)
-    const {build, findSubstring} = makeTree([input]);
-
-    const buildStart = performance.now();
-    build();
-    const buildEnd = performance.now();
-    console.log('Building time:', buildEnd - buildStart, 'ms');
-
-    const searchStart = performance.now();
-    const results = findSubstring(search);
-    const searchEnd = performance.now();
-    console.log('Search time:', searchEnd - searchStart, 'ms');
-    console.log(results);
-
-    return {
-        buildTime: buildEnd - buildStart,
-        recursiveSearchTime: searchEnd - searchStart,
-    };
-}
-
-// Demo function testing the performance for emojis
-function testEmojis() {
-    const data = Object.values(enEmojis);
-    return performanceProfile(
-        {
-            data,
-            transform: ({keywords}) => {
-                return `${keywords.join('')}{`;
-            },
-        },
-        'smile',
-    );
-}
-
-export {makeTree, prepareData, testEmojis};
+export {makeTree, prepareData};
