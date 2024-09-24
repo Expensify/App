@@ -144,7 +144,7 @@ PODS:
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (9.1.0)
   - FullStory (1.49.0)
-  - fullstory_react-native (1.4.2):
+  - fullstory_react-native (1.7.1):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -2451,7 +2451,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.3.1):
+  - RNReactNativeHapticFeedback (2.3.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3117,7 +3117,7 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   FullStory: c95f74445f871bc344cdc4a4e4ece61b5554e55d
-  fullstory_react-native: 1818ee93dc38801665f26869f7ad68abb698a89a
+  fullstory_react-native: 44dc2c85a6316df2713e6cb0048ce5719c3b0bab
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -3233,7 +3233,7 @@ SPEC CHECKSUMS:
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
-  RNReactNativeHapticFeedback: 31833c3ef341d716dbbd9d64e940f0c230db46f6
+  RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
