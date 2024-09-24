@@ -4000,6 +4000,7 @@ function createSplitsAndOnyxData(
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
     const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        undefined,
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
         currency,
@@ -4578,6 +4579,7 @@ function startSplitBill({
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
     const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        undefined,
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         0,
         CONST.CURRENCY.USD,
@@ -6702,6 +6704,7 @@ function getPayMoneyRequestParams(
     }
 
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        delegateEmail,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         ReportUtils.isExpenseReport(iouReport) ? -total : total,
         iouReport.currency ?? '',
@@ -6711,11 +6714,6 @@ function getPayMoneyRequestParams(
         paymentMethodType,
         iouReport.reportID,
         true,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        delegateEmail,
     );
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)

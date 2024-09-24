@@ -4610,6 +4610,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
  * @param delegate - Email of the delegate of the account
  */
 function buildOptimisticIOUReportAction(
+    delegate = '',
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>,
     amount: number,
     currency: string,
@@ -4623,7 +4624,6 @@ function buildOptimisticIOUReportAction(
     isOwnPolicyExpenseChat = false,
     created = DateUtils.getDBTime(),
     linkedExpenseReportAction?: OnyxEntry<ReportAction>,
-    delegate = '',
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 

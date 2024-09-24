@@ -766,6 +766,7 @@ describe('ReportUtils', () => {
 
         it('should disable thread on split expense actions', () => {
             const reportAction = ReportUtils.buildOptimisticIOUReportAction(
+                undefined,
                 CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                 50000,
                 CONST.CURRENCY.USD,

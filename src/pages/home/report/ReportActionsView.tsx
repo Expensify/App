@@ -181,6 +181,7 @@ function ReportActionsView({
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
+                undefined,
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
                 CONST.CURRENCY.USD,
