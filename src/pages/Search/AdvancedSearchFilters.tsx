@@ -229,7 +229,7 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
 
     const applyFiltersAndNavigate = () => {
