@@ -291,7 +291,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
-    return eReceiptColors.at(colorHash) ?? 'Yellow';
+    return eReceiptColors.at(colorHash) ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
 
 /**

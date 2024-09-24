@@ -28,7 +28,6 @@ import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import getDefaultIcon from '@src/utils/getDefaultIcon';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -147,7 +146,7 @@ function ReportActionItemSingle({
         const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
-        secondaryAvatar = reportIcons.at(avatarIconIndex) ?? getDefaultIcon;
+        secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: 'avatar'};
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }

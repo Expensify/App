@@ -42,8 +42,6 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
-    const arr = [];
-    arr[2] = 'lalala';
     const booleanFields = useMemo(
         () =>
             Object.entries(data ?? {})

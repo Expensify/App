@@ -18026,7 +18026,7 @@ async function run() {
     if (assistantResponse.includes(`[${CONST_1.default.NO_ACTION}]`)) {
         // extract the text after [NO_ACTION] from assistantResponse since this is a
         // bot related action keyword
-        const noActionContext = assistantResponse.split(`[${CONST_1.default.NO_ACTION}] `)?.at(1)?.replace('"', '');
+        const noActionContext = assistantResponse.split(`[${CONST_1.default.NO_ACTION}] `).at(1)?.replace('"', '');
         console.log('[NO_ACTION] w/ context: ', noActionContext);
         return;
     }

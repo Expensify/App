@@ -76,6 +76,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 if (onNavigate) {
                     onNavigate(item);
                 }
+                onNavigate?.(item);
             }
         },
         [setShouldShowArrows, attachments, onNavigate],

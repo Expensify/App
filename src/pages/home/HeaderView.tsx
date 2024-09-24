@@ -33,7 +33,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import fallbackIcon from '@src/utils/getDefaultIcon';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -172,7 +171,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             >
                                 {shouldShowSubscript ? (
                                     <SubscriptAvatar
-                                        mainAvatar={icons.at(0) ?? fallbackIcon}
+                                        mainAvatar={icons.at(0)}
                                         secondaryAvatar={icons.at(1)}
                                         size={defaultSubscriptSize}
                                     />

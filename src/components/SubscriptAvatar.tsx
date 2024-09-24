@@ -10,6 +10,7 @@ import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
+import {FallbackAvatar} from './Icon/Expensicons';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 type SubIcon = {
@@ -28,7 +29,7 @@ type SubIcon = {
 
 type SubscriptAvatarProps = {
     /** Avatar icon */
-    mainAvatar: IconType;
+    mainAvatar?: IconType;
 
     /** Subscript avatar URL or icon */
     secondaryAvatar?: IconType;
@@ -52,8 +53,15 @@ type SubscriptAvatarProps = {
     subscriptionContainerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
+const fallbackIcon: IconType = {
+    source: FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
+    id: -1,
+};
+
 function SubscriptAvatar({
-    mainAvatar,
+    mainAvatar = fallbackIcon,
     secondaryAvatar,
     subscriptIcon,
     size = CONST.AVATAR_SIZE.DEFAULT,

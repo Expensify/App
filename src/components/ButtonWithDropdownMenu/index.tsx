@@ -87,12 +87,12 @@ function ButtonWithDropdownMenu<IValueType>({
                     return;
                 }
                 if (selectedItem?.value) {
-                    onPress(e, selectedItem?.value);
+                    onPress(e, selectedItem.value);
                 }
             } else {
                 const option = options.at(0);
                 if (option?.value) {
-                    onPress(e, option?.value);
+                    onPress(e, option.value);
                 }
             }
         },

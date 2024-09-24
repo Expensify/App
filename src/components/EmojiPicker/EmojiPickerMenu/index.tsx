@@ -180,7 +180,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 return;
             }
             if ('types' in item || 'name' in item) {
-                const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types.at(preferredSkinTone) : item.code;
+                const emoji = typeof preferredSkinTone === 'number' && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
                 onEmojiSelected(emoji ?? '', item);
             }
         },
@@ -266,7 +266,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types.at(preferredSkinTone) : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.at(preferredSkinTone) ? types.at(preferredSkinTone) : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
             const shouldEmojiBeHighlighted =
