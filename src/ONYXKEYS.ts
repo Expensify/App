@@ -68,14 +68,6 @@ const ONYXKEYS = {
     /** Contains all the info for Tasks */
     TASK: 'task',
 
-    /**
-     * Contains all the info for Workspace Rate and Unit while editing.
-     *
-     * Note: This is not under the COLLECTION key as we can edit rate and unit
-     * for one workspace only at a time. And we don't need to store
-     * rates and units for different workspaces at the same time. */
-    WORKSPACE_RATE_AND_UNIT: 'workspaceRateAndUnit',
-
     /** Contains a list of all currencies available to the user - user can
      * select a currency based on the list */
     CURRENCY_LIST: 'currencyList',
@@ -530,8 +522,6 @@ const ONYXKEYS = {
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
-        WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
-        WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
         WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
         WORKSPACE_COMPANY_CARD_FEED_NAME: 'workspaceCompanyCardFeedName',
@@ -692,6 +682,12 @@ const ONYXKEYS = {
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
         RULES_MAX_EXPENSE_AGE_FORM_DRAFT: 'rulesMaxExpenseAgeFormDraft',
+        DEBUG_REPORT_PAGE_FORM: 'debugReportPageForm',
+        DEBUG_REPORT_PAGE_FORM_DRAFT: 'debugReportPageFormDraft',
+        DEBUG_REPORT_ACTION_PAGE_FORM: 'debugReportActionPageForm',
+        DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT: 'debugReportActionPageFormDraft',
+        DEBUG_DETAILS_FORM: 'debugDetailsForm',
+        DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
     },
 } as const;
 
@@ -702,7 +698,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
-    [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
     [ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM]: FormTypes.WorkspaceCompanyCardEditName;
@@ -786,6 +781,9 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
+    [ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM]: FormTypes.DebugReportForm;
+    [ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM]: FormTypes.DebugReportActionForm;
+    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -869,7 +867,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
-    [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;

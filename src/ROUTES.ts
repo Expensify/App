@@ -684,30 +684,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
-    WORKSPACE_CARD: {
-        route: 'settings/workspaces/:policyID/card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/card` as const,
-    },
-    WORKSPACE_REIMBURSE: {
-        route: 'settings/workspaces/:policyID/reimburse',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reimburse` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT: {
-        route: 'settings/workspaces/:policyID/rateandunit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT_RATE: {
-        route: 'settings/workspaces/:policyID/rateandunit/rate',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/rate` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT_UNIT: {
-        route: 'settings/workspaces/:policyID/rateandunit/unit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/unit` as const,
-    },
-    WORKSPACE_BILLS: {
-        route: 'settings/workspaces/:policyID/bills',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/bills` as const,
-    },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
@@ -720,13 +696,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
     },
-    WORKSPACE_TRAVEL: {
-        route: 'settings/workspaces/:policyID/travel',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/travel` as const,
-    },
     WORKSPACE_MEMBERS: {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
+    },
+    WORKSPACE_MEMBERS_IMPORT: {
+        route: 'settings/workspaces/:policyID/members/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members/import` as const,
+    },
+    WORKSPACE_MEMBERS_IMPORTED: {
+        route: 'settings/workspaces/:policyID/members/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members/imported` as const,
     },
     POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
@@ -853,6 +833,10 @@ const ROUTES = {
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
+    },
+    WORKSPACE_TAG_APPROVER: {
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${tagName}/approver` as const,
     },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
@@ -1467,6 +1451,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable/destination',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/destination',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/destination` as const,
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
         getRoute: (policyID: string, reimbursable: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const,
@@ -1482,6 +1474,50 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
+    },
+    DEBUG_REPORT: {
+        route: 'debug/report/:reportID',
+        getRoute: (reportID: string) => `debug/report/${reportID}` as const,
+    },
+    DEBUG_REPORT_TAB_DETAILS: {
+        route: 'debug/report/:reportID/details',
+        getRoute: (reportID: string) => `debug/report/${reportID}/details` as const,
+    },
+    DEBUG_REPORT_TAB_JSON: {
+        route: 'debug/report/:reportID/json',
+        getRoute: (reportID: string) => `debug/report/${reportID}/json` as const,
+    },
+    DEBUG_REPORT_TAB_ACTIONS: {
+        route: 'debug/report/:reportID/actions',
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions` as const,
+    },
+    DEBUG_REPORT_ACTION: {
+        route: 'debug/report/:reportID/actions/:reportActionID',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
+    },
+    DEBUG_REPORT_ACTION_CREATE: {
+        route: 'debug/report/:reportID/actions/create',
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions/create` as const,
+    },
+    DEBUG_REPORT_ACTION_TAB_DETAILS: {
+        route: 'debug/report/:reportID/actions/:reportActionID/details',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/details` as const,
+    },
+    DEBUG_REPORT_ACTION_TAB_JSON: {
+        route: 'debug/report/:reportID/actions/:reportActionID/json',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/json` as const,
+    },
+    DEBUG_REPORT_ACTION_TAB_PREVIEW: {
+        route: 'debug/report/:reportID/actions/:reportActionID/preview',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
+    },
+    DETAILS_CONSTANT_PICKER_PAGE: {
+        route: 'debug/details/constant/:fieldName',
+        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/constant/${fieldName}?fieldValue=${fieldValue}`, backTo),
+    },
+    DETAILS_DATE_TIME_PICKER_PAGE: {
+        route: 'debug/details/datetime/:fieldName',
+        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },
 } as const;
 
