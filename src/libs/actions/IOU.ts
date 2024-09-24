@@ -6710,6 +6710,11 @@ function getPayMoneyRequestParams(
         paymentMethodType,
         iouReport.reportID,
         true,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        delegateEmail,
     );
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
