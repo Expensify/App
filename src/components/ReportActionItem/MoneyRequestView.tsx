@@ -275,7 +275,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
     const pendingAction = transaction?.pendingAction;
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath] ?? pendingAction);
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
@@ -437,10 +437,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {shouldShowReceiptAudit && (
-                    <ReceiptAudit
-                        notes={receiptViolations}
-                        shouldShowAuditResult={!!shouldShowAuditMessage}
-                    />
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                        <ReceiptAudit
+                            notes={receiptViolations}
+                            shouldShowAuditResult={!!shouldShowAuditMessage}
+                        />
+                    </OfflineWithFeedback>
                 )}
                 {(hasReceipt || errors) && (
                     <OfflineWithFeedback
@@ -490,21 +492,23 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
-                    <ReceiptEmptyState
-                        hasError={hasErrors}
-                        disabled={!canEditReceipt}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction?.transactionID ?? '-1',
-                                    report?.reportID ?? '-1',
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
-                            )
-                        }
-                    />
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                        <ReceiptEmptyState
+                            hasError={hasErrors}
+                            disabled={!canEditReceipt}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction?.transactionID ?? '-1',
+                                        report?.reportID ?? '-1',
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                )
+                            }
+                        />
+                    </OfflineWithFeedback>
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}

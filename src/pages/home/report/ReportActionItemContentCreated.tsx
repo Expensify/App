@@ -104,15 +104,17 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         }
 
         return (
-            <ShowContextMenuContext.Provider value={contextValue}>
-                <View>
-                    <MoneyRequestView
-                        report={report}
-                        shouldShowAnimatedBackground
-                    />
-                    {renderThreadDivider}
-                </View>
-            </ShowContextMenuContext.Provider>
+            <OfflineWithFeedback pendingAction={action.pendingAction}>
+                <ShowContextMenuContext.Provider value={contextValue}>
+                    <View>
+                        <MoneyRequestView
+                            report={report}
+                            shouldShowAnimatedBackground
+                        />
+                        {renderThreadDivider}
+                    </View>
+                </ShowContextMenuContext.Provider>
+            </OfflineWithFeedback>
         );
     }
 

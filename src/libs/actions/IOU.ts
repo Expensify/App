@@ -7652,6 +7652,9 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
             value: {
                 receipt: receiptOptimistic,
                 filename: file.name,
+                pendingFields: {
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
         },
     ];
@@ -7663,6 +7666,9 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                 filename: transaction?.filename,
                 errors: getReceiptError(receiptOptimistic, file.name),
+                pendingFields: {
+                    receipt: null,
+                },
             },
         },
     ];
