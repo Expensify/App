@@ -68,14 +68,13 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     );
 
     useEffect(() => {
-        if (!loginData?.validatedDate || !pendingContactAction?.contactMethod) {
-            return
+        if (!pendingContactAction?.actionVerified) {
+            return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
-    }, [loginData?.validatedDate, pendingContactAction?.contactMethod]);
-
-    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
+        User.clearUnvalidatedNewContactMethodAction();
+    }, [pendingContactAction?.actionVerified]);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -157,8 +156,14 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
                 validateError={validateLoginError}
                 handleSubmitForm={addNewContactMethod}
-                clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(contactMethod), 'addedLogin')}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin')}
+                onClose={() => {
+                    if(loginData?.errorFields && pendingContactAction?.contactMethod) {
+                        User.clearContactMethod(pendingContactAction?.contactMethod);
+                        User.clearUnvalidatedNewContactMethodAction();
+                    }
+                    setIsValidateCodeActionModalVisible(false)
+                }}
                 isVisible={isValidateCodeActionModalVisible}
                 title={contactMethod}
                 sendValidateCode={() => User.requestValidateCodeAction()}

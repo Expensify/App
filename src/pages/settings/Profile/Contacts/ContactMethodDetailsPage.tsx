@@ -219,11 +219,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 </OfflineWithFeedback>
             )}
-        </>
-    );
 
-    return (
-        <ScrollView keyboardShouldPersistTaps="handled">
             <ConfirmModal
                 title={translate('contacts.removeContactMethod')}
                 onConfirm={confirmDeleteAndHideModal}
@@ -239,26 +235,55 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 isVisible={isDeleteModalOpen && !isDefaultContactMethod}
                 danger
             />
+        </>
+    );
 
-            <ValidateCodeActionModal
+    return (
+        <ScreenWrapper
+            onEntryTransitionEnd={() => validateCodeFormRef.current?.focus?.()}
+            testID={ContactMethodDetailsPage.displayName}
+        >
+            <HeaderWithBackButton
                 title={formattedContactMethod}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                isVisible={isValidateCodeActionModalVisible}
-                validatePendingAction={loginData.pendingFields?.validateCodeSent}
-                handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
-                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                onClose={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-                    setIsValidateCodeActionModalVisible(false);
-                }}
-                sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                description={translate('contacts.enterMagicCode', {contactMethod})}
-                footer={<MenuItems />}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
             />
+            <ScrollView keyboardShouldPersistTaps="handled">
+                {isFailedAddContactMethod && (
+                    <ErrorMessageRow
+                        errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                        errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
+                        onClose={() => {
+                            console.log('holla como')
+                            User.clearContactMethod(contactMethod);
+                            User.clearUnvalidatedNewContactMethodAction();
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        }}
+                        canDismissError
+                    />
+                )}
 
-            {!isValidateCodeActionModalVisible && <MenuItems />}
-        </ScrollView>
+                {!loginData?.validatedDate && (
+                    <ValidateCodeActionModal
+                        title={formattedContactMethod}
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        isVisible={isValidateCodeActionModalVisible}
+                        validatePendingAction={loginData.pendingFields?.validateCodeSent}
+                        handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                        validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                        clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                        onClose={() => {
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                            setIsValidateCodeActionModalVisible(false);
+                        }}
+                        sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
+                        description={translate('contacts.enterMagicCode', {contactMethod})}
+                        footer={<MenuItems />}
+                    />
+                )}
+
+                {!isValidateCodeActionModalVisible && <MenuItems />}
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 
