@@ -26,6 +26,8 @@ const SEARCH_DEBOUNCE_DELAY = 200;
 function SearchRouter() {
     const styles = useThemeStyles();
     const [betas] = useOnyx(`${ONYXKEYS.BETAS}`);
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
 
@@ -33,25 +35,25 @@ function SearchRouter() {
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state.routes.at(-1)?.params?.reportID;
     });
-    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
-    const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => {
-        const dateA = new Date(a.timestamp);
-        const dateB = new Date(b.timestamp);
-        return dateB.getTime() - dateA.getTime();
-    });
+    const sortedRecentSearches = useMemo(() => {
+        return Object.values(recentSearches ?? {}).sort((a, b) => {
+            const dateA = new Date(a.timestamp);
+            const dateB = new Date(b.timestamp);
+            return dateB.getTime() - dateA.getTime();
+        });
+    }, [recentSearches]);
 
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: true,
     });
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return [] as unknown as OptionsListUtils.Options;
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
         }
-        const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
-        return optionList;
+        return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
-    const contextualReportData = searchOptions.recentReports?.find((option) => option.reportID === contextualReportID);
+    const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
     const clearUserQuery = () => {
         setCurrentQuery(undefined);
@@ -93,28 +95,13 @@ function SearchRouter() {
         [closeSearchRouter],
     );
 
-<<<<<<< HEAD
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            onSearchSubmit(currentQuery);
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: false,
-        },
-    );
-
-=======
->>>>>>> main
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         closeSearchRouter();
         clearUserQuery();
     });
 
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.POPOVER;
-    const isFullScreen = isSmallScreenWidth;
-    const modalWidth = isFullScreen ? styles.w100 : {width: variables.popoverWidth};
+    const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
         <Modal
@@ -125,7 +112,7 @@ function SearchRouter() {
             onClose={closeSearchRouter}
         >
             <FocusTrapForModal active={isSearchRouterDisplayed}>
-                <View style={[styles.flex1, styles.p3, modalWidth, styles.mh100, !isFullScreen && styles.mh85vh]}>
+                <View style={[styles.flex1, styles.p3, modalWidth, styles.mh100, !isSmallScreenWidth && styles.mh85vh]}>
                     <SearchRouterInput
                         onChange={onSearchChange}
                         onSubmit={() => {
@@ -134,7 +121,7 @@ function SearchRouter() {
                     />
 
                     <SearchRouterList
-                        currentSearch={currentQuery}
+                        currentQuery={currentQuery}
                         reportForContextualSearch={contextualReportData}
                         recentSearches={sortedRecentSearches}
                         recentReports={searchOptions?.recentReports?.slice(0, 5)}

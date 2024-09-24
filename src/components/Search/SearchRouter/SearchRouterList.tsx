@@ -19,7 +19,7 @@ type ItemWithQuery = {
 };
 
 type SearchRouterListProps = {
-    currentSearch: SearchQueryJSON | undefined;
+    currentQuery: SearchQueryJSON | undefined;
     reportForContextualSearch?: OptionData;
     recentSearches: ItemWithQuery[] | undefined;
     recentReports: OptionData[];
@@ -33,7 +33,6 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SingleIconListI
     if ('item' in props && props.item.reportID) {
         return (
             <UserListItem
-                pressableStyle={styles.br2}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as UserListItemProps<OptionData>)}
             />
@@ -43,18 +42,18 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SingleIconListI
     return <SingleIconListItem {...(props as SingleIconListItemProps<ListItemWithSingleIcon & ItemWithQuery>)} />;
 }
 
-function SearchRouterList({currentSearch, reportForContextualSearch, recentSearches, recentReports, onRecentSearchSelect, closeAndClearRouter}: SearchRouterListProps) {
+function SearchRouterList({currentQuery, reportForContextualSearch, recentSearches, recentReports, onRecentSearchSelect, closeAndClearRouter}: SearchRouterListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const sections: Array<SectionListDataType<OptionData | (ListItemWithSingleIcon & ItemWithQuery)>> = [];
 
-    if (currentSearch?.inputQuery) {
+    if (currentQuery?.inputQuery) {
         sections.push({
             data: [
                 {
-                    text: currentSearch?.inputQuery,
+                    text: currentQuery?.inputQuery,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: currentSearch?.inputQuery,
+                    query: currentQuery?.inputQuery,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
                 },
@@ -84,23 +83,23 @@ function SearchRouterList({currentSearch, reportForContextualSearch, recentSearc
         keyForList: query,
     }));
 
-    if (recentSearchesData) {
+    if (recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    const recentReportsWithStyle = recentReports.map((item) => ({...item, pressableStyle: styles.br2}));
-    sections.push({title: translate('search.recentChats'), data: recentReportsWithStyle});
+    const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2}));
+    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     const onSelectRow = useCallback(
         (item: OptionData | ItemWithQuery) => {
-            // This is case for handling selection of "Recent search"
+            // Handle selection of "Recent search"
             if ('query' in item && item?.query) {
                 const queryJSON = SearchUtils.buildSearchQueryJSON(item?.query);
                 onRecentSearchSelect(queryJSON, true);
                 return;
             }
 
-            // This is case for handling selection of "Recent chat"
+            // Handle selection of "Recent chat"
             closeAndClearRouter();
             if ('reportID' in item && item?.reportID) {
                 Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));

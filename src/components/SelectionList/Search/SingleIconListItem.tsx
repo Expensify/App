@@ -34,7 +34,7 @@ function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocus
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             <>
-                {!!item.singleIcon && (
+                {item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
                         fill={theme.icon}
@@ -55,7 +55,7 @@ function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocus
                             styles.justifyContentCenter,
                         ]}
                     />
-                    {!!item.alternateText && (
+                    {item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip ?? false}
                             text={item.alternateText}
@@ -63,7 +63,6 @@ function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocus
                         />
                     )}
                 </View>
-                {!!item.rightElement && item.rightElement}
             </>
         </BaseListItem>
     );
