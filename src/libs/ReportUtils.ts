@@ -5817,6 +5817,7 @@ function buildOptimisticMoneyRequestEntities(
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
 
     const iouAction = buildOptimisticIOUReportAction(
+        delegate,
         type,
         amount,
         currency,
@@ -5830,7 +5831,6 @@ function buildOptimisticMoneyRequestEntities(
         isOwnPolicyExpenseChat,
         iouActionCreationTime,
         linkedTrackedExpenseReportAction,
-        delegate,
     );
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
