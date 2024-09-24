@@ -81,7 +81,7 @@ function EmptyStateComponent({
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
         <ScrollView
