@@ -1,9 +1,9 @@
-import {OnyxEntry} from 'react-native-onyx';
-import {LocaleContextProps} from '@components/LocaleContextProvider';
+import {Dispatch, SetStateAction} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as Link from '@userActions/Link';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import * as PolicyUtils from '@src/libs/PolicyUtils';
 import ROUTES from '@src/ROUTES';
 import {TravelSettings} from '@src/types/onyx';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
@@ -49,9 +49,9 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
 function bookATrip(
     translate: LocaleContextProps['translate'],
     travelSettings: OnyxEntry<TravelSettings>,
-    activePolicyID?: string,
+    activePolicyID: string,
     ctaErrorMessage = '',
-    setCtaErrorMessage = (_: string) => {},
+    setCtaErrorMessage: Dispatch<SetStateAction<string>>,
 ): void {
     if (isEmptyObject(travelSettings)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));

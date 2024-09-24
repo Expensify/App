@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -108,7 +108,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             setCtaErrorMessage(translate('travel.phoneError'));
                             return;
                         }
-                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID, ctaErrorMessage, setCtaErrorMessage);
+                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID ?? '', ctaErrorMessage, setCtaErrorMessage);
                     },
                     canEmptyViewBeScrolled: true,
                 };
