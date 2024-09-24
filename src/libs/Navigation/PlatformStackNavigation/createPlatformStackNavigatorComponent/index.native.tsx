@@ -19,11 +19,11 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
-    const useCustomState = options?.useCustomState ?? (() => ({stateToRender: undefined, searchRoute: undefined}));
     const defaultScreenOptions = options?.defaultScreenOptions;
+    const useCustomState = options?.useCustomState ?? (() => ({stateToRender: undefined, searchRoute: undefined}));
+    const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
-    const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
 
     function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
         const {
