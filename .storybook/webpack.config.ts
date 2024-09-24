@@ -77,7 +77,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
 
     const babelRulesIndex = custom.module.rules.findIndex((rule) => rule.loader === 'babel-loader');
     const babelRule = custom.module.rules.at(babelRulesIndex);
-    if (babelRule) {
+    if (babelRulesIndex !== -1 && babelRule) {
         config.module.rules?.push(babelRule);
     }
 

@@ -104,7 +104,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             const attachment = targetAttachments.at(initialPage);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (attachment !== undefined && onNavigate) {
+            if (initialPage !== -1 && attachment !== undefined && onNavigate) {
                 onNavigate(attachment);
             }
         }
@@ -161,7 +161,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             const nextIndex = page + deltaSlide;
             const nextItem = attachments.at(nextIndex);
 
-            if (!nextItem || !scrollRef.current) {
+            if (!nextItem || nextIndex < 0 || !scrollRef.current) {
                 return;
             }
 

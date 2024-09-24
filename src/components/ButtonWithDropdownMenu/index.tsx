@@ -1,6 +1,7 @@
 import type {MutableRefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -104,6 +105,17 @@ function ButtonWithDropdownMenu<IValueType>({
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
 
+    const handlePress = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (!isSplitButton) {
+                setIsMenuVisible(!isMenuVisible);
+            } else if (selectedItem?.value) {
+                onPress(event, selectedItem?.value);
+            }
+        },
+        [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
+    );
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -112,8 +124,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={dropdownButtonRef}
-                        // eslint-disable-next-line no-nested-ternary
-                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : selectedItem?.value ? onPress(event, selectedItem?.value) : undefined)}
+                        onPress={handlePress}
                         text={customText ?? selectedItem?.text ?? ''}
                         isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}

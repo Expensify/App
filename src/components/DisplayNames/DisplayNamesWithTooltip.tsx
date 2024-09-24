@@ -31,7 +31,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
      */
     const getTooltipShiftX = useCallback((index: number) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!containerRef.current || !childRefs.current.at(index)) {
+        if (!containerRef.current || index < 0 || !childRefs.current.at(index)) {
             return 0;
         }
         const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();

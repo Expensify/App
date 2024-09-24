@@ -91,7 +91,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types?.at(preferredSkinTone) : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.at(preferredSkinTone) ? types.at(preferredSkinTone) : code;
             const shouldEmojiBeHighlighted = !!activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (

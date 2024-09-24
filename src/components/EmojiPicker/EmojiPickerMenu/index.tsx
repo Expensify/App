@@ -176,7 +176,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             const item = filteredEmojis.at(indexToSelect);
-            if (!item) {
+            if (indexToSelect === -1 || !item) {
                 return;
             }
             if ('types' in item || 'name' in item) {
