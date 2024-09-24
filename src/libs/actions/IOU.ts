@@ -7843,7 +7843,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, reportID: string, hash?: number) {
+function putOnHold(transactionID: string, comment: string, reportID: string, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
@@ -7900,10 +7900,11 @@ function putOnHold(transactionID: string, comment: string, reportID: string, has
         },
     ];
 
-    if (hash) {
+    // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -7915,7 +7916,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, has
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -7942,7 +7943,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, has
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, hash?: number) {
+function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
@@ -8000,10 +8001,11 @@ function unholdRequest(transactionID: string, reportID: string, hash?: number) {
         },
     ];
 
-    if (hash) {
+    // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -8015,7 +8017,7 @@ function unholdRequest(transactionID: string, reportID: string, hash?: number) {
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
