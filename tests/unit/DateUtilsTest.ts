@@ -132,6 +132,7 @@ describe('DateUtils', () => {
     it('canUpdateTimezone should return false when lastUpdatedTimezoneTime is less than 5 minutes ago', () => {
         // Use fake timers to control the current time
         jest.useFakeTimers();
+        DateUtils.setTimezoneUpdated();
         jest.setSystemTime(addMinutes(new Date(), 4));
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(false);
