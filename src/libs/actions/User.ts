@@ -439,6 +439,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                     pendingFields: {
                         addedLogin: null,
                     },
+                    validatedDate: DateUtils.getDBTime(),
                 },
             },
         },

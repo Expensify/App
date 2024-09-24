@@ -154,7 +154,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     useEffect(() => {
-        setIsValidateCodeActionModalVisible(!loginData?.validatedDate && !loginData?.errorFields?.addedLogin);
+        setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
@@ -239,18 +239,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 isVisible={isDeleteModalOpen && !isDefaultContactMethod}
                 danger
             />
-
-            {isFailedAddContactMethod && (
-                <ErrorMessageRow
-                    errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
-                    errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
-                    onClose={() => {
-                        User.clearContactMethod(contactMethod);
-                        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-                    }}
-                    canDismissError
-                />
-            )}
 
             <ValidateCodeActionModal
                 title={formattedContactMethod}

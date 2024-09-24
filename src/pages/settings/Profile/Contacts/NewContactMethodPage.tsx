@@ -46,7 +46,7 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = ErrorUtils.getLatestErrorField(loginData, 'addedLogin');
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
@@ -63,10 +63,17 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const addNewContactMethod = useCallback(
         (magicCode: string) => {
             User.addNewContactMethod(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? ''), magicCode);
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
         },
         [pendingContactAction?.contactMethod],
     );
+
+    useEffect(() => {
+        if (!loginData?.validatedDate || !pendingContactAction?.contactMethod) {
+            return
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    }, [loginData?.validatedDate, pendingContactAction?.contactMethod]);
 
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
@@ -150,7 +157,7 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
                 validateError={validateLoginError}
                 handleSubmitForm={addNewContactMethod}
-                clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(contactMethod), 'validateLogin')}
+                clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(contactMethod), 'addedLogin')}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
                 title={contactMethod}
