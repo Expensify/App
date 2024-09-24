@@ -2097,6 +2097,9 @@ const CONST = {
         ACCESS_VARIANTS: {
             CREATE: 'create',
         },
+        PAGE_INDEX: {
+            CONFIRM: 'confirm',
+        },
         PAYMENT_SELECTED: {
             BBA: 'BBA',
             PBA: 'PBA',

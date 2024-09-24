@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -36,6 +37,9 @@ function Confirmation() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
+    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
@@ -83,7 +87,10 @@ function Confirmation() {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                        <HeaderWithBackButton
+                            title={translate('iou.reviewDuplicates')}
+                            onBackButtonPress={goBack}
+                        />
                         <ScrollView>
                             <View style={[styles.ph5, styles.pb8]}>
                                 <Text
