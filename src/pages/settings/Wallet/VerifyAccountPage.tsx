@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as BankAccounts from '@userActions/BankAccounts';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -56,6 +57,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     useEffect(() => {
         if (!isUserValidated) {
             return;
+        }
+        if (navigateBackTo === ROUTES.SETTINGS_ENABLE_PAYMENTS) {
+            BankAccounts.openPersonalBankAccountSetupWithPlaid();
         }
         Navigation.navigate(navigateBackTo);
     }, [isUserValidated, navigateBackTo]);
