@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,11 +62,10 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
 
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const params = lastSettingsOrWorkspaceNavigatorRoute.params as AuthScreensParamList[typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR];
-
+                const params = lastSettingsOrWorkspaceNavigatorRoute.state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
                 // Screens of this navigator should always have policyID
-                if ('params' in params && params.params?.policyID) {
-                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(params.params.policyID));
+                if (params.policyID) {
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(params.policyID));
                 }
                 return;
             }
