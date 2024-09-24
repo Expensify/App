@@ -19,7 +19,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
@@ -81,14 +80,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                         src={accountingIcon}
                         width={variables.iconSizeExtraLarge}
                         height={variables.iconSizeExtraLarge}
-                        additionalStyles={[
-                            StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR),
-                            styles.mr3,
-                            onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0,
-                        ]}
+                        additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
                     />
                 ),
-                rightElement: onboardingIsMediumOrLargerScreenWidth ? <View style={styles.mr3} /> : null,
                 isSelected: userReportedIntegration === connectionName,
             };
         });
@@ -101,19 +95,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                     fill={theme.success}
-                    additionalStyles={[
-                        StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR),
-                        styles.mr3,
-                        onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0,
-                        {padding: 10},
-                    ]}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
                 />
             ),
-            rightElement: onboardingIsMediumOrLargerScreenWidth ? <View style={styles.mr3} /> : null,
             isSelected: userReportedIntegration === null,
         };
         return [...policyAccountingOptions, noneAccountingOption];
-    }, [StyleUtils, onboardingIsMediumOrLargerScreenWidth, styles.ml0, styles.ml3, styles.mr3, theme.success, translate, userReportedIntegration]);
+    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.success, translate, userReportedIntegration]);
 
     const footerContent = (
         <>
@@ -136,10 +124,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
                     if (!onboardingPurposeSelected) {
                         return;
-                    }
-
-                    if (onboardingPolicyID) {
-                        Policy.enablePolicyConnections(onboardingPolicyID, true);
                     }
 
                     Report.completeOnboarding(
@@ -195,6 +179,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 ListItem={RadioListItem}
                 footerContent={footerContent}
                 shouldShowTooltips={false}
+                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? styles.onboardingWrapper : {}}
             />
             {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>

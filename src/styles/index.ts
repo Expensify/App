@@ -4499,6 +4499,15 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        onboardingSmallIcon: {
+            padding: 10,
+        },
+
+        onboardingWrapper: {
+            paddingLeft: 32,
+            paddingRight: 32,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,
