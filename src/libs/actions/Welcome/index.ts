@@ -135,8 +135,8 @@ function completeHybridAppOnboarding() {
             return;
         }
 
-        // if the call succeeded HybridApp onboarding is finished, otherwise it's not
-        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === CONST.JSON_CODE.SUCCESS});
+        // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
+        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
         NativeModules.HybridAppModule.completeOnboarding(true);
     });
 }
