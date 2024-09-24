@@ -1,5 +1,6 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {SearchQueryString} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -233,7 +234,11 @@ type ReportListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
 
+        /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
+
+        /** The current search query that was used to display these report items */
+        currentSearchQuery: SearchQueryString;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

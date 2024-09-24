@@ -227,7 +227,7 @@ function Search({queryJSON}: SearchProps) {
     }
 
     const ListItem = SearchUtils.getListItem(type, status);
-    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
+    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search, queryJSON.inputQuery);
     const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
 
@@ -294,13 +294,15 @@ function Search({queryJSON}: SearchProps) {
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
+        const backTo = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryJSON.inputQuery});
+
         if (SearchUtils.isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID, reportActionID));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
     };
 
     const fetchMoreResults = () => {

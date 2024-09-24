@@ -250,7 +250,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     return reportItem.reportName;
 }
 
-function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
+function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearchQuery: SearchQueryString): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -269,6 +269,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from: data.personalDetailsList?.[reportItem.accountID ?? -1],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
+                currentSearchQuery,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
         } else if (isTransactionEntry(key)) {
@@ -311,21 +312,30 @@ function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return TransactionListItem;
+    }
+    return ReportListItem;
 }
 
-function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearchQuery: SearchQueryString) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
+    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return getTransactionsSections(data, metadata);
+    }
+    return getReportSections(data, metadata, currentSearchQuery);
 }
 
 function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
+    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    }
+    return getSortedReportData(data as ReportListItemType[]);
 }
 
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {

@@ -97,7 +97,7 @@ const PromotedActions = {
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}));
         },
     }),
 } satisfies PromotedActionsType;
