@@ -32,7 +32,7 @@ function EmptyStateComponent({
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenHeight} = useResponsiveLayout();
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -85,7 +85,7 @@ function EmptyStateComponent({
 
     return (
         <ScrollView
-            contentContainerStyle={[!canEmptyViewBeScrolled && styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}
+            contentContainerStyle={[!canEmptyViewBeScrolled && styles.emptyStateScrollView, {minHeight: minModalHeight}, !isSmallScreenHeight && styles.h100, containerStyles]}
             style={[canEmptyViewBeScrolled && {flex: 1}]}
         >
             <View style={styles.skeletonBackground}>

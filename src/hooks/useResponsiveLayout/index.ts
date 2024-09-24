@@ -29,6 +29,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
     const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
+    const isSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const onboardingIsMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
@@ -77,5 +78,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         onboardingIsMediumOrLargerScreenWidth,
         isLargeScreenWidth,
         isSmallScreen,
+        isSmallScreenHeight,
     };
 }
