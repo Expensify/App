@@ -12,18 +12,14 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
@@ -49,32 +45,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [primaryLogin = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
-    const policy = usePolicy(activePolicyID);
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
-
-    const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
-    const hasPolicyAddress = !isEmptyObject(policy?.address);
-
-    const onBookATripPress = useCallback(() => {
-        if (Str.isSMSLogin(primaryLogin)) {
-            setCtaErrorMessage(translate('travel.phoneError'));
-            return;
-        }
-        if (!hasPolicyAddress) {
-            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
-            return;
-        }
-        if (!hasAcceptedTravelTerms) {
-            Navigation.navigate(ROUTES.TRAVEL_TCS);
-            return;
-        }
-        if (ctaErrorMessage) {
-            setCtaErrorMessage('');
-        }
-        Link.openTravelDotLink(activePolicyID)?.catch(() => {
-            setCtaErrorMessage(translate('travel.errorMessage'));
-        });
-    }, [activePolicyID, primaryLogin, hasPolicyAddress, hasAcceptedTravelTerms, translate, ctaErrorMessage]);
 
     const subtitleComponent = useMemo(() => {
         return (
@@ -132,7 +103,13 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: onBookATripPress,
+                    buttonAction: () => {
+                        if (Str.isSMSLogin(primaryLogin)) {
+                            setCtaErrorMessage(translate('travel.phoneError'));
+                            return;
+                        }
+                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID, ctaErrorMessage, setCtaErrorMessage);
+                    },
                     canEmptyViewBeScrolled: true,
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
@@ -149,7 +126,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, onBookATripPress]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent]);
 
     return (
         <EmptyStateComponent

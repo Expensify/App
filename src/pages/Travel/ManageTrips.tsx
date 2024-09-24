@@ -12,12 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import colors from '@styles/theme/colors';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const tripsFeatures: FeatureListItem[] = [
@@ -46,9 +44,6 @@ function ManageTrips() {
         return <FullScreenLoadingIndicator />;
     }
 
-    const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
-    const hasPolicyAddress = !isEmptyObject(policy?.address);
-
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
@@ -67,20 +62,7 @@ function ManageTrips() {
                             setCtaErrorMessage(translate('travel.phoneError'));
                             return;
                         }
-                        if (!hasPolicyAddress) {
-                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
-                            return;
-                        }
-                        if (!hasAcceptedTravelTerms) {
-                            Navigation.navigate(ROUTES.TRAVEL_TCS);
-                            return;
-                        }
-                        if (ctaErrorMessage) {
-                            setCtaErrorMessage('');
-                        }
-                        Link.openTravelDotLink(activePolicyID)?.catch(() => {
-                            setCtaErrorMessage(translate('travel.errorMessage'));
-                        });
+                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID, ctaErrorMessage, setCtaErrorMessage);
                     }}
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}

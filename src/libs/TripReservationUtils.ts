@@ -1,8 +1,16 @@
+import {OnyxEntry} from 'react-native-onyx';
+import {LocaleContextProps} from '@components/LocaleContextProvider';
+import * as Link from '@userActions/Link';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import * as PolicyUtils from '@src/libs/PolicyUtils';
+import ROUTES from '@src/ROUTES';
+import {TravelSettings} from '@src/types/onyx';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import Navigation from './Navigation/Navigation';
 
 function getTripReservationIcon(reservationType: ReservationType): IconAsset {
     switch (reservationType) {
@@ -38,4 +46,26 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     }
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon};
+function bookATrip(
+    translate: LocaleContextProps['translate'],
+    travelSettings: OnyxEntry<TravelSettings>,
+    activePolicyID?: string,
+    ctaErrorMessage = '',
+    setCtaErrorMessage = (_: string) => {},
+): void {
+    if (isEmptyObject(travelSettings)) {
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
+        return;
+    }
+    if (!travelSettings?.hasAcceptedTerms) {
+        Navigation.navigate(ROUTES.TRAVEL_TCS);
+        return;
+    }
+    if (ctaErrorMessage) {
+        setCtaErrorMessage('');
+    }
+    Link.openTravelDotLink(activePolicyID)?.catch(() => {
+        setCtaErrorMessage(translate('travel.errorMessage'));
+    });
+}
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
