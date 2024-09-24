@@ -85,7 +85,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                             StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR),
                             styles.mr3,
                             onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0,
-                            styles.onboardingIconWrapper,
                         ]}
                     />
                 ),
@@ -106,7 +105,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                         StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR),
                         styles.mr3,
                         onboardingIsMediumOrLargerScreenWidth ? styles.ml3 : styles.ml0,
-                        styles.onboardingIconWrapper,
+                        {padding: 10},
                     ]}
                 />
             ),
@@ -129,7 +128,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 success
                 large
                 text={translate('common.confirm')}
-                // eslint-disable-next-line rulesdir/prefer-early-return
                 onPress={() => {
                     if (userReportedIntegration === undefined) {
                         setError(translate('onboarding.purpose.errorSelection'));
