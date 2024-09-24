@@ -86,9 +86,6 @@ function ReportActionItemSingle({
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
-
-    const delegateEmail = delegatePersonalDetails?.login;
-
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
@@ -286,7 +283,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {delegateEmail && !isReportPreviewAction && (
+                {action?.delegateAccountID && !isReportPreviewAction && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
