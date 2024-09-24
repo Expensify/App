@@ -194,7 +194,7 @@ export default {
         firstName: 'First name',
         lastName: 'Last name',
         addCardTermsOfService: 'Expensify Terms of Service',
-        phone: 'Phone',
+        phone: 'Phones',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
