@@ -127,7 +127,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(335, 220),
+                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(375, 240),
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
@@ -163,6 +163,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             buttonAction={content.buttonAction}
             headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+            canEmptyViewBeScrolled={content.canEmptyViewBeScrolled}
         />
     );
 }

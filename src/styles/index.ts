@@ -5141,7 +5141,7 @@ const styles = (theme: ThemeColors) =>
             margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            flexGrow: 1,
         },
 
         emptyStateContent: {
