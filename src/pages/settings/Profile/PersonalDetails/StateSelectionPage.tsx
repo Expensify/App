@@ -1,6 +1,6 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -60,14 +60,14 @@ function StateSelectionPage() {
             // Determine navigation action based on "backTo" presence and route stack length.
             if (navigation.getState()?.routes.length === 1) {
                 // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
-                if (_.isEmpty(backTo)) {
+                if (isEmpty(backTo)) {
                     // No "backTo": default back navigation.
                     Navigation.goBack();
                 } else {
                     // "backTo" provided: navigate back to "backTo" with state parameter.
                     Navigation.goBack(appendParam(backTo, 'state', option.value));
                 }
-            } else if (!_.isEmpty(backTo)) {
+            } else if (!isEmpty(backTo)) {
                 // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
                 Navigation.navigate(appendParam(backTo, 'state', option.value));
             } else {

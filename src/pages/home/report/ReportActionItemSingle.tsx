@@ -39,7 +39,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Report for this action */
-    report: Report;
+    report: OnyxEntry<Report>;
 
     /** IOU Report for this action, if any */
     iouReport?: OnyxEntry<Report>;
@@ -82,7 +82,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
@@ -101,7 +101,7 @@ function ReportActionItemSingle({
         displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceIcon(report).source;
-        avatarId = report.policyID;
+        avatarId = report?.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
@@ -143,7 +143,7 @@ function ReportActionItemSingle({
         }
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
+        const avatarIconIndex = report?.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
         secondaryAvatar = reportIcons[avatarIconIndex];
@@ -174,7 +174,7 @@ function ReportActionItemSingle({
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
-            showWorkspaceDetails(reportID);
+            showWorkspaceDetails(reportID ?? '');
         } else {
             // Show participants page IOU report preview
             if (iouReportID && displayAllActors) {
