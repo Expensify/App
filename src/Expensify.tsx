@@ -98,7 +98,6 @@ function Expensify({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [tryNewDotData] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
