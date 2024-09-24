@@ -47,6 +47,7 @@ function SubscriptionSettingsPage() {
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}
             />
             <ScrollView style={styles.pt3}>
