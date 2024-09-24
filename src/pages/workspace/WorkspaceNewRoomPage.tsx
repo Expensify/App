@@ -112,6 +112,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             values.roomName,
             CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             policyID,
+            session?.accountID,
             CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',

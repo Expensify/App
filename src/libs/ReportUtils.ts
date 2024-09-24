@@ -710,6 +710,14 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
 }
 
 /**
+ * Whether the provided report is an archived room
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+    return !!report?.private_isArchived;
+}
+
+/**
  * Returns the policy of the report
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
@@ -1350,14 +1358,6 @@ function hasExpenses(reportID?: string): boolean {
  */
 function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID);
-}
-
-/**
- * Whether the provided report is an archived room
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !!report?.private_isArchived;
 }
 
 /**
@@ -2678,7 +2678,6 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant(ownerAccountID) || login || report?.reportName;
-
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report?.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
@@ -3725,6 +3724,7 @@ function getReportName(
             if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
+
             return formatReportLastMessageText(formattedName);
         }
 
@@ -6512,6 +6512,24 @@ function temporary_getMoneyRequestOptions(
 }
 
 /**
+ * This function generates money request options in text format
+ * @param moneyRequestOptions - money request options array
+ * @return - the money request options string
+ */
+function getMoneyRequestOptionsText(
+    moneyRequestOptions: Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>,
+): string {    
+    const moneyRequestOptionsList = moneyRequestOptions
+        .map((item, i) => Localize.translateLocal(`reportActionsView.iouTypes.${item}`));
+
+    if (moneyRequestOptionsList.length > 1) {
+        return `${moneyRequestOptionsList.slice(0, moneyRequestOptionsList.length - 1).join(', ')} ${Localize.translateLocal(`common.or`)} ${moneyRequestOptionsList.pop()}`;
+    } 
+    
+    return moneyRequestOptionsList[0];
+}
+
+/**
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
@@ -7918,6 +7936,7 @@ export {
     getIndicatedMissingPaymentMethod,
     getLastVisibleMessage,
     getMoneyRequestOptions,
+    getMoneyRequestOptionsText,
     getMoneyRequestSpendBreakdown,
     getNewMarkerReportActionID,
     getNonHeldAndFullAmount,

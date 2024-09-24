@@ -3,6 +3,7 @@ import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -720,6 +721,20 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+        });
+
+        describe('get money request options text', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            it("if multiple options are displayed", () => {
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs]);
+                const multiple = ReportUtils.getMoneyRequestOptionsText(moneyRequestOptions);
+                expect(multiple).toBe(`${Localize.translateLocal('reportActionsView.iouTypes.split')}, ${Localize.translateLocal('reportActionsView.iouTypes.submit')} or ${Localize.translateLocal('reportActionsView.iouTypes.track')}`);
             });
         });
     });
