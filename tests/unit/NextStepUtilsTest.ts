@@ -408,10 +408,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'pay',
+                        text: 'finish setting up',
                     },
                     {
-                        text: ' %expenses.',
+                        text: ' a business bank account.',
                     },
                 ];
 
@@ -543,10 +543,10 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'pay',
+                        text: 'finish setting up',
                     },
                     {
-                        text: ' %expenses.',
+                        text: ' a business bank account.',
                     },
                 ];
                 // mock the report as approved

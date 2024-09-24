@@ -279,7 +279,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : ' finish setting up',
+                        text: hasValidAccount ? 'pay' : 'finish setting up',
                     },
                     {
                         text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
