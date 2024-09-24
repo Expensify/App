@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionModalProps = {
@@ -26,8 +26,10 @@ type ValidateCodeActionModalProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    footer?: React.JSX.Element;
+    /** A component to be rendered inside the modal */
+    footer?: () => React.JSX.Element;
 
+    /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 
     /** If the magic code has been resent previously */

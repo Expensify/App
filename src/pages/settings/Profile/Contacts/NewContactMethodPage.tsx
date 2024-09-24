@@ -158,11 +158,11 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 handleSubmitForm={addNewContactMethod}
                 clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin')}
                 onClose={() => {
-                    if(loginData?.errorFields && pendingContactAction?.contactMethod) {
+                    if (loginData?.errorFields && pendingContactAction?.contactMethod) {
                         User.clearContactMethod(pendingContactAction?.contactMethod);
                         User.clearUnvalidatedNewContactMethodAction();
                     }
-                    setIsValidateCodeActionModalVisible(false)
+                    setIsValidateCodeActionModalVisible(false);
                 }}
                 isVisible={isValidateCodeActionModalVisible}
                 title={contactMethod}

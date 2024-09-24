@@ -6,7 +6,6 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
@@ -44,7 +43,7 @@ function ValidateCodeActionModal({
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible]);
+    }, [isVisible, sendValidateCode]);
 
     return (
         <Modal
@@ -80,7 +79,7 @@ function ValidateCodeActionModal({
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     />
                 </View>
-                {footer}
+                {footer?.()}
             </ScreenWrapper>
         </Modal>
     );

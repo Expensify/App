@@ -12,7 +12,7 @@ type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Field-specific server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /**Whether the action is validated */
+        /** Whether the action is validated */
         actionVerified?: boolean;
     },
     'actionVerified'

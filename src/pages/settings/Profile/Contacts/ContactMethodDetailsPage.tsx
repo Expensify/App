@@ -1,11 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -27,7 +26,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -36,10 +34,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
-
-type ValidateCodeFormError = {
-    validateCode?: TranslationPaths;
-};
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -180,7 +174,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
 
-    const MenuItems = () => (
+    const getMenuItems = () => (
         <>
             {canChangeDefaultContactMethod ? (
                 <OfflineWithFeedback
@@ -253,7 +247,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
                         onClose={() => {
-                            console.log('holla como')
                             User.clearContactMethod(contactMethod);
                             User.clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
@@ -277,11 +270,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         }}
                         sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
                         description={translate('contacts.enterMagicCode', {contactMethod})}
-                        footer={<MenuItems />}
+                        footer={() => getMenuItems()}
                     />
                 )}
 
-                {!isValidateCodeActionModalVisible && <MenuItems />}
+                {!isValidateCodeActionModalVisible && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );
