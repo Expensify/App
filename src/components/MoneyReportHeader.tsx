@@ -145,22 +145,25 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-        if (!type || !chatReport) {
-            return;
-        }
-        setPaymentType(type);
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (isDelegateAccessRestricted) {
-            setIsNoDelegateAccessMenuVisible(true);
-        } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-            IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
-        } else {
-            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
-        }
-    };
+    const confirmPayment = useCallback(
+        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+            if (!type || !chatReport) {
+                return;
+            }
+            setPaymentType(type);
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true);
+            } else if (isAnyTransactionOnHold) {
+                setIsHoldMenuVisible(true);
+            } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+                IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+            } else {
+                IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
+            }
+        },
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -282,6 +285,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or banners are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown}

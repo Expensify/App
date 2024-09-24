@@ -345,13 +345,12 @@ function PaymentMethodList({
                     title={translate('walletPage.addBankAccount')}
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                    hoverAndPressStyle={styles.hoveredComponentBG}
                     ref={buttonRef}
                     disabled={!isUserValidated}
                 />
             ),
 
-        [shouldUseSuccessAddBankAccountButton, translate, onPress, isLoadingPaymentMethods, buttonRef, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, isUserValidated],
+        [shouldUseSuccessAddBankAccountButton, translate, onPress, isLoadingPaymentMethods, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
     );
 
     /**
@@ -380,7 +379,6 @@ function PaymentMethodList({
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}
-                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID.toString() === item.methodID?.toString()}
@@ -391,7 +389,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

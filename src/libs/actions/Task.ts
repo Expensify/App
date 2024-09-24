@@ -1150,6 +1150,13 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 }
 
+/**
+ * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
+ */
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+}
+
 function clearTaskErrors(reportID: string) {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1191,6 +1198,7 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
+    canActionTask,
     setNewOptimisticAssignee,
 };
 

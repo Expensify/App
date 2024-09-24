@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,6 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -266,15 +266,11 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
-                                    <Badge
-                                        success
-                                        text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-                                    />
-                                )}
+                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
+                            <SearchButton />
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}

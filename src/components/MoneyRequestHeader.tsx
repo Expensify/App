@@ -133,6 +133,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
                     onBackButtonPress={onBackButtonPress}
                 >
                     {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (

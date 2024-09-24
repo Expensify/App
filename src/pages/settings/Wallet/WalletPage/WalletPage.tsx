@@ -1,4 +1,5 @@
-import _ from 'lodash';
+import debounce from 'lodash/debounce';
+import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -12,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -76,10 +78,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     });
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
-    const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
-    const hasWallet = !_.isEmpty(userWallet);
+    const hasBankAccount = !isEmpty(bankAccountList) || !isEmpty(fundList);
+    const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const hasAssignedCard = !_.isEmpty(cardList);
+    const hasAssignedCard = !isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
@@ -93,7 +95,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
     }, [isLoadingPaymentMethods, network.isOffline, shouldShowLoadingSpinner]);
 
-    const debounceSetShouldShowLoadingSpinner = _.debounce(updateShouldShowLoadingSpinner, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
+    const debounceSetShouldShowLoadingSpinner = debounce(updateShouldShowLoadingSpinner, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
 
     /**
      * Set position of the payment menu
@@ -277,7 +279,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 return;
             }
             if (shouldShowAddPaymentMenu) {
-                _.debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+                debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
                 return;
             }
             setMenuPosition();
@@ -298,9 +300,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
         let shouldResetPaymentMethodData = false;
 
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && _.isEmpty(bankAccountList?.[paymentMethod.methodID])) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isEmpty(bankAccountList?.[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
-        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(fundList?.[paymentMethod.methodID])) {
+        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && isEmpty(fundList?.[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
         }
         if (shouldResetPaymentMethodData) {
@@ -334,6 +336,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.MoneyIntoWallet}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplaySearchRouter
                     />
                     <ScrollView style={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -349,7 +352,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     title={translate('common.bankAccounts')}
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
-                                    illustration={Illustrations.BigVault}
+                                    illustration={LottieAnimations.BankVault}
                                     illustrationStyle={styles.walletIllustration}
                                     illustrationContainerStyle={{height: 220}}
                                     illustrationBackgroundColor="#411103"
@@ -454,7 +457,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                                 title={translate('common.transferBalance')}
                                                                 icon={Expensicons.Transfer}
                                                                 onPress={triggerKYCFlow}
-                                                                hoverAndPressStyle={styles.hoveredComponentBG}
                                                                 shouldShowRightIcon
                                                                 disabled={network.isOffline}
                                                                 wrapperStyle={[
@@ -499,7 +501,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             disabled={network.isOffline}
                                                             title={translate('walletPage.enableWallet')}
                                                             icon={Expensicons.Wallet}
-                                                            hoverAndPressStyle={styles.hoveredComponentBG}
                                                             wrapperStyle={[
                                                                 styles.transferBalance,
                                                                 shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
