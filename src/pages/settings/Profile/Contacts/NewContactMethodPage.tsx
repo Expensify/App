@@ -20,6 +20,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +62,7 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
 
     const addNewContactMethod = useCallback(
         (magicCode: string) => {
-            User.addNewContactMethod(pendingContactAction?.contactMethod ?? '', magicCode);
+            User.addNewContactMethod(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? ''), magicCode);
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
         },
         [pendingContactAction?.contactMethod],
@@ -149,7 +150,7 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
                 validateError={validateLoginError}
                 handleSubmitForm={addNewContactMethod}
-                clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                clearError={() => User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(contactMethod), 'validateLogin')}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
                 title={contactMethod}
