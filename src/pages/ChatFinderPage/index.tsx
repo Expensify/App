@@ -106,7 +106,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             {
                 data: searchOptions.personalDetails,
                 transform: (option) => {
-                    return (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+                    const displayName = option.participantsList?.[0]?.displayName ?? '';
+                    return (option.login ?? '') + (option.login !== displayName ? displayName : '');
                 },
             },
             {
@@ -138,6 +139,10 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             const searchStart = performance.now();
             const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
             console.log('findInSearchTree', performance.now() - searchStart);
+            console.log("results", {
+                personalDetails,
+                recentReports,
+            })
 
             return {
                 personalDetails,
