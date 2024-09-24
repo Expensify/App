@@ -2881,6 +2881,7 @@ export default {
             startTransactionDate: 'Start transaction date',
             cardName: 'Card name',
             assignedYouCard: (assigner: string) => `${assigner} assigned you a company card! Imported transactions will appear in this chat.`,
+            chooseCardFeed: 'Choose card feed',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
