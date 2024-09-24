@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -22,20 +21,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import type {PolicyTagLists} from '@src/types/onyx';
 
-type WorkspaceEditTagGLCodePageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
+type EditTagGLCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
 
-type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
-
-function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
+function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(route.params.policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
@@ -99,8 +93,4 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
 
 TagGLCodePage.displayName = 'TagGLCodePage';
 
-export default withOnyx<EditTagGLCodePageProps, WorkspaceEditTagGLCodePageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
-    },
-})(TagGLCodePage);
+export default TagGLCodePage;
