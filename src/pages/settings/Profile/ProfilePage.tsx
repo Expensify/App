@@ -3,19 +3,16 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,7 +23,6 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -45,7 +41,7 @@ function ProfilePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const isLoadingApp = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -117,6 +113,7 @@ function ProfilePage() {
                 title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
@@ -169,25 +166,13 @@ function ProfilePage() {
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
-                            <View style={[styles.alignSelfStart, styles.pt3]}>
-                                <Tooltip text={translate('common.shareCode')}>
-                                    <PressableWithFeedback
-                                        accessibilityLabel={translate('common.shareCode')}
-                                        accessibilityRole="button"
-                                        accessible
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                        style={[styles.button, styles.flexRow, styles.gap1, styles.ph4]}
-                                    >
-                                        <Icon
-                                            src={Expensicons.QrCode}
-                                            width={variables.iconSizeNormal}
-                                            height={variables.iconSizeNormal}
-                                            fill={theme.icon}
-                                        />
-                                        <Text style={styles.buttonText}>{translate('common.share')}</Text>
-                                    </PressableWithFeedback>
-                                </Tooltip>
-                            </View>
+                            <Button
+                                accessibilityLabel={translate('common.shareCode')}
+                                text={translate('common.share')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                                icon={Expensicons.QrCode}
+                                style={[styles.alignSelfStart, styles.mt6]}
+                            />
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}
