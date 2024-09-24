@@ -5346,6 +5346,11 @@ export default {
         date: 'Fecha',
         time: 'Hora',
         none: 'Ninguno',
+        visibleInLHN: 'Visible en LHN',
+        GBR: 'GBR',
+        RBR: 'RBR',
+        true: 'verdadero',
+        false: 'falso',
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',

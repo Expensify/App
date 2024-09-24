@@ -63,17 +63,17 @@ function DebugReportPage({
 
         return [
             {
-                title: 'Visible in LHN',
-                subtitle: String(!!reasonLHN),
+                title: translate('debug.visibleInLHN'),
+                subtitle: translate(`debug.${!!reasonLHN}`),
                 message: reasonLHN ? translate(reasonLHN) : undefined,
             },
             {
-                title: 'GBR',
-                subtitle: String(!!reasonGBR),
+                title: translate('debug.GBR'),
+                subtitle: translate(`debug.${!!reasonGBR}`),
                 message: reasonGBR ? translate(reasonGBR) : undefined,
                 action: reportActionGBR
                     ? {
-                          name: 'View',
+                          name: translate('common.view'),
                           callback: () =>
                               Navigation.navigate(
                                   ROUTES.REPORT_WITH_ID.getRoute(
@@ -85,11 +85,11 @@ function DebugReportPage({
                     : undefined,
             },
             {
-                title: 'RBR',
-                subtitle: String(!isEmptyObject(getAllReportErrors(report, reportActions))),
+                title: translate('debug.RBR'),
+                subtitle: translate(`debug.${!isEmptyObject(getAllReportErrors(report, reportActions))}`),
                 action: reportActionRBR
                     ? {
-                          name: 'View cause',
+                          name: translate('common.view'),
                           callback: () =>
                               Navigation.navigate(
                                   ROUTES.REPORT_WITH_ID.getRoute(

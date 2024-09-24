@@ -3197,9 +3197,6 @@ function hasMissingSmartscanFields(iouReportID: string): boolean {
 
 /**
  * Get report action which is missing smartscan fields
- *
- * @param iouReportID
- * @returns ReportAction
  */
 function getReportActionWithMissingSmartscanFields(iouReportID: string): ReportAction | undefined {
     const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));

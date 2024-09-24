@@ -614,9 +614,8 @@ function validateReportActionJSON(json: string) {
 
 /**
  * Gets the reason for showing LHN row
- *
- * @param report
- * @returns translation key or null
+ * 
+ * Based on ReportUtils.shouldReportBeInOptionList
  */
 function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
     if (!report) {
@@ -665,9 +664,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
 /**
  * Gets the reason that is causing the GBR to show up in LHN row
  *
- * @param report
- * @param parentReportAction
- * @returns translation key or null
+ * Based on ReportUtils.requiresAttentionFromCurrentUser
  */
 function getReasonForShowingGreenDotInLHNRow(report: OnyxEntry<Report>, parentReportAction?: ReportAction): TranslationPaths | null {
     if (!report) {
@@ -708,17 +705,15 @@ function getReasonForShowingGreenDotInLHNRow(report: OnyxEntry<Report>, parentRe
 /**
  * Gets the report action that is causing the GBR to show up in LHN
  *
- * @param report
- * @param reportActions
- * @returns report action
+ * Based on ReportUtils.requiresAttentionFromCurrentUser
  */
-function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions> = {}): OnyxEntry<ReportAction> {
     if (!report) {
         return undefined;
     }
 
     if (ReportUtils.isJoinRequestInAdminRoom(report)) {
-        return Object.values(reportActions ?? {}).find(
+        return Object.values(reportActions).find(
             (reportActionItem) =>
                 ReportActionsUtils.isActionableJoinRequest(reportActionItem) && ReportActionsUtils.getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
         );
@@ -726,7 +721,7 @@ function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (report.hasOutstandingChildRequest) {
-        return Object.values(reportActions ?? {}).find((action) => {
+        return Object.values(reportActions).find((action) => {
             const iouReport = ReportUtils.getReportOrDraftReport(action.childReportID ?? '-1');
             const policy = PolicyUtils.getPolicy(iouReport?.policyID);
             const shouldShowSettlementButton = IOU.canIOUBePaid(iouReport, report, policy) || IOU.canApproveIOU(iouReport, policy);
@@ -748,10 +743,6 @@ function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  * Gets the report action that is causing the RBR to show up in LHN
  *
  * Based on OptionListUtils.getAllReportErrors
- *
- * @param report
- * @param reportActions
- * @returns report action
  */
 function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     const parentReportAction: OnyxEntry<ReportAction> =
