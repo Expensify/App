@@ -25,7 +25,7 @@ import * as reportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
-import {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
