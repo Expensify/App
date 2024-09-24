@@ -734,6 +734,13 @@ function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         });
     }
 
+    // Is an invoice room and there's an invoice missing a bank account 
+    if (ReportUtils.isInvoiceRoom(report)) {
+        return Object.values(reportActions).find(
+            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && ReportUtils.hasMissingInvoiceBankAccount(reportAction.childReportID),
+        );
+    }
+
     return undefined;
 }
 
