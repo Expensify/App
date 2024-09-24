@@ -1,5 +1,6 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+// eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
