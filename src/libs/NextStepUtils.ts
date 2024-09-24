@@ -25,7 +25,6 @@ Onyx.connect({
 
         currentUserAccountID = value?.accountID ?? -1;
         currentUserEmail = value?.email ?? '';
-        
     },
 });
 
@@ -38,8 +37,7 @@ Onyx.connect({
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-
-    messages?.forEach((part, index) => {
+    const currentUserDisplayName = messages?.forEach((part, index) => {
         const isEmail = Str.isValidEmail(part.text);
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
@@ -47,7 +45,7 @@ function parseMessage(messages: Message[] | undefined) {
         const previousPart = messages[index - 1];
         const nextPart = messages[index + 1];
 
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail || part.text === currentUserDisplayName) {
+        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
             content = nextPart?.text === `'s` ? 'Your' : 'You';
         } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
@@ -275,6 +273,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: reimburserDisplayName,
                         type: 'strong',
+                        clickToCopyText: reimburserAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
                     {
                         text: ' to ',
