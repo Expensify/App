@@ -24,6 +24,7 @@ function stringToArray(input: string) {
             res.push(charCode);
         }
     }
+    console.log("stringToArray", res)
     return res;
 }
 
@@ -36,24 +37,28 @@ type PrepareDataParams<T> = {
     transform: (data: T) => string;
 };
 
+function cleanedString(input: string) {
+    return input.toLowerCase().replace(aToZRegex, '');
+}
+
 function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const str = data
         .map((option) => {
-            let searchStringForTree = transform(option);
+            const searchStringForTree = transform(option);
             // Remove all none a-z chars:
-            searchStringForTree = searchStringForTree.toLowerCase().replace(aToZRegex, '');
+            const cleanedSearchStringForTree = cleanedString(searchStringForTree);
 
-            if (searchStringForTree.length > 0) {
+            if (cleanedSearchStringForTree.length > 0) {
                 // We need to push an array that has the same length as the length of the string we insert for this option:
-                const indexes = Array.from({length: searchStringForTree.length}, () => option);
+                const indexes = Array.from({length: cleanedSearchStringForTree.length}, () => option);
                 // Note: we add undefined for the delimiter character
                 searchIndexList.push(...indexes, undefined);
             } else {
                 return undefined;
             }
 
-            return searchStringForTree;
+            return cleanedSearchStringForTree;
         })
         // slightly faster alternative to `.filter(Boolean).join(delimiterChar)`
         .reduce((acc: string, curr) => {
@@ -80,6 +85,9 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array
 function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
     const start1 = performance.now();
     const strings = [];
+
+    // We might received multiple lists of data that we want to search in
+    // thus indexes is a list of those data lists
     const indexes: Array<Array<T | undefined>> = [];
 
     for (const {data, transform} of compose) {
@@ -89,6 +97,7 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
     }
     const stringToSearch = `${strings.join('')}|`; // End Character
     console.log("Search String length", stringToSearch.length);
+    console.log(stringToSearch)
     console.log('building search strings', performance.now() - start1);
 
     const a = stringToArray(stringToSearch);
@@ -205,6 +214,8 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
      */
     function findSubstring(searchString: string) {
         const occurrences: number[] = [];
+        const cleanedSearchString = cleanedString(searchString);
+        const numericSearchQuery = stringToArray(cleanedSearchString);
 
         function dfs(node: number, depth: number) {
             const leftRange = l[node];
@@ -212,7 +223,7 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
             for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
-                if (searchString.charCodeAt(depth + i) - CHAR_CODE_A !== a[leftRange + i]) {
+                if (numericSearchQuery[depth + i] !== a[leftRange + i]) {
                     return;
                 }
             }
@@ -236,8 +247,9 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
 
     function findInSearchTree(searchInput: string): T[][] {
         const now = performance.now();
-        const result = findSubstring(searchInput);
-        console.log('FindSubstring index result for searchInput', searchInput, result);
+        const cleanedSearchInput = searchInput.toLowerCase().replace(aToZRegex, '');
+        const result = findSubstring(cleanedSearchInput);
+        console.log('FindSubstring index result for searchInput', cleanedSearchInput, result);
         
         // Map the results to the original options
         const mappedResults = Array.from({length: compose.length}, () => new Set<T>());

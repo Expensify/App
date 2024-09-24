@@ -52,8 +52,6 @@ const setPerformanceTimersEnd = () => {
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
-const aToZRegex = /[^a-z]/gi;
-
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
@@ -165,7 +163,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const newOptions1 = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
-        const newOptions = findInSearchTree(debouncedSearchValue.toLowerCase().replace(aToZRegex, ''));
+        const newOptions = findInSearchTree(debouncedSearchValue);
         const userToInvite = OptionsListUtils.pickUserToInvite({
             canInviteUser: true,
             recentReports: newOptions.recentReports,
