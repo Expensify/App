@@ -100,6 +100,7 @@ function Expensify({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [tryNewDotData] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [shouldReturnToOldDotAfterBooking] = useOnyx(ONYXKEYS.SHOULD_RETURN_TO_OLD_DOT_AFTER_BOOKING);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -119,12 +120,13 @@ function Expensify({
     }, [isCheckingPublicRoom]);
 
     useEffect(() => {
-        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || tryNewDotData === undefined) {
+        // The last condition disables the explanation modal for classic experience users who only use the travel feature.
+        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || tryNewDotData === undefined || shouldReturnToOldDotAfterBooking) {
             return;
         }
 
         handleHybridAppOnboarding();
-    }, [splashScreenState, tryNewDotData]);
+    }, [shouldReturnToOldDotAfterBooking, splashScreenState, tryNewDotData]);
 
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
