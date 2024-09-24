@@ -557,15 +557,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
-                            path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
-                        },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
-                            path: ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.route,
-                        },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
-                            path: ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.route,
-                        },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
@@ -1242,9 +1233,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                 },
                 [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
-                [SCREENS.WORKSPACE.CARD]: {
-                    path: ROUTES.WORKSPACE_CARD.route,
-                },
                 [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
                     path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
@@ -1254,17 +1242,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
                 },
-                [SCREENS.WORKSPACE.REIMBURSE]: {
-                    path: ROUTES.WORKSPACE_REIMBURSE.route,
-                },
-                [SCREENS.WORKSPACE.BILLS]: {
-                    path: ROUTES.WORKSPACE_BILLS.route,
-                },
                 [SCREENS.WORKSPACE.INVOICES]: {
                     path: ROUTES.WORKSPACE_INVOICES.route,
-                },
-                [SCREENS.WORKSPACE.TRAVEL]: {
-                    path: ROUTES.WORKSPACE_TRAVEL.route,
                 },
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,
