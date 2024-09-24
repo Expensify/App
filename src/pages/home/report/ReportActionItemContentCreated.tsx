@@ -74,8 +74,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule],
     );
 
-    const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
-
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
@@ -106,7 +104,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         }
 
         return (
-            <ShowContextMenuContext.Provider value={contextMenuValue}>
+            <ShowContextMenuContext.Provider value={contextValue}>
                 <View>
                     <MoneyRequestView
                         report={report}
@@ -160,7 +158,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
-                        <ShowContextMenuContext.Provider value={contextMenuValue}>
+                        <ShowContextMenuContext.Provider value={contextValue}>
                             <View>
                                 <MoneyRequestView
                                     report={transactionThreadReport}
