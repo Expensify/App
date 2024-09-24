@@ -123,7 +123,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !hasAllPendingRTERViolations;
+    const shouldShowSubmitButton = !!moneyRequestReport && isDraft && reimbursableSpend !== 0 && !hasAllPendingRTERViolations;
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(moneyRequestReport);
@@ -319,7 +319,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && !shouldUseNarrowLayout && moneyRequestReport && (
+                {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
                             success={isWaitingForSubmissionFromCurrentUser}
@@ -368,7 +368,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             connectionName={connectedIntegration}
                         />
                     )}
-                    {shouldShowSubmitButton && shouldUseNarrowLayout && moneyRequestReport && (
+                    {shouldShowSubmitButton && (
                         <Button
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
