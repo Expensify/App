@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
@@ -39,14 +38,7 @@ type BaseMenuItem = {
     action: () => void | Promise<void>;
 };
 
-type TroubleshootPageOnyxProps = {
-    shouldStoreLogs: OnyxEntry<boolean>;
-    shouldMaskOnyxState: boolean;
-};
-
-type TroubleshootPageProps = TroubleshootPageOnyxProps;
-
-function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
+function TroubleshootPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -54,6 +46,9 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrationStyle = getLightbulbIllustrationStyle();
+
+    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -106,6 +101,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
@@ -176,12 +172,4 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
 
 TroubleshootPage.displayName = 'TroubleshootPage';
 
-export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-    shouldMaskOnyxState: {
-        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
-        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
-    },
-})(TroubleshootPage);
+export default TroubleshootPage;
