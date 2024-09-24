@@ -345,10 +345,10 @@ function BaseValidateCodeForm(
                     )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
                     <PressableWithFeedback
+                        key={isUsingRecoveryCode.toString()}
                         style={[styles.mt2]}
                         onPress={switchBetween2faAndRecoveryCode}
                         hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
