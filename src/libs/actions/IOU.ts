@@ -7626,6 +7626,18 @@ function detachReceipt(transactionID: string) {
         },
     ];
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingFields: {
+                    receipt: null,
+                },
+            },
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7642,7 +7654,7 @@ function detachReceipt(transactionID: string) {
 
     const parameters: DetachReceiptParams = {transactionID};
 
-    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
 function replaceReceipt(transactionID: string, file: File, source: string) {
@@ -7666,6 +7678,19 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
             },
         },
     ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingFields: {
+                    receipt: null,
+                },
+            },
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7686,7 +7711,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
         receipt: file,
     };
 
-    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
 /**

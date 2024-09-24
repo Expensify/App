@@ -157,6 +157,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             report={report}
                             policy={policy}
                             isCombinedReport
+                            pendingAction={action.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
@@ -174,6 +175,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                     <MoneyReportView
                         report={report}
                         policy={policy}
+                        pendingAction={action.pendingAction}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     />
                 )}
