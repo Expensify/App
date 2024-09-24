@@ -88,6 +88,7 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
         indexes.push(searchIndexList);
     }
     const stringToSearch = `${strings.join('')}|`; // End Character
+    console.log("Search String length", stringToSearch.length);
     console.log('building search strings', performance.now() - start1);
 
     const a = stringToArray(stringToSearch);
@@ -233,26 +234,21 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
         return occurrences;
     }
 
-    function findInSearchTree(searchInput: string) {
+    function findInSearchTree(searchInput: string): T[][] {
         const now = performance.now();
         const result = findSubstring(searchInput);
         console.log('FindSubstring index result for searchInput', searchInput, result);
+        
         // Map the results to the original options
-
-        const mappedResults: T[][] = Array.from({length: compose.length}, () => []);
-        console.log({result});
+        const mappedResults = Array.from({length: compose.length}, () => new Set<T>());
         result.forEach((index) => {
-            // const textInSearchString = searchString.substring(index, searchString.indexOf(delimiterChar, index));
-            // console.log('textInSearchString', textInSearchString);
-
-            // TODO: check with Hanno whether we restore the data correctly
             let offset = 0;
             for (let i = 0; i < indexes.length; i++) {
                 const relativeIndex = index - offset + 1;
                 if (relativeIndex < indexes[i].length && relativeIndex >= 0) {
                     const option = indexes[i][relativeIndex];
                     if (option) {
-                        mappedResults[i].push(option);
+                        mappedResults[i].add(option);
                     }
                 } else {
                     offset += indexes[i].length;
@@ -261,7 +257,7 @@ function makeTree<T>(compose: Array<PrepareDataParams<T>>) {
         });
 
         console.log('search', performance.now() - now);
-        return mappedResults;
+        return mappedResults.map((set) => Array.from(set));
     }
 
     return {
