@@ -10,17 +10,23 @@ let ongoingRequest: Request | null = null;
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
-        // it has the ongoingRequest in here?
         persistedRequests = val ?? [];
 
         if (ongoingRequest && persistedRequests.length > 0) {
             const nextRequestToProcess = persistedRequests[0];
+
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
             if (isEqual(nextRequestToProcess, ongoingRequest)) {
                 persistedRequests = persistedRequests.slice(1);
             }
         }
+    },
+});
+Onyx.connect({
+    key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
+    callback: (val) => {
+        ongoingRequest = val ?? null;
     },
 });
 
@@ -55,13 +61,16 @@ function remove(requestToRemove: Request) {
     const requests = [...persistedRequests];
     const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
 
-    if (index === -1) {
-        return;
+    if (index !== -1) {
+        requests.splice(index, 1);
     }
-    requests.splice(index, 1);
+
     persistedRequests = requests;
 
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
+    }).then(() => {
         Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`);
     });
 }
@@ -75,22 +84,29 @@ function update(oldRequestIndex: number, newRequest: Request) {
 
 function updateOngoingRequest(newRequest: Request) {
     ongoingRequest = newRequest;
+
+    if (newRequest.persistWhenOngoing) {
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
+    }
 }
 
-function processNextRequest(): Request {
+function processNextRequest(): Request | null {
+    if (ongoingRequest) {
+        Log.info(`Ongoing Request already set returning same one ${ongoingRequest.commandName}`);
+        return ongoingRequest;
+    }
+
     // You must handle the case where there are no requests to process
     if (persistedRequests.length === 0) {
         throw new Error('No requests to process');
     }
 
-    // At least for now, you must handle the case where there is an ongoing request
-    if (ongoingRequest) {
-        throw new Error('There is already an ongoing request');
+    ongoingRequest = persistedRequests.shift() ?? null;
+
+    if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
     }
-    ongoingRequest = persistedRequests[0];
-    persistedRequests = persistedRequests.slice(1);
-    // We don't need to update Onyx persistedRequests just in case the ongoingRequest fails
-    // we want to keep trying if the user closes the app
+
     return ongoingRequest;
 }
 

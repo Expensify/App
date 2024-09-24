@@ -81,6 +81,10 @@ function process(): Promise<void> {
     }
 
     const requestToProcess = PersistedRequests.processNextRequest();
+    if (!requestToProcess) {
+        Log.info('[SequentialQueue] Unable to process. No next request to handle.');
+        return Promise.resolve();
+    }
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = Request.processWithMiddleware(requestToProcess, true)
@@ -184,7 +188,7 @@ function unpause() {
     }
 
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
-    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
+    Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
     flush();
 }
@@ -207,6 +211,11 @@ function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
     if (checkAndFixConflictingRequest) {
         const {conflictAction} = checkAndFixConflictingRequest(requests);
+        Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
+
+        // No need to serialize it.
+        // eslint-disable-next-line no-param-reassign
+        delete newRequest.checkAndFixConflictingRequest;
 
         if (conflictAction.type === 'push') {
             PersistedRequests.save(newRequest);
@@ -248,5 +257,5 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause};
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process};
 export type {RequestError};

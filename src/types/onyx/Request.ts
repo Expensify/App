@@ -109,6 +109,12 @@ type RequestConflictResolver = {
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
     checkAndFixConflictingRequest?: (persistedRequest: Request[]) => ConflictActionData;
+
+    /**
+     * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
+     * the ongoing request, it will be removed from the persisted request queue.
+     */
+    persistWhenOngoing?: boolean;
 };
 
 /** Model of requests sent to the API */
