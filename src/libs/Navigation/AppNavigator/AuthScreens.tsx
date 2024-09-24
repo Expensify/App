@@ -527,7 +527,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
                     />
-                    {!isOnboardingCompleted && (
+                    {isOnboardingCompleted === false && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                             options={onboardingScreenOptions}
