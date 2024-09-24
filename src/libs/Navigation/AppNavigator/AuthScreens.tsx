@@ -257,13 +257,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         Welcome.isOnboardingFlowCompleted({
+            // When onboarding is not completed, we want to display the onboarding navigator
             onNotCompleted: () => setShouldShowOnboardingNavigator(true),
-            onCompleted: () => setShouldShowOnboardingNavigator(false),
         });
 
         isInitialRender.current = false;
     }
 
+    // Start the onboarding flow after onboarding navigator is mounted
     useEffect(() => {
         if (!shouldShowOnboardingNavigator) {
             return;
