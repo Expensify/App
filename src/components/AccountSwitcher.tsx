@@ -201,11 +201,12 @@ function AccountSwitcher() {
                         }
                         item.onSelected();
                     }}
-                    containerStyles={[{maxHeight: windowHeight / 2, width: 'fit-content'}, styles.pb0, styles.mw100]}
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.pb0, styles.mw100, styles.wFitContent]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
                     scrollContainerStyle={styles.pb4}
                     shouldUseScrollView
+                    shouldUpdateFocusedIndex={false}
                 />
             )}
             <ConfirmModal

@@ -118,6 +118,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
 };
 
 function PopoverMenu({
@@ -148,6 +151,7 @@ function PopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
+    shouldUpdateFocusedIndex = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -283,7 +287,7 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    <WrapComponent contentContainerStyle={shouldUseScrollView && scrollContainerStyle}>
+                    <WrapComponent {...(shouldUseScrollView && {contentContainerStyle: scrollContainerStyle})}>
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
                             return (
@@ -295,7 +299,12 @@ function PopoverMenu({
                                     focused={focusedIndex === menuIndex}
                                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                                     shouldCheckActionAllowedOnPress={false}
-                                    onFocus={() => setFocusedIndex(menuIndex)}
+                                    onFocus={() => {
+                                        if (!shouldUpdateFocusedIndex) {
+                                            return;
+                                        }
+                                        setFocusedIndex(menuIndex);
+                                    }}
                                     style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                                     // eslint-disable-next-line react/jsx-props-no-spreading
