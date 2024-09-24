@@ -27,7 +27,7 @@ import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
-    report: Report;
+    report: OnyxEntry<Report>;
 
     /** The policy which the report is tied to */
     policy: OnyxEntry<Policy>;
@@ -43,7 +43,7 @@ type MoneyRequestHeaderProps = {
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
             ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? -1 : -1
@@ -58,12 +58,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
+    const reportID = report?.reportID;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', report.reportID);
-    }, [report.reportID, transaction?.transactionID]);
+        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID ?? '');
+    }, [reportID, transaction?.transactionID]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
@@ -129,6 +130,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     shouldShowPinButton={false}
                     report={{
                         ...report,
+                        reportID: reportID ?? '',
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
@@ -149,7 +151,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0, styles.ml2]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? ''));
                             }}
                         />
                     )}
@@ -171,7 +173,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? ''));
                             }}
                         />
                     </View>
