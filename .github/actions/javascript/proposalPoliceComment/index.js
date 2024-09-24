@@ -18047,9 +18047,9 @@ async function run() {
     else if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
         // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
         // bot related action keyword
-        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ').at(1)?.replace('"', '');
+        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.at(1)?.replace('"', '');
         // format the date like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-        const formattedDate = `${date.toISOString()?.split('.').at(0)?.replace('T', ' ')} UTC`;
+        const formattedDate = `${date.toISOString()?.split('.')?.at(0)?.replace('T', ' ')} UTC`;
         extractedNotice = extractedNotice?.replace('{updated_timestamp}', formattedDate);
         console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
         await GithubUtils_1.default.octokit.issues.updateComment({
@@ -18335,7 +18335,7 @@ class GithubUtils {
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-').at(0)?.trim() ?? '',
+            url: match[2].split('-').at(0)?.trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
@@ -18493,7 +18493,7 @@ class GithubUtils {
             repo: CONST_1.default.APP_REPO,
             workflow_id: workflow,
         })
-            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+            .then((response) => response.data.workflow_runs.at(0)?.id);
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
