@@ -2136,6 +2136,7 @@ function getMoneyRequestInformation(
             undefined,
             linkedTrackedExpenseReportAction?.childReportID,
             linkedTrackedExpenseReportAction,
+            delegateEmail,
         );
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);

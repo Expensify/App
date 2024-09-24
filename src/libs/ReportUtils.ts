@@ -5830,6 +5830,7 @@ function buildOptimisticMoneyRequestEntities(
     isPersonalTrackingExpense?: boolean,
     existingTransactionThreadReportID?: string,
     linkedTrackedExpenseReportAction?: ReportAction,
+    delegate?: string,
 ): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
@@ -5851,6 +5852,7 @@ function buildOptimisticMoneyRequestEntities(
         isOwnPolicyExpenseChat,
         iouActionCreationTime,
         linkedTrackedExpenseReportAction,
+        delegate,
     );
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
