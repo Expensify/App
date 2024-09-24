@@ -182,16 +182,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
-    [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVITE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
@@ -296,6 +293,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAG_APPROVER]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -629,6 +631,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {
@@ -1205,9 +1213,6 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
@@ -1247,16 +1252,7 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REIMBURSE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.BILLS]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
