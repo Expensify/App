@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
@@ -50,7 +50,7 @@ function TroubleshootPage() {
     const illustrationStyle = getLightbulbIllustrationStyle();
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
-    const [shouldMaskOnyxState] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -103,6 +103,7 @@ function TroubleshootPage() {
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
@@ -136,7 +137,7 @@ function TroubleshootPage() {
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={shouldMaskOnyxState ?? true}
+                                        isOn={shouldMaskOnyxState}
                                         onToggle={setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
