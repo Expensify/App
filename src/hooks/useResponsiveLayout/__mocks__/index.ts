@@ -9,5 +9,6 @@ export default function useResponsiveLayout() {
         onboardingIsMediumOrLargerScreenWidth: true,
         isLargeScreenWidth: true,
         isSmallScreen: false,
+        isSmallScreenHeight: false,
     };
 }
