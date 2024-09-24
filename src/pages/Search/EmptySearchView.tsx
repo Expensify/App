@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -92,6 +92,14 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         );
     }, [styles, translate, ctaErrorMessage]);
 
+    const onPress = useCallback(() => {
+        if (Str.isSMSLogin(primaryLogin)) {
+            setCtaErrorMessage(translate('travel.phoneError'));
+            return;
+        }
+        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID ?? '', setCtaErrorMessage, ctaErrorMessage);
+    }, [primaryLogin, translate, travelSettings, activePolicyID, ctaErrorMessage]);
+
     const content = useMemo(() => {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
@@ -103,13 +111,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: () => {
-                        if (Str.isSMSLogin(primaryLogin)) {
-                            setCtaErrorMessage(translate('travel.phoneError'));
-                            return;
-                        }
-                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID ?? '', ctaErrorMessage, setCtaErrorMessage);
-                    },
+                    buttonAction: onPress,
                     canEmptyViewBeScrolled: true,
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
@@ -126,7 +128,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, onPress]);
 
     return (
         <EmptyStateComponent

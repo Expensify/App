@@ -62,7 +62,7 @@ function ManageTrips() {
                             setCtaErrorMessage(translate('travel.phoneError'));
                             return;
                         }
-                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID, ctaErrorMessage, setCtaErrorMessage);
+                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID ?? '', setCtaErrorMessage, ctaErrorMessage);
                     }}
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}

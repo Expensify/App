@@ -1,7 +1,6 @@
-import {Dispatch, SetStateAction} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import * as Link from '@userActions/Link';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -10,6 +9,7 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as Link from './actions/Link';
 import Navigation from './Navigation/Navigation';
 
 function getTripReservationIcon(reservationType: ReservationType): IconAsset {
@@ -50,8 +50,8 @@ function bookATrip(
     translate: LocaleContextProps['translate'],
     travelSettings: OnyxEntry<TravelSettings>,
     activePolicyID: string,
-    ctaErrorMessage = '',
     setCtaErrorMessage: Dispatch<SetStateAction<string>>,
+    ctaErrorMessage = '',
 ): void {
     if (isEmptyObject(travelSettings)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
