@@ -198,8 +198,32 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
     return new Promise((resolve, reject) => {
         const parameters: RevealExpensifyCardDetailsParams = {cardID, validateCode};
 
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {isLoading: true},
+            },
+        ];
+
+        const successData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {isLoading: false},
+            },
+        ];
+
+        const failureData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {isLoading: false},
+            },
+        ];
+
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters)
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters, {optimisticData, successData, failureData})
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {

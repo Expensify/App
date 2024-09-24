@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getAdminEmployees} from '@libs/PolicyUtils';
@@ -54,13 +54,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== qboConfig?.export?.exporter) {
-                Connections.updatePolicyConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICKBOOKS_CONFIG.EXPORT,
-                    {exporter: row.value},
-                    {exporter: qboConfig?.export.exporter},
-                );
+                QuickbooksOnline.updateQuickbooksOnlinePreferredExporter(policyID, {exporter: row.value}, {exporter: qboConfig?.export.exporter ?? ''});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
         },
@@ -92,10 +86,10 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORTER], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORTER)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT], qboConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORTER)}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT)}
         />
     );
 }

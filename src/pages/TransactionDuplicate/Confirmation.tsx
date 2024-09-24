@@ -71,7 +71,7 @@ function Confirmation() {
         ReportUtils.isReportNotFound(report) ||
         (reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
 
-    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult)) {
+    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !transaction?.transactionID) {
         return <FullScreenLoadingIndicator />;
     }
 
