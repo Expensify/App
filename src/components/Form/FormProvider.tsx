@@ -91,7 +91,7 @@ function FormProvider(
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
-    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors?.toString()), [formState]);
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {

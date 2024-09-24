@@ -1,10 +1,10 @@
 import {createContext} from 'react';
 import type {Form} from '@src/types/form';
-import type {InputComponentBaseProps} from './types';
+import type {FormOnyxKeys, InputComponentBaseProps} from './types';
 
 type InputProps = Omit<InputComponentBaseProps, 'InputComponent' | 'inputID'>;
 
-type RegisterInput = (inputID: keyof Form, shouldSubmitForm: boolean, inputProps: InputProps) => InputProps;
+type RegisterInput = (inputID: FormOnyxKeys, shouldSubmitForm: boolean, inputProps: InputProps) => InputProps;
 type FormContext = {
     registerInput: RegisterInput;
 };
