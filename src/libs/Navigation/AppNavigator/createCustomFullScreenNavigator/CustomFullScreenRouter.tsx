@@ -21,6 +21,7 @@ function adaptStateIfNecessary(state: StackState, isLoadingReportData: OnyxEntry
             : undefined;
 
     // There should always be WORKSPACE.INITIAL screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
+    // The only exception is when the workspace is invalid or inaccessible.
     if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
         const policy = PolicyUtils.getPolicy(policyID ?? '');
         const isPolicyAccessible = PolicyUtils.isPolicyAccessible(policy);
