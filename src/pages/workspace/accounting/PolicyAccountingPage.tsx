@@ -87,9 +87,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
-    // Enter credentials item shouldn't be shown for SageIntacct and NetSuite integrations
-    const shouldShowEnterCredentials =
-        connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration) && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+    const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
     const policyID = policy?.id ?? '-1';
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
@@ -106,7 +104,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            ...(shouldShowEnterCredentials
+            ...(shouldShowEnterCredentials && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE)
                 ? [
                       {
                           icon: Expensicons.Key,
@@ -115,7 +113,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
-                          shouldShowRightIcon: connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
                       },
                   ]
                 : [
