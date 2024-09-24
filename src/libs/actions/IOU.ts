@@ -7025,7 +7025,6 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     if (hasHeldExpenses && !full && !!expenseReport?.unheldTotal) {
         total = expenseReport?.unheldTotal;
     }
-
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '-1');
 
     const approvalChain = ReportUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), expenseReport?.ownerAccountID ?? -1, expenseReport?.total ?? 0);
@@ -7276,7 +7275,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
-
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
