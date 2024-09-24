@@ -61,7 +61,7 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = SearchUtils.buildQueryStringFromFilterValues({merchant: CONST.EXPENSIFY_MERCHANT});
+        const query = SearchUtils.buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
     }, []);
 
@@ -95,7 +95,7 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+    if (SubscriptionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;

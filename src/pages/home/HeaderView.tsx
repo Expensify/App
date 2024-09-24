@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,6 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -40,7 +40,7 @@ type HeaderViewProps = {
     onNavigationMenuButtonClicked: () => void;
 
     /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
@@ -54,9 +54,9 @@ type HeaderViewProps = {
 
 function HeaderView({report, parentReportAction, reportID, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report?.reportID || '-1'}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -76,7 +76,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isTaskReport = ReportUtils.isTaskReport(report);
-    const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
+    const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
     const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
@@ -84,7 +84,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
-    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
@@ -129,7 +129,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
-    const isLoading = !report.reportID || !title;
+    const isLoading = !report?.reportID || !title;
 
     return (
         <View
@@ -177,7 +177,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                         size={defaultSubscriptSize}
                                     />
                                 ) : (
-                                    <OfflineWithFeedback pendingAction={report.pendingFields?.avatar}>
+                                    <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                                         <MultipleAvatars
                                             icons={icons}
                                             shouldShowTooltip={!isChatRoom || isChatThread}
@@ -202,8 +202,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     {!isEmptyObject(parentNavigationSubtitleData) && (
                                         <ParentNavigationSubtitle
                                             parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                            parentReportID={report.parentReportID}
-                                            parentReportActionID={report.parentReportActionID}
+                                            parentReportID={report?.parentReportID}
+                                            parentReportActionID={report?.parentReportActionID}
                                             pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                         />
                                     )}
@@ -266,15 +266,11 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
-                                    <Badge
-                                        success
-                                        text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-                                    />
-                                )}
+                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
+                            <SearchButton />
                         </View>
                         <ConfirmModal
                             isVisible={isDeleteTaskConfirmModalVisible}

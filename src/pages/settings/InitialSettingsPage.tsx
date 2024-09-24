@@ -112,6 +112,8 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
+    const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
+
     useEffect(() => {
         Wallet.openInitialSettingsPage();
     }, []);
@@ -219,8 +221,8 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 icon: Expensicons.CreditCard,
                 routeName: ROUTES.SETTINGS_SUBSCRIPTION,
                 brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
-                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
+                badgeText: freeTrialText,
+                badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
             });
         }
 
@@ -229,7 +231,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate, allConnectionSyncProgresses]);
+    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
 
     /**
      * Retuns a list of menu items data for general section
