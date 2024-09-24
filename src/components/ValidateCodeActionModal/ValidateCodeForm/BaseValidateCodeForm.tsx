@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -62,6 +63,9 @@ type ValidateCodeFormProps = {
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
 
+    /** Styles for the button */
+    buttonStyles?: StyleProp<ViewStyle>;
+
     /** Function to clear error of the form */
     clearError: () => void;
 };
@@ -78,6 +82,7 @@ function BaseValidateCodeForm({
     validateError,
     handleSubmitForm,
     clearError,
+    buttonStyles,
 }: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -204,7 +209,7 @@ function BaseValidateCodeForm({
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearValidateCodeActionError('actionVerified')}
             >
-                <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
                     <PressableWithFeedback
                         disabled={shouldDisableResendValidateCode}
                         style={[styles.mr1]}
@@ -232,6 +237,7 @@ function BaseValidateCodeForm({
                 errors={validateError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearError()}
+                style={buttonStyles}
             >
                 <Button
                     isDisabled={isOffline}

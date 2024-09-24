@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,9 +26,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const contactMethod = account?.primaryLogin ?? '';
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const firstRenderRef = useRef(true);
     const loginData = loginList?.[contactMethod];
+    const styles = useThemeStyles();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
@@ -68,13 +71,14 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
                 title={translate('contacts.validateAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, styles.flex1]}>
                 <Text style={[themeStyles.mb3]}>{translate('contacts.featureRequiresValidate')}</Text>
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     validateError={validateLoginError}
                     handleSubmitForm={handleSubmitForm}
                     clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                    buttonStyles={[styles.justifyContentEnd, styles.flex1, safePaddingBottomStyle]}
                 />
             </View>
         </ScreenWrapper>
