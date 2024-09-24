@@ -611,6 +611,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
+                            path: ROUTES.WORKSPACE_MEMBER_NEW_CARD.route,
+                        },
                         [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
                         },

@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -12,6 +12,7 @@ import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +48,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
@@ -169,12 +171,20 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             />
                                         </View>
                                     )}
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
-                                    >
-                                        {formattedTotalAmount}
-                                    </Text>
+                                    {!isTotalUpdated && !isOffline ? (
+                                        <ActivityIndicator
+                                            size="small"
+                                            style={[styles.moneyRequestLoadingHeight]}
+                                            color={theme.textSupporting}
+                                        />
+                                    ) : (
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                                        >
+                                            {formattedTotalAmount}
+                                        </Text>
+                                    )}
                                 </View>
                             </View>
                         )}

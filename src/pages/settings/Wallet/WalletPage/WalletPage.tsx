@@ -367,6 +367,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.MoneyIntoWallet}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplaySearchRouter
                     />
                     <ScrollView style={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

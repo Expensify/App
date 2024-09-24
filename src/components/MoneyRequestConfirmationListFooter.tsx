@@ -35,6 +35,7 @@ import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
+import {ShowContextMenuContext} from './ShowContextMenuContext';
 import ShowMoreButton from './ShowMoreButton';
 
 type MoneyRequestConfirmationListFooterProps = {
@@ -268,6 +269,18 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
+    const contextMenuContextValue = useMemo(
+        () => ({
+            anchor: null,
+            report: undefined,
+            reportNameValuePairs: undefined,
+            action: undefined,
+            checkIfContextMenuActive: () => {},
+            isDisabled: true,
+        }),
+        [],
+    );
+
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
@@ -300,27 +313,29 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <MentionReportContext.Provider
-                    key={translate('common.description')}
-                    value={mentionReportContextValue}
-                >
-                    <MenuItemWithTopDescription
+                <ShowContextMenuContext.Provider value={contextMenuContextValue}>
+                    <MentionReportContext.Provider
                         key={translate('common.description')}
-                        shouldShowRightIcon={!isReadOnly}
-                        shouldParseTitle
-                        excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                        title={iouComment}
-                        description={translate('common.description')}
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                        }}
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        disabled={didConfirm}
-                        interactive={!isReadOnly}
-                        numberOfLinesTitle={2}
-                    />
-                </MentionReportContext.Provider>
+                        value={mentionReportContextValue}
+                    >
+                        <MenuItemWithTopDescription
+                            key={translate('common.description')}
+                            shouldShowRightIcon={!isReadOnly}
+                            shouldParseTitle
+                            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                            title={iouComment}
+                            description={translate('common.description')}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            }}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                            numberOfLinesTitle={2}
+                        />
+                    </MentionReportContext.Provider>
+                </ShowContextMenuContext.Provider>
             ),
             shouldShow: true,
             isSupplementary: false,
