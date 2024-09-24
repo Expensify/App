@@ -127,8 +127,9 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         console.log('build', performance.now() - start);
 
         function search(searchInput: string) {
-            start = performance.now();
+            const searchStart = performance.now();
             const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
+            console.log('findInSearchTree', performance.now() - searchStart);
 
             return {
                 personalDetails,
