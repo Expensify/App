@@ -143,8 +143,8 @@ PODS:
     - GoogleUtilities/Environment (~> 7.7)
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (9.1.0)
-  - FullStory (1.49.0)
-  - fullstory_react-native (1.4.2):
+  - FullStory (1.52.0)
+  - fullstory_react-native (1.7.1):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -2451,7 +2451,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.2.0):
+  - RNReactNativeHapticFeedback (2.3.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2700,7 +2700,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.49.0-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2874,7 +2874,7 @@ EXTERNAL SOURCES:
   fmt:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.49.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   glog:
@@ -3089,7 +3089,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.49.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
@@ -3116,8 +3116,8 @@ SPEC CHECKSUMS:
   FirebasePerformance: 0c01a7a496657d7cea86d40c0b1725259d164c6c
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
-  FullStory: c95f74445f871bc344cdc4a4e4ece61b5554e55d
-  fullstory_react-native: 1818ee93dc38801665f26869f7ad68abb698a89a
+  FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
+  fullstory_react-native: 44dc2c85a6316df2713e6cb0048ce5719c3b0bab
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -3233,7 +3233,7 @@ SPEC CHECKSUMS:
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
-  RNReactNativeHapticFeedback: a15b431d2903bc2eb3474ff8d9a05d3e67a70199
+  RNReactNativeHapticFeedback: 31833c3ef341d716dbbd9d64e940f0c230db46f6
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
@@ -3248,6 +3248,6 @@ SPEC CHECKSUMS:
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
-PODFILE CHECKSUM: e479ec84cb53e5fd463486d71dfee91708d3fd9a
+PODFILE CHECKSUM: a07e55247056ec5d84d1af31d694506efff3cfe2
 
 COCOAPODS: 1.15.2

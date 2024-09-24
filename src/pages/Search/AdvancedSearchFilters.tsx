@@ -15,6 +15,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -174,7 +176,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         filters[fieldName]
     ) {
         const filterArray = filters[fieldName] ?? [];
-        return filterArray.join(', ');
+        return filterArray.sort(localeCompare).join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
@@ -221,13 +223,14 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
 
     const applyFiltersAndNavigate = () => {
@@ -241,6 +244,17 @@ function AdvancedSearchFilters() {
     };
 
     const onSaveSearch = () => {
+        const savedSearchKeys = Object.keys(savedSearches ?? {});
+        if (savedSearches && savedSearchKeys.includes(String(queryJSON.hash))) {
+            // If the search is already saved, return early to prevent unnecessary API calls
+            Navigation.dismissModal();
+            return;
+        }
+
+        if (isEmptyObject(savedSearches)) {
+            SearchActions.showSavedSearchRenameTooltip();
+        }
+
         SearchActions.saveSearch({
             queryJSON,
         });

@@ -33,23 +33,9 @@ type CategorySelectorProps = {
 
     /** Callback to hide category picker */
     hidePickerModal: () => void;
-
-    /** Whether SectionList should use custom ScrollView */
-    shouldUseCustomScrollView?: boolean;
 };
 
-function CategorySelector({
-    defaultValue = '',
-    wrapperStyle,
-    label,
-    setNewCategory,
-    policyID,
-    focused,
-    isPickerVisible,
-    showPickerModal,
-    hidePickerModal,
-    shouldUseCustomScrollView = false,
-}: CategorySelectorProps) {
+function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategory, policyID, focused, isPickerVisible, showPickerModal, hidePickerModal}: CategorySelectorProps) {
     const styles = useThemeStyles();
 
     const updateCategoryInput = (categoryItem: ListItem) => {
@@ -78,7 +64,6 @@ function CategorySelector({
                 onClose={hidePickerModal}
                 onCategorySelected={updateCategoryInput}
                 label={label}
-                shouldUseCustomScrollView={shouldUseCustomScrollView}
             />
         </View>
     );

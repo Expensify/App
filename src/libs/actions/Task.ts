@@ -18,6 +18,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -846,7 +847,7 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
         setAssigneeValue(accountLogin, accountID, reportID, chatReport, accountID === currentUserAccountID, skipConfirmation);
     }
-    Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
+    Navigation.navigate(ROUTES.NEW_TASK_DETAILS.getRoute(Navigation.getReportRHPActiveRoute()));
 }
 
 /**
@@ -1097,8 +1098,12 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Closes the current open task modal and clears out the task info from the store.
  */
-function dismissModalAndClearOutTaskInfo() {
-    Navigation.closeRHPFlow();
+function dismissModalAndClearOutTaskInfo(backTo?: Route) {
+    if (backTo) {
+        Navigation.goBack(backTo);
+    } else {
+        Navigation.closeRHPFlow();
+    }
     clearOutTaskInfo();
 }
 
@@ -1150,6 +1155,13 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 }
 
+/**
+ * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
+ */
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+}
+
 function clearTaskErrors(reportID: string) {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1191,6 +1203,7 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
+    canActionTask,
     setNewOptimisticAssignee,
 };
 
