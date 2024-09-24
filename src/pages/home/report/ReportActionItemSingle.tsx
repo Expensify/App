@@ -83,7 +83,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
-    const policy = usePolicy(report.policyID);
+    const policy = usePolicy(report?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
