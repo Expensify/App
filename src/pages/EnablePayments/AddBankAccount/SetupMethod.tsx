@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -17,19 +16,13 @@ import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type SetupMethodOnyxProps = {
-    /** Whether Plaid is disabled */
-    isPlaidDisabled: OnyxEntry<boolean>;
-};
-
-type SetupMethodProps = SetupMethodOnyxProps;
-
 const plaidDesktopMessage = getPlaidDesktopMessage();
 
-function SetupMethod({isPlaidDisabled}: SetupMethodProps) {
+function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
 
     return (
         <View>
@@ -70,8 +63,4 @@ function SetupMethod({isPlaidDisabled}: SetupMethodProps) {
 
 SetupMethod.displayName = 'SetupMethod';
 
-export default withOnyx<SetupMethodProps, SetupMethodOnyxProps>({
-    isPlaidDisabled: {
-        key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-})(SetupMethod);
+export default SetupMethod;
