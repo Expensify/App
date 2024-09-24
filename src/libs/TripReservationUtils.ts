@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {TravelSettings} from '@src/types/onyx';
+import type {TravelSettings} from '@src/types/onyx';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
