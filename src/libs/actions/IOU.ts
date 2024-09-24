@@ -8001,7 +8001,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
         },
     ];
 
-    // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    // If we are unholding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
     if (searchHash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
