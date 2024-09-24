@@ -1,4 +1,4 @@
-import lodash from 'lodash';
+import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -25,14 +25,6 @@ Onyx.connect({
 
         allCards = val;
     },
-});
-
-let allCardsLists: OnyxCollection<WorkspaceCardsList>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-    waitForCollectionCallback: true,
-    callback: (value) => (allCardsLists = value),
 });
 
 /**
@@ -115,7 +107,7 @@ function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
     // Check for domainName to filter out personal credit cards.
     const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
 
-    return lodash.groupBy(activeCards, (card) => card.domainName);
+    return groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
@@ -203,17 +195,6 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
-/** Checks if the Expensify Card toggle should be disabled */
-function shouldExpensifyCardToggleBeDisabled(workspaceAccountID?: number, areExpensifyCardsEnabled?: boolean): boolean {
-    if (!areExpensifyCardsEnabled || !workspaceAccountID) {
-        return false;
-    }
-
-    const cardsList = allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`];
-
-    return !isEmptyObject(cardsList);
-}
-
 function getCardDetailsImage(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
         return Illustrations.MasterCardCompanyCardDetail;
@@ -262,7 +243,6 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
-    shouldExpensifyCardToggleBeDisabled,
     getCardDetailsImage,
     getMemberCards,
 };
