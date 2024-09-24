@@ -616,7 +616,7 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, scrollToIndex}), [scrollAndHighlightItem, clearInputAfterSelect, scrollToIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {

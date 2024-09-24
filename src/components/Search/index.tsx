@@ -7,7 +7,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
@@ -235,6 +235,21 @@ function Search({queryJSON}: SearchProps) {
         return currentKeys.find((key) => !previousKeys.includes(key));
     }, [searchResults, previousSearchResults]);
 
+    const handleSelectionListScroll = useCallback(
+        (data: Array<TransactionListItemType | ReportActionListItemType | ReportListItemType>) => (ref: SelectionListHandle | null) => {
+            const indexOfNewTransaction = data?.findIndex(
+                (transaction) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(transaction as TransactionListItemType)?.transactionID}` === newSearchResultKey,
+            );
+
+            if (!ref || indexOfNewTransaction < 0) {
+                return;
+            }
+
+            ref?.scrollToIndex(indexOfNewTransaction);
+        },
+        [newSearchResultKey],
+    );
+
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
@@ -408,6 +423,7 @@ function Search({queryJSON}: SearchProps) {
                 resetOffset={resetOffset}
             />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
+                ref={handleSelectionListScroll(sortedSelectedData)}
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
                 onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
