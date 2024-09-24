@@ -600,7 +600,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [policyID, translate, isOffline, isPolicyAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
