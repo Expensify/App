@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -25,8 +25,10 @@ import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
+import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -121,6 +123,8 @@ function AttachmentPickerWithMenuItems({
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     /**
      * Returns the list of IOU Options
@@ -149,7 +153,13 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false),
+                onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        setIsNoDelegateAccessMenuVisible(true);
+                        return;
+                    }
+                    selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false);
+                },
             },
             [CONST.IOU.TYPE.TRACK]: {
                 icon: getIconForAction(CONST.IOU.TYPE.TRACK),
@@ -326,6 +336,11 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
+                        />
+                        <DelegateNoAccessModal
+                            isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                            onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                            delegatorEmail={delegatorEmail ?? ''}
                         />
                     </>
                 );
