@@ -684,30 +684,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
-    WORKSPACE_CARD: {
-        route: 'settings/workspaces/:policyID/card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/card` as const,
-    },
-    WORKSPACE_REIMBURSE: {
-        route: 'settings/workspaces/:policyID/reimburse',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reimburse` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT: {
-        route: 'settings/workspaces/:policyID/rateandunit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT_RATE: {
-        route: 'settings/workspaces/:policyID/rateandunit/rate',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/rate` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT_UNIT: {
-        route: 'settings/workspaces/:policyID/rateandunit/unit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/unit` as const,
-    },
-    WORKSPACE_BILLS: {
-        route: 'settings/workspaces/:policyID/bills',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/bills` as const,
-    },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
@@ -719,10 +695,6 @@ const ROUTES = {
     WORKSPACE_INVOICES_COMPANY_WEBSITE: {
         route: 'settings/workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
-    },
-    WORKSPACE_TRAVEL: {
-        route: 'settings/workspaces/:policyID/travel',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/travel` as const,
     },
     WORKSPACE_MEMBERS: {
         route: 'settings/workspaces/:policyID/members',
@@ -906,6 +878,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
     },
+    WORKSPACE_MEMBER_NEW_CARD: {
+        route: 'settings/workspaces/:policyID/members/:accountID/new-card',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/new-card` as const,
+    },
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/role-selection` as const,
@@ -988,10 +964,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD: {
-        route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
-    },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
@@ -1007,6 +979,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARD_EXPORT: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
         getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD: {
+        route: 'settings/workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
