@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
+import * as PersistedRequests from './PersistedRequests';
 import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
@@ -516,12 +517,24 @@ function setIsUsingImportedState(usingImportedState: boolean) {
 function clearOnyxAndResetApp() {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
+    const sequentialQueue = PersistedRequests.getAll();
     Onyx.clear(KEYS_TO_PRESERVE).then(() => {
         // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
         if (isStateImported) {
             setShouldForceOffline(false);
         }
-        openApp();
+        // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+        // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+        // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+        openApp().then(() => {
+            if (!sequentialQueue) {
+                return;
+            }
+
+            sequentialQueue.forEach((request) => {
+                PersistedRequests.save(request);
+            });
+        });
     });
 }
 
