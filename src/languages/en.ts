@@ -2140,6 +2140,8 @@ export default {
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',
+        bookADemo: 'Book a demo',
+        toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
