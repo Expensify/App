@@ -36,6 +36,8 @@ import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
 import SearchStatusBar from './SearchStatusBar';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import useTriggerSearchOnNewTransaction from '@hooks/useTriggerSearchOnTransactionIncrease';
+import useNewSearchResultKey from '@hooks/useNewSearchResultKey';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -134,31 +136,7 @@ function Search({queryJSON}: SearchProps) {
         SearchActions.search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    const searchTriggeredRef = useRef(false);
-
-    useEffect(() => {
-        const previousTransactionsLength = previousTransactions && Object.keys(previousTransactions).length;
-        const transactionsLength = transactions && Object.keys(transactions).length;
-
-        // Return early if search block was already triggered or there's no change in transactions length
-        if (searchTriggeredRef.current || previousTransactionsLength === transactionsLength) {
-            return;
-        }
-
-        // Checking if length exists (we check if previousTransactionsLength is number because
-        // if we check for existance and initially it's 0 then the check will fail)
-        if (transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength) {
-            // A new transaction was added, trigger the action
-            SearchActions.search({queryJSON, offset});
-            // Set the flag to true to prevent further triggers
-            searchTriggeredRef.current = true;
-        }
-
-        // Reset the flag when transactions are updated
-        return () => {
-            searchTriggeredRef.current = false;
-        };
-    }, [transactions, previousTransactions, queryJSON, offset]);
+    useTriggerSearchOnNewTransaction({transactions, previousTransactions, queryJSON, offset});
 
     const handleOnCancelConfirmModal = () => {
         setDeleteExpensesConfirmModalVisible(false);
@@ -216,24 +194,7 @@ function Search({queryJSON}: SearchProps) {
     }
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
-    const previousSearchResults = usePrevious(searchResults?.data);
-
-    const newSearchResultKey = useMemo(() => {
-        if (!previousSearchResults || !searchResults?.data) {
-            return null;
-        }
-
-        const previousKeys = Object.keys(previousSearchResults);
-        const currentKeys = Object.keys(searchResults.data);
-
-        const isTransactionKey = (key: string) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
-        // When previousKeys is empty (no transactions), find the first transaction key in currentKeys
-        if (previousKeys.length === 0) {
-            return currentKeys.find(isTransactionKey);
-        }
-
-        return currentKeys.find((key) => !previousKeys.includes(key));
-    }, [searchResults, previousSearchResults]);
+    const newSearchResultKey = useNewSearchResultKey(searchResults);
 
     const handleSelectionListScroll = useCallback(
         (data: Array<TransactionListItemType | ReportActionListItemType | ReportListItemType>) => (ref: SelectionListHandle | null) => {
@@ -297,7 +258,17 @@ function Search({queryJSON}: SearchProps) {
     const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
     const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => {
-        const shouldAnimateInHighlight = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}` === newSearchResultKey;
+        const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+        // Check if the base key matches the newSearchResultKey (TransactionListItemType)
+        const isBaseKeyMatch = baseKey === newSearchResultKey;
+        // Check if any transaction within the transactions array (ReportListItemType) matches the newSearchResultKey
+        const isAnyTransactionMatch = (item as ReportListItemType)?.transactions?.some((transaction) => {
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            return transactionKey === newSearchResultKey;
+        });
+        // Determine if either the base key or any transaction key matches
+        const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+        
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
