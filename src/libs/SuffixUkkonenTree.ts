@@ -117,6 +117,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     for (const {data, transform} of lists) {
         const [numericRepresentation, searchIndexList] = prepareData({data, transform});
         for (const num of numericRepresentation) {
+            // we have to use a loop here as push with spread yields a maximum call stack exceeded error
             listsAsConcatedNumericList.push(num);
         }
         indexesForList.push(searchIndexList);
