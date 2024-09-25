@@ -537,7 +537,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return null;
         }
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            <View style={styles.w100}>
                 {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
