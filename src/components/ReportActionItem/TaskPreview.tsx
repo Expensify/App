@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -53,9 +54,12 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: () => void;
+
+    /** Style for the task preview container */
+    style: StyleProp<ViewStyle>;
 };
 
-function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false}: TaskPreviewProps) {
+function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -85,7 +89,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                 shouldUseHapticsOnLongPress
-                style={[styles.flexRow, styles.justifyContentBetween, styles.mt1]}
+                style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
             >

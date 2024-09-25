@@ -568,6 +568,7 @@ function ReportActionItem({
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
+                        style={displayAsGroup ? [] : [styles.mt1]}
                         taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '-1' : '-1'}
                         chatReportID={reportID}
                         action={action}
