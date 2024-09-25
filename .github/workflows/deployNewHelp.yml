@@ -27,17 +27,26 @@ jobs:
     env:
       IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1.0.13 # Using the latest stable version
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          source: ./help/
-          destination: ./help/_site
+          ruby-version: '3.3.4' # Set to your Ruby version
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install --path vendor/bundle
+
+      - name: Build Jekyll site
+        run: |
+          bundle exec jekyll build --source ./help --destination ./help/_site
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1 # Using the latest stable version
