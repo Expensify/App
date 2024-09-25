@@ -496,9 +496,11 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
     }
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
-    // Use Object.assign to merge all error objects into one since it is faster and uses less memory than spread operator
-    // eslint-disable-next-line prefer-object-spread
-    const errorSources = Object.assign({}, reportErrors, reportErrorFields, reportActionErrors);
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        ...reportActionErrors,
+    };
 
     // Combine all error messages keyed by microtime into one object
     const errorSourcesArray = Object.values(errorSources ?? {});
@@ -595,9 +597,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[reportID] ?? null;
     let lastMessageTextFromReport = '';
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
 
-    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+    if (report?.private_isArchived) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -712,7 +713,6 @@ function createOption(
         isIOUReportOwner: null,
         iouReportAmount: 0,
         isChatRoom: false,
-        isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isOwnPolicyExpenseChat: false,
@@ -730,11 +730,11 @@ function createOption(
     let reportName;
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
-        result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        result.private_isArchived = report.private_isArchived;
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1588,7 +1588,7 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
                 }
-                if (!!option.isChatRoom || option.isArchivedRoom) {
+                if (!!option.isChatRoom || option.private_isArchived) {
                     return 3;
                 }
                 if (!option.login) {
@@ -1833,7 +1833,7 @@ function getOptions(
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
         const report = option.item;
-        if (option.isArchivedRoom) {
+        if (option.private_isArchived) {
             return CONST.DATE.UNIX_EPOCH;
         }
 
@@ -1942,10 +1942,10 @@ function getOptions(
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+                reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.private_isArchived;
 
             const shouldShowInvoiceRoom =
-                includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.isArchivedRoom;
+                includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.private_isArchived;
             // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
             // && PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 
@@ -2305,7 +2305,7 @@ function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchVal
  * Helper method to check whether an option can show tooltip or not
  */
 function shouldOptionShowTooltip(option: ReportUtils.OptionData): boolean {
-    return (!option.isChatRoom || !!option.isThread) && !option.isArchivedRoom;
+    return (!option.isChatRoom || !!option.isThread) && !option.private_isArchived;
 }
 
 /**

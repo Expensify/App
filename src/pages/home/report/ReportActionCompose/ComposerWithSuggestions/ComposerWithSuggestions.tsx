@@ -564,16 +564,22 @@ function ComposerWithSuggestions(
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
-    const setUpComposeFocusManager = useCallback(() => {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-            if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
-                return;
-            }
+    /**
+     * Set focus callback
+     * @param shouldTakeOverFocus - Whether this composer should gain focus priority
+     */
+    const setUpComposeFocusManager = useCallback(
+        (shouldTakeOverFocus = false) => {
+            ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
+                    return;
+                }
 
-            focus(true);
-        }, true);
-    }, [focus, isFocused]);
+                focus(true);
+            }, shouldTakeOverFocus);
+        },
+        [focus, isFocused],
+    );
 
     /**
      * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
@@ -616,7 +622,7 @@ function ComposerWithSuggestions(
     const clear = useCallback(() => {
         'worklet';
 
-        forceClearInput(animatedRef, textInputRef);
+        forceClearInput(animatedRef);
     }, [animatedRef]);
 
     const getCurrentText = useCallback(() => {
@@ -636,7 +642,7 @@ function ComposerWithSuggestions(
         setUpComposeFocusManager();
 
         return () => {
-            ReportActionComposeFocusManager.clear(true);
+            ReportActionComposeFocusManager.clear();
 
             KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
@@ -769,7 +775,11 @@ function ComposerWithSuggestions(
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
-                    onFocus={onFocus}
+                    onFocus={() => {
+                        // The last composer that had focus should re-gain focus
+                        setUpComposeFocusManager(true);
+                        onFocus();
+                    }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
@@ -778,7 +788,6 @@ function ComposerWithSuggestions(
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
-                    isReportActionCompose
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isFullComposerAvailable={isFullComposerAvailable}

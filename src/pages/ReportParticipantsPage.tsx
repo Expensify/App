@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
@@ -28,18 +29,22 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
 import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
+type ReportParticipantsPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
+function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
+    const backTo = route.params.backTo;
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber} = useLocalize();
@@ -192,8 +197,8 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
      * Open the modal to invite a user
      */
     const inviteUser = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID));
-    }, [report]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo));
+    }, [report, backTo]);
 
     /**
      * Remove selected users from the workspace
@@ -314,7 +319,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
@@ -331,12 +335,12 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (isGroupChat && isCurrentUserAdmin) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, backTo));
                 return;
             }
-            Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
         },
-        [report, isCurrentUserAdmin, isGroupChat],
+        [report, isCurrentUserAdmin, isGroupChat, backTo],
     );
     const headerTitle = useMemo(() => {
         if (
@@ -378,7 +382,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
                         if (report) {
                             setSearchValue('');
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}

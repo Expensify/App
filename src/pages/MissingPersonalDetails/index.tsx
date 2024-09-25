@@ -18,8 +18,6 @@ import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,15 +30,14 @@ import type {CountryZipRegex, CustomSubStepProps} from './types';
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber];
 
-function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
+function MissingPersonalDetails() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const firstUnissuedCard = useMemo(() => Object.values(cardsList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardsList]);
+    const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
 
     const handleFinishStep = useCallback(() => {
         Navigation.goBack();
@@ -214,4 +211,4 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
 
 MissingPersonalDetails.displayName = 'MissingPersonalDetails';
 
-export default withPolicyAndFullscreenLoading(MissingPersonalDetails);
+export default MissingPersonalDetails;

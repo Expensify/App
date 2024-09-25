@@ -5,7 +5,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -51,6 +51,17 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
+function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
+    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName});
+}
+
+function deleteSavedSearch(hash: number) {
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -60,7 +71,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
@@ -145,7 +156,16 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+function showSavedSearchRenameTooltip() {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
+}
+
+function dismissSavedSearchRenameTooltip() {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
+}
+
 export {
+    saveSearch,
     search,
     createTransactionThread,
     deleteMoneyRequestOnSearch,
@@ -155,4 +175,7 @@ export {
     updateAdvancedFilters,
     clearAllFilters,
     clearAdvancedFilters,
+    deleteSavedSearch,
+    dismissSavedSearchRenameTooltip,
+    showSavedSearchRenameTooltip,
 };

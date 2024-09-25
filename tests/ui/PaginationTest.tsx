@@ -198,7 +198,10 @@ async function signInAndGetApp(): Promise<void> {
             reportID: REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
-            participants: {[USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            participants: {
+                [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
             lastActorAccountID: USER_B_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
@@ -336,6 +339,7 @@ describe('Pagination', () => {
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
@@ -351,6 +355,7 @@ describe('Pagination', () => {
         mockGetNewerActions(0);
 
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 

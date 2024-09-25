@@ -3,6 +3,7 @@ import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isAnonymousUser} from '@libs/actions/Session';
 import variables from '@styles/variables';
 
 function SignInHeroImage() {
@@ -27,6 +28,7 @@ function SignInHeroImage() {
             source={LottieAnimations.Hands}
             loop
             autoPlay
+            shouldLoadAfterInteractions={isAnonymousUser()}
             style={[styles.alignSelfCenter, imageSize]}
             webStyle={{...styles.alignSelfCenter, ...imageSize}}
         />

@@ -995,8 +995,8 @@ type NetSuiteConnection = {
     /** Date when the connection's last failed sync occurred */
     lastErrorSyncDate: string;
 
-    /** Where did the connection's last sync came from */
-    source: JobSourceValues;
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
 
     /** Config object used solely to store autosync settings */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -1373,10 +1373,10 @@ type PendingJoinRequestPolicy = {
 /** Data informing when a given rule should be applied */
 type ApplyRulesWhen = {
     /** The condition for applying the rule to the workspace */
-    condition: 'matches';
+    condition: string;
 
     /** The target field to which the rule is applied */
-    field: 'category';
+    field: string;
 
     /** The value of the target field */
     value: string;
@@ -1586,13 +1586,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         taxRates?: TaxRatesWithDefault;
 
         /** A set of rules related to the workpsace */
-        rules?: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        rules?: {
             /** A set of rules related to the workpsace approvals */
             approvalRules?: ApprovalRule[];
 
             /** A set of rules related to the workpsace expenses */
             expenseRules?: ExpenseRule[];
-        }>;
+        };
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;

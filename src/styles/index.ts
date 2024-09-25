@@ -3220,6 +3220,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
+        moneyRequestLoadingHeight: {
+            height: 27,
+        },
+
         defaultCheckmarkWrapper: {
             marginLeft: 8,
             alignSelf: 'center',
@@ -3593,29 +3597,17 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchPressable: {
-            height: variables.componentSizeNormal,
-        },
-
-        searchContainer: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingHorizontal: 24,
-            backgroundColor: theme.hoverComponentBG,
-            borderRadius: variables.componentBorderRadiusRounded,
-            justifyContent: 'center',
-        },
-
-        searchContainerHovered: {
-            backgroundColor: theme.border,
-        },
-
         searchInputStyle: {
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
+        },
+
+        searchRouterInputStyle: {
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderWidth: 2,
+            borderColor: theme.borderFocus,
+            paddingHorizontal: 8,
         },
 
         searchTableHeaderActive: {
@@ -4324,10 +4316,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
-        purposeMenuItemSelected: {
-            backgroundColor: theme.activeComponentBG,
-        },
-
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -4743,8 +4731,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletIllustration: {
-            width: 262,
-            height: 152,
+            height: 180,
         },
 
         walletCardLimit: {
@@ -5092,11 +5079,18 @@ const styles = (theme: ThemeColors) =>
 
         emptyStateCardIllustrationContainer: {
             height: 220,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
+        },
+
+        pendingStateCardIllustration: {
+            width: 233,
+            height: 162,
         },
 
         computerIllustrationContainer: {
@@ -5122,11 +5116,6 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
-        },
-
-        tripIllustrationSize: {
-            width: 190,
-            height: 172,
         },
 
         reportListItemTitle: {
@@ -5174,14 +5163,27 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.emptyFolderBG,
         },
 
+        emptyFolderDarkBG: {
+            backgroundColor: '#782c04',
+            height: 220,
+        },
+
         emptyStateVideo: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        emptyStateFolderIconSize: {
-            width: 184,
-            height: 112,
+        emptyStateFolderWithPaperIconSize: {
+            width: 160,
+            height: 100,
+        },
+
+        emptyStateFolderWebStyles: {
+            ...sizing.w100,
+            minWidth: 400,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
         },
 
         workflowApprovalVerticalLine: {
@@ -5189,6 +5191,14 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        colorGreenSuccess: {
+            color: colors.green400,
+        },
+
+        bgPaleGreen: {
+            backgroundColor: colors.green100,
         },
 
         importColumnCard: {

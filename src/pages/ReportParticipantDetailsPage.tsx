@@ -49,7 +49,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1');
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', route.params.backTo);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -68,8 +68,8 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
-    }, [accountID, report.reportID]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
+    }, [accountID, report.reportID, route.params.backTo]);
 
     if (!member) {
         return <NotFoundPage />;
@@ -105,7 +105,6 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                             <Button
                                 text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                                medium
                                 isDisabled={isSelectedMemberCurrentUser}
                                 icon={Expensicons.RemoveMembers}
                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
