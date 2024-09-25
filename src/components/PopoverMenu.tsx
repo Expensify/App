@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {Fragment, useLayoutEffect, useState} from 'react';
@@ -287,6 +288,7 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                    {/** eslint-disable-next-line react/jsx-props-no-spreading */}
                     <WrapComponent {...(shouldUseScrollView && {contentContainerStyle: scrollContainerStyle})}>
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
