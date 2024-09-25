@@ -99,7 +99,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
      * Builds a suffix tree and returns a function to search in it.
      */
     const findInSearchTree = useMemo(() => {
-        let start = performance.now();
+        const start = performance.now();
         const tree = SuffixTree.makeTree([
             {
                 data: searchOptions.personalDetails,
@@ -128,14 +128,10 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 },
             },
         ]);
-        start = performance.now();
         tree.build();
-        console.log('build', performance.now() - start);
 
         function search(searchInput: string) {
-            const searchStart = performance.now();
             const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
-            console.log('findInSearchTree', performance.now() - searchStart);
 
             return {
                 personalDetails,
@@ -167,7 +163,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!userToToInvite) > 0, false, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,

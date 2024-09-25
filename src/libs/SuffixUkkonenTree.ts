@@ -61,18 +61,14 @@ function cleanedString(input: string) {
     return input.toLowerCase().replace(nonAlphanumericRegex, '');
 }
 
-// TODO: remove timeSpendCleaning once verified the regex works okay on hermes as well!
-let timeSpendCleaning = 0;
 function prepareData<T>({data, toSearchableString}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const allDataAsNumbers: number[] = [];
-    timeSpendCleaning = 0;
+
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
         // Remove all none a-z chars:
-        const start = performance.now();
         const cleanedSearchStringForTree = cleanedString(searchStringForTree);
-        timeSpendCleaning += performance.now() - start;
 
         if (cleanedSearchStringForTree.length === 0) {
             return;
@@ -90,7 +86,6 @@ function prepareData<T>({data, toSearchableString}: PrepareDataParams<T>): [numb
             allDataAsNumbers.push(DELIMITER_CHAR_CODE);
         }
     });
-    console.log('cleaning', timeSpendCleaning, 'ms');
 
     return [allDataAsNumbers, searchIndexList];
 }
@@ -99,7 +94,6 @@ function prepareData<T>({data, toSearchableString}: PrepareDataParams<T>): [numb
  * Makes a tree from an input string
  */
 function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
-    const start1 = performance.now();
     const listsAsConcatedNumericList: number[] = [];
 
     // We might received multiple lists of data that we want to search in
@@ -115,9 +109,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         indexesForList.push(searchIndexList);
     }
     listsAsConcatedNumericList.push(END_CHAR_CODE);
-    console.log('building search strings', performance.now() - start1);
 
-    console.log('Search String length', listsAsConcatedNumericList.length);
     const transitionNodes: Array<number[] | undefined> = [];
     const leftEdges: number[] = [];
     const rightEdges: Array<number | undefined> = [];
@@ -306,6 +298,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         const st: Array<[number, number]> = [[0, 0]];
 
         while (st.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const [node, depth] = st.pop()!;
 
             let isLeaf = true;
@@ -342,7 +335,6 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     }
 
     function findInSearchTree(searchInput: string): T[][] {
-        const now = performance.now();
         const result = findSubstring(searchInput);
 
         // Map the results to the original options
@@ -362,7 +354,6 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
             }
         });
 
-        console.log('search', performance.now() - now);
         return mappedResults.map((set) => Array.from(set));
     }
 
