@@ -302,7 +302,6 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     // TODO: replace, other search function is broken in edge cases we need to address first
     function findSubstring(value: string) {
         const searchValueNumeric = stringToArray(value);
-        console.log('searching for', value, searchValueNumeric);
         const occurrences: number[] = [];
         const st: Array<[number, number]> = [[0, 0]];
 
@@ -345,7 +344,6 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     function findInSearchTree(searchInput: string): T[][] {
         const now = performance.now();
         const result = findSubstring(searchInput);
-        console.log('FindSubstring index result for searchInput', searchInput, result);
 
         // Map the results to the original options
         const mappedResults = Array.from({length: lists.length}, () => new Set<T>());
