@@ -630,14 +630,6 @@ Onyx.connect({
     },
 });
 
-let isFirstTimeNewExpensifyUser = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    callback: (value) => {
-        isFirstTimeNewExpensifyUser = value ?? false;
-    },
-});
-
 let onboarding: OnyxEntry<Onboarding | []>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -1020,7 +1012,7 @@ function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
  * Whether the provided policyType is a Free, Collect or Control policy type
  */
 function isGroupPolicy(policyType: string): boolean {
-    return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.FREE;
+    return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
 }
 
 /**
@@ -1328,12 +1320,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
             // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
             // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-            if (
-                ignoreDomainRooms &&
-                isDomainRoom(report) &&
-                getPolicyType(report, allPolicies) !== CONST.POLICY.TYPE.FREE &&
-                !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))
-            ) {
+            if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))) {
                 return false;
             }
 
@@ -1341,26 +1328,13 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         });
     }
 
-    if (isFirstTimeNewExpensifyUser) {
-        // Filter out the systemChat report from the reports list, as we don't want to drop the user into that report over Concierge when they first log in
-        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
-        if (reportsValues.length === 1) {
-            return reportsValues[0];
-        }
+    // Filter out the system chat (Expensify chat) because the composer is disabled in it,
+    // and it prompts the user to use the Concierge chat instead.
+    reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
 
-        return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
-    }
-
-    // If we only have two reports and one of them is the system chat, filter it out so we don't
-    // overwrite showing the concierge chat
-    const hasSystemChat = reportsValues.find((report) => isSystemChat(report)) ?? false;
-    if (reportsValues.length === 2 && hasSystemChat) {
-        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
-    }
-
-    // We are getting the last read report from the metadata of the report.
+    // At least two reports remain: self DM and Concierge chat.
+    // Return the most recently visited report. Get the last read report from the report metadata.
     const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
-
     return adminReport ?? lastRead;
 }
 
@@ -1698,6 +1672,10 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
 
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
+        return false;
+    }
+
+    if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && !PolicyUtils.arePaymentsEnabled(policy)) {
         return false;
     }
 
@@ -3777,9 +3755,9 @@ function getReportName(
             return `${reportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
-            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
+            return formatReportLastMessageText(modifiedMessage);
         }
-
         if (isTripRoom(report)) {
             return report?.reportName ?? '';
         }
@@ -3942,34 +3920,34 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
 /**
  * Navigate to the details page of a given report
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>) {
+function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0], backTo));
         return;
     }
 
     if (report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
     }
 }
 
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
+        Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountID[0], backTo));
         return;
     }
 
-    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
 }
 
 function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
@@ -3992,7 +3970,7 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
 /**
  * Go back to the previous page from the edit private page of a given report
  */
-function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
+function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>, backTo?: string) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
@@ -4001,16 +3979,16 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
-            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
+            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0], backTo));
             return;
         }
 
         if (report?.reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
             return;
         }
     }
-    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
 /**
@@ -4119,12 +4097,12 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
-function getReportDescriptionText(report: Report): string {
-    if (!report.description) {
+function getReportDescriptionText(report: OnyxEntry<Report>): string {
+    if (!report?.description) {
         return '';
     }
 
-    return Parser.htmlToText(report.description);
+    return Parser.htmlToText(report?.description);
 }
 
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
@@ -5843,11 +5821,6 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
         return true;
     }
 
-    // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
-    if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
-        return true;
-    }
-
     // If the room has an assigned guide, it can be seen.
     if (hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))) {
         return true;
@@ -7165,16 +7138,16 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
-function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
+function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>, backTo?: string) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
     const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID, backTo));
         return;
     }
-    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
 /**
@@ -7657,8 +7630,7 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
 
     const policy = getPolicy(iouReport.policyID);
     const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
-    const isOwnFreePolicy = PolicyUtils.isFreeGroupPolicy(policy) && PolicyUtils.isPolicyAdmin(policy);
-    if (shouldBeManuallySubmitted || isOwnFreePolicy) {
+    if (shouldBeManuallySubmitted) {
         return {
             hasOutstandingChildRequest: true,
         };
