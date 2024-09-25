@@ -93,7 +93,7 @@ function Search({queryJSON}: SearchProps) {
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, status, policyID, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
@@ -211,6 +211,7 @@ function Search({queryJSON}: SearchProps) {
                     <SearchStatusBar
                         type={type}
                         status={status}
+                        policyID={policyID}
                         resetOffset={resetOffset}
                     />
                 ) : (
@@ -243,6 +244,7 @@ function Search({queryJSON}: SearchProps) {
                 <SearchStatusBar
                     type={type}
                     status={status}
+                    policyID={policyID}
                     resetOffset={resetOffset}
                 />
                 <EmptySearchView type={type} />
@@ -350,6 +352,7 @@ function Search({queryJSON}: SearchProps) {
             <SearchStatusBar
                 type={type}
                 status={status}
+                policyID={policyID}
                 resetOffset={resetOffset}
             />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>

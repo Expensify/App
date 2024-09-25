@@ -772,8 +772,18 @@ function getSearchHeaderTitle(
     return title;
 }
 
-function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
-    return normalizeQuery(`type:${type} status:${status}`);
+function buildCannedSearchQuery({
+    type = CONST.SEARCH.DATA_TYPES.EXPENSE,
+    status = CONST.SEARCH.STATUS.EXPENSE.ALL,
+    policyID,
+}: {
+    type?: SearchDataTypes;
+    status?: SearchStatus;
+    policyID?: string;
+} = {}): SearchQueryString {
+    const queryString = policyID ? `type:${type} status:${status} policyID:${policyID}` : `type:${type} status:${status}`;
+
+    return normalizeQuery(queryString);
 }
 
 function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {

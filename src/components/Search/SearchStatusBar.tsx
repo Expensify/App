@@ -15,125 +15,126 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchStatus, TripSearchStatus} from './types';
 
 type SearchStatusBarProps = {
     type: SearchDataTypes;
     status: SearchStatus;
+    policyID: string | undefined;
     resetOffset: () => void;
 };
 
-const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes; icon: IconAsset; text: TranslationPaths}> = [
     {
-        key: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         icon: Expensicons.All,
         text: 'common.all',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
         icon: Expensicons.Pencil,
         text: 'common.drafts',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
     },
     {
-        key: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
         icon: Expensicons.Hourglass,
         text: 'common.outstanding',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
     },
     {
-        key: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
         icon: Expensicons.ThumbsUp,
         text: 'iou.approved',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.APPROVED),
     },
     {
-        key: CONST.SEARCH.STATUS.EXPENSE.PAID,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.PAID,
         icon: Expensicons.MoneyBag,
         text: 'iou.settledExpensify',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.PAID),
     },
 ];
 
-const invoiceOptions: Array<{key: InvoiceSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const invoiceOptions: Array<{type: SearchDataTypes; status: InvoiceSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
     {
-        key: CONST.SEARCH.STATUS.INVOICE.ALL,
+        type: CONST.SEARCH.DATA_TYPES.INVOICE,
+        status: CONST.SEARCH.STATUS.INVOICE.ALL,
         icon: Expensicons.All,
         text: 'common.all',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING,
+        type: CONST.SEARCH.DATA_TYPES.INVOICE,
+        status: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING,
         icon: Expensicons.Hourglass,
         text: 'common.outstanding',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.OUTSTANDING),
     },
     {
-        key: CONST.SEARCH.STATUS.INVOICE.PAID,
+        type: CONST.SEARCH.DATA_TYPES.INVOICE,
+        status: CONST.SEARCH.STATUS.INVOICE.PAID,
         icon: Expensicons.MoneyBag,
         text: 'iou.settledExpensify',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.PAID),
     },
 ];
 
-const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const tripOptions: Array<{type: SearchDataTypes; status: TripSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
     {
-        key: CONST.SEARCH.STATUS.TRIP.ALL,
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        status: CONST.SEARCH.STATUS.TRIP.ALL,
         icon: Expensicons.All,
         text: 'common.all',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.CURRENT,
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        status: CONST.SEARCH.STATUS.TRIP.CURRENT,
         icon: Expensicons.Calendar,
         text: 'search.filters.current',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.CURRENT),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.PAST,
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        status: CONST.SEARCH.STATUS.TRIP.PAST,
         icon: Expensicons.History,
         text: 'search.filters.past',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAST),
     },
 ];
 
-const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
     {
-        key: CONST.SEARCH.STATUS.CHAT.ALL,
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        status: CONST.SEARCH.STATUS.CHAT.ALL,
         icon: Expensicons.All,
         text: 'common.all',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.CHAT.UNREAD,
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        status: CONST.SEARCH.STATUS.CHAT.UNREAD,
         icon: Expensicons.ChatBubbleUnread,
         text: 'common.unread',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.UNREAD),
     },
     {
-        key: CONST.SEARCH.STATUS.CHAT.SENT,
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        status: CONST.SEARCH.STATUS.CHAT.SENT,
         icon: Expensicons.Send,
         text: 'common.sent',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.SENT),
     },
     {
-        key: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        status: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
         icon: Expensicons.Document,
         text: 'common.attachments',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.ATTACHMENTS),
     },
     {
-        key: CONST.SEARCH.STATUS.CHAT.LINKS,
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        status: CONST.SEARCH.STATUS.CHAT.LINKS,
         icon: Expensicons.Paperclip,
         text: 'common.links',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.LINKS),
     },
     {
-        key: CONST.SEARCH.STATUS.CHAT.PINNED,
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        status: CONST.SEARCH.STATUS.CHAT.PINNED,
         icon: Expensicons.Pin,
         text: 'search.filters.pinned',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.PINNED),
     },
 ];
 
@@ -151,7 +152,7 @@ function getOptions(type: SearchDataTypes) {
     }
 }
 
-function SearchStatusBar({type, status, resetOffset}: SearchStatusBarProps) {
+function SearchStatusBar({type, status, policyID, resetOffset}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -171,15 +172,16 @@ function SearchStatusBar({type, status, resetOffset}: SearchStatusBarProps) {
             {options.map((item, index) => {
                 const onPress = singleExecution(() => {
                     resetOffset();
-                    Navigation.setParams({q: item.query});
+                    const query = SearchUtils.buildCannedSearchQuery({type: item.type, status: item.status, policyID});
+                    Navigation.setParams({q: query});
                 });
-                const isActive = status === item.key;
+                const isActive = status === item.status;
                 const isFirstItem = index === 0;
                 const isLastItem = index === options.length - 1;
 
                 return (
                     <Button
-                        key={item.key}
+                        key={item.status}
                         onLayout={(e) => {
                             if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
                                 return;
