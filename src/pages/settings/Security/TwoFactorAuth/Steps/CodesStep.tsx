@@ -1,4 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -39,7 +39,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
     const isUserValidated = user?.validated;
-    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
+    const route = useRoutePlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const {setStep} = useTwoFactorAuthContext();
 

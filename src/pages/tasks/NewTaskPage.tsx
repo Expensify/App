@@ -43,7 +43,7 @@ type NewTaskPageOnyxProps = {
 
 type NewTaskPageProps = NewTaskPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
-function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
+function NewTaskPage({task, reports, personalDetails, route}: NewTaskPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [assignee, setAssignee] = useState<TaskActions.Assignee>();
@@ -62,6 +62,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
     const {paddingBottom} = useStyledSafeAreaInsets();
 
+    const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(
@@ -153,10 +154,9 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('newTaskPage.confirmTask')}
-                    onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
+                        Navigation.goBack(ROUTES.NEW_TASK_DETAILS.getRoute(backTo));
                     }}
                 />
                 {hasDestinationError && (
@@ -180,14 +180,14 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                             <MenuItemWithTopDescription
                                 description={translate('task.title')}
                                 title={title}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE.getRoute(backTo))}
                                 shouldShowRightIcon
                                 rightLabel={translate('common.required')}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}
                                 title={description}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION.getRoute(backTo))}
                                 shouldShowRightIcon
                                 shouldParseTitle
                                 numberOfLinesTitle={2}
@@ -198,7 +198,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 title={assignee?.displayName ?? ''}
                                 description={assignee?.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
                                 icon={assignee?.icons}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE.getRoute(backTo))}
                                 shouldShowRightIcon
                                 titleWithTooltips={assigneeTooltipDetails}
                             />

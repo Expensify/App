@@ -34,7 +34,7 @@ type NewTaskDetailsPageOnyxProps = {
 
 type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
-function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
+function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
@@ -42,6 +42,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const backTo = route.params?.backTo;
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
@@ -84,7 +85,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                 task.assigneeChatReport,
             );
         } else {
-            Navigation.navigate(ROUTES.NEW_TASK);
+            Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }
     };
 
@@ -96,9 +97,8 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('newTaskPage.assignTask')}
-                onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
+                onBackButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo(backTo)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}

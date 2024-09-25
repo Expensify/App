@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -7,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
@@ -21,6 +22,7 @@ import type {RoomVisibility} from '@src/types/onyx/Report';
 type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>;
 
 function VisibilityPage({report}: VisibilityProps) {
+    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
     const shouldGoBackToDetailsPage = useRef(false);
@@ -42,6 +44,10 @@ function VisibilityPage({report}: VisibilityProps) {
         [translate, report?.visibility],
     );
 
+    const goBack = useCallback(() => {
+        ReportUtils.goBackToDetailsPage(report, route.params.backTo);
+    }, [report, route.params.backTo]);
+
     const changeVisibility = useCallback(
         (newVisibility: RoomVisibility) => {
             if (!report) {
@@ -51,10 +57,10 @@ function VisibilityPage({report}: VisibilityProps) {
             if (showConfirmModal) {
                 shouldGoBackToDetailsPage.current = true;
             } else {
-                ReportUtils.goBackToDetailsPage(report);
+                goBack();
             }
         },
-        [report, showConfirmModal],
+        [report, showConfirmModal, goBack],
     );
 
     const hideModal = useCallback(() => {
@@ -69,7 +75,7 @@ function VisibilityPage({report}: VisibilityProps) {
             <FullPageNotFoundView shouldShow={shouldDisableVisibility}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.visibility')}
-                    onBackButtonPress={() => ReportUtils.goBackToDetailsPage(report)}
+                    onBackButtonPress={goBack}
                 />
                 <SelectionList
                     shouldPreventDefaultFocusOnSelectRow
@@ -96,7 +102,7 @@ function VisibilityPage({report}: VisibilityProps) {
                             return;
                         }
                         shouldGoBackToDetailsPage.current = false;
-                        ReportUtils.goBackToDetailsPage(report);
+                        goBack();
                     }}
                     onCancel={hideModal}
                     title={translate('common.areYouSure')}

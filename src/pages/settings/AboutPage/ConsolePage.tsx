@@ -1,4 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -50,7 +50,7 @@ function ConsolePage() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
-    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
+    const route = useRoutePlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [

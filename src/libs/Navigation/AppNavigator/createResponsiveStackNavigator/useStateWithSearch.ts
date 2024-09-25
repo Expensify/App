@@ -1,7 +1,7 @@
-import type {ParamListBase, RouteProp} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import type {CustomStateHookProps, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {CustomStateHookProps, PlatformStackNavigationState, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
@@ -32,7 +32,8 @@ function useStateWithSearch({state}: CustomStateHookProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if (shouldUseNarrowLayout) {
-        const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+        const isSearchCentralPane = (route: PlatformStackRouteProp<ParamListBase>) =>
+            getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
         const lastRoute = routes[routes.length - 1];
         const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;

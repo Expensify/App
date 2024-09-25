@@ -1,4 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
@@ -25,7 +25,7 @@ import DuplicateTransactionsList from './DuplicateTransactionsList';
 function TransactionDuplicateReview() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoutePlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
@@ -49,7 +49,10 @@ function TransactionDuplicateReview() {
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <FullPageNotFoundView shouldShow={transactionID === '-1'}>
-                <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
                 <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                     <Button
                         text={translate('iou.keepAll')}

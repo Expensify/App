@@ -37,6 +37,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
@@ -146,6 +147,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             title={currentPolicyTag['GL Code']}
                             description={translate(`workspace.tags.glCode`)}
                             onPress={navigateToEditGlCode}
+                            iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                            interactive={!hasAccountingConnections}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>

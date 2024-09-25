@@ -1,12 +1,14 @@
-import React from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -19,6 +21,7 @@ import type SCREENS from '@src/SCREENS';
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
 
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
+    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || -1}`);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -36,6 +39,18 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
             isSelected: preference === currentNotificationPreference,
         }));
 
+    const goBack = useCallback(() => {
+        ReportUtils.goBackToDetailsPage(report, route.params.backTo);
+    }, [report, route.params.backTo]);
+
+    const updateNotificationPreference = useCallback(
+        (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
+            ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
+            goBack();
+        },
+        [report.reportID, currentNotificationPreference, goBack],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -44,14 +59,12 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton
                     title={translate('notificationPreferencesPage.header')}
-                    onBackButtonPress={() => ReportUtils.goBackToDetailsPage(report)}
+                    onBackButtonPress={goBack}
                 />
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
                     ListItem={RadioListItem}
-                    onSelectRow={(option) =>
-                        report && ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, option.value, true, undefined, undefined, report)
-                    }
+                    onSelectRow={(option) => updateNotificationPreference(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />

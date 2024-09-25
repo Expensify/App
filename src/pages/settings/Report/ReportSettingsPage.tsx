@@ -23,7 +23,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
+function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
+    const backTo = route.params.backTo;
     const reportID = report?.reportID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -53,7 +54,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -61,7 +62,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID, backTo))}
                         />
                     )}
                     {shouldShowWriteCapability &&
@@ -70,7 +71,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID, backTo))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>
@@ -95,7 +96,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 description={translate('newRoomPage.visibility')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID, backTo))}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

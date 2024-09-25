@@ -1,7 +1,6 @@
-import type {RouteProp} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -24,7 +23,7 @@ type BaseOnboardingPersonalDetailsProps = WithCurrentUserPersonalDetailsProps &
         /* Whether to use native styles tailored for native devices */
         shouldUseNativeStyles: boolean;
 
-        route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>;
+        route: PlatformStackRouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>;
     };
 
 export type {OnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps};

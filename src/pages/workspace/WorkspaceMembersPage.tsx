@@ -11,6 +11,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
@@ -80,10 +81,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
@@ -565,6 +567,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     };
 
     const threeDotsMenuItems = useMemo(() => {
+        if (!isPolicyAdmin) {
+            return [];
+        }
+
         const menuItems = [
             {
                 icon: Expensicons.Table,
@@ -585,13 +591,18 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Member.downloadMembersCSV(policyID);
+
+                    Modal.close(() => {
+                        Member.downloadMembersCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    });
                 },
             },
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [policyID, translate, isOffline, isPolicyAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -605,7 +616,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowThreeDotsButton
+            shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
             threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             shouldShowNonAdmin
@@ -647,6 +658,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 textInputRef.current.focus();
                             });
                         }}
+                    />
+                    <DecisionModal
+                        title={translate('common.downloadFailedTitle')}
+                        prompt={translate('common.downloadFailedDescription')}
+                        isSmallScreenWidth={isSmallScreenWidth}
+                        onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                        secondOptionText={translate('common.buttonConfirm')}
+                        isVisible={isDownloadFailureModalVisible}
+                        onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
                     <View style={[styles.w100, styles.flex1]}>
                         <SelectionListWithModal

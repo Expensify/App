@@ -302,8 +302,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
-            {
+        const menuItems = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
@@ -313,8 +314,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
-            },
-        ];
+            });
+        }
         if (hasVisibleCategories) {
             menuItems.push({
                 icon: Expensicons.Download,
@@ -334,7 +335,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories]);
+    }, [policyId, translate, isOffline, hasVisibleCategories, policy]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 

@@ -29,12 +29,13 @@ type NewTaskTitlePageOnyxProps = {
 };
 type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
-function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
+function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const {translate} = useLocalize();
 
+    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
@@ -52,7 +53,7 @@ function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
     // the response
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setTitleValue(values.taskTitle);
-        Navigation.goBack(ROUTES.NEW_TASK);
+        goBack();
     };
 
     return (
@@ -63,9 +64,8 @@ function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('task.title')}
-                onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                onBackButtonPress={goBack}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}

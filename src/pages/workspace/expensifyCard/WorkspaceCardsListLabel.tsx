@@ -1,4 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -40,7 +40,7 @@ type WorkspaceCardsListLabelProps = {
 };
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
-    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
+    const route = useRoutePlatformStackRouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
     const policy = usePolicy(route.params.policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
