@@ -116,9 +116,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 SearchActions.clearAllFilters();
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
             },
-            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
+            rightComponent: (
+                <SavedSearchItemThreeDotMenu
+                    menuItems={getOverflowMenu(item.name, Number(key), item.query)}
+                    isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                />
+            ),
             styles: [styles.alignItemsCenter],
             pendingAction: item.pendingAction,
+            disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         };
 
         if (!isNarrow) {

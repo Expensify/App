@@ -118,10 +118,12 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
+                disabled={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
             />
         ),
         isSelected: currentSavedSearch?.hash === item.hash,
         pendingAction: item.pendingAction,
+        disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     }));
     const allMenuItems = [];
     allMenuItems.push(...popoverMenuItems);
