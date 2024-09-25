@@ -195,12 +195,6 @@ function AccountSwitcher() {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    onItemSelected={(item) => {
-                        if (!item?.onSelected) {
-                            return;
-                        }
-                        item.onSelected();
-                    }}
                     containerStyles={[{maxHeight: windowHeight / 2}, styles.pb0, styles.mw100, styles.wFitContent]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}

@@ -64,7 +64,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     isVisible: boolean;
 
     /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected: (selectedItem: PopoverMenuItem, index: number) => void;
+    onItemSelected?: (selectedItem: PopoverMenuItem, index: number) => void;
 
     /** Menu items to be rendered on the list */
     menuItems: PopoverMenuItem[];
@@ -174,7 +174,7 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
-            onItemSelected(selectedItem, index);
+            onItemSelected?.(selectedItem, index);
             Modal.close(
                 () => {
                     selectedItem.onSelected?.();
@@ -183,7 +183,7 @@ function PopoverMenu({
                 selectedItem.shouldCloseAllModals,
             );
         } else {
-            onItemSelected(selectedItem, index);
+            onItemSelected?.(selectedItem, index);
             selectedItem.onSelected?.();
         }
     };
