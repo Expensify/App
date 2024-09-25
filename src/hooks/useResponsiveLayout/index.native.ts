@@ -26,7 +26,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenHeight = true;
     const isSmallScreenWidth = true;
     const isMediumScreenWidth = false;
     const isLargeScreenWidth = false;
@@ -75,6 +74,5 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         onboardingIsMediumOrLargerScreenWidth,
         isLargeScreenWidth,
         isSmallScreen,
-        isSmallScreenHeight,
     };
 }
