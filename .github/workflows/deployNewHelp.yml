@@ -1,18 +1,23 @@
 on:
+  # Run on any push to main that has changes to the help directory
   push:
     branches:
       - main
     paths:
       - 'help/**'
 
+  # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths:
       - 'help/**'
 
+  # Run on any manual trigger
   workflow_dispatch:
 
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "newhelp"
   cancel-in-progress: false
@@ -32,13 +37,14 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3.4'
+          ruby-version: '3.3.4' 
 
       - name: Install dependencies
         run: |
-          gem install bundler
           bundle config set --local path 'vendor/bundle'
           bundle install
+          gem install jekyll # Explicitly install Jekyll
+          jekyll -v
 
       - name: Build Jekyll site
         run: |
@@ -70,4 +76,5 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your New Help changes have been deployed to {0} :zap:️', steps.deploy.outputs.alias) }}
+
 
