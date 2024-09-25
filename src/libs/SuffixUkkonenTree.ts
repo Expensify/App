@@ -1,33 +1,65 @@
 const CHAR_CODE_A = 'a'.charCodeAt(0);
-const ALPHABET_SIZE = 28;
+const LETTER_ALPHABET_SIZE = 26;
+const ALPHABET_SIZE = LETTER_ALPHABET_SIZE + 3; // +3: special char, delimiter char, end char
+const SPECIAL_CHAR_CODE = ALPHABET_SIZE - 3;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
+const END_CHAR_CODE = ALPHABET_SIZE - 1;
+
+const nonAlphanumericRegex = /[^a-z0-9]/gi;
+
+// The character that separates the different options in the search string
+const DELIMITER_CHAR = String.fromCharCode(DELIMITER_CHAR_CODE + CHAR_CODE_A);
+
+const END_CHAR = String.fromCharCode(END_CHAR_CODE + CHAR_CODE_A);
 
 // TODO:
 // make makeTree faster
 // how to deal with unicode characters such as spanish ones?
 // i think we need to support numbers as well
 
+function convertToBase26(num: number): string {
+    if (num < 0) {
+        throw new Error('Input must be a non-negative integer');
+    }
+
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    let numCopy = num;
+
+    do {
+        numCopy -= 1; // Adjust to 0-based index
+        result = alphabet[numCopy % 26] + result;
+        numCopy = Math.floor(numCopy / 26);
+    } while (numCopy > 0);
+
+    return result;
+}
+
 /**
  * Converts a string to an array of numbers representing the characters of the string.
  * The numbers are offset by the character code of 'a' (97).
  * - This is so that the numbers from a-z are in the range 0-25.
- * - 26 is for the delimiter character "{",
- * - 27 is for the end character "|".
+ * - 26 is for encoding special characters (everything that is bigger than z will be encoded as "specialCharacter + base26(charCode))"
+ * - 27 is for the delimiter character
+ * - 28 is for the end character
  */
 function stringToArray(input: string) {
     const res: number[] = [];
-    for (let i = 0; i < input.length; i++) {
-        const charCode = input.charCodeAt(i) - CHAR_CODE_A;
-        if (charCode >= 0 && charCode < ALPHABET_SIZE) {
-            res.push(charCode);
+    for (const char of input) {
+        const charCode = char.charCodeAt(0);
+        const charCodeABased = charCode - CHAR_CODE_A;
+        // TODO: each word should be converted on its own to stringToArray, so that the words can contain the special chars (which would get base26 encoded)
+        // When we do this we probably want to check here if the words are in the LETTER + SPECIAL_CHAR range
+        if (charCodeABased >= 0 && charCodeABased < ALPHABET_SIZE) {
+            res.push(charCodeABased);
+        } else {
+            const asBase26String = convertToBase26(charCode);
+            const asCharCodes = stringToArray(asBase26String);
+            res.push(SPECIAL_CHAR_CODE, ...asCharCodes);
         }
     }
     return res;
 }
-
-const aToZRegex = /[^a-z]/gi;
-// The character that separates the different options in the search string
-const DELIMITER_CHAR = String.fromCharCode(DELIMITER_CHAR_CODE + CHAR_CODE_A);
 
 type PrepareDataParams<T> = {
     data: T[];
@@ -35,42 +67,32 @@ type PrepareDataParams<T> = {
 };
 
 function cleanedString(input: string) {
-    return input.toLowerCase().replace(aToZRegex, '');
+    return input.toLowerCase().replace(nonAlphanumericRegex, '');
 }
 
-function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array<T | undefined>] {
+function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
-    const str = data
-        .map((option) => {
-            const searchStringForTree = transform(option);
-            // Remove all none a-z chars:
-            const cleanedSearchStringForTree = cleanedString(searchStringForTree);
+    const allDataAsNumbers: number[] = [];
+    data.forEach((option) => {
+        const searchStringForTree = transform(option);
+        // Remove all none a-z chars:
+        const cleanedSearchStringForTree = cleanedString(searchStringForTree);
 
-            if (cleanedSearchStringForTree.length > 0) {
-                // We need to push an array that has the same length as the length of the string we insert for this option:
-                const indexes = Array.from({length: cleanedSearchStringForTree.length}, () => option);
-                // Note: we add undefined for the delimiter character
-                searchIndexList.push(...indexes, undefined);
-            } else {
-                return undefined;
-            }
+        if (cleanedSearchStringForTree.length === 0) {
+            return;
+        }
 
-            return cleanedSearchStringForTree;
-        })
-        // slightly faster alternative to `.filter(Boolean).join(delimiterChar)`
-        .reduce((acc: string, curr) => {
-            if (!curr) {
-                return acc;
-            }
+        const numericRepresentation = stringToArray(cleanedSearchStringForTree);
 
-            if (acc === '') {
-                return curr;
-            }
+        // We need to push an array that has the same length as the length of the string we insert for this option:
+        const indexes = Array.from({length: numericRepresentation.length}, () => option);
+        // Note: we add undefined for the delimiter character
+        searchIndexList.push(...indexes, undefined);
 
-            return `${acc}${DELIMITER_CHAR}${curr}`;
-        }, '');
+        allDataAsNumbers.push(...numericRepresentation, DELIMITER_CHAR_CODE);
+    });
 
-    return [str, searchIndexList];
+    return [allDataAsNumbers, searchIndexList];
 }
 
 /**
@@ -78,22 +100,22 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [string, Array
  */
 function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     const start1 = performance.now();
-    const stringForList: string[] = [];
+    const listsAsConcatedNumericList: number[] = [];
 
     // We might received multiple lists of data that we want to search in
     // thus indexes is a list of those data lists
     const indexesForList: Array<Array<T | undefined>> = [];
 
     for (const {data, transform} of lists) {
-        const [str, searchIndexList] = prepareData({data, transform});
-        stringForList.push(str);
+        const [numericRepresentation, searchIndexList] = prepareData({data, transform});
+        listsAsConcatedNumericList.push(...numericRepresentation);
         indexesForList.push(searchIndexList);
     }
-    const stringToSearch = `${stringForList.join('')}|`; // End Character
+    listsAsConcatedNumericList.push(END_CHAR_CODE);
     console.log('building search strings', performance.now() - start1);
 
-    const a = stringToArray(stringToSearch);
-    console.log('Search String length', stringToSearch.length);
+    console.log('Search String length', listsAsConcatedNumericList.length);
+    console.log('Numeric representation', listsAsConcatedNumericList);
     const N = 25_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
     const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
@@ -110,7 +132,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     let la = 0;
 
     function initializeTree() {
-        r.fill(a.length - 1);
+        r.fill(listsAsConcatedNumericList.length - 1);
         s[0] = 1;
         l[0] = -1;
         r[0] = -1;
@@ -129,7 +151,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
                 tv = t[tv][c];
                 tp = l[tv];
             }
-            if (tp === -1 || c === a[tp]) {
+            if (tp === -1 || c === listsAsConcatedNumericList[tp]) {
                 tp++;
             } else {
                 splitEdge(c);
@@ -154,13 +176,13 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         l[ts] = l[tv];
         r[ts] = tp - 1;
         p[ts] = p[tv];
-        t[ts][a[tp]] = tv;
+        t[ts][listsAsConcatedNumericList[tp]] = tv;
         t[ts][c] = ts + 1;
         l[ts + 1] = la;
         p[ts + 1] = ts;
         l[tv] = tp;
         p[tv] = ts;
-        t[p[ts]][a[l[ts]]] = ts;
+        t[p[ts]][listsAsConcatedNumericList[l[ts]]] = ts;
         ts += 2;
         handleDescent(ts);
     }
@@ -169,7 +191,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         tv = s[p[ts - 2]];
         tp = l[ts - 2];
         while (tp <= r[ts - 2]) {
-            tv = t[tv][a[tp]];
+            tv = t[tv][listsAsConcatedNumericList[tp]];
             tp += r[tv] - l[tv] + 1;
         }
         if (tp === r[ts - 2] + 1) {
@@ -187,8 +209,8 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
 
     function build() {
         initializeTree();
-        for (la = 0; la < a.length; ++la) {
-            const c = a[la];
+        for (la = 0; la < listsAsConcatedNumericList.length; ++la) {
+            const c = listsAsConcatedNumericList[la];
             processCharacter(c);
         }
     }
@@ -241,6 +263,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     // TODO: replace, other search function is broken in edge cases we need to address first
     function findSubstring(sString: string) {
         const s = stringToArray(sString);
+        console.log('searching for', sString, s);
         const occurrences: number[] = [];
         const st: Array<[number, number]> = [[0, 0]];
 
@@ -254,7 +277,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
 
             let matches = true;
             for (let i = 0; i < rangeLen && depth + i < s.length; i++) {
-                if (s[depth + i] !== a[leftRange + i]) {
+                if (s[depth + i] !== listsAsConcatedNumericList[leftRange + i]) {
                     matches = false;
                     break;
                 }
@@ -272,7 +295,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
             }
 
             if (isLeaf && depth + rangeLen >= s.length) {
-                occurrences.push(a.length - (depth + rangeLen));
+                occurrences.push(listsAsConcatedNumericList.length - (depth + rangeLen));
             }
         }
 
