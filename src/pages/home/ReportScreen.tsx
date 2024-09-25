@@ -282,7 +282,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.goBack(undefined, false, true);
     }, [isInNarrowPaneModal]);
 
-    let headerView = report && (
+    let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
             onNavigationMenuButtonClicked={onBackButtonPress}
@@ -292,13 +292,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         />
     );
 
-    if (isSingleTransactionView && report) {
+    if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
             />
         );
@@ -311,14 +310,13 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
     }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
 
-    if (report && (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report))) {
+    if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
             />
         );
@@ -440,7 +438,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (report && !shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+        if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
             return;
         }
 
@@ -773,7 +771,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        {shouldShowMostRecentReportAction && report && (
+                                        {shouldShowMostRecentReportAction && (
                                             <ReportActionsListItemRenderer
                                                 reportAction={mostRecentReportAction}
                                                 reportActions={reportActions}
