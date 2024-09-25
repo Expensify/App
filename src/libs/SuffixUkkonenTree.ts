@@ -284,84 +284,43 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
      * This function will return the index(es) of found occurrences within this big string.
      * So, when searching for "an", it would return [1, 4, 11].
      */
-    // function findSubstring(searchString: string) {
-    //     const occurrences: number[] = [];
-    //     // const cleanedSearchString = cleanedString(searchString);
-    //     // const numericSearchQuery = stringToArray(cleanedSearchString);
-
-    //     function dfs(node: number, depth: number) {
-    //         const leftRange = l[node];
-    //         const rightRange = r[node];
-    //         const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
-
-    //         for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
-    //             if (searchString.charCodeAt(depth + i) - CHAR_CODE_A !== a[leftRange + i]) {
-    //                 return;
-    //             }
-    //         }
-
-    //         let isLeaf = true;
-    //         for (let i = 0; i < ALPHABET_SIZE; ++i) {
-    //             if (t[node][i] !== -1) {
-    //                 isLeaf = false;
-    //                 dfs(t[node][i], depth + rangeLen);
-    //             }
-    //         }
-
-    //         if (isLeaf && depth >= searchString.length) {
-    //             occurrences.push(a.length - (depth + rangeLen));
-    //         }
-    //     }
-
-    //     dfs(0, 0);
-    //     return occurrences;
-    // }
-
-    // TODO: replace, other search function is broken in edge cases we need to address first
-    function findSubstring(value: string) {
-        const searchValueNumeric = stringToArray(value);
+    function findSubstring(searchString: number[]) {
         const occurrences: number[] = [];
-        const st: Array<[number, number]> = [[0, 0]];
 
-        while (st.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const [node, depth] = st.pop()!;
-
-            let isLeaf = true;
+        function dfs(node: number, depth: number) {
             const leftRange = leftEdges[node];
-            const rightRange = rightEdges[node] ?? listsAsConcatedNumericList.length - 1;
+            const rightRange = rightEdges[node] ?? defaultREdgeValue;
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
-            let matches = true;
-            for (let i = 0; i < rangeLen && depth + i < searchValueNumeric.length; i++) {
-                if (searchValueNumeric[depth + i] !== listsAsConcatedNumericList[leftRange + i]) {
-                    matches = false;
-                    break;
+            // console.log('dfs', node, depth, leftRange, rightRange, rangeLen, searchString.length, searchString);
+
+            for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
+                if (searchString[depth + i] !== listsAsConcatedNumericList[leftRange + i]) {
+                    return;
                 }
             }
 
-            if (!matches) {
-                continue;
-            }
-
-            for (let i = ALPHABET_SIZE - 1; i >= 0; --i) {
+            let isLeaf = true;
+            for (let i = 0; i < ALPHABET_SIZE; ++i) {
                 const tNode = transitionNodes[node]?.[i];
-                if (tNode !== undefined && tNode !== -1) {
+                const correctChar = depth + rangeLen >= searchString.length || i === searchString[depth + rangeLen];
+                if (tNode && tNode !== -1 && correctChar) {
                     isLeaf = false;
-                    st.push([tNode, depth + rangeLen]);
+                    dfs(tNode, depth + rangeLen);
                 }
             }
 
-            if (isLeaf && depth + rangeLen >= searchValueNumeric.length) {
+            if (isLeaf && depth + rangeLen >= searchString.length) {
                 occurrences.push(listsAsConcatedNumericList.length - (depth + rangeLen));
             }
         }
 
+        dfs(0, 0);
         return occurrences;
     }
 
     function findInSearchTree(searchInput: string): T[][] {
-        const result = findSubstring(searchInput);
+        const result = findSubstring(stringToArray(searchInput));
 
         // Map the results to the original options
         const mappedResults = Array.from({length: lists.length}, () => new Set<T>());
