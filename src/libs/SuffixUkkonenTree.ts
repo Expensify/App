@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 const CHAR_CODE_A = 'a'.charCodeAt(0);
 const LETTER_ALPHABET_SIZE = 26;
 const ALPHABET_SIZE = LETTER_ALPHABET_SIZE + 3; // +3: special char, delimiter char, end char
@@ -127,14 +128,19 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
 
     console.log('Search String length', listsAsConcatedNumericList.length);
     const N = 150_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
-    const start = performance.now();
-    const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
+    // const start = performance.now();
+    // const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
     const l = Array<number>(N).fill(0);
     const r = Array<number>(N).fill(0);
     const p = Array<number>(N).fill(0);
     const s = Array<number>(N).fill(0);
-    const end = performance.now();
-    console.log('Allocating memory took:', end - start, 'ms');
+    // const end = performance.now();
+    // console.log('Allocating memory took:', end - start, 'ms');
+    const t: Array<number[] | undefined> = [];
+    // const l: number[] = [];
+    // const r: number[] = [];
+    // const p: number[] = [];
+    // const s: number[] = [];
 
     let tv = 0;
     let tp = 0;
@@ -148,17 +154,25 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         r[0] = -1;
         l[1] = -1;
         r[1] = -1;
-        t[1].fill(0);
+        // t[1].fill(0);
+        t[1] = Array<number>(ALPHABET_SIZE).fill(0);
     }
 
     function processCharacter(c: number) {
         while (true) {
             if (r[tv] < tp) {
-                if (t[tv][c] === -1) {
+                let curNode = t[tv];
+
+                if (curNode === undefined) {
+                    curNode = Array<number>(ALPHABET_SIZE).fill(-1);
+                    t[tv] = curNode;
+                }
+
+                if (curNode[c] === -1) {
                     createNewLeaf(c);
                     continue;
                 }
-                tv = t[tv][c];
+                tv = curNode[c];
                 tp = l[tv];
             }
             if (tp === -1 || c === listsAsConcatedNumericList[tp]) {
@@ -175,7 +189,12 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     }
 
     function createNewLeaf(c: number) {
-        t[tv][c] = ts;
+        const curNode = t[tv];
+        if (curNode === undefined) {
+            throw new Error('createNewLeaf: curNode should not be undefined');
+        }
+
+        curNode[c] = ts;
         l[ts] = la;
         p[ts++] = tv;
         tv = s[tv];
@@ -186,13 +205,24 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         l[ts] = l[tv];
         r[ts] = tp - 1;
         p[ts] = p[tv];
-        t[ts][listsAsConcatedNumericList[tp]] = tv;
-        t[ts][c] = ts + 1;
+        let tTs = t[ts];
+        if (tTs === undefined) {
+            tTs = Array<number>(ALPHABET_SIZE).fill(-1);
+            t[ts] = tTs;
+        }
+        tTs[listsAsConcatedNumericList[tp]] = tv;
+        tTs[c] = ts + 1;
         l[ts + 1] = la;
         p[ts + 1] = ts;
         l[tv] = tp;
         p[tv] = ts;
-        t[p[ts]][listsAsConcatedNumericList[l[ts]]] = ts;
+
+        let tpts = t[p[ts]];
+        if (tpts === undefined) {
+            tpts = Array<number>(ALPHABET_SIZE).fill(-1);
+            t[p[ts]] = tpts;
+        }
+        tpts[listsAsConcatedNumericList[l[ts]]] = ts;
         ts += 2;
         handleDescent(ts);
     }
@@ -201,7 +231,11 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         tv = s[p[ts - 2]];
         tp = l[ts - 2];
         while (tp <= r[ts - 2]) {
-            tv = t[tv][listsAsConcatedNumericList[tp]];
+            const tTv = t[tv];
+            if (tTv === undefined) {
+                throw new Error('handleDescent: tTv should not be undefined');
+            }
+            tv = tTv[listsAsConcatedNumericList[tp]];
             tp += r[tv] - l[tv] + 1;
         }
         if (tp === r[ts - 2] + 1) {
@@ -298,9 +332,10 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
             }
 
             for (let i = ALPHABET_SIZE - 1; i >= 0; --i) {
-                if (t[node][i] !== -1) {
+                const tNode = t[node]?.[i];
+                if (tNode !== undefined && tNode !== -1) {
                     isLeaf = false;
-                    st.push([t[node][i], depth + rangeLen]);
+                    st.push([tNode, depth + rangeLen]);
                 }
             }
 
