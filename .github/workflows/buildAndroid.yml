@@ -79,6 +79,13 @@ jobs:
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
 
+      - name: Setup DotEnv
+        if: ${{ inputs.type == 'adhoc' }}
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
       - name: Build Android app
         id: build
         run: |

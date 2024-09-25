@@ -19,6 +19,8 @@ KEY_GRADLE_APK_PATH = "apkPath"
 KEY_GRADLE_AAB_PATH = "aabPath"
 KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
+KEY_S3_APK_PATH = "s3APKPath"
+KEY_S3_HTML_PATH = "s3HtmlPath"
 
 # Export environment variables in the parent shell.
 # In a GitHub Actions environment, it will save the environment variables in the GITHUB_ENV file.
@@ -139,7 +141,11 @@ platform :android do
       apk: ENV[KEY_GRADLE_APK_PATH],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
-    sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
+    puts "Saving S3 outputs in env..."
+    exportEnvVars({
+      KEY_S3_APK_PATH => lane_context[SharedValues::S3_APK_OUTPUT_PATH],
+      KEY_S3_HTML_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH],
+    })
   end
 
   desc "Upload app to Google Play for internal testing"
