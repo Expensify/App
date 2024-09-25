@@ -669,6 +669,12 @@ describe('ReportUtils', () => {
                     owner: '',
                     outputCurrency: '',
                     isPolicyExpenseChatEnabled: false,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            email: currentUserEmail,
+                            submitsTo: currentUserEmail,
+                        },
+                    },
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
@@ -676,6 +682,8 @@ describe('ReportUtils', () => {
                         reportID: '101',
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                         isOwnPolicyExpenseChat: true,
+                        policyID: paidPolicy.id,
+                        ownerAccountID: currentUserAccountID,
                     }),
                 ]).then(() => {
                     const report = {
@@ -686,6 +694,7 @@ describe('ReportUtils', () => {
                         parentReportID: '101',
                         policyID: paidPolicy.id,
                         managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
                     expect(moneyRequestOptions.length).toBe(2);
