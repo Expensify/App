@@ -51,11 +51,11 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
-    const saveSearchName = name ?? queryJSON?.inputQuery ?? '';
+function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
+    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName});
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName});
 }
 
 function deleteSavedSearch(hash: number) {
@@ -156,8 +156,12 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+function showSavedSearchRenameTooltip() {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
+}
+
 function dismissSavedSearchRenameTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, true);
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
 }
 
 export {
@@ -173,4 +177,5 @@ export {
     clearAdvancedFilters,
     deleteSavedSearch,
     dismissSavedSearchRenameTooltip,
+    showSavedSearchRenameTooltip,
 };
