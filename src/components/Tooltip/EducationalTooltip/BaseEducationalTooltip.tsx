@@ -1,7 +1,9 @@
 import React, {memo, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import measureTooltipCoordinate from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
@@ -15,6 +17,10 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, shouldRend
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
+    const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible;
+    const didShowRef = useRef(false);
 
     useEffect(
         () => () => {
@@ -33,21 +39,29 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, shouldRend
             return;
         }
 
+        // If the modal is open, hide the tooltip immediately and clear the timeout
+        if (!shouldShow) {
+            hideTooltipRef.current();
+            return;
+        }
+
+        // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
         const timerID = setTimeout(hideTooltipRef.current, 5000);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldAutoDismiss]);
+    }, [shouldAutoDismiss, shouldShow]);
 
     useEffect(() => {
-        if (!shouldRender || !shouldMeasure) {
+        if (!shouldRender || !shouldMeasure || !shouldShow || didShowRef.current) {
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         setTimeout(() => {
+            didShowRef.current = true;
             show.current?.();
         }, 500);
-    }, [shouldMeasure, shouldRender]);
+    }, [shouldMeasure, shouldRender, shouldShow]);
 
     return (
         <GenericTooltip
