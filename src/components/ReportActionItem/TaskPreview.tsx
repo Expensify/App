@@ -89,7 +89,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
                     <View style={iconWrapperStyle}>
                         <Checkbox
                             style={[styles.mr2]}
