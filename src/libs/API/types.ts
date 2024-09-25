@@ -406,6 +406,7 @@ const WRITE_COMMANDS = {
     UPDATE_COMPANY_CARD_NAME: 'SetCardName',
     SET_CARD_EXPORT_ACCOUNT: 'SetCardExportAccount',
     SET_MISSING_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARD: 'SetMissingPersonalDetailsAndShipExpensifyCard',
+    SET_INVOICING_TRANSFER_BANK_ACCOUNT: 'SetInvoicingTransferBankAccount',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -821,6 +822,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
+
+    [WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT]: Parameters.SetInvoicingTransferBankAccountParams;
 };
 
 const READ_COMMANDS = {
