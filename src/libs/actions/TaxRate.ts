@@ -21,6 +21,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let allPolicies: OnyxCollection<Policy>;
@@ -486,6 +487,35 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
 function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalTaxRate = {...policy?.taxRates?.taxes[oldTaxCode]};
+    const customUnits = Object.values(policy?.customUnits ?? {});
+    const optimisticCustomUnit = {
+        customUnits: {
+            ...customUnits.reduce((units, customUnit) => {
+                // eslint-disable-next-line no-param-reassign
+                units[customUnit.customUnitID] = {
+                    rates: {
+                        ...Object.keys(customUnit.rates).reduce((rates, rateID) => {
+                            if (customUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
+                                // eslint-disable-next-line no-param-reassign
+                                rates[rateID] = {
+                                    attributes: {
+                                        taxRateExternalID: newTaxCode,
+                                    },
+                                };
+                            }
+                            return rates;
+                        }, {} as Record<string, Rate>),
+                    },
+                };
+                return units;
+            }, {} as Record<string, Partial<CustomUnit>>),
+        },
+    };
+    const failureCustomUnit = {
+        customUnits: policy?.customUnits,
+    };
+    const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;
+    const oldForeignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -493,17 +523,20 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === oldDefaultExternalID ? newTaxCode : oldDefaultExternalID,
+                        foreignTaxDefault: oldTaxCode === oldForeignTaxDefault ? newTaxCode : oldForeignTaxDefault,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
                                 ...originalTaxRate,
-                                pendingFields: {code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingFields: {...originalTaxRate.pendingFields, code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
                             },
                         },
                     },
+                    ...(!!customUnits && optimisticCustomUnit),
                 },
             },
         ],
@@ -513,12 +546,14 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === oldDefaultExternalID ? newTaxCode : oldDefaultExternalID,
+                        foreignTaxDefault: oldTaxCode === oldForeignTaxDefault ? newTaxCode : oldForeignTaxDefault,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
-                                pendingFields: {code: null},
+                                pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
                             },
@@ -533,17 +568,20 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldDefaultExternalID,
+                        foreignTaxDefault: oldForeignTaxDefault,
                         taxes: {
                             [newTaxCode]: null,
                             [oldTaxCode]: {
                                 ...originalTaxRate,
                                 code: originalTaxRate.code,
-                                pendingFields: {code: null},
+                                pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
+                    ...(!!customUnits && failureCustomUnit),
                 },
             },
         ],

@@ -220,7 +220,6 @@ function ConfirmContent({
                                 style={[styles.noSelect, styles.flex1]}
                                 onPress={onCancel}
                                 text={cancelText || translate('common.no')}
-                                medium
                             />
                         )}
                         <Button
@@ -231,7 +230,6 @@ function ConfirmContent({
                             pressOnEnter
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
-                            medium
                         />
                     </View>
                 )}

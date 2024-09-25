@@ -51,6 +51,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxRateExternalID = rate.attributes?.taxRateExternalID;
 
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
+    const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
     const taxRate =
         taxRateExternalID && policy?.taxRates?.taxes[taxRateExternalID] ? `${policy?.taxRates?.taxes[taxRateExternalID]?.name} (${policy?.taxRates?.taxes[taxRateExternalID]?.value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
@@ -137,7 +138,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             onPress={editRateValue}
                         />
                     </OfflineWithFeedback>
-                    {isDistanceTrackTaxEnabled && (
+                    {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(rate, 'taxRateExternalID')}
                             pendingAction={rate?.pendingFields?.taxRateExternalID}
@@ -154,7 +155,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             </View>
                         </OfflineWithFeedback>
                     )}
-                    {isDistanceTrackTaxEnabled && (
+                    {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(rate, 'taxClaimablePercentage')}
                             pendingAction={rate?.pendingFields?.taxClaimablePercentage}
@@ -183,6 +184,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     />
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
+                        onCancel={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}
                         title={translate('workspace.distanceRates.oopsNotSoFast')}
                         prompt={translate('workspace.distanceRates.workspaceNeeds')}

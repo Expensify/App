@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
@@ -24,6 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
+import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
@@ -39,14 +39,7 @@ type BaseMenuItem = {
     action: () => void | Promise<void>;
 };
 
-type TroubleshootPageOnyxProps = {
-    shouldStoreLogs: OnyxEntry<boolean>;
-    shouldMaskOnyxState: boolean;
-};
-
-type TroubleshootPageProps = TroubleshootPageOnyxProps;
-
-function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
+function TroubleshootPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -55,13 +48,12 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrationStyle = getLightbulbIllustrationStyle();
 
+    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            let dataToShare = value;
-            if (shouldMaskOnyxState) {
-                dataToShare = ExportOnyxState.maskFragileData(value);
-            }
-
+            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
@@ -110,6 +102,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
@@ -161,8 +154,20 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                 isVisible={isConfirmationModalVisible}
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
+                                    // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+                                    // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+                                    // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+                                    const sequentialQueue = PersistedRequests.getAll();
                                     Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
-                                        App.openApp();
+                                        App.openApp().then(() => {
+                                            if (!sequentialQueue) {
+                                                return;
+                                            }
+
+                                            sequentialQueue.forEach((request) => {
+                                                PersistedRequests.save(request);
+                                            });
+                                        });
                                     });
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}
@@ -180,12 +185,4 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
 
 TroubleshootPage.displayName = 'TroubleshootPage';
 
-export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-    shouldMaskOnyxState: {
-        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
-        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
-    },
-})(TroubleshootPage);
+export default TroubleshootPage;

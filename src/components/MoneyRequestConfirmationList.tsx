@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -37,6 +37,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import FormHelpMessage from './FormHelpMessage';
@@ -165,6 +166,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** Should play sound on confirmation */
     shouldPlaySound?: boolean;
+
+    /** Whether the expense is confirmed or not */
+    isConfirmed?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
@@ -177,7 +181,7 @@ function MoneyRequestConfirmationList({
     iouAmount,
     policyCategories: policyCategoriesReal,
     policyCategoriesDraft,
-    mileageRates,
+    mileageRates: mileageRatesReal,
     isDistanceRequest = false,
     policy: policyReal,
     policyDraft,
@@ -208,9 +212,14 @@ function MoneyRequestConfirmationList({
     currencyList,
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
+    isConfirmed,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const [mileageRatesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID || '-1'}`, {
+        selector: (selectedPolicy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(selectedPolicy),
+    });
+    const mileageRates = isEmptyObject(mileageRatesReal) ? mileageRatesDraft : mileageRatesReal;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -228,14 +237,15 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
+        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {
             return;
         }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
+
+        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
+        IOU.setCustomUnitRateID(transactionID, rateID);
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -294,7 +304,7 @@ function MoneyRequestConfirmationList({
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
-    const [didConfirm, setDidConfirm] = useState(false);
+    const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
@@ -414,6 +424,10 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
+    useEffect(() => {
+        setDidConfirm(isConfirmed);
+    }, [isConfirmed]);
+
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
         if (isTypeInvoice) {
@@ -477,8 +491,14 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        // Amounts should be bigger than 0 for the split bill creator (yourself)
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+            setFormError('iou.error.invalidSplitYourself');
+            return;
+        }
+
         setFormError('');
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -707,7 +727,7 @@ function MoneyRequestConfirmationList({
      * Navigate to report details or profile of selected user
      */
     const navigateToReportOrUserDetail = (option: MoneyRequestConfirmationListItem) => {
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
+        const activeRoute = Navigation.getActiveRoute();
 
         if (option.isSelfDM) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
@@ -764,7 +784,6 @@ function MoneyRequestConfirmationList({
                 if (shouldPlaySound) {
                     playSound(SOUNDS.DONE);
                 }
-                setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -773,9 +792,6 @@ function MoneyRequestConfirmationList({
                 if (formError) {
                     return;
                 }
-
-                setDidConfirm(true);
-
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney?.(paymentMethod);
             }
@@ -895,7 +911,7 @@ function MoneyRequestConfirmationList({
             action={action}
             canUseP2PDistanceRequests={canUseP2PDistanceRequests}
             currency={currency}
-            didConfirm={didConfirm}
+            didConfirm={!!didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
             formError={formError}

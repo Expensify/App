@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
@@ -69,7 +69,7 @@ function AvatarWithDisplayName({
         ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report) || ReportUtils.isInvoiceReport(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
@@ -79,10 +79,15 @@ function AvatarWithDisplayName({
         actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
     }, [parentReportActions, report]);
 
+    const goToDetailsPage = useCallback(() => {
+        ReportUtils.navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+    }, [report]);
+
     const showActorDetails = useCallback(() => {
         // We should navigate to the details page if the report is a IOU/expense report
         if (shouldEnableDetailPageNavigation) {
-            return ReportUtils.navigateToDetailsPage(report);
+            goToDetailsPage();
+            return;
         }
 
         if (ReportUtils.isExpenseReport(report) && report?.ownerAccountID) {
@@ -107,7 +112,7 @@ function AvatarWithDisplayName({
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
-    }, [report, shouldEnableDetailPageNavigation]);
+    }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
@@ -172,7 +177,7 @@ function AvatarWithDisplayName({
 
     return (
         <PressableWithoutFeedback
-            onPress={() => ReportUtils.navigateToDetailsPage(report)}
+            onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             role={CONST.ROLE.BUTTON}

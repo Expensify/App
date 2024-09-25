@@ -11,7 +11,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -44,6 +43,7 @@ type MenuItem = {
     icon: IconAsset;
     text: string;
     onSelected: () => void;
+    shouldCallAfterModalHide?: boolean;
 };
 
 type AvatarWithImagePickerProps = {
@@ -193,6 +193,10 @@ function AvatarWithImagePicker({
         setError(null, {});
     }, [isFocused]);
 
+    useEffect(() => {
+        setError(null, {});
+    }, [source, avatarID]);
+
     /**
      * Check if the attachment extension is allowed.
      */
@@ -260,19 +264,19 @@ function AvatarWithImagePicker({
      * Create menu items list for avatar menu
      */
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
-        const menuItems = [
+        const menuItems: MenuItem[] = [
             {
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () =>
-                    Modal.close(() => {
-                        if (Browser.isSafari()) {
-                            return;
-                        }
-                        openPicker({
-                            onPicked: showAvatarCropModal,
-                        });
-                    }),
+                onSelected: () => {
+                    if (Browser.isSafari()) {
+                        return;
+                    }
+                    openPicker({
+                        onPicked: showAvatarCropModal,
+                    });
+                },
+                shouldCallAfterModalHide: true,
             },
         ];
 
@@ -325,7 +329,7 @@ function AvatarWithImagePicker({
     );
 
     return (
-        <View style={style}>
+        <View style={[styles.w100, style]}>
             <View style={styles.w100}>
                 <AttachmentModal
                     headerTitle={headerTitle}
@@ -344,14 +348,14 @@ function AvatarWithImagePicker({
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: () =>
-                                            Modal.close(() => {
-                                                if (typeof onViewPhotoPress !== 'function') {
-                                                    show();
-                                                    return;
-                                                }
-                                                onViewPhotoPress();
-                                            }),
+                                        onSelected: () => {
+                                            if (typeof onViewPhotoPress !== 'function') {
+                                                show();
+                                                return;
+                                            }
+                                            onViewPhotoPress();
+                                        },
+                                        shouldCallAfterModalHide: true,
                                     });
                                 }
 
@@ -368,11 +372,11 @@ function AvatarWithImagePicker({
                                             >
                                                 <PressableWithoutFeedback
                                                     onPress={() => onPressAvatar(openPicker)}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                                    accessibilityRole={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, avatarStyle, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter]}
+                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
                                                     ref={anchorRef}
                                                 >
                                                     <OfflineWithFeedback pendingAction={pendingAction}>

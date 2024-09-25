@@ -1181,7 +1181,7 @@ index 0000000..c48f86e
 +++ b/node_modules/@onfido/react-native-sdk/js/NativeOnfidoModule.ts
 @@ -0,0 +1,13 @@
 +import { TurboModuleRegistry, TurboModule } from "react-native";
-+import { Int32 } from 'react-native/Libraries/Types/CodegenTypes';
++import { Double } from 'react-native/Libraries/Types/CodegenTypes';
 +
 +export interface Spec extends TurboModule {
 +  start(config: Object): Promise<Object>;
@@ -1189,7 +1189,7 @@ index 0000000..c48f86e
 +
 +  // those two are here for event emitter methods
 +  addListener(eventName: string): void;
-+  removeListeners(count: Int32): void;
++  removeListeners(count: Double): void;
 +}
 +
 +export default TurboModuleRegistry.getEnforcing<Spec>("RNOnfidoSdk");

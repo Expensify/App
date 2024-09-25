@@ -40,7 +40,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
             <PressableWithoutFocus
                 style={styles.noOutline}
                 onPress={() => navigateToAvatarPage(icons[0])}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icons[0].name ?? ''}
                 disabled={icons[0].source === Expensicons.FallbackAvatar}
             >
@@ -77,7 +77,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                         <PressableWithoutFocus
                             style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
                             disabled={icon.source === Expensicons.FallbackAvatar}
                         >
