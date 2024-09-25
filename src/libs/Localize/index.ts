@@ -103,7 +103,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             /**
-             * If the result of `translatedPhrase` is an object, check if it contains the 'count' property
+             * If the result of `translatedPhrase` is an object, check if it contains the 'count' parameter
              * to handle pluralization logic.
              * Alternatively, before evaluating the translated result, we can check if the 'count' parameter
              * exists in the passed parameters.
