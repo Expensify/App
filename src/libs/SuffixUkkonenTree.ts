@@ -5,7 +5,7 @@ const SPECIAL_CHAR_CODE = ALPHABET_SIZE - 3;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
 const END_CHAR_CODE = ALPHABET_SIZE - 1;
 
-const nonAlphanumericRegex = /[^a-z0-9]/gi;
+const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
 
 // The character that separates the different options in the search string
 const DELIMITER_CHAR = String.fromCharCode(DELIMITER_CHAR_CODE + CHAR_CODE_A);
@@ -70,13 +70,17 @@ function cleanedString(input: string) {
     return input.toLowerCase().replace(nonAlphanumericRegex, '');
 }
 
+let timeSpendCleaning = 0;
 function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const allDataAsNumbers: number[] = [];
+    timeSpendCleaning = 0;
     data.forEach((option, index) => {
         const searchStringForTree = transform(option);
         // Remove all none a-z chars:
+        const start = performance.now();
         const cleanedSearchStringForTree = cleanedString(searchStringForTree);
+        timeSpendCleaning += performance.now() - start;
 
         if (cleanedSearchStringForTree.length === 0) {
             return;
@@ -94,6 +98,7 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Arr
             allDataAsNumbers.push(DELIMITER_CHAR_CODE);
         }
     });
+    console.log('cleaning', timeSpendCleaning, 'ms');
 
     return [allDataAsNumbers, searchIndexList];
 }
@@ -111,15 +116,16 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
 
     for (const {data, transform} of lists) {
         const [numericRepresentation, searchIndexList] = prepareData({data, transform});
-        listsAsConcatedNumericList.push(...numericRepresentation);
+        for (const num of numericRepresentation) {
+            listsAsConcatedNumericList.push(num);
+        }
         indexesForList.push(searchIndexList);
     }
     listsAsConcatedNumericList.push(END_CHAR_CODE);
     console.log('building search strings', performance.now() - start1);
 
     console.log('Search String length', listsAsConcatedNumericList.length);
-    console.log('Numeric representation', listsAsConcatedNumericList);
-    const N = 25_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
+    const N = 150_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
     const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
     const l = Array<number>(N).fill(0);
