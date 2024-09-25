@@ -224,7 +224,6 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
-// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);

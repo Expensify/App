@@ -6439,9 +6439,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     if (isInvoiceRoom(report)) {
-        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-        // if (PolicyUtils.canSendInvoiceFromWorkspace(policy?.id) && isPolicyAdmin(report?.policyID ?? '-1', allPolicies)) {
-        if (isPolicyAdmin(report?.policyID ?? '-1', allPolicies)) {
+        if (PolicyUtils.canSendInvoiceFromWorkspace(policy?.id) && isPolicyAdmin(report?.policyID ?? '-1', allPolicies)) {
             return [CONST.IOU.TYPE.INVOICE];
         }
         return [];

@@ -1247,8 +1247,8 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             value: {
                 invoice: {
-                    companyName: undefined,
-                    companyWebsite: undefined,
+                    companyName: null,
+                    companyWebsite: null,
                     pendingFields: {
                         companyName: null,
                         companyWebsite: null,
