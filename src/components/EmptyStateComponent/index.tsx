@@ -84,7 +84,7 @@ function EmptyStateComponent({
 
     return (
         <ScrollView
-            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink1, containerStyles]}
+            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
             style={styles.flex1}
         >
             <View style={styles.skeletonBackground}>
