@@ -27,7 +27,6 @@ import type Fund from './Fund';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
-import type InvoiceBalanceTransfer from './InvoiceBalanceTransfer';
 import type IOU from './IOU';
 import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
@@ -228,7 +227,6 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     MobileSelectionMode,
-    InvoiceBalanceTransfer,
     WorkspaceTooltip,
     CardFeeds,
     SaveSearch,

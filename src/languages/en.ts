@@ -296,7 +296,6 @@ export default {
         join: 'Join',
         leave: 'Leave',
         decline: 'Decline',
-        transfer: 'Transfer',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',

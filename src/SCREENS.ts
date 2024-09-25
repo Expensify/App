@@ -398,7 +398,6 @@ const SCREENS = {
         EXPENSIFY_CARD_SETTINGS_ACCOUNT: 'Workspace_ExpensifyCard_Settings_Account',
         EXPENSIFY_CARD_SETTINGS_FREQUENCY: 'Workspace_ExpensifyCard_Settings_Frequency',
         INVOICES: 'Workspace_Invoices',
-        INVOICES_TRANSFER_BALANCE: 'Workspace_Invoices_Transfer_Balance',
         INVOICES_COMPANY_NAME: 'Workspace_Invoices_Company_Name',
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         MEMBERS: 'Workspace_Members',

@@ -688,10 +688,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
     },
-    WORKSPACE_INVOICES_TRANSFER_BALANCE: {
-        route: 'settings/workspaces/:policyID/invoices/transfer-balance',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/transfer-balance` as const,
-    },
     WORKSPACE_INVOICES_COMPANY_NAME: {
         route: 'settings/workspaces/:policyID/invoices/company-name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-name` as const,

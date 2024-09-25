@@ -716,9 +716,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
-    [SCREENS.WORKSPACE.INVOICES_TRANSFER_BALANCE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
         policyID: string;
     };

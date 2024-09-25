@@ -411,12 +411,8 @@ const ONYXKEYS = {
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
-    /** Stores the information about the invoice balance transfer */
-    INVOICE_BALANCE_TRANSFER: 'invoiceBalanceTransfer',
-
     /** Stores the user search value for persistance across the screens */
     ROOM_MEMBERS_USER_SEARCH_PHRASE: 'roomMembersUserSearchPhrase',
-
     /** Stores information about recently uploaded spreadsheet file */
     IMPORTED_SPREADSHEET: 'importedSpreadsheet',
 
@@ -983,7 +979,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
     [ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
-    [ONYXKEYS.INVOICE_BALANCE_TRANSFER]: OnyxTypes.InvoiceBalanceTransfer;
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;

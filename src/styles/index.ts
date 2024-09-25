@@ -5186,14 +5186,6 @@ const styles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
-        workspaceTransferBalance: {
-            height: variables.optionRowHeight,
-            marginTop: 20,
-            paddingLeft: 8,
-            paddingRight: 0,
-            borderRadius: 100,
-        },
-
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,

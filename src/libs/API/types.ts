@@ -374,7 +374,6 @@ const WRITE_COMMANDS = {
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
     REMOVE_WORKSPACE_APPROVAL: 'RemoveWorkspaceApproval',
-    TRANSFER_POLICY_ACCOUNT_BALANCE: 'TransferPolicyAccountBalance',
     CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY: 'ConfigureExpensifyCardsForPolicy',
     CREATE_EXPENSIFY_CARD: 'CreateExpensifyCard',
     CREATE_ADMIN_ISSUED_VIRTUAL_CARD: 'CreateAdminIssuedVirtualCard',
@@ -795,7 +794,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL]: Parameters.UpdateWorkspaceApprovalParams;
     [WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL]: Parameters.RemoveWorkspaceApprovalParams;
-    [WRITE_COMMANDS.TRANSFER_POLICY_ACCOUNT_BALANCE]: Parameters.TransferInvoiceBalanceParams;
     [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'domainAccountID'>;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
