@@ -320,7 +320,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
     }
 
     function findInSearchTree(searchInput: string): T[][] {
-        const searchValueNumeric = stringToArray(searchInput);
+        const searchValueNumeric = stringToArray(cleanString(searchInput));
         const result = findSubstring(searchValueNumeric);
 
         // Map the results to the original options

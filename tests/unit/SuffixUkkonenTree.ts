@@ -78,4 +78,39 @@ describe('SuffixUkkonenTree', () => {
         expect(tree.findInSearchTree('llo')).toEqual([['he}llo']]);
         expect(tree.findInSearchTree('nana')).toEqual([['ba|nana']]);
     });
+
+    it('should be case insensitive', () => {
+        const tree = makeTree([
+            {
+                data: ['banana', 'TeSt', 'TEST'],
+                toSearchableString: (data) => data,
+            },
+        ]);
+        tree.build();
+
+        expect(tree.findInSearchTree('test')).toEqual([['TeSt', 'TEST']]);
+    });
+
+    it('should work with large random data sets', () => {
+        const data = Array.from({length: 1000}, () => {
+            // return words of length 5-27 with random char codes:
+            return Array.from({length: Math.floor(Math.random() * 22 + 5)}, () => {
+                const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789@-_.';
+                return alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+            }).join('');
+        });
+
+        const tree = makeTree([
+            {
+                data,
+                toSearchableString: (x) => x,
+            },
+        ]);
+        tree.build();
+
+        // Expect to find each word in the tree
+        data.forEach((word) => {
+            expect(tree.findInSearchTree(word)).toEqual([[word]]);
+        });
+    });
 });
