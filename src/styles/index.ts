@@ -5132,11 +5132,6 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        emptyStateScrollView: {
-            height: '100%',
-            flex: 1,
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',

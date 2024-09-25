@@ -28,7 +28,6 @@ function EmptyStateComponent({
     headerContentStyles,
     lottieWebViewStyles,
     minModalHeight = 400,
-    canEmptyViewBeScrolled = false,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -85,8 +84,8 @@ function EmptyStateComponent({
 
     return (
         <ScrollView
-            contentContainerStyle={[!canEmptyViewBeScrolled && styles.emptyStateScrollView, {minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink1, containerStyles]}
-            style={[canEmptyViewBeScrolled && {flex: 1}]}
+            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink1, containerStyles]}
+            style={styles.flex1}
         >
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
