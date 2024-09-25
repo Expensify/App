@@ -1,7 +1,9 @@
 /* eslint-disable no-continue */
 
 /**
- * TODO: quick explanation to how suffix ukkonen tree works:
+ * This implements a suffix tree using Ukkonen's algorithm.
+ * A good visualization to learn about the algorithm can be found here: https://brenden.github.io/ukkonen-animation/
+ * Note: This implementation is optimized for performance, not necessarily for readability.
  */
 
 const CHAR_CODE_A = 'a'.charCodeAt(0);
@@ -223,8 +225,6 @@ function makeTree(numericSearchValues: number[]) {
             const leftRange = leftEdges[node];
             const rightRange = rightEdges[node] ?? defaultREdgeValue;
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
-
-            // console.log('dfs', node, depth, leftRange, rightRange, rangeLen, searchString.length, searchString);
 
             for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
                 if (searchString[depth + i] !== numericSearchValues[leftRange + i]) {

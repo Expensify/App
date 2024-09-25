@@ -14,6 +14,10 @@ type SearchableData<T> = {
     toSearchableString: (data: T) => string;
 };
 
+/**
+ * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for (sub-)strings in a list of strings.
+ * You can provide multiple datasets. The search results will be returned for each dataset.
+ */
 function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
     // Create a numeric list for the suffix tree, and a look up indexes array
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
@@ -39,6 +43,9 @@ function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
     tree.build();
     Timing.end(CONST.TIMING.SEARCH_BUILD_TREE);
 
+    /**
+     * Searches for the given input and returns results for each dataset.
+     */
     function search(searchInput: string): T[][] {
         const searchValueNumeric = stringToNumeric(cleanString(searchInput));
         const result = tree.findSubstring(searchValueNumeric);
