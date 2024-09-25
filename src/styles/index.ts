@@ -3220,6 +3220,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
+        moneyRequestLoadingHeight: {
+            height: 27,
+        },
+
         defaultCheckmarkWrapper: {
             marginLeft: 8,
             alignSelf: 'center',
@@ -5128,16 +5132,11 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        emptyStateScrollView: {
-            height: '100%',
-            flex: 1,
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            flexGrow: 1,
         },
 
         emptyStateContent: {

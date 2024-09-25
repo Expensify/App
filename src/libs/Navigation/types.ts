@@ -182,15 +182,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
-    [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
     };
@@ -364,6 +355,10 @@ type SettingsNavigatorParamList = {
         reportFieldID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+        policyID: string;
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
         policyID: string;
         accountID: string;
     };
@@ -834,53 +829,87 @@ type ProfileNavigatorParamList = {
 };
 
 type ReportDetailsNavigatorParamList = {
-    [SCREENS.REPORT_DETAILS.ROOT]: undefined;
+    [SCREENS.REPORT_DETAILS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+        backTo?: Routes;
     };
     [SCREENS.REPORT_DETAILS.EXPORT]: {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+        backTo?: Routes;
     };
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.NAME]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
 type ReportDescriptionNavigatorParamList = {
-    [SCREENS.REPORT_DESCRIPTION_ROOT]: {reportID: string};
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
-    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
 type RoomMembersNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS.ROOT]: {reportID: string};
+    [SCREENS.ROOM_MEMBERS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.ROOM_MEMBERS.INVITE]: {
         reportID: string;
         role?: 'accountant';
+        backTo?: Routes;
     };
     [SCREENS.ROOM_MEMBERS.DETAILS]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
@@ -994,6 +1023,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: never;
         action: never;
         currency: never;
+        pageIndex?: string;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: IOUType;
@@ -1007,6 +1037,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         backTo: Routes;
         action: IOUAction;
+        pageIndex?: string;
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
@@ -1045,12 +1076,22 @@ type MoneyRequestNavigatorParamList = {
 };
 
 type NewTaskNavigatorParamList = {
-    [SCREENS.NEW_TASK.ROOT]: undefined;
-    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: undefined;
+    [SCREENS.NEW_TASK.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: {
+        backTo?: Routes;
+    };
     [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: undefined;
-    [SCREENS.NEW_TASK.DETAILS]: undefined;
-    [SCREENS.NEW_TASK.TITLE]: undefined;
-    [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
+    [SCREENS.NEW_TASK.DETAILS]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.TITLE]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.DESCRIPTION]: {
+        backTo?: Routes;
+    };
 };
 
 type TeachersUniteNavigatorParamList = {
@@ -1061,9 +1102,12 @@ type TeachersUniteNavigatorParamList = {
 };
 
 type TaskDetailsNavigatorParamList = {
-    [SCREENS.TASK.TITLE]: undefined;
+    [SCREENS.TASK.TITLE]: {
+        backTo?: Routes;
+    };
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
@@ -1075,6 +1119,7 @@ type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportID: string;
         reportActionID: string;
+        backTo?: Routes;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
         field: string;
@@ -1108,11 +1153,17 @@ type FlagCommentNavigatorParamList = {
     [SCREENS.FLAG_COMMENT_ROOT]: {
         reportID: string;
         reportActionID: string;
+        backTo?: Routes;
     };
 };
 
 type EditRequestNavigatorParamList = {
-    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: undefined;
+    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
+        fieldID: string;
+        reportID: string;
+        policyID: string;
+        backTo?: Routes;
+    };
 };
 
 type SignInNavigatorParamList = {
@@ -1135,37 +1186,48 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
+    [SCREENS.PRIVATE_NOTES.LIST]: {
+        backTo?: Routes;
+    };
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
 type TransactionDuplicateNavigatorParamList = {
     [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
 };
 
@@ -1222,9 +1284,6 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
@@ -1264,16 +1323,7 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REIMBURSE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.BILLS]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
