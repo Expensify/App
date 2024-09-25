@@ -126,14 +126,14 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     const N = 150_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     // const start = performance.now();
     // const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
-    const l = Array<number>(N).fill(0);
+    // const l = Array<number>(N).fill(0);
     // const r = Array<number>(N).fill(0);
     const p = Array<number>(N).fill(0);
     const s = Array<number>(N).fill(0);
     // const end = performance.now();
     // console.log('Allocating memory took:', end - start, 'ms');
     const t: Array<number[] | undefined> = [];
-    // const l: number[] = [];
+    const l: number[] = [];
     const r: Array<number | undefined> = [];
     const defaultREdgeValue = listsAsConcatedNumericList.length - 1;
     // const p: number[] = [];
