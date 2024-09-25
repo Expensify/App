@@ -16,9 +16,12 @@ function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unkno
     }
 
     const keys = Object.keys(dataCopy);
+
+    if (keys.length === 0) {
+        return dataCopy;
+    }
     const allKeysAreNumeric = keys.every((key) => !Number.isNaN(Number(key)));
     const keysAreSequential = keys.every((key, index) => parseInt(key, 10) === index);
-
     if (allKeysAreNumeric && keysAreSequential) {
         return keys.map((key) => transformNumericKeysToArray(dataCopy[key] as UnknownRecord));
     }
@@ -44,7 +47,6 @@ function cleanAndTransformState<T>(state: string): T {
     });
 
     const transformedState = transformNumericKeysToArray(parsedState) as T;
-
     return transformedState;
 }
 
