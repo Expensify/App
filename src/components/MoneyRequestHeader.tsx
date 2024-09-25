@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,14 +36,12 @@ type MoneyRequestHeaderProps = {
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<ReportAction>;
 
-    /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
-
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
 
-function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
@@ -107,14 +106,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
             return;
         }
 
-        if (shouldUseNarrowLayout) {
-            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+        if (isSmallScreenWidth) {
+            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD.route) {
                 Navigation.goBack();
             }
         } else {
-            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
         }
-    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.dismissHoldUseExplanation();
@@ -152,7 +151,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0, styles.ml2]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? ''));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     )}
@@ -174,7 +173,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? ''));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>
@@ -188,7 +187,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     </View>
                 )}
             </View>
-            {shouldUseNarrowLayout && shouldShowHoldMenu && (
+            {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
