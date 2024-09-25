@@ -27,6 +27,14 @@ The following table shows the metrics that are being tracked.
 | `open_report_thread`   | ✅ | Time taken to open a thread in a report.     | Starts when user presses Report Action Item.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `message_sent`    | ❌ | Time taken to send a message.     | Starts when the new message is sent.     | Stops when the message is being rendered in the chat.     |
 
+## Documentation Maintenance:
+This documentation must be kept up-to-date as metrics evolve or new features are introduced:
+- if new metric is introduced in the codebase, it should be added to the table
+- if the name of the marker changed, and the old name is not used anymore, the old name should be marked as removed and point to the new name
+- if the marker was removed, it should stay in the table and be marked as removed
+- if marker placement has changed in the code its new location should be reflected in the table
+- metrics efficiency and correctness should be monitored via analytics tool which uses them (e.g. Firebase)
+
 
 ## Additional Resources
 
