@@ -614,7 +614,7 @@ function validateReportActionJSON(json: string) {
 
 /**
  * Gets the reason for showing LHN row
- * 
+ *
  * Based on ReportUtils.shouldReportBeInOptionList
  */
 function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
@@ -729,10 +729,11 @@ function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         });
     }
 
-    // Is an invoice room and there's an invoice missing a bank account 
+    // Is an invoice room and there's an invoice missing a bank account
     if (ReportUtils.isInvoiceRoom(report)) {
         return Object.values(reportActions).find(
-            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && ReportUtils.hasMissingInvoiceBankAccount(reportAction.childReportID),
+            (reportAction) =>
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && ReportUtils.hasMissingInvoiceBankAccount(reportAction.childReportID),
         );
     }
 
