@@ -4,13 +4,13 @@ import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'rea
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Network} from '@src/types/onyx';
@@ -89,17 +89,17 @@ function FormProvider(
         shouldValidateOnBlur = true,
         shouldValidateOnChange = true,
         children,
-        formState,
-        network,
         enabledWhenOffline = false,
-        draftValues,
         onSubmit,
         shouldTrimValues = true,
         allowHTML = false,
         ...rest
-    }: FormProviderProps,
+    }: Omit<FormProviderProps, keyof FormProviderOnyxProps>,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
@@ -404,19 +404,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default withOnyx<FormProviderProps, FormProviderOnyxProps>({
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-    // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we need to cast the keys to any
-    formState: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-        key: ({formID}) => formID as any,
-    },
-    draftValues: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-        key: (props) => `${props.formID}Draft` as any,
-    },
-})(forwardRef(FormProvider)) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID> & RefAttributes<FormRef>, keyof FormProviderOnyxProps>) => ReactNode;
+export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID> & RefAttributes<FormRef>, keyof FormProviderOnyxProps>) => ReactNode;
 
 export type {FormProviderProps};
