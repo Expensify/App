@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
@@ -216,23 +217,15 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
     };
 
     return (
-        <ScreenWrapper
-            testID={BeneficialOwnersStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={BeneficialOwnersStep.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={4}
+            stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('beneficialOwnerInfoStep.companyOwner')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={4}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
-            </View>
-
             {currentUBOSubstep === SUBSTEP.IS_USER_UBO && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
@@ -276,7 +269,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
                     isAnyoneElseUBO={isAnyoneElseUBO}
                 />
             )}
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

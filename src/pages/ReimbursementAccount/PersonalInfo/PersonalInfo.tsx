@@ -1,11 +1,9 @@
 import type {RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -79,29 +77,22 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
     };
 
     return (
-        <ScreenWrapper
+        <InteractiveStepWrapper
             ref={ref}
-            testID={PersonalInfo.displayName}
-            includeSafeAreaPaddingBottom={false}
+            wrapperID={PersonalInfo.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            headerTitle={translate('personalInfoStep.personalInfo')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={1}
+            stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('personalInfoStep.personalInfo')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={1}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
-            </View>
             <SubStep
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
             />
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

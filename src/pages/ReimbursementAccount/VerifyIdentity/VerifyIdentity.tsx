@@ -1,13 +1,10 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
-import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,17 +58,13 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     };
 
     return (
-        <ScreenWrapper testID={VerifyIdentity.displayName}>
-            <HeaderWithBackButton
-                title={translate('onfidoStep.verifyIdentity')}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={2}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
-            </View>
+        <InteractiveStepWrapper
+            wrapperID={VerifyIdentity.displayName}
+            headerTitle={translate('onfidoStep.verifyIdentity')}
+            handleBackButtonPress={onBackButtonPress}
+            startStepIndex={2}
+            stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+        >
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
@@ -82,7 +75,7 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
                     />
                 </ScrollView>
             </FullPageOfflineBlockingView>
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 
