@@ -56,8 +56,8 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
                     onChangeText={onChangeText}
                     onSubmitEditing={onSubmit}
                     autoFocus
-                    textInputContainerStyles={[{borderBottomWidth: 0}, styles.ph3, inputWidth]}
-                    inputStyle={[styles.searchInputStyle]}
+                    textInputContainerStyles={[{borderBottomWidth: 0}]}
+                    inputStyle={[styles.searchInputStyle, styles.ph3, inputWidth]}
                     role={CONST.ROLE.PRESENTATION}
                     autoCapitalize="none"
                     onFocus={() => setIsFocused(true)}
