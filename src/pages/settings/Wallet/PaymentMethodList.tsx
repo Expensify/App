@@ -113,6 +113,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
         isDefault?: boolean,
         methodID?: number,
     ) => void;
+
+    /** The policy invoice's transfer bank accountID */
+    invoiceTransferBankAccountID?: number;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -197,6 +200,7 @@ function PaymentMethodList({
     style = {},
     listItemStyle = {},
     shouldShowRightIcon = true,
+    invoiceTransferBankAccountID,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -375,7 +379,11 @@ function PaymentMethodList({
                     iconHeight={item.iconHeight ?? item.iconSize}
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
-                    badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : undefined}
+                    badgeText={
+                        shouldShowDefaultBadge(filteredPaymentMethods, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
+                            ? translate('paymentMethodList.defaultPaymentMethod')
+                            : undefined
+                    }
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}
@@ -389,7 +397,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
