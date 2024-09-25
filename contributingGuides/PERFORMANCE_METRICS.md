@@ -1,10 +1,12 @@
-# Firebase Integration
+# Performance Metrics
 
-This project uses Firebase for gathering information about performance and crashes.
+This project tracks various performance metrics to monitor and improve the application's efficiency and user experience.
 
-## Performance Metrics
+## Tracked Metrics
 
-The following table shows the metrics that are being tracked.
+The following table shows the key performance metrics that are being monitored in the application.
+
+Project is using Firebase for tracking these metrics. However, not all of them are sent there - some of them are only used internally by the Performance module.
 
 | Metric name | Sent to Firebase | Description | Start time | End time |
 |----------|----------|----------|----------|----------|
@@ -27,17 +29,20 @@ The following table shows the metrics that are being tracked.
 | `open_report_thread`   | ✅ | Time taken to open a thread in a report.     | Starts when user presses Report Action Item.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `message_sent`    | ❌ | Time taken to send a message.     | Starts when the new message is sent.     | Stops when the message is being rendered in the chat.     |
 
-## Documentation Maintenance:
-This documentation must be kept up-to-date as metrics evolve or new features are introduced:
-- if new metric is introduced in the codebase, it should be added to the table
-- if the name of the marker changed, and the old name is not used anymore, the old name should be marked as removed and point to the new name
-- if the marker was removed, it should stay in the table and be marked as removed
-- if marker placement has changed in the code its new location should be reflected in the table
-- metrics efficiency and correctness should be monitored via analytics tool which uses them (e.g. Firebase)
+## Documentation Maintenance
+
+To ensure this documentation remains accurate and useful, please adhere to the following guidelines when updating performance metrics:
+
+1. **New Metrics**: When a new metric is introduced in the codebase, add it to the table with all relevant details.
+
+2. **Metric Renaming**: If a metric is renamed, update the table entry. Mark the old name as deprecated and include a reference to the new name.
+
+3. **Metric Removal**: If a metric is no longer used, don't delete its entry. Instead, mark it as deprecated in the table and provide a brief explanation.
+
+4. **Code Location Changes**: If the placement of a metric in the code changes, update the "Start time" and "End time" columns to reflect the new location.
 
 
 ## Additional Resources
 
 - [Firebase Documentation](https://firebase.google.com/docs)
 - [Firebase Performance Monitoring](https://firebase.google.com/docs/perf-mon)
-- [Firebase Crashlytics](https://firebase.google.com/docs/crashlytics)
