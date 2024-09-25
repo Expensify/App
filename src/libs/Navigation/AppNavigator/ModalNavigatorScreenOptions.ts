@@ -19,7 +19,7 @@ const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles, gestureDirection:
 
     return {
         headerShown: false,
-        animation: 'slide_from_left',
+        animation: 'slide_from_right',
         gestureDirection: universalGestureDirection,
         web: {
             cardStyle: themeStyles.navigationScreenCardStyle,
