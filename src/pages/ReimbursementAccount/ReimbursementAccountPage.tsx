@@ -25,6 +25,7 @@ import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -124,6 +125,34 @@ function getRouteForCurrentStep(currentStep: TBankAccountStep): ValueOf<typeof R
     }
 }
 
+/**
+ * Returns selected bank account fields based on field names provided.
+ */
+function getFieldsForStep(step: TBankAccountStep): InputID[] {
+    switch (step) {
+        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+            return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
+        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+            return [
+                'companyName',
+                'addressStreet',
+                'addressZipCode',
+                'addressCity',
+                'addressState',
+                'companyPhone',
+                'website',
+                'companyTaxID',
+                'incorporationType',
+                'incorporationDate',
+                'incorporationState',
+            ];
+        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+            return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+        default:
+            return [];
+    }
+}
+
 function ReimbursementAccountPage({
     reimbursementAccount,
     route,
@@ -136,46 +165,19 @@ function ReimbursementAccountPage({
     plaidCurrentEvent = '',
 }: ReimbursementAccountPageProps) {
     /**
-        The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-        user left off. This view will refer to the achData as the single source of truth to determine which route to
-        display. We can also specify a specific route to navigate to via route params when the component first
-        mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-        next step.
-    */
+     The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
+     user left off. This view will refer to the achData as the single source of truth to determine which route to
+     display. We can also specify a specific route to navigate to via route params when the component first
+     mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
+     next step.
+     */
     const achData = reimbursementAccount?.achData;
+    const isPreviousPolicy = policy?.id === achData?.policyID;
 
     function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHDataReimbursementAccount, T> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
-    }
-
-    /**
-     * Returns selected bank account fields based on field names provided.
-     */
-    function getFieldsForStep(step: TBankAccountStep): InputID[] {
-        switch (step) {
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
-            case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return [
-                    'companyName',
-                    'addressStreet',
-                    'addressZipCode',
-                    'addressCity',
-                    'addressState',
-                    'companyPhone',
-                    'website',
-                    'companyTaxID',
-                    'incorporationType',
-                    'incorporationDate',
-                    'incorporationState',
-                ];
-            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
-            default:
-                return [];
-        }
     }
 
     /**
@@ -203,8 +205,7 @@ function ReimbursementAccountPage({
         the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
-
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
     const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(() => {
         // By default return true (loading), if there are already loaded data we can skip the loading state
@@ -244,6 +245,10 @@ function ReimbursementAccountPage({
     }
 
     useEffect(() => {
+        if (!isPreviousPolicy) {
+            ReimbursementAccount.clearReimbursementAccountDraft();
+        }
+
         if (!isReimbursementAccountLoading) {
             return;
         }
@@ -263,6 +268,7 @@ function ReimbursementAccountPage({
             return;
         }
         setIsReimbursementAccountLoading(reimbursementAccount.isLoading);
+        setHasACHDataBeenLoaded(true);
     }, [prevIsReimbursementAccountLoading, reimbursementAccount?.isLoading]);
 
     useEffect(
