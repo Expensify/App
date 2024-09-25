@@ -94,6 +94,7 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
      * Builds a suffix tree and returns a function to search in it.
      */
     const findInSearchTree = useMemo(() => {
+        Timing.start(CONST.TIMING.SEARCH_MAKE_TREE);
         const tree = SuffixTree.makeTree([
             {
                 data: searchOptions.personalDetails,
@@ -122,7 +123,10 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
                 },
             },
         ]);
+        Timing.end(CONST.TIMING.SEARCH_MAKE_TREE);
+        Timing.start(CONST.TIMING.SEARCH_BUILD_TREE);
         tree.build();
+        Timing.end(CONST.TIMING.SEARCH_BUILD_TREE);
 
         function search(searchInput: string) {
             const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
