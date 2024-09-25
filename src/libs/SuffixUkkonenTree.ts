@@ -8,11 +8,6 @@ const END_CHAR_CODE = ALPHABET_SIZE - 1;
 
 const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
 
-// The character that separates the different options in the search string
-const DELIMITER_CHAR = String.fromCharCode(DELIMITER_CHAR_CODE + CHAR_CODE_A);
-
-const END_CHAR = String.fromCharCode(END_CHAR_CODE + CHAR_CODE_A);
-
 function convertToBase26(num: number): string {
     if (num < 0) {
         throw new Error('Input must be a non-negative integer');
@@ -123,15 +118,6 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     console.log('building search strings', performance.now() - start1);
 
     console.log('Search String length', listsAsConcatedNumericList.length);
-    const N = 150_000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
-    // const start = performance.now();
-    // const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
-    // const l = Array<number>(N).fill(0);
-    // const r = Array<number>(N).fill(0);
-    // const p = Array<number>(N).fill(0);
-    // const s = Array<number>(N).fill(0);
-    // const end = performance.now();
-    // console.log('Allocating memory took:', end - start, 'ms');
     const t: Array<number[] | undefined> = [];
     const l: number[] = [];
     const r: Array<number | undefined> = [];
@@ -145,13 +131,11 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     let la = 0;
 
     function initializeTree() {
-        // r.fill(listsAsConcatedNumericList.length - 1);
         s[0] = 1;
         l[0] = -1;
         r[0] = -1;
         l[1] = -1;
         r[1] = -1;
-        // t[1].fill(0);
         t[1] = Array<number>(ALPHABET_SIZE).fill(0);
     }
 
