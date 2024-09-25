@@ -39,6 +39,10 @@ jobs:
         with:
           ruby-version: '3.3.4' 
 
+      # Explicitly install ffi gem to avoid platform issues
+      - name: Install ffi gem
+        run: gem install ffi --platform ruby
+
       - name: Install dependencies
         run: |
           bundle config set --local path 'vendor/bundle'
@@ -46,6 +50,13 @@ jobs:
           gem install jekyll # Explicitly install Jekyll
           jekyll -v
 
+      # Clear Bundler cache if needed to resolve caching issues
+      - name: Clear Bundler cache
+        run: |
+          bundle clean --force
+          bundle install --path vendor/bundle
+
+      # Use bundle exec to ensure Jekyll uses the correct gem versions
       - name: Build Jekyll site
         run: |
           bundle exec jekyll build --source ./help --destination ./help/_site
@@ -76,5 +87,4 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your New Help changes have been deployed to {0} :zap:️', steps.deploy.outputs.alias) }}
-
 
