@@ -265,6 +265,8 @@ export default {
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
             pleaseSelectOne: 'Seleccione una de las opciones.',
+            invalidRateError: 'Por favor, introduce una tarifa válida.',
+            lowRateError: 'La tarifa debe ser mayor que 0.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -2170,6 +2172,8 @@ export default {
         },
         bookTravel: 'Reservar viajes',
         bookDemo: 'Pedir demostración',
+        bookADemo: 'Reserva una demo',
+        toLearnMore: ' para obtener más información.',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
@@ -2264,6 +2268,8 @@ export default {
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
+            authenticationError: (connectionName: string) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
+            learnMore: 'Más información.',
             memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
             adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
             auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
@@ -2517,8 +2523,6 @@ export default {
             syncReimbursedReportsDescription:
                 'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
             paymentAccount: 'Cuenta de pago Sage Intacct',
-            authenticationError: 'No se puede conectar a Sage Intacct debido a un error de autenticación. ',
-            learnMore: 'Más información.',
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
@@ -2926,6 +2930,7 @@ export default {
             startTransactionDate: 'Fecha de inicio de transacciones',
             cardName: 'Nombre de la tarjeta',
             assignedYouCard: (assigner: string) => `¡${assigner} te ha asignado una tarjeta de empresa! Las transacciones importadas aparecerán en este chat.`,
+            chooseCardFeed: 'Elige feed de tarjetas',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -3220,6 +3225,7 @@ export default {
             disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
             editTag: 'Editar etiqueta',
+            editTags: 'Editar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
@@ -3540,20 +3546,7 @@ export default {
             },
         },
         card: {
-            header: 'Desbloquea Tarjetas Expensify gratis',
-            headerWithEcard: '¡Tus tarjetas están listas!',
-            noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify a los miembros de tu espacio de trabajo y acceder a estos increíbles beneficios y más:',
-            VBANoECardCopy:
-                'Añade tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas a los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
-            VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
-            benefit1: 'Devolución de dinero en cada compra en Estados Unidos',
-            benefit2: 'Tarjetas virtuales y físicas ilimitadas',
-            benefit3: 'Sin responsabilidad personal',
-            benefit4: 'Límites personalizables',
-            addWorkEmail: 'Añadir correo electrónico de trabajo',
-            checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
             issueCard: 'Emitir tarjeta',
-            issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
@@ -3588,39 +3581,11 @@ export default {
                 deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
             },
         },
-        reimburse: {
-            captureReceipts: 'Captura recibos',
-            fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
-            viewAllReceipts: 'Ver todos los recibos',
-            reimburseReceipts: 'Reembolsar recibos',
-            trackDistance: 'Medir distancia',
-            trackDistanceCopy: 'Configura la tarifa y unidad usadas para medir distancias.',
-            trackDistanceRate: 'Tarifa',
-            trackDistanceUnit: 'Unidad',
-            trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
-            unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
-            captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
-            captureNoVBACopyAfterEmail: ' y descarga la app de Expensify para controlar tus gastos en efectivo sobre la marcha.',
-            unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
-            fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
-            updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
-            invalidRateError: 'Por favor, introduce una tarifa válida.',
-            lowRateError: 'La tarifa debe ser mayor que 0.',
-        },
+
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:
                 'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
-        },
-        bills: {
-            manageYourBills: 'Gestiona tus facturas',
-            askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
-            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues.',
-            viewAllBills: 'Ver facturas recibidas',
-            unlockOnlineBillPayment: 'Desbloquea el pago de facturas online',
-            unlockNoVBACopy: '¡Conecta tu cuenta bancaria para pagar tus facturas online de manera gratuita!',
-            hassleFreeBills: '¡Facturas sin complicaciones!',
-            VBACopy: '¡Todo listo para realizar pagos desde tu cuenta bancaria!',
         },
         invoices: {
             invoiceClientsAndCustomers: 'Emite facturas a tus clientes',
@@ -3645,13 +3610,6 @@ export default {
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
-        },
-        travel: {
-            unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
-            noVBACopy: 'Conecta tu cuenta bancaria para permitir a los miembros de tu espacio de trabajo reservar sus vuelos, hoteles y coches empezando una conversación con Concierge.',
-            packYourBags: '¡Haz las maletas!',
-            VBACopy: '¡Miembros con la tarjeta Expensify pueden hablar con Concierge para reservar viajes!',
-            bookTravelWithConcierge: 'Reserva viajes con Concierge',
         },
         invite: {
             member: 'Invitar miembros',
