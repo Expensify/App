@@ -289,8 +289,6 @@ function ComposerWithSuggestions(
 
     const textInputRef = useRef<TextInput | null>(null);
 
-    const shouldInitFocus = useRef<boolean>(true);
-
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
     // The ref to check whether the comment saving is in progress
@@ -648,7 +646,7 @@ function ComposerWithSuggestions(
                 !isNextModalWillOpenRef.current &&
                 !modal?.isVisible &&
                 isFocused &&
-                (!!prevIsModalVisible || !prevIsFocused || shouldInitFocus.current)
+                (!!prevIsModalVisible || !prevIsFocused)
             )
         ) {
             return;
@@ -659,9 +657,6 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
-        if (shouldInitFocus.current) {
-            shouldInitFocus.current = false;
-        }
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
@@ -790,9 +785,13 @@ function ComposerWithSuggestions(
                         if (showSoftInputOnFocus) {
                             return;
                         }
-                        setTimeout(() => {
-                            setShowSoftInputOnFocus(true);
-                        }, CONST.ANIMATED_TRANSITION);
+                        if(Browser.isMobileSafari()){
+                            setTimeout(() => {
+                                setShowSoftInputOnFocus(true);
+                            }, CONST.ANIMATED_TRANSITION);
+                            return;
+                        }
+                        setShowSoftInputOnFocus(true);
                     }}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
