@@ -1,6 +1,10 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {ListItemWithSingleIcon, SingleIconListItemProps} from '@components/SelectionList/Search/SingleIconListItem';
+import type {ListItemProps, UserListItemProps} from '@components/SelectionList/types';
+import type {OptionData} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {ItemWithQuery} from './SearchRouter/SearchRouterList';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -73,6 +77,8 @@ type SearchQueryJSON = {
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
+type SearchRouterListItem = (OptionData | (ListItemWithSingleIcon & ItemWithQuery)) & {itemType?: ValueOf<typeof CONST.SEARCH.ROUTER_LIST_ITEM_TYPE>};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -91,4 +97,5 @@ export type {
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
+    SearchRouterListItem,
 };

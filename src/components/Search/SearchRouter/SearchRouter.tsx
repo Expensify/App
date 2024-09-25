@@ -31,6 +31,7 @@ function SearchRouter() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
 
+    const [textInputValue, setTextInputValue] = useState('');
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state.routes.at(-1)?.params?.reportID;
@@ -56,26 +57,35 @@ function SearchRouter() {
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
     const clearUserQuery = () => {
+        setTextInputValue('');
         setUserSearchQuery(undefined);
     };
 
-    const onSearchChange = debounce((userQuery: string) => {
-        if (!userQuery) {
-            clearUserQuery();
-            return;
-        }
+    const onSearchChange = useCallback(
+        debounce((userQuery: string) => {
+            if (!userQuery) {
+                clearUserQuery();
+                return;
+            }
 
-        const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+            const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
 
-        if (queryJSON) {
-            // eslint-disable-next-line
-            console.log('parsedQuery', queryJSON);
+            if (queryJSON) {
+                // eslint-disable-next-line
+                console.log('parsedQuery', queryJSON);
 
-            setUserSearchQuery(queryJSON);
-        } else {
-            // Handle query parsing error
-        }
-    }, SEARCH_DEBOUNCE_DELAY);
+                setUserSearchQuery(queryJSON);
+            } else {
+                // Handle query parsing error
+            }
+        }, SEARCH_DEBOUNCE_DELAY),
+        [],
+    );
+
+    const updateUserSearchQuery = (newSearchQuery: string) => {
+        setTextInputValue(newSearchQuery);
+        onSearchChange(newSearchQuery);
+    };
 
     const closeAndClearRouter = useCallback(() => {
         closeSearchRouter();
@@ -114,7 +124,9 @@ function SearchRouter() {
             <FocusTrapForModal active={isSearchRouterDisplayed}>
                 <View style={[styles.flex1, styles.p3, modalWidth, styles.mh100, !isSmallScreenWidth && styles.mh85vh]}>
                     <SearchRouterInput
-                        onChange={onSearchChange}
+                        text={textInputValue}
+                        setText={setTextInputValue}
+                        updateSearch={onSearchChange}
                         onSubmit={() => {
                             onSearchSubmit(userSearchQuery);
                         }}
@@ -125,7 +137,8 @@ function SearchRouter() {
                         reportForContextualSearch={contextualReportData}
                         recentSearches={sortedRecentSearches}
                         recentReports={searchOptions?.recentReports?.slice(0, 5)}
-                        onRecentSearchSelect={onSearchSubmit}
+                        onSearchSubmit={onSearchSubmit}
+                        updateUserSearchQuery={updateUserSearchQuery}
                         closeAndClearRouter={closeAndClearRouter}
                     />
                 </View>

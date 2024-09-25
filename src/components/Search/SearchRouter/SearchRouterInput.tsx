@@ -4,23 +4,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
-    onChange: (searchTerm: string) => void;
+    text: string;
+    setText: (searchTerm: string) => void;
+    updateSearch: (searchTerm: string) => void;
     onSubmit: () => void;
 };
 
-function SearchRouterInput({onChange, onSubmit}: SearchRouterInputProps) {
+function SearchRouterInput({text, setText, updateSearch, onSubmit}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
-    const [value, setValue] = useState('');
-
     const onChangeText = (text: string) => {
-        setValue(text);
-        onChange(text);
+        setText(text);
+        updateSearch(text);
     };
 
     return (
         <BaseTextInput
-            value={value}
+            value={text}
             onChangeText={onChangeText}
             onSubmitEditing={onSubmit}
             autoFocus

@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ListItemWithSingleIcon = {singleIcon: IconAsset} & ListItem;
+type ListItemWithSingleIcon = {singleIcon?: IconAsset} & ListItem;
 
 type SingleIconListItemProps<TItem extends ListItemWithSingleIcon> = {
     item: TItem;

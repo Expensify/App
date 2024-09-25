@@ -5578,6 +5578,11 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        ROUTER_LIST_ITEM_TYPE: {
+            REPORT: 'report',
+            SEARCH: 'search',
+            CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
+        },
     },
 
     REFERRER: {
