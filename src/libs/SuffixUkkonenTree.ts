@@ -167,6 +167,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
     }
 
     function processCharacter(char: number) {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             const rEdge = getOrCreateREdge(currentNode);
             if (rEdge < currentPosition) {
