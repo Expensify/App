@@ -7029,7 +7029,7 @@ function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>) {
         return submitToAccountID;
     }
 
-    return PersonalDetailsUtils.getAccountIDsByLogins([nextApproverEmail])[0] ?? submitToAccountID;
+    return PersonalDetailsUtils.getAccountIDsByLogins([nextApproverEmail])[0];
 }
 
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
@@ -8190,6 +8190,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
 
 export {
     adjustRemainingSplitShares,
+    getNextApproverAccountID,
     approveMoneyRequest,
     canApproveIOU,
     cancelPayment,
