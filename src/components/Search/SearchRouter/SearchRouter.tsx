@@ -61,26 +61,23 @@ function SearchRouter() {
         setUserSearchQuery(undefined);
     };
 
-    const onSearchChange = useCallback(
-        debounce((userQuery: string) => {
-            if (!userQuery) {
-                clearUserQuery();
-                return;
-            }
+    const onSearchChange = debounce((userQuery: string) => {
+        if (!userQuery) {
+            clearUserQuery();
+            return;
+        }
 
-            const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+        const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
 
-            if (queryJSON) {
-                // eslint-disable-next-line
-                console.log('parsedQuery', queryJSON);
+        if (queryJSON) {
+            // eslint-disable-next-line
+            console.log('parsedQuery', queryJSON);
 
-                setUserSearchQuery(queryJSON);
-            } else {
-                // Handle query parsing error
-            }
-        }, SEARCH_DEBOUNCE_DELAY),
-        [],
-    );
+            setUserSearchQuery(queryJSON);
+        } else {
+            // Handle query parsing error
+        }
+    }, SEARCH_DEBOUNCE_DELAY);
 
     const updateUserSearchQuery = (newSearchQuery: string) => {
         setTextInputValue(newSearchQuery);
@@ -124,8 +121,8 @@ function SearchRouter() {
             <FocusTrapForModal active={isSearchRouterDisplayed}>
                 <View style={[styles.flex1, styles.p3, modalWidth, styles.mh100, !isSmallScreenWidth && styles.mh85vh]}>
                     <SearchRouterInput
-                        text={textInputValue}
-                        setText={setTextInputValue}
+                        value={textInputValue}
+                        setValue={setTextInputValue}
                         updateSearch={onSearchChange}
                         onSubmit={() => {
                             onSearchSubmit(userSearchQuery);

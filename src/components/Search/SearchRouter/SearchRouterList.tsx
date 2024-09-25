@@ -96,14 +96,14 @@ function SearchRouterList({currentQuery, reportForContextualSearch, recentSearch
 
     const onSelectRow = useCallback(
         (item: SearchRouterListItem) => {
+            // eslint-disable-next-line default-case
             switch (item.itemType) {
                 case CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.SEARCH:
                     // Handle selection of "Recent search"
                     if (!('query' in item) || !item?.query) {
                         return;
                     }
-                    const queryJSON = SearchUtils.buildSearchQueryJSON(item?.query);
-                    onSearchSubmit(queryJSON);
+                    onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
                     return;
                 case CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.CONTEXTUAL_SUGGESTION:
                     // Handle selection of "Contextual search suggestion"
@@ -120,10 +120,9 @@ function SearchRouterList({currentQuery, reportForContextualSearch, recentSearch
                     } else if ('login' in item) {
                         Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
                     }
-                    return;
             }
         },
-        [closeAndClearRouter, onSearchSubmit, currentQuery],
+        [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
     );
 
     return (

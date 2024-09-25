@@ -1,6 +1,5 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
-import type {ListItemWithSingleIcon, SingleIconListItemProps} from '@components/SelectionList/Search/SingleIconListItem';
-import type {ListItemProps, UserListItemProps} from '@components/SelectionList/types';
+import type {ListItemWithSingleIcon} from '@components/SelectionList/Search/SingleIconListItem';
 import type {OptionData} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
