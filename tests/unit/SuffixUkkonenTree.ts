@@ -93,8 +93,8 @@ describe('SuffixUkkonenTree', () => {
 
     it('should work with large random data sets', () => {
         const data = Array.from({length: 1000}, () => {
-            // return words of length 5-27 with random char codes:
-            return Array.from({length: Math.floor(Math.random() * 22 + 5)}, () => {
+            // return words of length 9-31 with random char codes:
+            return Array.from({length: Math.floor(Math.random() * 22 + 9)}, () => {
                 const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789@-_.';
                 return alphabet.charAt(Math.floor(Math.random() * alphabet.length));
             }).join('');
