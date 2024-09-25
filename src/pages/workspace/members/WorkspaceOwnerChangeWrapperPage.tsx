@@ -31,8 +31,8 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
-    const shouldShowPaymentCardForm =
-        error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || privateStripeCustomerID?.status === CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
+    const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
+    const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -76,16 +76,14 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
                     {policy?.isLoading && <FullScreenLoadingIndicator />}
-                    {!policy?.isLoading &&
-                        (shouldShowPaymentCardForm ? (
-                            <WorkspaceOwnerPaymentCardForm policy={policy} />
-                        ) : (
-                            <WorkspaceOwnerChangeCheck
-                                policy={policy}
-                                accountID={accountID}
-                                error={error}
-                            />
-                        ))}
+                    {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
+                    {!policy?.isLoading && !shouldShowPaymentCardForm && (
+                        <WorkspaceOwnerChangeCheck
+                            policy={policy}
+                            accountID={accountID}
+                            error={error}
+                        />
+                    )}
                     <CardAuthenticationModal
                         headerTitle={translate('subscription.authenticatePaymentCard')}
                         policyID={policyID}
