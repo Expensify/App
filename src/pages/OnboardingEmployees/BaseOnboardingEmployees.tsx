@@ -96,7 +96,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 shouldUpdateFocusedIndex
                 ListItem={RadioListItem}
                 footerContent={footerContent}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? styles.onboardingWrapper : {}}
+                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
             />
             {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>

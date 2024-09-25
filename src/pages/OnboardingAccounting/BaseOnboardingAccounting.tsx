@@ -179,7 +179,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 ListItem={RadioListItem}
                 footerContent={footerContent}
                 shouldShowTooltips={false}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? styles.onboardingWrapper : {}}
+                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
             />
             {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>
