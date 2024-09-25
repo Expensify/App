@@ -12,12 +12,12 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import FastSearch from '@libs/FastSearch';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
-import * as SuffixTree from '@libs/SuffixUkkonenTree';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -94,8 +94,7 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
      * Builds a suffix tree and returns a function to search in it.
      */
     const findInSearchTree = useMemo(() => {
-        Timing.start(CONST.TIMING.SEARCH_MAKE_TREE);
-        const tree = SuffixTree.makeTree([
+        const fastSearch = FastSearch.createFastSearch([
             {
                 data: searchOptions.personalDetails,
                 toSearchableString: (option) => {
@@ -123,13 +122,9 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
                 },
             },
         ]);
-        Timing.end(CONST.TIMING.SEARCH_MAKE_TREE);
-        Timing.start(CONST.TIMING.SEARCH_BUILD_TREE);
-        tree.build();
-        Timing.end(CONST.TIMING.SEARCH_BUILD_TREE);
 
         function search(searchInput: string) {
-            const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
+            const [personalDetails, recentReports] = fastSearch.search(searchInput);
 
             return {
                 personalDetails,

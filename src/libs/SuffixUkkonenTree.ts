@@ -11,9 +11,6 @@ const SPECIAL_CHAR_CODE = ALPHABET_SIZE - 3;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
 const END_CHAR_CODE = ALPHABET_SIZE - 1;
 
-// Removes any special characters, except for numbers and letters (including unicode letters)
-const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
-
 /**
  * Converts a number to a base26 string number.
  * This is used to fit all kinds of characters in the range of a-z.
@@ -46,7 +43,7 @@ function convertToBase26(num: number): string {
  * - 27 is for the delimiter character
  * - 28 is for the end character
  */
-function stringToArray(input: string) {
+function stringToNumeric(input: string) {
     const res: number[] = [];
     for (const char of input) {
         const charCode = char.charCodeAt(0);
@@ -55,91 +52,21 @@ function stringToArray(input: string) {
             res.push(charCodeABased);
         } else {
             const asBase26String = convertToBase26(charCode);
-            const asCharCodes = stringToArray(asBase26String);
+            const asCharCodes = stringToNumeric(asBase26String);
             res.push(SPECIAL_CHAR_CODE, ...asCharCodes);
         }
     }
     return res;
 }
 
-type TreeDataParams<T> = {
-    /**
-     * The data that should be searchable
-     */
-    data: T[];
-    /**
-     * A function that generates a string from a data entry. The string's value is used for searching.
-     * If you have multiple fields that should be searchable, simply concat them to the string and return it.
-     */
-    toSearchableString: (data: T) => string;
-};
-
-/**
- * Everything in the tree is treated as lowercase. Strings will additionally be cleaned from
- * special characters, as they are irrelevant for the search, and thus we can save some space.
- */
-function cleanString(input: string) {
-    return input.toLowerCase().replace(nonAlphanumericRegex, '');
-}
-
-/**
- * The suffix tree can only store string like values, and internally stores those as numbers.
- * This function converts the user data (which are most likely objects) to a numeric representation.
- * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
- */
-function dataToNumericRepresentation<T>({data, toSearchableString}: TreeDataParams<T>): [number[], Array<T | undefined>] {
-    const searchIndexList: Array<T | undefined> = [];
-    const allDataAsNumbers: number[] = [];
-
-    data.forEach((option, index) => {
-        const searchStringForTree = toSearchableString(option);
-        // Remove all none a-z chars:
-        const cleanedSearchStringForTree = cleanString(searchStringForTree);
-
-        if (cleanedSearchStringForTree.length === 0) {
-            return;
-        }
-
-        const numericRepresentation = stringToArray(cleanedSearchStringForTree);
-
-        // We need to push an array that has the same length as the length of the string we insert for this option:
-        const indexes = Array.from({length: numericRepresentation.length}, () => option);
-        // Note: we add undefined for the delimiter character
-        searchIndexList.push(...indexes, undefined);
-
-        allDataAsNumbers.push(...numericRepresentation);
-        if (index < data.length - 1) {
-            allDataAsNumbers.push(DELIMITER_CHAR_CODE);
-        }
-    });
-
-    return [allDataAsNumbers, searchIndexList];
-}
-
 /**
  * Makes a tree from an input string
  */
-function makeTree<T>(lists: Array<TreeDataParams<T>>) {
-    const listsAsConcatedNumericList: number[] = [];
-
-    // We might received multiple lists of data that we want to search in
-    // thus indexes is a list of those data lists
-    const indexesByList: Array<Array<T | undefined>> = [];
-
-    for (const {data, toSearchableString: transform} of lists) {
-        const [numericRepresentation, searchIndexList] = dataToNumericRepresentation({data, toSearchableString: transform});
-        for (const num of numericRepresentation) {
-            // we have to use a loop here as push with spread yields a maximum call stack exceeded error
-            listsAsConcatedNumericList.push(num);
-        }
-        indexesByList.push(searchIndexList);
-    }
-    listsAsConcatedNumericList.push(END_CHAR_CODE);
-
+function makeTree(numericSearchValues: number[]) {
     const transitionNodes: Array<number[] | undefined> = [];
     const leftEdges: number[] = [];
     const rightEdges: Array<number | undefined> = [];
-    const defaultREdgeValue = listsAsConcatedNumericList.length - 1;
+    const defaultREdgeValue = numericSearchValues.length - 1;
     const parent: number[] = [];
     const suffixLink: number[] = [];
 
@@ -185,7 +112,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
                 currentNode = curNode[char];
                 currentPosition = leftEdges[currentNode];
             }
-            if (currentPosition === -1 || char === listsAsConcatedNumericList[currentPosition]) {
+            if (currentPosition === -1 || char === numericSearchValues[currentPosition]) {
                 currentPosition++;
             } else {
                 splitEdge(char);
@@ -222,7 +149,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
             transitionTable = Array<number>(ALPHABET_SIZE).fill(-1);
             transitionNodes[nodeCounter] = transitionTable;
         }
-        transitionTable[listsAsConcatedNumericList[currentPosition]] = currentNode;
+        transitionTable[numericSearchValues[currentPosition]] = currentNode;
         transitionTable[c] = nodeCounter + 1;
         leftEdges[nodeCounter + 1] = currentIndex;
         parent[nodeCounter + 1] = nodeCounter;
@@ -234,7 +161,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
             parentTransitionNodes = Array<number>(ALPHABET_SIZE).fill(-1);
             transitionNodes[parent[nodeCounter]] = parentTransitionNodes;
         }
-        parentTransitionNodes[listsAsConcatedNumericList[leftEdges[nodeCounter]]] = nodeCounter;
+        parentTransitionNodes[numericSearchValues[leftEdges[nodeCounter]]] = nodeCounter;
         nodeCounter += 2;
         handleDescent(nodeCounter);
     }
@@ -247,7 +174,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
             if (tTv === undefined) {
                 throw new Error('handleDescent: tTv should not be undefined');
             }
-            currentNode = tTv[listsAsConcatedNumericList[currentPosition]];
+            currentNode = tTv[numericSearchValues[currentPosition]];
             const rEdge = getOrCreateREdge(currentNode);
             currentPosition += rEdge - leftEdges[currentNode] + 1;
         }
@@ -267,8 +194,8 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
 
     function build() {
         initializeTree();
-        for (currentIndex = 0; currentIndex < listsAsConcatedNumericList.length; ++currentIndex) {
-            const c = listsAsConcatedNumericList[currentIndex];
+        for (currentIndex = 0; currentIndex < numericSearchValues.length; ++currentIndex) {
+            const c = numericSearchValues[currentIndex];
             processCharacter(c);
         }
     }
@@ -296,7 +223,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
             // console.log('dfs', node, depth, leftRange, rightRange, rangeLen, searchString.length, searchString);
 
             for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
-                if (searchString[depth + i] !== listsAsConcatedNumericList[leftRange + i]) {
+                if (searchString[depth + i] !== numericSearchValues[leftRange + i]) {
                     return;
                 }
             }
@@ -312,7 +239,7 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
             }
 
             if (isLeaf && depth + rangeLen >= searchString.length) {
-                occurrences.push(listsAsConcatedNumericList.length - (depth + rangeLen));
+                occurrences.push(numericSearchValues.length - (depth + rangeLen));
             }
         }
 
@@ -320,35 +247,10 @@ function makeTree<T>(lists: Array<TreeDataParams<T>>) {
         return occurrences;
     }
 
-    function findInSearchTree(searchInput: string): T[][] {
-        const searchValueNumeric = stringToArray(cleanString(searchInput));
-        const result = findSubstring(searchValueNumeric);
-
-        // Map the results to the original options
-        const mappedResults = Array.from({length: lists.length}, () => new Set<T>());
-        result.forEach((index) => {
-            let offset = 0;
-            for (let i = 0; i < indexesByList.length; i++) {
-                const relativeIndex = index - offset + 1;
-                if (relativeIndex < indexesByList[i].length && relativeIndex >= 0) {
-                    const option = indexesByList[i][relativeIndex];
-                    if (option) {
-                        mappedResults[i].add(option);
-                    }
-                } else {
-                    offset += indexesByList[i].length;
-                }
-            }
-        });
-
-        return mappedResults.map((set) => Array.from(set));
-    }
-
     return {
         build,
         findSubstring,
-        findInSearchTree,
     };
 }
 
-export {makeTree, dataToNumericRepresentation as prepareData};
+export {makeTree, stringToNumeric, DELIMITER_CHAR_CODE, END_CHAR_CODE};
