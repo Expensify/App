@@ -60,7 +60,11 @@ function stringToNumeric(input: string) {
 }
 
 /**
- * Makes a tree from an input string
+ * Creates a new tree instance that can be used to build a suffix tree and search in it.
+ * The input is a numeric representation of the search string, which can be create using {@link stringToNumeric}.
+ * Separate search values must be separated by the {@link DELIMITER_CHAR_CODE}. The search string must end with the {@link END_CHAR_CODE}.
+ *
+ * The tree will be built using the Ukkonen's algorithm: https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
  */
 function makeTree(numericSearchValues: number[]) {
     const transitionNodes: Array<number[] | undefined> = [];
@@ -205,12 +209,12 @@ function makeTree(numericSearchValues: number[]) {
      *
      * You can think of the tree that we create as a big string that looks like this:
      *
-     * "banana{pancake{apple|"
-     * The delimiter character '{' is used to separate the different strings.
+     * "banana$pancake$apple|"
+     * The example delimiter character '$' is used to separate the different strings.
      * The end character '|' is used to indicate the end of our search string.
      *
      * This function will return the index(es) of found occurrences within this big string.
-     * So, when searching for "an", it would return [1, 4, 11].
+     * So, when searching for "an", it would return [1, 3, 8].
      */
     function findSubstring(searchString: number[]) {
         const occurrences: number[] = [];
