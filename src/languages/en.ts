@@ -2153,6 +2153,8 @@ export default {
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',
+        bookADemo: 'Book a demo',
+        toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
@@ -2894,6 +2896,7 @@ export default {
             startTransactionDate: 'Start transaction date',
             cardName: 'Card name',
             assignedYouCard: (assigner: string) => `${assigner} assigned you a company card! Imported transactions will appear in this chat.`,
+            chooseCardFeed: 'Choose card feed',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
