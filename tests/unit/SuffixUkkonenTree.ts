@@ -54,7 +54,7 @@ describe('SuffixUkkonenTree', () => {
     it('should work with unicodes', () => {
         const tree = makeTree([
             {
-                data: ['banana', 'ñèşťǒř'],
+                data: ['banana', 'ñèşťǒř', 'test'],
                 transform: (data) => data,
             },
         ]);
