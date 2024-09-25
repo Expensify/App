@@ -1,8 +1,11 @@
+import {Str} from 'expensify-common';
 import type {Dispatch, SetStateAction} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TravelSettings} from '@src/types/onyx';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
@@ -11,6 +14,22 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as Link from './actions/Link';
 import Navigation from './Navigation/Navigation';
+
+let travelSettings: OnyxEntry<TravelSettings>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+    callback: (val) => {
+        travelSettings = val;
+    },
+});
+
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (val) => {
+        activePolicyID = val;
+    },
+});
 
 function getTripReservationIcon(reservationType: ReservationType): IconAsset {
     switch (reservationType) {
@@ -46,13 +65,11 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     }
 }
 
-function bookATrip(
-    translate: LocaleContextProps['translate'],
-    travelSettings: OnyxEntry<TravelSettings>,
-    activePolicyID: string,
-    setCtaErrorMessage: Dispatch<SetStateAction<string>>,
-    ctaErrorMessage = '',
-): void {
+function bookATrip(translate: LocaleContextProps['translate'], primaryLogin: string, setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
+    if (Str.isSMSLogin(primaryLogin)) {
+        setCtaErrorMessage(translate('travel.phoneError'));
+        return;
+    }
     if (isEmptyObject(travelSettings)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
         return;

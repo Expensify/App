@@ -97,7 +97,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             setCtaErrorMessage(translate('travel.phoneError'));
             return;
         }
-        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID ?? '', setCtaErrorMessage, ctaErrorMessage);
+        TripsResevationUtils.bookATrip(translate, primaryLogin ?? '', setCtaErrorMessage, ctaErrorMessage);
     }, [primaryLogin, translate, travelSettings, activePolicyID, ctaErrorMessage]);
 
     const content = useMemo(() => {
@@ -112,7 +112,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
                     buttonAction: onPress,
-                    canEmptyViewBeScrolled: true,
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -137,12 +136,12 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             headerMedia={content.headerMedia}
             headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
             title={content.title}
+            titleStyles={content.titleStyles}
             subtitle={content.subtitle}
             buttonText={content.buttonText}
             buttonAction={content.buttonAction}
             headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-            canEmptyViewBeScrolled={content.canEmptyViewBeScrolled}
         />
     );
 }

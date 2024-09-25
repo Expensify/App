@@ -58,11 +58,7 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        if (Str.isSMSLogin(account?.primaryLogin ?? '')) {
-                            setCtaErrorMessage(translate('travel.phoneError'));
-                            return;
-                        }
-                        TripsResevationUtils.bookATrip(translate, travelSettings, activePolicyID ?? '', setCtaErrorMessage, ctaErrorMessage);
+                        TripsResevationUtils.bookATrip(translate, account?.primaryLogin ?? '', setCtaErrorMessage, ctaErrorMessage);
                     }}
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}
