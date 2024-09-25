@@ -1690,9 +1690,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
     }
 
     if (PolicyUtils.isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
-        const result = isAwaitingFirstLevelApproval(moneyRequestReport);
-        console.log('result of is awaiting', result);
-        return result;
+        return isAwaitingFirstLevelApproval(moneyRequestReport);
     }
 
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
