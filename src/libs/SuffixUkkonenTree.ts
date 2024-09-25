@@ -13,11 +13,6 @@ const DELIMITER_CHAR = String.fromCharCode(DELIMITER_CHAR_CODE + CHAR_CODE_A);
 
 const END_CHAR = String.fromCharCode(END_CHAR_CODE + CHAR_CODE_A);
 
-// TODO:
-// make makeTree faster
-// how to deal with unicode characters such as spanish ones?
-// i think we need to support numbers as well
-
 function convertToBase26(num: number): string {
     if (num < 0) {
         throw new Error('Input must be a non-negative integer');
@@ -71,6 +66,7 @@ function cleanedString(input: string) {
     return input.toLowerCase().replace(nonAlphanumericRegex, '');
 }
 
+// TODO: remove timeSpendCleaning once verified the regex works okay on hermes as well!
 let timeSpendCleaning = 0;
 function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
@@ -131,14 +127,15 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     // const start = performance.now();
     // const t = Array.from({length: N}, () => Array<number>(ALPHABET_SIZE).fill(-1));
     const l = Array<number>(N).fill(0);
-    const r = Array<number>(N).fill(0);
+    // const r = Array<number>(N).fill(0);
     const p = Array<number>(N).fill(0);
     const s = Array<number>(N).fill(0);
     // const end = performance.now();
     // console.log('Allocating memory took:', end - start, 'ms');
     const t: Array<number[] | undefined> = [];
     // const l: number[] = [];
-    // const r: number[] = [];
+    const r: Array<number | undefined> = [];
+    const defaultREdgeValue = listsAsConcatedNumericList.length - 1;
     // const p: number[] = [];
     // const s: number[] = [];
 
@@ -148,7 +145,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     let la = 0;
 
     function initializeTree() {
-        r.fill(listsAsConcatedNumericList.length - 1);
+        // r.fill(listsAsConcatedNumericList.length - 1);
         s[0] = 1;
         l[0] = -1;
         r[0] = -1;
@@ -158,9 +155,19 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         t[1] = Array<number>(ALPHABET_SIZE).fill(0);
     }
 
+    function getOrCreateREdge(node: number): number {
+        let rEdge = r[node];
+        if (rEdge === undefined) {
+            rEdge = defaultREdgeValue;
+            r[node] = rEdge;
+        }
+        return rEdge;
+    }
+
     function processCharacter(c: number) {
         while (true) {
-            if (r[tv] < tp) {
+            const rEdge = getOrCreateREdge(tv);
+            if (rEdge < tp) {
                 let curNode = t[tv];
 
                 if (curNode === undefined) {
@@ -198,7 +205,9 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         l[ts] = la;
         p[ts++] = tv;
         tv = s[tv];
-        tp = r[tv] + 1;
+
+        const rEdge = getOrCreateREdge(tv);
+        tp = rEdge + 1;
     }
 
     function splitEdge(c: number) {
@@ -230,20 +239,22 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     function handleDescent(ts: number) {
         tv = s[p[ts - 2]];
         tp = l[ts - 2];
-        while (tp <= r[ts - 2]) {
+        while (tp <= (r[ts - 2] ?? defaultREdgeValue)) {
             const tTv = t[tv];
             if (tTv === undefined) {
                 throw new Error('handleDescent: tTv should not be undefined');
             }
             tv = tTv[listsAsConcatedNumericList[tp]];
-            tp += r[tv] - l[tv] + 1;
+            const rEdge = getOrCreateREdge(tv);
+            tp += rEdge - l[tv] + 1;
         }
-        if (tp === r[ts - 2] + 1) {
+        if (tp === (r[ts - 2] ?? defaultREdgeValue) + 1) {
             s[ts - 2] = tv;
         } else {
             s[ts - 2] = ts;
         }
-        tp = r[tv] - (tp - r[ts - 2]) + 2;
+        const rEdge = getOrCreateREdge(tv);
+        tp = rEdge - (tp - (r[ts - 2] ?? defaultREdgeValue)) + 2;
     }
 
     function resetTreeTraversal() {
@@ -316,7 +327,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
 
             let isLeaf = true;
             const leftRange = l[node];
-            const rightRange = r[node];
+            const rightRange = r[node] ?? listsAsConcatedNumericList.length - 1;
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
             let matches = true;
