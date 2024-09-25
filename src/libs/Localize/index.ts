@@ -80,37 +80,35 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
-function getTranslatedPhrase<TPath extends TranslationPaths>(
+function getTranslatedPhrase<TKey extends TranslationPaths>(
     language: 'en' | 'es' | 'es-ES',
-    path: TPath,
+    phraseKey: TKey,
     fallbackLanguage: 'en' | 'es' | null,
-    ...parameters: TranslationParameters<TPath>
+    ...parameters: TranslationParameters<TKey>
 ): string | null {
     // Get the cache for the above locale
     const cacheForLocale = translationCache.get(language);
 
     // Directly access and assign the translated value from the cache, instead of
     // going through map.has() and map.get() to avoid multiple lookups.
-    const valueFromCache = cacheForLocale?.get(path);
+    const valueFromCache = cacheForLocale?.get(phraseKey);
 
     // If the phrase is already translated, return the translated value
     if (valueFromCache) {
         return valueFromCache;
     }
 
-    const translatedPhrase = translations?.[language]?.[path];
+    const translatedPhrase = translations?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             /**
-             *
-             * is Plain object is for checking if the phraseTranslated output
-             * is an object then further check if it include the count param or not
-             * OR before checking the plain object output, we can check if we have the count
-             * param in parameters
-             *
+             * If the result of `translatedPhrase` is an object, check if it contains the 'count' property
+             * to handle pluralization logic.
+             * Alternatively, before evaluating the translated result, we can check if the 'count' parameter
+             * exists in the passed parameters.
              */
-            const translateFunction = translatedPhrase as unknown as (...parameters: TranslationParameters<TPath>) => string | PluralForm;
+            const translateFunction = translatedPhrase as unknown as (...parameters: TranslationParameters<TKey>) => string | PluralForm;
             const translateResult = translateFunction(...parameters);
 
             if (typeof translateResult === 'string') {
@@ -121,7 +119,7 @@ function getTranslatedPhrase<TPath extends TranslationPaths>(
             if (phraseObject && typeof phraseObject === 'object' && 'count' in phraseObject && typeof phraseObject.count === 'number') {
                 const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
 
-                const pluralResult = pluralRule in translateResult && translateResult[pluralRule];
+                const pluralResult = translateResult[pluralRule];
                 if (pluralResult) {
                     if (typeof pluralResult === 'string') {
                         return pluralResult;
@@ -133,11 +131,11 @@ function getTranslatedPhrase<TPath extends TranslationPaths>(
                 return translateResult.other(phraseObject.count);
             }
 
-            throw new Error(`Invalid plural form for '${path}'`);
+            throw new Error(`Invalid plural form for '${phraseKey}'`);
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
-        cacheForLocale?.set(path, translatedPhrase);
+        cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
     }
 
@@ -146,18 +144,18 @@ function getTranslatedPhrase<TPath extends TranslationPaths>(
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, path, null, ...parameters);
+    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...parameters);
 
     if (fallbackTranslatedPhrase) {
         return fallbackTranslatedPhrase;
     }
 
     if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${path} was not found in the ${fallbackLanguage} locale`);
+        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, path, null, ...parameters);
+    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...parameters);
 }
 
 /**

@@ -619,7 +619,28 @@ Some pointers:
   key to the translation file and use the arrow function version, like so:
   `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
   This is because the order of the phrases might vary from one language to another.
+- When working with translations that involve plural forms, it's important to handle different cases correctly.
 
+  For example:
+  - zero: Used when there are no items **(optional)**. 
+  - one: Used when there's exactly one item.
+  - few: Used for a small number of items **(optional)**.
+  - many: Used for larger quantities **(optional)**.
+  - other: A catch-all case for other counts or variations.
+
+  Here’s an example of how to implement plural translations:
+
+  messages: () => ({
+      zero: 'No messages',
+      one: 'One message',
+      few: (count) => `${count} messages`,
+      many: (count) => `You have ${count} messages`,
+      other: (count) => `You have ${count} unread messages`,
+  })
+
+  In your code, you can use the translation like this:
+
+  `translate('common.messages', {count: 1});`
 ----
 
 # Deploying

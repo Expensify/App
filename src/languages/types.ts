@@ -57,11 +57,11 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
 /**
  * Retrieves a type for a given key path (calculated from the type above)
  */
-type TranslationValue<TObject, TPath extends string> = TPath extends keyof TObject
-    ? TObject[TPath]
-    : TPath extends `${infer TKey}.${infer TRest}`
-    ? TKey extends keyof TObject
-        ? TranslationValue<TObject[TKey], TRest>
+type TranslationValue<TObject, TKey extends string> = TKey extends keyof TObject
+    ? TObject[TKey]
+    : TKey extends `${infer TPathKey}.${infer TRest}`
+    ? TPathKey extends keyof TObject
+        ? TranslationValue<TObject[TPathKey], TRest>
         : never
     : never;
 
@@ -85,7 +85,7 @@ type FlatTranslationsObject = {
 /**
  * Determines the expected parameters for a specific translation function based on the provided translation path
  */
-type TranslationParameters<TPath extends TranslationPaths> = FlatTranslationsObject[TPath] extends (...args: infer Args) => infer Return
+type TranslationParameters<TKey extends TranslationPaths> = FlatTranslationsObject[TKey] extends (...args: infer Args) => infer Return
     ? Return extends PluralForm
         ? Args[0] extends undefined
             ? [PluralParams]
