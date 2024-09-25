@@ -624,7 +624,7 @@ Some pointers:
   For example:
   - zero: Used when there are no items **(optional)**. 
   - one: Used when there's exactly one item.
-		- two: Used when there's two items. **(optional)**
+  - two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.
   - many: Used for larger quantities **(optional)**.
   - other: A catch-all case for other counts or variations.
