@@ -117,7 +117,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 SearchActions.clearAllFilters();
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
             },
-            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
+            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(title, Number(key), item.query)} />,
             styles: [styles.alignItemsCenter],
         };
 
