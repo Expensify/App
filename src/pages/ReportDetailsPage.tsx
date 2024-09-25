@@ -75,10 +75,11 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
+function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -317,9 +318,9 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', backTo));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', backTo));
                     }
                 },
             });
@@ -344,7 +345,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
                 },
             });
         }
@@ -357,7 +358,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => ReportUtils.navigateToPrivateNotes(report, session),
+                action: () => ReportUtils.navigateToPrivateNotes(report, session, backTo),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -412,7 +413,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                 icon: Expensicons.Upload,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration, backTo));
                 },
             });
         }
@@ -472,6 +473,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
         isDebugModeEnabled,
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
+        backTo,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -580,7 +582,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
             result.push(PromotedActions.pin(report));
         }
 
-        result.push(PromotedActions.share(report));
+        result.push(PromotedActions.share(report, backTo));
 
         return result;
     }, [
@@ -593,6 +595,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
         canHoldUnholdReportAction.canHoldRequest,
         transactionThreadReportID,
         isDelegateAccessRestricted,
+        backTo,
     ]);
 
     const nameSectionExpenseIOU = (
@@ -655,7 +658,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
+                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                 />
             </View>
         </OfflineWithFeedback>
@@ -700,7 +703,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1', backTo))}
                     furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>
@@ -735,7 +738,10 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton title={translate('common.details')} />
+                <HeaderWithBackButton
+                    title={translate('common.details')}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
@@ -757,7 +763,7 @@ function ReportDetailsPage({policies, report}: ReportDetailsPageProps) {
                                 characterLimit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
                             />
                         </OfflineWithFeedback>
                     )}

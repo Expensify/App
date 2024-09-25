@@ -141,6 +141,7 @@ function SecuritySettingsPage() {
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.LockClosed}
+                        shouldDisplaySearchRouter
                     />
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

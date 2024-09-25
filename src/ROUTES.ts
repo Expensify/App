@@ -74,7 +74,7 @@ const ROUTES = {
     SUBMIT_EXPENSE: 'submit-expense',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
+        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
     },
     CHAT_FINDER: 'chat-finder',
     PROFILE: {
@@ -287,11 +287,11 @@ const ROUTES = {
     },
     EDIT_REPORT_FIELD_REQUEST: {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string, policyID: string, fieldID: string) => `r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const,
+        getRoute: (reportID: string, policyID: string, fieldID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const, backTo),
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string) => `r/${reportID}/details/shareCode` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo),
     },
     ATTACHMENTS: {
         route: 'attachment',
@@ -300,19 +300,19 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
-        getRoute: (reportID: string) => `r/${reportID}/participants` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
     },
     REPORT_PARTICIPANTS_INVITE: {
         route: 'r/:reportID/participants/invite',
-        getRoute: (reportID: string) => `r/${reportID}/participants/invite` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/invite` as const, backTo),
     },
     REPORT_PARTICIPANTS_DETAILS: {
         route: 'r/:reportID/participants/:accountID',
-        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}` as const,
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}` as const, backTo),
     },
     REPORT_PARTICIPANTS_ROLE_SELECTION: {
         route: 'r/:reportID/participants/:accountID/role',
-        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role` as const,
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role` as const, backTo),
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
@@ -320,65 +320,65 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
-        getRoute: (reportID: string, connectionName: ConnectionName) => `r/${reportID}/details/export/${connectionName}` as const,
+        getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName}` as const, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
-        getRoute: (reportID: string) => `r/${reportID}/settings` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
     },
     REPORT_SETTINGS_NAME: {
         route: 'r/:reportID/settings/name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/name` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
-        getRoute: (reportID: string) => `r/${reportID}/settings/notification-preferences` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         route: 'r/:reportID/settings/who-can-post',
-        getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
     },
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
-        getRoute: (reportID: string) => `r/${reportID}/settings/visibility` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
+        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo),
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
-        getRoute: (reportID: string) => `r/${reportID}/title` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/title` as const, backTo),
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string) => `r/${reportID}/description` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
-        getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo),
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
-        getRoute: (reportID: string) => `r/${reportID}/notes` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes` as const, backTo),
     },
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit` as const,
+        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
-        getRoute: (reportID: string) => `r/${reportID}/members` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members` as const, backTo),
     },
     ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/members/${accountID}` as const,
+        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string) => {
+        getRoute: (reportID: string, role?: string, backTo?: string) => {
             const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
-            return route;
+            return getUrlWithBackToParam(route, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
@@ -410,9 +410,9 @@ const ROUTES = {
             `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
-        route: ':action/:iouType/amount/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
         route: ':action/:iouType/taxRate/:transactionID/:reportID?',
@@ -499,6 +499,10 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
+    SETTINGS_TAGS_ROOT: {
+        route: 'settings/:policyID/tags',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags`, backTo),
+    },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID?: string, pageIndex = '', backTo = '') =>
@@ -540,12 +544,27 @@ const ROUTES = {
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
-    NEW_TASK: 'new/task',
-    NEW_TASK_ASSIGNEE: 'new/task/assignee',
+    NEW_TASK: {
+        route: 'new/task',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task', backTo),
+    },
+    NEW_TASK_ASSIGNEE: {
+        route: 'new/task/assignee',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/assignee', backTo),
+    },
     NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
-    NEW_TASK_DETAILS: 'new/task/details',
-    NEW_TASK_TITLE: 'new/task/title',
-    NEW_TASK_DESCRIPTION: 'new/task/description',
+    NEW_TASK_DETAILS: {
+        route: 'new/task/details',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/details', backTo),
+    },
+    NEW_TASK_TITLE: {
+        route: 'new/task/title',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/title', backTo),
+    },
+    NEW_TASK_DESCRIPTION: {
+        route: 'new/task/description',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/description', backTo),
+    },
 
     TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
@@ -688,30 +707,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
-    WORKSPACE_CARD: {
-        route: 'settings/workspaces/:policyID/card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/card` as const,
-    },
-    WORKSPACE_REIMBURSE: {
-        route: 'settings/workspaces/:policyID/reimburse',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reimburse` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT: {
-        route: 'settings/workspaces/:policyID/rateandunit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT_RATE: {
-        route: 'settings/workspaces/:policyID/rateandunit/rate',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/rate` as const,
-    },
-    WORKSPACE_RATE_AND_UNIT_UNIT: {
-        route: 'settings/workspaces/:policyID/rateandunit/unit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/unit` as const,
-    },
-    WORKSPACE_BILLS: {
-        route: 'settings/workspaces/:policyID/bills',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/bills` as const,
-    },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
@@ -723,10 +718,6 @@ const ROUTES = {
     WORKSPACE_INVOICES_COMPANY_WEBSITE: {
         route: 'settings/workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
-    },
-    WORKSPACE_TRAVEL: {
-        route: 'settings/workspaces/:policyID/travel',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/travel` as const,
     },
     WORKSPACE_MEMBERS: {
         route: 'settings/workspaces/:policyID/members',
@@ -910,6 +901,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
     },
+    WORKSPACE_MEMBER_NEW_CARD: {
+        route: 'settings/workspaces/:policyID/members/:accountID/new-card',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/new-card` as const,
+    },
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/role-selection` as const,
@@ -992,10 +987,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD: {
-        route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
-    },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
@@ -1011,6 +1002,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARD_EXPORT: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
         getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD: {
+        route: 'settings/workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
@@ -1125,7 +1120,10 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
-    PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
+    PROCESS_MONEY_REQUEST_HOLD: {
+        route: 'hold-expense-educational',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
+    },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',
@@ -1154,39 +1152,39 @@ const ROUTES = {
     },
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
         route: 'r/:threadReportID/duplicates/review/merchant',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/merchant` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/merchant` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
         route: 'r/:threadReportID/duplicates/review/category',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/category` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/category` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
         route: 'r/:threadReportID/duplicates/review/tag',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tag` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/tax-code',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tax-code` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
         route: 'r/:threadReportID/duplicates/review/description',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/description` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/reimbursable',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/reimbursable` as const, backTo),
     },
     TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/billable',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable` as const, backTo),
     },
     TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
         route: 'r/:threadReportID/duplicates/confirm',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
