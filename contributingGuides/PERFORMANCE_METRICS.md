@@ -24,6 +24,7 @@ Project is using Firebase for tracking these metrics. However, not all of them a
 | `open_report`    | ❌ | Time taken to open a report.     | Starts when the row in the `LHNOptionsList` is pressed.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `switch_report`    | ✅ | Time taken to open report.     | Starts when the chat in the LHN is pressed.      | Stops when the `ReportActionsList` finishes laying out.     |
 | `open_report_from_preview`   | ✅ | Time taken to open a report from preview.<br><br>(previously `switch_report_from_preview`)    | Starts when the user presses the Report Preview.     | Stops when the `ReportActionsList` finishes laying out.     |
+| `switch_report_from_preview`   | ❌ | **[REMOVED]** Time taken to open a report from preview.      | Starts when the user presses the Report Preview.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `chat_render`    | ✅ | Time taken to render  the Report screen.     | Starts when the `ReportScreen` is being rendered for the first time.     | Stops once the `ReportScreen` component is mounted.     |
 | `report_initial_render`   | ❌ | Time taken to render the Report screen.     | Starts when the first item is rendered in the `LHNOptionsList`.     | Stops when the `ReportActionsList` finishes laying out.     |
 | `open_report_thread`   | ✅ | Time taken to open a thread in a report.     | Starts when user presses Report Action Item.     | Stops when the `ReportActionsList` finishes laying out.     |
