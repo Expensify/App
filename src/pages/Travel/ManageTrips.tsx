@@ -6,6 +6,7 @@ import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -83,8 +84,8 @@ function ManageTrips() {
                         });
                     }}
                     ctaErrorMessage={ctaErrorMessage}
-                    illustration={Illustrations.EmptyStateTravel}
-                    illustrationStyle={[styles.mv4, styles.tripIllustrationSize]}
+                    illustration={LottieAnimations.TripsEmptyState}
+                    illustrationStyle={[styles.mv4]}
                     secondaryButtonText={translate('travel.bookDemo')}
                     secondaryButtonAccessibilityLabel={translate('travel.bookDemo')}
                     onSecondaryButtonPress={navigateToBookTravelDemo}
