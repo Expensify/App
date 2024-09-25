@@ -455,34 +455,40 @@ jobs:
   checkDeploymentSuccess:
     runs-on: ubuntu-latest
     outputs:
-      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
-      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
+      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
     needs: [android, desktop, iOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
-        id: checkDeploymentSuccess
+        id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED is $isAtLeastOnePlatformDeployed"
+
+      - name: Check deployment success on all platforms
+        id: checkDeploymentSuccessOnAtLeastAllPlatform
+        run: |
+          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] && \
             [ "${{ needs.iOS.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
-          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=\"$isAtLeastOnePlatformDeployed\"" >> "$GITHUB_OUTPUT"
-          echo "IS_ALL_PLATFORMS_DEPLOYED=\"$isAllPlatformsDeployed\"" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
   createPrerelease:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Download all workflow run artifacts
@@ -540,7 +546,7 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Download all workflow run artifacts
@@ -643,34 +649,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  postGithubComment:
-    name: Post a GitHub comments on all deployed PRs when platforms are done building and deploying
-    runs-on: ubuntu-latest
+  postGithubComments:
+    uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Get Release Pull Request List
-        id: getReleasePRList
-        uses: ./.github/actions/javascript/getDeployPullRequestList
-        with:
-          TAG: ${{ needs.prep.outputs.APP_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-
-      - name: Comment on issues
-        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
-        with:
-          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
-          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-          DEPLOY_VERSION: ${{ needs.prep.outputs.APP_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          ANDROID: ${{ needs.android.result }}
-          DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.iOS.result }}
-          WEB: ${{ needs.web.result }}
+    with:
+      version: ${{ needs.prep.outputs.APP_VERSION }}
+      env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+      android: ${{ needs.android.result }}
+      ios: ${{ needs.iOS.result }}
+      web: ${{ needs.web.result }}
+      desktop: ${{ needs.desktop.result }}

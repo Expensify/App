@@ -32,6 +32,8 @@ export type {ReimbursementAccountForm} from './ReimbursementAccountForm';
 export type {ReportDescriptionForm} from './ReportDescriptionForm';
 export type {ReportFieldsEditForm} from './ReportFieldsEditForm';
 export type {ReportVirtualCardFraudForm} from './ReportVirtualCardFraudForm';
+export type {DebugReportForm} from './DebugReportForm';
+export type {DebugReportActionForm} from './DebugReportActionForm';
 export type {RequestPhysicalCardForm} from './RequestPhysicalCardForm';
 export type {RoomNameForm} from './RoomNameForm';
 export type {RoomSettingsForm} from './RoomSettingsForm';
@@ -40,7 +42,6 @@ export type {SettingsStatusSetClearAfterForm} from './SettingsStatusSetClearAfte
 export type {SettingsStatusSetForm} from './SettingsStatusSetForm';
 export type {WaypointForm} from './WaypointForm';
 export type {WorkspaceInviteMessageForm} from './WorkspaceInviteMessageForm';
-export type {WorkspaceRateAndUnitForm} from './WorkspaceRateAndUnitForm';
 export type {WorkspaceCategoryForm} from './WorkspaceCategoryForm';
 export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
