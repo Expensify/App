@@ -14,17 +14,18 @@ import ROUTES from '@src/ROUTES';
 import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
 
-const SEARCH_DEBOUNCE_DELAY = 200;
+const SEARCH_DEBOUNCE_DELAY = 150;
 
 function SearchRouter() {
     const styles = useThemeStyles();
 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
-    const [currentQuery, setCurrentQuery] = useState<SearchQueryJSON | undefined>(undefined);
+
+    const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
 
     const clearUserQuery = () => {
-        setCurrentQuery(undefined);
+        setUserSearchQuery(undefined);
     };
 
     const onSearchChange = debounce((userQuery: string) => {
@@ -39,34 +40,24 @@ function SearchRouter() {
             // eslint-disable-next-line
             console.log('parsedQuery', queryJSON);
 
-            setCurrentQuery(queryJSON);
+            setUserSearchQuery(queryJSON);
         } else {
             // Handle query parsing error
         }
     }, SEARCH_DEBOUNCE_DELAY);
 
     const onSearchSubmit = useCallback(() => {
+        if (!userSearchQuery) {
+            return;
+        }
+
         closeSearchRouter();
 
-        const query = SearchUtils.buildSearchQueryString(currentQuery);
+        const query = SearchUtils.buildSearchQueryString(userSearchQuery);
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+
         clearUserQuery();
-    }, [currentQuery, closeSearchRouter]);
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            if (!currentQuery) {
-                return;
-            }
-
-            onSearchSubmit();
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: false,
-        },
-    );
+    }, [closeSearchRouter, userSearchQuery]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         closeSearchRouter();
