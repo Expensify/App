@@ -109,7 +109,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             };
         }
 
-        const item = popoverMenuItems.at(activeItemIndex);
+        const item = activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex) : undefined;
         return {
             icon: item?.icon ?? Expensicons.Receipt,
             title: item?.text,
@@ -155,7 +155,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
             <PressableWithFeedback
                 accessible
-                accessibilityLabel={popoverMenuItems.at(activeItemIndex)?.text ?? ''}
+                accessibilityLabel={activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex)?.text ?? '' : ''}
                 ref={buttonRef}
                 wrapperStyle={styles.flex1}
                 onPress={openMenu}

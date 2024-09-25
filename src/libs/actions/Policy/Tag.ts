@@ -247,7 +247,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 ...policyTag.tags[key],
                 ...tagsToUpdate[key],
                 errors: null,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 pendingFields: {
                     ...policyTag.tags[key]?.pendingFields,
                     enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -286,7 +285,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...policyTag.tags[key],
                                     ...tagsToUpdate[key],
                                     errors: null,
-                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                     pendingFields: {
                                         ...policyTag.tags[key].pendingFields,
                                         enabled: null,
@@ -314,7 +312,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...policyTag.tags[key],
                                     ...tagsToUpdate[key],
                                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                     pendingFields: {
                                         ...policyTag.tags[key].pendingFields,
                                         enabled: null,
@@ -546,7 +543,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                         tags: {
                             [newTagName]: {
                                 pendingAction: null,
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                 pendingFields: {
                                     ...tag.pendingFields,
                                     name: null,
@@ -568,7 +564,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [oldTagName]: {
                                 ...tag,
                                 pendingAction: null,
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                                 pendingFields: {
                                     ...tag.pendingFields,
                                     name: null,

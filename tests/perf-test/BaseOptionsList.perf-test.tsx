@@ -1,7 +1,7 @@
 import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
-import {measureRenders} from 'reassure';
+import {measurePerformance} from 'reassure';
 import BaseOptionsList from '@components/OptionsList/BaseOptionsList';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -67,7 +67,7 @@ describe('[BaseOptionsList]', () => {
     }
 
     test('Should render 1 section and a thousand items', () => {
-        measureRenders(<BaseOptionsListWrapper />);
+        measurePerformance(<BaseOptionsListWrapper />);
     });
 
     test('Should press a list item', () => {
@@ -76,7 +76,7 @@ describe('[BaseOptionsList]', () => {
             fireEvent.press(screen.getByText('Item 5'));
         };
 
-        measureRenders(<BaseOptionsListWrapper />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper />, {scenario});
     });
 
     test('Should render multiple selection and select 4 items', () => {
@@ -88,7 +88,7 @@ describe('[BaseOptionsList]', () => {
             fireEvent.press(screen.getByText('Item 4'));
         };
 
-        measureRenders(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
     });
 
     test('Should scroll and select a few items', () => {
@@ -120,6 +120,6 @@ describe('[BaseOptionsList]', () => {
             fireEvent.press(screen.getByText('Item 15'));
         };
 
-        measureRenders(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
     });
 });

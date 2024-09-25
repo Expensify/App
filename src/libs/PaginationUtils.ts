@@ -46,12 +46,12 @@ function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getI
  */
 function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): ItemWithIndex | null {
     for (let i = page.length - 1; i >= 0; i--) {
-        const id = page.at(i);
+        const id = page[i];
         if (id === CONST.PAGINATION_END_ID) {
             return {id, index: sortedItems.length - 1};
         }
         const index = sortedItems.findIndex((item) => getID(item) === id);
-        if (index !== -1 && id) {
+        if (index !== -1) {
             return {id, index};
         }
     }

@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/prefer-at */
 import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';

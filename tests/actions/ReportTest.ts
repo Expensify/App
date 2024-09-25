@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-
-/* eslint-disable rulesdir/prefer-at */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';

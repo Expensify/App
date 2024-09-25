@@ -7,7 +7,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - Reassure builds on the existing React Testing Library setup and adds a performance measurement functionality. It's intended to be used on local machine and on a remote server as part of your continuous integration setup.
 - To make sure the results are reliable and consistent, Reassure runs tests twice – once for the current branch and once for the base branch.
 
-## Performance Testing Strategy (`measureRenders`)
+## Performance Testing Strategy (`measurePerformance`)
 
 - The primary focus is on testing business cases rather than small, reusable parts that typically don't introduce regressions, although some tests in that area are still necessary.
 - To achieve this goal, it's recommended to stay relatively high up in the React tree, targeting whole screens to recreate real-life scenarios that users may encounter.
@@ -84,7 +84,7 @@ test('Count increments on press', async () => {
     await screen.findByText('Count: 2');
   };
 
-  await measureRenders(
+  await measurePerformance(
     <Counter />,
     { scenario, runs: 20 }
   );

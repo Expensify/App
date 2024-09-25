@@ -98,15 +98,16 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
                         },
                     }));
             }
+            const firstViolation = currentViolations.at(0);
 
             // missingTag has special logic for policies with dependent tags, because only one violation is returned for all tags
             // when no tags are present, so the tag name isn't set in the violation data. That's why we add it here
-            if (policyHasDependentTags && currentViolations.at(0)?.name === CONST.VIOLATIONS.MISSING_TAG && data?.tagListName) {
+            if (policyHasDependentTags && firstViolation?.name === CONST.VIOLATIONS.MISSING_TAG && data?.tagListName) {
                 return [
                     {
-                        ...currentViolations.at(0),
+                        ...firstViolation,
                         data: {
-                            ...currentViolations.at(0)?.data,
+                            ...firstViolation.data,
                             tagName: data?.tagListName,
                         },
                     },
@@ -114,13 +115,13 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
             }
 
             // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
-            if (currentViolations.at(0)?.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && data?.tagListName !== undefined && currentViolations.at(0)?.data?.tagName) {
+            if (firstViolation?.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && data?.tagListName !== undefined && firstViolation?.data?.tagName) {
                 return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }
 
             // allTagLevelsRequired has special logic because it is returned when one but not all the tags are set,
             // so we need to return the violation for the tag fields without a tag set
-            if (currentViolations.at(0)?.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && tagValue) {
+            if (firstViolation?.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && tagValue) {
                 return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }
 

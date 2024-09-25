@@ -504,8 +504,12 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
     const usersWithTimestamps: UsersReactions = {};
     Object.entries(emoji.users ?? {}).forEach(([id, user]) => {
         const userTimestamps = Object.values(user?.skinTones ?? {});
-        // eslint-disable-next-line no-nested-ternary
-        const oldestUserTimestamp = userTimestamps.reduce((min, curr) => (min ? (curr < min ? curr : min) : curr), userTimestamps.at(0));
+        const oldestUserTimestamp = userTimestamps.reduce((min, curr) => {
+            if (min) {
+                return curr < min ? curr : min;
+            }
+            return curr;
+        }, userTimestamps.at(0));
 
         if (!oldestUserTimestamp) {
             return;

@@ -1442,7 +1442,7 @@ function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAc
         return false;
     }
     const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
-    return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+    return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 
 /**

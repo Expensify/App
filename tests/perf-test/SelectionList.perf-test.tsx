@@ -2,7 +2,7 @@ import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
-import {measureRenders} from 'reassure';
+import {measurePerformance} from 'reassure';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -81,7 +81,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
     const sections = [
         {
-            data: Array.from({length: 500}, (element, index) => ({
+            data: Array.from({length: 1000}, (element, index) => ({
                 text: `Item ${index}`,
                 keyForList: `item-${index}`,
                 isSelected: selectedIds.includes(`item-${index}`),
@@ -119,7 +119,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 }
 
 test('[SelectionList] should render 1 section and a thousand items', () => {
-    measureRenders(<SelectionListWrapper />);
+    measurePerformance(<SelectionListWrapper />);
 });
 
 test('[SelectionList] should press a list item', () => {
@@ -128,7 +128,7 @@ test('[SelectionList] should press a list item', () => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
-    measureRenders(<SelectionListWrapper />, {scenario});
+    measurePerformance(<SelectionListWrapper />, {scenario});
 });
 
 test('[SelectionList] should render multiple selection and select 3 items', () => {
@@ -139,7 +139,7 @@ test('[SelectionList] should render multiple selection and select 3 items', () =
         fireEvent.press(screen.getByText('Item 3'));
     };
 
-    measureRenders(<SelectionListWrapper canSelectMultiple />, {scenario});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
 
 test('[SelectionList] should scroll and select a few items', () => {
@@ -171,5 +171,5 @@ test('[SelectionList] should scroll and select a few items', () => {
         fireEvent.press(screen.getByText('Item 15'));
     };
 
-    measureRenders(<SelectionListWrapper canSelectMultiple />, {scenario});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });

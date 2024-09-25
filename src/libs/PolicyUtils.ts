@@ -298,7 +298,6 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<Po
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
-
     return (
         tagLists.at(tagIndex) ?? {
             name: '',
