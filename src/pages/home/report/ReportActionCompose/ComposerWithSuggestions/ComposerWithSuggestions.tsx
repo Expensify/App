@@ -790,7 +790,9 @@ function ComposerWithSuggestions(
                         if (showSoftInputOnFocus) {
                             return;
                         }
-                        setShowSoftInputOnFocus(true);
+                        setTimeout(()=>{
+                            setShowSoftInputOnFocus(true);
+                        }, CONST.ANIMATED_TRANSITION)
                     }}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
