@@ -428,7 +428,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -454,15 +454,24 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.android.result }}" == "success" ] || \
-            [ "${{ needs.iOS.result }}" == "success" ] || \
+          if [ ${{ github.ref }} == 'refs/heads/production' ]; then
+            if [ "${{ needs.submitAndroid.result }}" == "success" ]; then
+              isAtLeastOnePlatformDeployed="true"
+            fi
+          else
+            if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
+              isAtLeastOnePlatformDeployed="true"
+            fi
+          fi
+          
+          if [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
@@ -474,12 +483,22 @@ jobs:
         id: checkDeploymentSuccessOnAtLeastAllPlatform
         run: |
           isAllPlatformsDeployed="false"
-          if [ "${{ needs.android.result }}" == "success" ] && \
-            [ "${{ needs.iOS.result }}" == "success" ] && \
+          if [ "${{ needs.iOS.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
+
+          if [ ${{ github.ref }} == 'refs/heads/production' ]; then
+            if [ "${{ needs.submitAndroid.result }}" != "success" ]; then
+              isAtLeastOnePlatformDeployed="false"
+            fi
+          else
+            if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
+              isAtLeastOnePlatformDeployed="false"
+            fi
+          fi
+
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
