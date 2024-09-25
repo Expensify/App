@@ -425,7 +425,7 @@ function ReportActionCompose({
                         shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         shouldUseOverlay
-                        onPressOverlay={() => User.dismissWorkspaceTooltip()}
+                        onHideTooltip={() => User.dismissWorkspaceTooltip()}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

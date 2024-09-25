@@ -12,7 +12,7 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldAutoDismiss = false, shouldRender = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, onHideTooltip, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
@@ -20,7 +20,6 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, shouldRend
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
     const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible;
-    const didShowRef = useRef(false);
 
     useEffect(
         () => () => {
@@ -46,28 +45,31 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, shouldRend
         }
 
         // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
-        const timerID = setTimeout(hideTooltipRef.current, 5000);
+        const timerID = setTimeout(() => {
+            hideTooltipRef.current?.();
+            onHideTooltip?.();
+        }, 5000);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldAutoDismiss, shouldShow]);
+    }, [shouldAutoDismiss, shouldShow, onHideTooltip]);
 
     useEffect(() => {
-        if (!shouldRender || !shouldMeasure || !shouldShow || didShowRef.current) {
+        if (!shouldMeasure || !shouldShow) {
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         setTimeout(() => {
-            didShowRef.current = true;
             show.current?.();
         }, 500);
-    }, [shouldMeasure, shouldRender, shouldShow]);
+    }, [shouldMeasure, shouldShow]);
 
     return (
         <GenericTooltip
             shouldForceAnimate
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            onHideTooltip={onHideTooltip}
         >
             {({showTooltip, hideTooltip, updateTargetBounds}) => {
                 // eslint-disable-next-line react-compiler/react-compiler
