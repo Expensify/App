@@ -360,8 +360,7 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            const shouldScrollDown = isFromCurrentUser || isWhisperOnlyVisibleByUser;
-            if (!shouldScrollDown) {
+            if (!isFromCurrentUser) {
                 return;
             }
             if (!hasNewestReportActionRef.current) {
