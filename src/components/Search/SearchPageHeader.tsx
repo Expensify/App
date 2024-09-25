@@ -69,7 +69,8 @@ function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps
                     <SearchRouterInput
                         disabled
                         isFullWidth
-                        wrapperStyle={styles.searchRouterInputResultsStyle}
+                        wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                        wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                         defaultValue={text}
                         rightComponent={children}
                     />
@@ -305,8 +306,9 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 />
             ) : (
                 <Button
-                    innerStyles={!isCannedQuery && styles.highlightBG}
+                    innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
                     text={translate('search.filtersHeader')}
+                    textStyles={styles.textSupporting}
                     icon={Expensicons.Filters}
                     onPress={onPress}
                 />

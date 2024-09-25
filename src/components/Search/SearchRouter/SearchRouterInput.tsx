@@ -26,26 +26,28 @@ type SearchRouterInputProps = {
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Any additional styles to apply when input is focused */
+    wrapperFocusedStyle?: StyleProp<ViewStyle>;
+
     /** Component to be displayed on the right */
     rightComponent?: ReactNode;
 };
 
-function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', disabled = false, wrapperStyle, rightComponent}: SearchRouterInputProps) {
+function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', disabled = false, wrapperStyle, wrapperFocusedStyle, rightComponent}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
     const [value, setValue] = useState(defaultValue);
+    const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const onChangeText = (text: string) => {
         setValue(text);
-        if (onChange) {
-            onChange(text);
-        }
+        onChange?.(text);
     };
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterInputStyle]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterInput, isFocused && wrapperFocusedStyle]}>
             <View style={styles.flex1}>
                 <BaseTextInput
                     disabled={disabled}
@@ -58,6 +60,8 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
                     inputStyle={[styles.searchInputStyle]}
                     role={CONST.ROLE.PRESENTATION}
                     autoCapitalize="none"
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
                 />
             </View>
             {rightComponent}
