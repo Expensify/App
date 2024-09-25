@@ -94,7 +94,7 @@ function FormProvider(
         shouldTrimValues = true,
         allowHTML = false,
         ...rest
-    }: Omit<FormProviderProps, keyof FormProviderOnyxProps>,
+    }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
