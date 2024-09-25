@@ -4,7 +4,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
@@ -104,6 +104,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
+    const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
     const reactionListRef = useRef<ReactionListRef>(null);
@@ -421,6 +422,19 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Report.updateLastVisitTime(reportID);
     }, [reportID, isFocused]);
 
+    useEffect(() => {
+        const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID}: {preexistingReportID: string}) => {
+            if (!preexistingReportID) {
+                return;
+            }
+            isSkippingOpenReport.current = true;
+        });
+
+        return () => {
+            skipOpenReportListener.remove();
+        };
+    }, [reportID]);
+
     const fetchReportIfNeeded = useCallback(() => {
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
@@ -441,6 +455,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         if (report && !shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+            return;
+        }
+        // When creating an optimistic report that already exists, we need to skip openReport
+        // when replacing the optimistic report with the real one received from the server.
+        if (isSkippingOpenReport.current) {
+            isSkippingOpenReport.current = false;
             return;
         }
 
