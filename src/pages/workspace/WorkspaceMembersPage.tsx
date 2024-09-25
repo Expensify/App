@@ -536,31 +536,27 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!isPolicyAdmin) {
             return null;
         }
-        return (
-            <View style={styles.w100}>
-                {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
-                    <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                        shouldAlwaysShowDropdownMenu
-                        pressOnEnter
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        onPress={() => null}
-                        options={getBulkActionsButtonOptions()}
-                        isSplitButton={false}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                        isDisabled={!selectedEmployees.length}
-                    />
-                ) : (
-                    <Button
-                        success
-                        onPress={inviteUser}
-                        text={translate('workspace.invite.member')}
-                        icon={Expensicons.Plus}
-                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    />
-                )}
-            </View>
+        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+            <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                onPress={() => null}
+                options={getBulkActionsButtonOptions()}
+                isSplitButton={false}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedEmployees.length}
+            />
+        ) : (
+            <Button
+                success
+                onPress={inviteUser}
+                text={translate('workspace.invite.member')}
+                icon={Expensicons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            />
         );
     };
 
