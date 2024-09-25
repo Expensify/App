@@ -316,10 +316,7 @@ function ReimbursementAccountPage({
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const policyID = route.params.policyID;
-            const backTo = route.params.backTo;
-
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
+            Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
