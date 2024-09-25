@@ -1689,9 +1689,8 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if (PolicyUtils.isInstantSubmitEnabled(policy)) {
-        console.log(policy, moneyRequestReport);
-        return false;
+    if (PolicyUtils.isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
+        return isAwaitingFirstLevelApproval(moneyRequestReport);
     }
 
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
