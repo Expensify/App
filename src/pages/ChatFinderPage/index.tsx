@@ -128,7 +128,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 },
             },
         ]);
-        console.log('makeTree', performance.now() - start);
         start = performance.now();
         tree.build();
         console.log('build', performance.now() - start);
@@ -168,7 +167,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!userToToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
