@@ -1,4 +1,9 @@
 /* eslint-disable no-continue */
+
+/**
+ * TODO: quick explanation to how suffix ukkonen tree works:
+ */
+
 const CHAR_CODE_A = 'a'.charCodeAt(0);
 const LETTER_ALPHABET_SIZE = 26;
 const ALPHABET_SIZE = LETTER_ALPHABET_SIZE + 3; // +3: special char, delimiter char, end char
@@ -6,11 +11,16 @@ const SPECIAL_CHAR_CODE = ALPHABET_SIZE - 3;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
 const END_CHAR_CODE = ALPHABET_SIZE - 1;
 
+// Removes any special characters, except for numbers and letters (including unicode letters)
 const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
 
+/**
+ * Converts a number to a base26 string number.
+ * This is used to fit all kinds of characters in the range of a-z.
+ */
 function convertToBase26(num: number): string {
     if (num < 0) {
-        throw new Error('Input must be a non-negative integer');
+        throw new Error('convertToBase26: Input must be a non-negative integer');
     }
 
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
@@ -28,9 +38,11 @@ function convertToBase26(num: number): string {
 
 /**
  * Converts a string to an array of numbers representing the characters of the string.
+ * Every number in the array is in the range 0-ALPHABET_SIZE (0-28).
+ *
  * The numbers are offset by the character code of 'a' (97).
- * - This is so that the numbers from a-z are in the range 0-25.
- * - 26 is for encoding special characters (everything that is bigger than z will be encoded as "specialCharacter + base26(charCode))"
+ * - This is so that the numbers from a-z are in the range 0-28.
+ * - 26 is for encoding special characters. Character numbers that are not within the range of a-z will be encoded as "specialCharacter + base26(charCode)"
  * - 27 is for the delimiter character
  * - 28 is for the end character
  */
@@ -50,23 +62,39 @@ function stringToArray(input: string) {
     return res;
 }
 
-type PrepareDataParams<T> = {
+type TreeDataParams<T> = {
+    /**
+     * The data that should be searchable
+     */
     data: T[];
+    /**
+     * A function that generates a string from a data entry. The string's value is used for searching.
+     * If you have multiple fields that should be searchable, simply concat them to the string and return it.
+     */
     toSearchableString: (data: T) => string;
 };
 
-function cleanedString(input: string) {
+/**
+ * Everything in the tree is treated as lowercase. Strings will additionally be cleaned from
+ * special characters, as they are irrelevant for the search, and thus we can save some space.
+ */
+function cleanString(input: string) {
     return input.toLowerCase().replace(nonAlphanumericRegex, '');
 }
 
-function prepareData<T>({data, toSearchableString}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
+/**
+ * The suffix tree can only store string like values, and internally stores those as numbers.
+ * This function converts the user data (which are most likely objects) to a numeric representation.
+ * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
+ */
+function dataToNumericRepresentation<T>({data, toSearchableString}: TreeDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const allDataAsNumbers: number[] = [];
 
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
         // Remove all none a-z chars:
-        const cleanedSearchStringForTree = cleanedString(searchStringForTree);
+        const cleanedSearchStringForTree = cleanString(searchStringForTree);
 
         if (cleanedSearchStringForTree.length === 0) {
             return;
@@ -91,20 +119,20 @@ function prepareData<T>({data, toSearchableString}: PrepareDataParams<T>): [numb
 /**
  * Makes a tree from an input string
  */
-function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
+function makeTree<T>(lists: Array<TreeDataParams<T>>) {
     const listsAsConcatedNumericList: number[] = [];
 
     // We might received multiple lists of data that we want to search in
     // thus indexes is a list of those data lists
-    const indexesForList: Array<Array<T | undefined>> = [];
+    const indexesByList: Array<Array<T | undefined>> = [];
 
     for (const {data, toSearchableString: transform} of lists) {
-        const [numericRepresentation, searchIndexList] = prepareData({data, toSearchableString: transform});
+        const [numericRepresentation, searchIndexList] = dataToNumericRepresentation({data, toSearchableString: transform});
         for (const num of numericRepresentation) {
             // we have to use a loop here as push with spread yields a maximum call stack exceeded error
             listsAsConcatedNumericList.push(num);
         }
-        indexesForList.push(searchIndexList);
+        indexesByList.push(searchIndexList);
     }
     listsAsConcatedNumericList.push(END_CHAR_CODE);
 
@@ -339,15 +367,15 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         const mappedResults = Array.from({length: lists.length}, () => new Set<T>());
         result.forEach((index) => {
             let offset = 0;
-            for (let i = 0; i < indexesForList.length; i++) {
+            for (let i = 0; i < indexesByList.length; i++) {
                 const relativeIndex = index - offset + 1;
-                if (relativeIndex < indexesForList[i].length && relativeIndex >= 0) {
-                    const option = indexesForList[i][relativeIndex];
+                if (relativeIndex < indexesByList[i].length && relativeIndex >= 0) {
+                    const option = indexesByList[i][relativeIndex];
                     if (option) {
                         mappedResults[i].add(option);
                     }
                 } else {
-                    offset += indexesForList[i].length;
+                    offset += indexesByList[i].length;
                 }
             }
         });
@@ -362,4 +390,4 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     };
 }
 
-export {makeTree, prepareData};
+export {makeTree, dataToNumericRepresentation as prepareData};
