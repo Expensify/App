@@ -4179,6 +4179,7 @@ function buildOptimisticAddCommentReportAction(
     const isAttachmentWithText = !!text && file !== undefined;
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     // Remove HTML from text when applying optimistic offline comment
     return {
         commentText,
