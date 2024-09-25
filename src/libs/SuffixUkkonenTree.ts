@@ -108,7 +108,7 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Arr
  */
 function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     const start1 = performance.now();
-    const listsAsConcatedNumericList: number[] = [];
+    let listsAsConcatedNumericList: number[] = [];
 
     // We might received multiple lists of data that we want to search in
     // thus indexes is a list of those data lists
@@ -116,9 +116,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
 
     for (const {data, transform} of lists) {
         const [numericRepresentation, searchIndexList] = prepareData({data, transform});
-        for (const num of numericRepresentation) {
-            listsAsConcatedNumericList.push(num);
-        }
+        listsAsConcatedNumericList = listsAsConcatedNumericList.concat(numericRepresentation);
         indexesForList.push(searchIndexList);
     }
     listsAsConcatedNumericList.push(END_CHAR_CODE);
