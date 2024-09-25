@@ -75,7 +75,7 @@ describe('FastSearch', () => {
     it('should be case insensitive', () => {
         const {search} = FastSearch.createFastSearch([
             {
-                data: ['banana', 'TeSt', 'TEST'],
+                data: ['banana', 'TeSt', 'TEST', 'X'],
                 toSearchableString: (data) => data,
             },
         ]);

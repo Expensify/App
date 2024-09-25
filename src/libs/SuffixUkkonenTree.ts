@@ -44,6 +44,8 @@ function convertToBase26(num: number): string {
  * - 26 is for encoding special characters. Character numbers that are not within the range of a-z will be encoded as "specialCharacter + base26(charCode)"
  * - 27 is for the delimiter character
  * - 28 is for the end character
+ *
+ * Note: The string should be converted to lowercase first (otherwise uppercase letters get base26'ed taking more space than necessary).
  */
 function stringToNumeric(input: string) {
     const res: number[] = [];
