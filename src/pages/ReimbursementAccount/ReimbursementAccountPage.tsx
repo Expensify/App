@@ -4,8 +4,7 @@ import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -29,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
@@ -41,32 +39,7 @@ import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
 import RequestorStep from './RequestorStep';
 
-type ReimbursementAccountOnyxProps = {
-    /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: OnyxEntry<string>;
-
-    /** Plaid SDK current event */
-    plaidCurrentEvent: OnyxEntry<string>;
-
-    /** Indicated whether the app is loading */
-    isLoadingApp: OnyxEntry<boolean>;
-
-    /** Holds information about the users account that is logging in */
-    account: OnyxEntry<OnyxTypes.Account>;
-
-    /** Current session for the user */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
-
-    /** The token required to initialize the Onfido SDK */
-    onfidoToken: OnyxEntry<string>;
-};
-
-type ReimbursementAccountPageProps = WithPolicyOnyxProps &
-    ReimbursementAccountOnyxProps &
-    StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+type ReimbursementAccountPageProps = WithPolicyOnyxProps & StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 const ROUTE_NAMES = {
     COMPANY: 'company',
@@ -123,17 +96,15 @@ function getRouteForCurrentStep(currentStep: TBankAccountStep): ValueOf<typeof R
     }
 }
 
-function ReimbursementAccountPage({
-    reimbursementAccount,
-    route,
-    onfidoToken = '',
-    policy,
-    account,
-    isLoadingApp = false,
-    session,
-    plaidLinkToken = '',
-    plaidCurrentEvent = '',
-}: ReimbursementAccountPageProps) {
+function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps) {
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [plaidLinkToken = ''] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
+    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+
     /**
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         user left off. This view will refer to the achData as the single source of truth to determine which route to
@@ -505,29 +476,4 @@ function ReimbursementAccountPage({
 
 ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
-export default withPolicy(
-    withOnyx<ReimbursementAccountPageProps, ReimbursementAccountOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        plaidLinkToken: {
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
-        },
-        plaidCurrentEvent: {
-            key: ONYXKEYS.PLAID_CURRENT_EVENT,
-        },
-        onfidoToken: {
-            key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        account: {
-            key: ONYXKEYS.ACCOUNT,
-        },
-    })(ReimbursementAccountPage),
-);
+export default withPolicy(ReimbursementAccountPage);
