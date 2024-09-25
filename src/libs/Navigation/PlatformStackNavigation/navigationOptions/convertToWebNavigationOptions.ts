@@ -1,6 +1,6 @@
-import type {ParamListBase, RouteProp, ScreenOptionsOrCallback} from '@react-navigation/native';
+import type {ParamListBase, ScreenOptionsOrCallback} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationOptions, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import buildPlatformSpecificNavigationOptions from './buildPlatformSpecificNavigationOptions';
 
@@ -11,7 +11,7 @@ function convertToWebNavigationOptions(screenOptions: ScreenOptionsOrCallback<Pl
 
     if (isRouteBasedScreenOptions(screenOptions)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (p: {route: RouteProp<ParamListBase, string>; navigation: any}) => {
+        return (p: PlatformStackScreenProps<ParamListBase, string>) => {
             const routeBasedScreenOptions = screenOptions(p);
             return {...buildPlatformSpecificNavigationOptions(routeBasedScreenOptions), ...routeBasedScreenOptions.web};
         };
