@@ -129,7 +129,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     // const l = Array<number>(N).fill(0);
     // const r = Array<number>(N).fill(0);
     // const p = Array<number>(N).fill(0);
-    const s = Array<number>(N).fill(0);
+    // const s = Array<number>(N).fill(0);
     // const end = performance.now();
     // console.log('Allocating memory took:', end - start, 'ms');
     const t: Array<number[] | undefined> = [];
@@ -137,7 +137,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     const r: Array<number | undefined> = [];
     const defaultREdgeValue = listsAsConcatedNumericList.length - 1;
     const p: number[] = [];
-    // const s: number[] = [];
+    const s: number[] = [];
 
     let tv = 0;
     let tp = 0;
