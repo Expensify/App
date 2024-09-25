@@ -142,6 +142,10 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
+function setOnboardingCustomChoices(value: string[]) {
+    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? null);
+}
+
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
@@ -239,6 +243,7 @@ function resetAllChecks() {
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
+    setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
