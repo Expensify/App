@@ -15,6 +15,7 @@ import type {
     SetPolicyDistanceRatesDefaultCategoryParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
+    GetPolicyCategoriesParams
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -185,6 +186,19 @@ function openPolicyCategoriesPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
+function getPolicyCategories(policyID: string) {
+    if (!policyID) {
+        Log.warn('GetPolicyCategories invalid params', {policyID});
+        return;
+    }
+
+    const params: GetPolicyCategoriesParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
 function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
@@ -1312,6 +1326,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
 }
 
 export {
+    getPolicyCategories,
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,

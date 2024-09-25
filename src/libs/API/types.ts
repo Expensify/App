@@ -859,6 +859,7 @@ const READ_COMMANDS = {
     BEGIN_SIGNIN: 'BeginSignIn',
     SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN: 'SignInWithShortLivedAuthToken',
     SIGN_IN_WITH_SUPPORT_AUTH_TOKEN: 'SignInWithSupportAuthToken',
+    GET_POLICY_CATEGORIES: 'GetPolicyCategories',
     OPEN_WORKSPACE: 'OpenWorkspace',
     OPEN_WORKSPACE_MEMBERS_PAGE: 'OpenWorkspaceMembersPage',
     OPEN_POLICY_CATEGORIES_PAGE: 'OpenPolicyCategoriesPage',
