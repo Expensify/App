@@ -42,6 +42,10 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
                 return updateHandler(request.successData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
+                if (response.jsonCode === 460) {
+                    Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
+                    return Promise.resolve();
+                }
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
