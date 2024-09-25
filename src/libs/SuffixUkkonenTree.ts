@@ -4,6 +4,8 @@
  * This implements a suffix tree using Ukkonen's algorithm.
  * A good visualization to learn about the algorithm can be found here: https://brenden.github.io/ukkonen-animation/
  * Note: This implementation is optimized for performance, not necessarily for readability.
+ *
+ * You probably don't want to use this directly, but rather use @libs/FastSearch.ts as a easy to use wrapper around this.
  */
 
 const CHAR_CODE_A = 'a'.charCodeAt(0);
