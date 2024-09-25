@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -33,7 +32,6 @@ function ManageTrips() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policy = usePolicy(activePolicyID);

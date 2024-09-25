@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -42,8 +41,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [primaryLogin = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -92,14 +89,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         );
     }, [styles, translate, ctaErrorMessage]);
 
-    const onPress = useCallback(() => {
-        if (Str.isSMSLogin(primaryLogin)) {
-            setCtaErrorMessage(translate('travel.phoneError'));
-            return;
-        }
-        TripsResevationUtils.bookATrip(translate, primaryLogin ?? '', setCtaErrorMessage, ctaErrorMessage);
-    }, [primaryLogin, translate, travelSettings, activePolicyID, ctaErrorMessage]);
-
     const content = useMemo(() => {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
@@ -111,7 +100,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: onPress,
+                    buttonAction: () => TripsResevationUtils.bookATrip(translate, primaryLogin ?? '', setCtaErrorMessage, ctaErrorMessage),
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -127,7 +116,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, onPress]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, primaryLogin, ctaErrorMessage]);
 
     return (
         <EmptyStateComponent
