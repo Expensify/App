@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -98,7 +98,23 @@ function getAuthToken(): string | null | undefined {
 }
 
 function isSupportRequest(command: string): boolean {
-    return [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.SEARCH].some((cmd) => cmd === command);
+    return [
+        WRITE_COMMANDS.OPEN_APP,
+        WRITE_COMMANDS.SEARCH,
+        SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
+        SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT,
+        READ_COMMANDS.OPEN_CARD_DETAILS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE,
+        READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_TAGS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE,
+        READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
+    ].some((cmd) => cmd === command);
 }
 
 function isSupportAuthToken(): boolean {
