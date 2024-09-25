@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
+    GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
@@ -15,7 +16,6 @@ import type {
     SetPolicyDistanceRatesDefaultCategoryParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
-    GetPolicyCategoriesParams
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';

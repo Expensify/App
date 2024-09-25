@@ -1975,8 +1975,8 @@ function getOptions(
             reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
-                if (policy?.areCategoriesEnabled) {
+                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
+                if (reportPolicy?.areCategoriesEnabled) {
                     recentReportOptions.push(reportOption);
                 }
             } else {
