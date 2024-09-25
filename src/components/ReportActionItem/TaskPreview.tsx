@@ -74,8 +74,9 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
+    const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
-    const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(taskAssigneeAccountID > 0);
+    const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(avatarSize);
 
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
@@ -113,7 +114,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         <Avatar
                             containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
                             source={avatar}
-                            size={CONST.AVATAR_SIZE.SMALL}
+                            size={avatarSize}
                             avatarID={taskAssigneeAccountID}
                             type={CONST.ICON_TYPE_AVATAR}
                         />

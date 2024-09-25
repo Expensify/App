@@ -1669,10 +1669,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         justifyContent: 'center',
     }),
 
-    getTaskPreviewIconWrapper: (hasAvatar: boolean) => {
-        const height = hasAvatar ? getAvatarSize(CONST.AVATAR_SIZE.SMALL) : variables.fontSizeNormalHeight;
+    getTaskPreviewIconWrapper: (avatarSize: AvatarSizeName) => {
         return {
-            height,
+            height: getAvatarSize(avatarSize),
             ...styles.justifyContentCenter,
         };
     },
