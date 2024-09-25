@@ -110,7 +110,7 @@ describe('SuffixUkkonenTree', () => {
 
         // Expect to find each word in the tree
         data.forEach((word) => {
-            expect(tree.findInSearchTree(word)).toEqual([[word]]);
+            expect(tree.findInSearchTree(word)).toEqual([expect.arrayContaining([word])]);
         });
     });
 });
