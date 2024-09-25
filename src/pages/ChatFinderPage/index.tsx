@@ -18,7 +18,7 @@ import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
-import {makeTree, prepareData} from '@libs/SuffixUkkonenTree';
+import * as SuffixTree from '@libs/SuffixUkkonenTree';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -100,18 +100,18 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
      */
     const findInSearchTree = useMemo(() => {
         let start = performance.now();
-        const tree = makeTree([
+        const tree = SuffixTree.makeTree([
             {
                 data: searchOptions.personalDetails,
-                transform: (option) => {
+                toSearchableString: (option) => {
                     const displayName = option.participantsList?.[0]?.displayName ?? '';
                     return (option.login ?? '') + (option.login !== displayName ? displayName : '');
                 },
             },
             {
                 data: searchOptions.recentReports,
-                transform: (option) => {
-                    let searchStringForTree = option.text ?? ''
+                toSearchableString: (option) => {
+                    let searchStringForTree = option.text ?? '';
                     searchStringForTree += option.login ?? '';
 
                     if (option.isThread) {
@@ -137,10 +137,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             const searchStart = performance.now();
             const [personalDetails, recentReports] = tree.findInSearchTree(searchInput);
             console.log('findInSearchTree', performance.now() - searchStart);
-            console.log("results", {
-                personalDetails,
-                recentReports,
-            })
 
             return {
                 personalDetails,
@@ -162,7 +158,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const newOptions1 = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         const newOptions = findInSearchTree(debouncedSearchValue);
         const userToInvite = OptionsListUtils.pickUserToInvite({
             canInviteUser: true,
@@ -180,7 +175,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions, findInSearchTree]);
+    }, [debouncedSearchValue, findInSearchTree]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 

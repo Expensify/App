@@ -54,7 +54,7 @@ function stringToArray(input: string) {
 
 type PrepareDataParams<T> = {
     data: T[];
-    transform: (data: T) => string;
+    toSearchableString: (data: T) => string;
 };
 
 function cleanedString(input: string) {
@@ -63,12 +63,12 @@ function cleanedString(input: string) {
 
 // TODO: remove timeSpendCleaning once verified the regex works okay on hermes as well!
 let timeSpendCleaning = 0;
-function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
+function prepareData<T>({data, toSearchableString}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const allDataAsNumbers: number[] = [];
     timeSpendCleaning = 0;
     data.forEach((option, index) => {
-        const searchStringForTree = transform(option);
+        const searchStringForTree = toSearchableString(option);
         // Remove all none a-z chars:
         const start = performance.now();
         const cleanedSearchStringForTree = cleanedString(searchStringForTree);
@@ -106,8 +106,8 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     // thus indexes is a list of those data lists
     const indexesForList: Array<Array<T | undefined>> = [];
 
-    for (const {data, transform} of lists) {
-        const [numericRepresentation, searchIndexList] = prepareData({data, transform});
+    for (const {data, toSearchableString: transform} of lists) {
+        const [numericRepresentation, searchIndexList] = prepareData({data, toSearchableString: transform});
         for (const num of numericRepresentation) {
             // we have to use a loop here as push with spread yields a maximum call stack exceeded error
             listsAsConcatedNumericList.push(num);
@@ -148,7 +148,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
         return rEdge;
     }
 
-    function processCharacter(c: number) {
+    function processCharacter(char: number) {
         while (true) {
             const rEdge = getOrCreateREdge(currentNode);
             if (rEdge < currentPosition) {
@@ -159,22 +159,22 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
                     transitionNodes[currentNode] = curNode;
                 }
 
-                if (curNode[c] === -1) {
-                    createNewLeaf(c);
+                if (curNode[char] === -1) {
+                    createNewLeaf(char);
                     continue;
                 }
-                currentNode = curNode[c];
+                currentNode = curNode[char];
                 currentPosition = leftEdges[currentNode];
             }
-            if (currentPosition === -1 || c === listsAsConcatedNumericList[currentPosition]) {
+            if (currentPosition === -1 || char === listsAsConcatedNumericList[currentPosition]) {
                 currentPosition++;
             } else {
-                splitEdge(c);
+                splitEdge(char);
                 continue;
             }
             break;
         }
-        if (c === DELIMITER_CHAR_CODE) {
+        if (char === DELIMITER_CHAR_CODE) {
             resetTreeTraversal();
         }
     }
@@ -300,9 +300,9 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     // }
 
     // TODO: replace, other search function is broken in edge cases we need to address first
-    function findSubstring(sString: string) {
-        const s = stringToArray(sString);
-        console.log('searching for', sString, s);
+    function findSubstring(value: string) {
+        const searchValueNumeric = stringToArray(value);
+        console.log('searching for', value, searchValueNumeric);
         const occurrences: number[] = [];
         const st: Array<[number, number]> = [[0, 0]];
 
@@ -315,8 +315,8 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
             let matches = true;
-            for (let i = 0; i < rangeLen && depth + i < s.length; i++) {
-                if (s[depth + i] !== listsAsConcatedNumericList[leftRange + i]) {
+            for (let i = 0; i < rangeLen && depth + i < searchValueNumeric.length; i++) {
+                if (searchValueNumeric[depth + i] !== listsAsConcatedNumericList[leftRange + i]) {
                     matches = false;
                     break;
                 }
@@ -334,7 +334,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
                 }
             }
 
-            if (isLeaf && depth + rangeLen >= s.length) {
+            if (isLeaf && depth + rangeLen >= searchValueNumeric.length) {
                 occurrences.push(listsAsConcatedNumericList.length - (depth + rangeLen));
             }
         }

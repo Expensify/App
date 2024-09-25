@@ -5,7 +5,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = makeTree([
             {
                 data: ['banana'],
-                transform: (data) => data,
+                toSearchableString: (data) => data,
             },
         ]);
         tree.build();
@@ -16,7 +16,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = makeTree([
             {
                 data: ['banana', 'test'],
-                transform: (data) => data,
+                toSearchableString: (data) => data,
             },
         ]);
         tree.build();
@@ -28,11 +28,11 @@ describe('SuffixUkkonenTree', () => {
         const tree = makeTree([
             {
                 data: ['erica', 'banana'],
-                transform: (data) => data,
+                toSearchableString: (data) => data,
             },
             {
                 data: ['banana', 'test'],
-                transform: (data) => data,
+                toSearchableString: (data) => data,
             },
         ]);
         tree.build();
@@ -44,7 +44,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = makeTree([
             {
                 data: [1, 2, 3, 4, 5],
-                transform: (data) => String(data),
+                toSearchableString: (data) => String(data),
             },
         ]);
         tree.build();
@@ -55,7 +55,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = makeTree([
             {
                 data: ['banana', 'ñèşťǒř', 'test'],
-                transform: (data) => data,
+                toSearchableString: (data) => data,
             },
         ]);
         tree.build();
