@@ -55,7 +55,7 @@ jobs:
 
       - name: Purge Cloudflare cache
         if: env.IS_PR_FROM_FORK != 'true'
-        run: $HOME/.local/bin/cli4 --verbose --delete hosts=["help.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: "$HOME/.local/bin/cli4" --verbose --delete hosts=["newhelp.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
