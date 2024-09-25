@@ -527,7 +527,7 @@ function clearOnyxAndResetApp() {
         // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
         // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
         openApp().then(() => {
-            if (!sequentialQueue) {
+            if (!sequentialQueue || isStateImported) {
                 return;
             }
 
