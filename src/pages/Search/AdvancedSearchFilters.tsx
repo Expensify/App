@@ -1,20 +1,21 @@
-import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys} from '@components/Search/types';
+import type {AdvancedFiltersKeys, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -98,20 +100,10 @@ const baseFilterConfig = {
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
     },
-    has: {
-        getTitle: getFilterHasDisplayTitle,
-        description: 'search.filters.has' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-    },
     in: {
         getTitle: getFilterInDisplayTitle,
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
-    },
-    is: {
-        getTitle: getFilterIsDisplayTitle,
-        description: 'search.filters.is' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
     },
 };
 
@@ -119,7 +111,7 @@ const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_F
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in', 'is'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'in'],
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
@@ -175,6 +167,8 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         if (greaterThan) {
             return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
         }
+        // Will never happen
+        return;
     }
 
     if (
@@ -182,18 +176,15 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         filters[fieldName]
     ) {
         const filterArray = filters[fieldName] ?? [];
-        return filterArray.join(', ');
+        return filterArray.sort(localeCompare).join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
         return filters[fieldName];
     }
 
-    // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
-    // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
-    // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
-    const filterValue = filters[fieldName] as string;
-    return filterValue ? Str.recapitalize(filterValue) : undefined;
+    const filterValue = filters[fieldName];
+    return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
 function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
@@ -226,49 +217,49 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
 }
-
-function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS];
-    return filterValue
-        ? Object.values(CONST.SEARCH.CHAT_TYPES)
-              .filter((hasFilter) => filterValue.includes(hasFilter))
-              .map((hasFilter) => translate(SearchUtils.getChatFiltersTranslationKey(hasFilter)))
-              .join(', ')
-        : undefined;
-}
-
-function getFilterIsDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.IS];
-    return filterValue
-        ? Object.values(CONST.SEARCH.CHAT_STATUS)
-              .filter((chatStatus) => filterValue.includes(chatStatus))
-              .map((chatStatus) => translate(SearchUtils.getChatStatusTranslationKey(chatStatus)))
-              .join(', ')
-        : undefined;
-}
-
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const onFormSubmit = () => {
-        const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
-        SearchActions.clearAdvancedFilters();
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
+
+    const applyFiltersAndNavigate = () => {
+        SearchActions.clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query,
+                query: queryString,
             }),
         );
+    };
+
+    const onSaveSearch = () => {
+        const savedSearchKeys = Object.keys(savedSearches ?? {});
+        if (savedSearches && savedSearchKeys.includes(String(queryJSON.hash))) {
+            // If the search is already saved, return early to prevent unnecessary API calls
+            Navigation.dismissModal();
+            return;
+        }
+
+        if (isEmptyObject(savedSearches)) {
+            SearchActions.showSavedSearchRenameTooltip();
+        }
+
+        SearchActions.saveSearch({
+            queryJSON,
+        });
+
+        applyFiltersAndNavigate();
     };
 
     const filters = typeFiltersKeys[currentType].map((key) => {
@@ -293,7 +284,7 @@ function AdvancedSearchFilters() {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
@@ -320,6 +311,7 @@ function AdvancedSearchFilters() {
                             <MenuItemWithTopDescription
                                 key={filter.description}
                                 title={filter.title}
+                                titleStyle={styles.flex1}
                                 description={filter.description}
                                 shouldShowRightIcon
                                 onPress={filter.onPress}
@@ -328,10 +320,19 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
+
+            {!SearchUtils.isCannedSearchQuery(queryJSON) && (
+                <Button
+                    text={translate('search.saveSearch')}
+                    onPress={onSaveSearch}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
-                onSubmit={onFormSubmit}
+                onSubmit={applyFiltersAndNavigate}
                 enabledWhenOffline
             />
         </>

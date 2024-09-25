@@ -270,7 +270,6 @@ function ReportFieldsListValuesPage({
         return (
             <Button
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
-                medium
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
@@ -316,9 +315,9 @@ function ReportFieldsListValuesPage({
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMedia={Illustrations.FolderWithPapers}
+                        headerStyles={styles.emptyFolderDarkBG}
+                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (

@@ -6,6 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -37,6 +38,7 @@ const expensifyCardFeatures: FeatureListItem[] = [
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
     },
 ];
+
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
@@ -79,6 +81,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
+            showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -110,6 +113,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
             </View>
         </WorkspacePageWithSections>
     );

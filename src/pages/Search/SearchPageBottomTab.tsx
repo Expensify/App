@@ -43,19 +43,12 @@ function SearchPageBottomTab() {
         return () => backHandler.remove();
     }, [handleBackButtonPress]);
 
-    const {queryJSON, policyID} = useMemo(() => {
-        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyID: undefined};
-        }
-
-        const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-        const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-
-        return {
-            queryJSON: parsedQuery,
-            policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
-        };
-    }, [activeCentralPaneRoute]);
+    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
+    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
+    const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
+    const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
@@ -76,6 +69,8 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
+                            shouldDisplaySearchRouter={shouldUseNarrowLayout}
+                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
                         />
                         <SearchTypeMenu queryJSON={queryJSON} />
                     </>

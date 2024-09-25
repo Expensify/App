@@ -33,6 +33,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +44,7 @@ import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as App from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
 import * as Report from './Report';
@@ -412,6 +414,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
+                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
@@ -617,7 +620,10 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: false},
+            value: {
+                isLoading: false,
+                validated: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -904,6 +910,13 @@ function subscribeToUserEvents() {
             // the onyx updates in order
             return onyxUpdatePromise;
         });
+    });
+
+    // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
+    // is not in the DB
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
+        App.reconnectApp();
+        return Promise.resolve();
     });
 }
 
@@ -1307,8 +1320,23 @@ function dismissWorkspaceTooltip() {
     Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
 }
 
+function dismissGBRTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, true);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
+}
+
+function subscribeToActiveGuides() {
+    const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
+    Pusher.subscribe(pusherChannelName).catch(() => {
+        Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
+    });
+}
+
+function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
+    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
 
 export {
@@ -1349,4 +1377,7 @@ export {
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,
+    subscribeToActiveGuides,
+    dismissGBRTooltip,
+    setIsDebugModeEnabled,
 };

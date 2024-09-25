@@ -288,7 +288,8 @@ function Search({queryJSON}: SearchProps) {
     };
 
     const openReport = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-        let reportID = SearchUtils.isTransactionListItemType(item) && !item.isFromOneTransactionReport ? item.transactionThreadReportID : item.reportID;
+        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
+        let reportID = SearchUtils.isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
 
         if (!reportID) {
             return;
@@ -395,6 +396,7 @@ function Search({queryJSON}: SearchProps) {
                 getItemHeight={getItemHeightMemoized}
                 shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                shouldPreventDefault={false}
                 listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
                 containerStyle={[styles.pv0]}
                 showScrollIndicator={false}

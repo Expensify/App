@@ -51,7 +51,7 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS;
+type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type QueryFilters = {
     [K in AdvancedFiltersKeys]?: QueryFilter[];
@@ -71,6 +71,7 @@ type SearchQueryAST = {
 type SearchQueryJSON = {
     inputQuery: SearchQueryString;
     hash: number;
+    flatFilters: QueryFilters;
 } & SearchQueryAST;
 
 export type {
