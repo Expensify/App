@@ -54,9 +54,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const shouldShowEmptyState = !hasBankAccount;
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
-    const shouldShowMakeDefaultButton =
-        !paymentMethod.isSelectedPaymentMethodDefault &&
-        !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
+    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID;
 
     /**
      * Set position of the payment menu
@@ -113,7 +112,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 };
             }
             setPaymentMethod({
-                isSelectedPaymentMethodDefault: !!isDefault,
+                isSelectedPaymentMethodDefault: transferBankAccountID === methodID,
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
@@ -152,13 +151,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, {}, styles);
-
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? -1, policyID, previousPaymentMethod?.methodID ?? -1);
         }
-    }, [paymentMethod.methodID, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, bankAccountList, styles]);
+    }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
     /**
      * Navigate to the appropriate payment type addition screen
@@ -185,7 +183,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 shouldShowAddPaymentMethodButton={false}
                 shouldShowEmptyListMessage={false}
                 onPress={paymentMethodPressed}
-                activePaymentMethodID={policy?.invoice?.bankAccount?.transferBankAccountID ?? ''}
+                invoiceTransferBankAccountID={transferBankAccountID}
+                activePaymentMethodID={transferBankAccountID}
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                 buttonRef={addPaymentMethodAnchorRef}
                 shouldEnableScroll={false}
