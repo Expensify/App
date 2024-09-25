@@ -624,6 +624,7 @@ Some pointers:
   For example:
   - zero: Used when there are no items **(optional)**. 
   - one: Used when there's exactly one item.
+		- two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.
   - many: Used for larger quantities **(optional)**.
   - other: A catch-all case for other counts or variations.
@@ -633,6 +634,7 @@ Some pointers:
   messages: () => ({
       zero: 'No messages',
       one: 'One message',
+      two: 'Two messages',
       few: (count) => `${count} messages`,
       many: (count) => `You have ${count} messages`,
       other: (count) => `You have ${count} unread messages`,
