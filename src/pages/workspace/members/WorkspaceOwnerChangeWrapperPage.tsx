@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +16,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
@@ -25,10 +27,12 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & StackScreenPro
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
+    const shouldShowPaymentCardForm =
+        error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || privateStripeCustomerID?.status === CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -73,7 +77,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
                     {policy?.isLoading && <FullScreenLoadingIndicator />}
                     {!policy?.isLoading &&
-                        (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? (
+                        (shouldShowPaymentCardForm ? (
                             <WorkspaceOwnerPaymentCardForm policy={policy} />
                         ) : (
                             <WorkspaceOwnerChangeCheck
