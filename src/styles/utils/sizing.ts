@@ -52,6 +52,10 @@ export default {
         minHeight: 0,
     },
 
+    mnw0: {
+        minWidth: 0,
+    },
+
     mnw2: {
         minWidth: 8,
     },

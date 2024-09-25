@@ -62,7 +62,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency = ''},
+        params: {iouType, reportID, transactionID, backTo, pageIndex, action, currency: selectedCurrency = ''},
     },
     transaction,
     policy,
@@ -133,9 +133,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, pageIndex, currency, Navigation.getActiveRoute()));
     };
 
     const navigateToParticipantPage = () => {
@@ -227,7 +225,7 @@ function IOURequestStepAmount({
                         backendAmount,
                         currency,
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         participants[0],
@@ -242,7 +240,7 @@ function IOURequestStepAmount({
                         backendAmount,
                         currency ?? 'USD',
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         participants[0],

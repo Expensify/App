@@ -13,6 +13,7 @@ import * as NetworkStore from './NetworkStore';
 type RequestError = Error & {
     name?: string;
     message?: string;
+    status?: string;
 };
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
@@ -102,7 +103,7 @@ function process(): Promise<void> {
                 RequestThrottle.clear();
                 return process();
             }
-            return RequestThrottle.sleep()
+            return RequestThrottle.sleep(error, requestToProcess.command)
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
@@ -147,10 +148,13 @@ function flush() {
     });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connectionID = Onyx.connect({
+    const connection = Onyx.connect({
         key: ONYXKEYS.PERSISTED_REQUESTS,
+        // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
+        // an existing connection already made in PersistedRequests.ts.
+        reuseConnection: false,
         callback: () => {
-            Onyx.disconnect(connectionID);
+            Onyx.disconnect(connection);
             process().finally(() => {
                 Log.info('[SequentialQueue] Finished processing queue.');
                 isSequentialQueueRunning = false;
@@ -158,7 +162,10 @@ function flush() {
                     resolveIsReadyPromise?.();
                 }
                 currentRequest = null;
-                flushOnyxUpdatesQueue();
+                // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
+                if (PersistedRequests.getAll().length === 0) {
+                    flushOnyxUpdatesQueue();
+                }
             });
         },
     });
@@ -176,7 +183,6 @@ function unpause() {
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
     console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
-    flushOnyxUpdatesQueue();
     flush();
 }
 
@@ -224,3 +230,4 @@ function waitForIdle(): Promise<unknown> {
 }
 
 export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause};
+export type {RequestError};

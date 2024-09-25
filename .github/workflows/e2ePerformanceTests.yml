@@ -220,7 +220,7 @@ jobs:
             Test spec output.txt
           log_artifacts: debug.log
           cleanup: true
-          timeout: 5400
+          timeout: 7200
 
       - name: Print logs if run failed
         if: failure()
