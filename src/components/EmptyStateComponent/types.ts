@@ -1,5 +1,5 @@
 import type {ImageStyle} from 'expo-image';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -13,6 +13,7 @@ type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
 type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
     title: string;
+    titleStyles?: StyleProp<TextStyle>;
     subtitle: string | React.ReactNode;
     buttonText?: string;
     buttonAction?: () => void;
@@ -20,6 +21,7 @@ type SharedProps<T> = {
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
+    lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
 };
 

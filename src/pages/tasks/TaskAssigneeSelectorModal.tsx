@@ -3,8 +3,8 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, useSession} from '@components/OnyxProvider';
@@ -14,9 +14,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
-import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -33,17 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report, Task} from '@src/types/onyx';
-
-type TaskAssigneeSelectorModalOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
-
-    /** Grab the Share destination of the Task */
-    task: OnyxEntry<Task>;
-};
-
-type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
+import type {Report} from '@src/types/onyx';
 
 function useOptions() {
     const betas = useBetas();
@@ -111,11 +99,14 @@ function useOptions() {
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
 
-function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
+    const backTo = route.params?.backTo;
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [task] = useOnyx(ONYXKEYS.TASK);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
@@ -124,9 +115,10 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
         if (!route.params?.reportID) {
             return;
         }
-        if (report && !ReportUtils.isTaskReport(report)) {
+        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        if (reportOnyx && !ReportUtils.isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModal(reportOnyx.reportID);
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
@@ -210,14 +202,14 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack(ROUTES.NEW_TASK);
+                    Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report],
+        [session?.accountID, task?.shareDestination, report, backTo],
     );
 
-    const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
+    const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID);
@@ -258,13 +250,4 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
 TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
-const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProps, TaskAssigneeSelectorModalOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-})(TaskAssigneeSelectorModal);
-
-export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
+export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));
