@@ -81,6 +81,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 shouldShowRightIcon: isSelected,
                 success: isSelected,
                 containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                shouldCallAfterModalHide: true,
             };
         });
 
@@ -95,6 +96,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 containerStyle: undefined,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: false,
+                shouldCallAfterModalHide: true,
             });
         }
 
@@ -121,6 +123,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             />
         ),
         isSelected: currentSavedSearch?.hash === item.hash,
+        shouldCallAfterModalHide: true,
     }));
 
     const allMenuItems = [];
