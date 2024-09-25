@@ -1,23 +1,16 @@
 on:
-  # Run on any push to main that has changes to the help directory
   push:
     branches:
       - main
     paths:
       - 'help/**'
-
-  # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths:
       - 'help/**'
-
-  # Run on any manual trigger
   workflow_dispatch:
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "newhelp"
   cancel-in-progress: false
@@ -37,26 +30,15 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3.4' 
-
-      # Explicitly install ffi gem to avoid platform issues
-      - name: Install ffi gem
-        run: gem install ffi --platform ruby
+          ruby-version: '3.3.4'
 
       - name: Install dependencies
         run: |
           bundle config set --local path 'vendor/bundle'
           bundle install
-          gem install jekyll # Explicitly install Jekyll
-          jekyll -v
+          bundle exec gem install jekyll # Use bundle exec to avoid conflicts
+          bundle exec jekyll -v
 
-      # Clear Bundler cache if needed to resolve caching issues
-      - name: Clear Bundler cache
-        run: |
-          bundle clean --force
-          bundle install --path vendor/bundle
-
-      # Use bundle exec to ensure Jekyll uses the correct gem versions
       - name: Build Jekyll site
         run: |
           bundle exec jekyll build --source ./help --destination ./help/_site
