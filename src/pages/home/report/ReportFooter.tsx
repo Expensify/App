@@ -129,13 +129,14 @@ function ReportFooter({
              * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
+            const emailWithOptionalDomainRegex = /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w\.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/
+            const taskRegex = `^\\[\\]\\s+(?:@(?:${emailWithOptionalDomainRegex.source}))?\\s*([\\s\\S]*)`;
 
             const match = text.match(taskRegex);
             if (!match) {
                 return false;
             }
-            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            const title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
             if (!title) {
                 return false;
             }
