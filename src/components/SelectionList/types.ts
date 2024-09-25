@@ -263,9 +263,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
-
-    /** Styles for the wrapper view */
-    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
