@@ -73,7 +73,7 @@ function cleanedString(input: string) {
 function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Array<T | undefined>] {
     const searchIndexList: Array<T | undefined> = [];
     const allDataAsNumbers: number[] = [];
-    data.forEach((option) => {
+    data.forEach((option, index) => {
         const searchStringForTree = transform(option);
         // Remove all none a-z chars:
         const cleanedSearchStringForTree = cleanedString(searchStringForTree);
@@ -89,7 +89,10 @@ function prepareData<T>({data, transform}: PrepareDataParams<T>): [number[], Arr
         // Note: we add undefined for the delimiter character
         searchIndexList.push(...indexes, undefined);
 
-        allDataAsNumbers.push(...numericRepresentation, DELIMITER_CHAR_CODE);
+        allDataAsNumbers.push(...numericRepresentation);
+        if (index < data.length - 1) {
+            allDataAsNumbers.push(DELIMITER_CHAR_CODE);
+        }
     });
 
     return [allDataAsNumbers, searchIndexList];
