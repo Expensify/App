@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -69,8 +70,8 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
-    const htmlForTaskPreview = `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
+    const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(taskAssigneeAccountID > 0);
 
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
@@ -84,12 +85,12 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                 shouldUseHapticsOnLongPress
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween, styles.mt1]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mt1]}>
-                    <View style={[styles.taskCheckboxWrapper, styles.alignSelfCenter]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
+                    <View style={iconWrapperStyle}>
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
@@ -106,20 +107,19 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                     </View>
                     {taskAssigneeAccountID > 0 && (
                         <Avatar
-                            containerStyles={[styles.mr2, styles.alignSelfCenter, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
                             source={avatar}
                             size={CONST.AVATAR_SIZE.SMALL}
                             avatarID={taskAssigneeAccountID}
                             type={CONST.ICON_TYPE_AVATAR}
                         />
                     )}
-                    <View style={[styles.alignSelfCenter]}>
-                        <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
-                    </View>
+                    <Text style={[styles.flex1, styles.alignSelfCenter, isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : {}]}>{taskTitle}</Text>
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    additionalStyles={iconWrapperStyle}
                 />
             </PressableWithoutFeedback>
         </View>
