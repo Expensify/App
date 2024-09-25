@@ -39,9 +39,7 @@ function stringToArray(input: string) {
     for (const char of input) {
         const charCode = char.charCodeAt(0);
         const charCodeABased = charCode - CHAR_CODE_A;
-        // TODO: each word should be converted on its own to stringToArray, so that the words can contain the special chars (which would get base26 encoded)
-        // When we do this we probably want to check here if the words are in the LETTER + SPECIAL_CHAR range
-        if (charCodeABased >= 0 && charCodeABased < ALPHABET_SIZE) {
+        if (charCodeABased >= 0 && charCodeABased < LETTER_ALPHABET_SIZE) {
             res.push(charCodeABased);
         } else {
             const asBase26String = convertToBase26(charCode);

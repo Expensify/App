@@ -61,4 +61,21 @@ describe('SuffixUkkonenTree', () => {
         tree.build();
         expect(tree.findInSearchTree('èşť')).toEqual([['ñèşťǒř']]);
     });
+
+    it('should work with words containing "reserved special characters"', () => {
+        // Some special characters are used for the internal representation of the tree
+        // However, they are still supported and shouldn't cause any problems.
+        // The only gotcha is, that you can't search for special chars (however, none of our searchable data contains any of them).
+        const tree = makeTree([
+            {
+                data: ['ba|nana', 'te{st', 'he}llo'],
+                toSearchableString: (data) => data,
+            },
+        ]);
+        tree.build();
+
+        expect(tree.findInSearchTree('st')).toEqual([['te{st']]);
+        expect(tree.findInSearchTree('llo')).toEqual([['he}llo']]);
+        expect(tree.findInSearchTree('nana')).toEqual([['ba|nana']]);
+    });
 });
