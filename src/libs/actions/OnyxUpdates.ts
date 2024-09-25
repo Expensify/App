@@ -42,6 +42,10 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
                 return updateHandler(request.successData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
+                // 460 jsonCode in Expensify world means "admin required".
+                // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
+                // In this case, we don't want to apply failureData because it will likely result in a RedBrickRoad error on a policy field which is not accessible.
+                // Meaning that there's a red dot you can't dismiss.
                 if (response.jsonCode === 460) {
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
