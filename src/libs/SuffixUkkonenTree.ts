@@ -118,56 +118,56 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     console.log('building search strings', performance.now() - start1);
 
     console.log('Search String length', listsAsConcatedNumericList.length);
-    const t: Array<number[] | undefined> = [];
-    const l: number[] = [];
-    const r: Array<number | undefined> = [];
+    const transitionNodes: Array<number[] | undefined> = [];
+    const leftEdges: number[] = [];
+    const rightEdges: Array<number | undefined> = [];
     const defaultREdgeValue = listsAsConcatedNumericList.length - 1;
-    const p: number[] = [];
-    const s: number[] = [];
+    const parent: number[] = [];
+    const suffixLink: number[] = [];
 
-    let tv = 0;
-    let tp = 0;
-    let ts = 2;
-    let la = 0;
+    let currentNode = 0;
+    let currentPosition = 0;
+    let nodeCounter = 2;
+    let currentIndex = 0;
 
     function initializeTree() {
-        s[0] = 1;
-        l[0] = -1;
-        r[0] = -1;
-        l[1] = -1;
-        r[1] = -1;
-        t[1] = Array<number>(ALPHABET_SIZE).fill(0);
+        suffixLink[0] = 1;
+        leftEdges[0] = -1;
+        rightEdges[0] = -1;
+        leftEdges[1] = -1;
+        rightEdges[1] = -1;
+        transitionNodes[1] = Array<number>(ALPHABET_SIZE).fill(0);
     }
 
     function getOrCreateREdge(node: number): number {
-        let rEdge = r[node];
+        let rEdge = rightEdges[node];
         if (rEdge === undefined) {
             rEdge = defaultREdgeValue;
-            r[node] = rEdge;
+            rightEdges[node] = rEdge;
         }
         return rEdge;
     }
 
     function processCharacter(c: number) {
         while (true) {
-            const rEdge = getOrCreateREdge(tv);
-            if (rEdge < tp) {
-                let curNode = t[tv];
+            const rEdge = getOrCreateREdge(currentNode);
+            if (rEdge < currentPosition) {
+                let curNode = transitionNodes[currentNode];
 
                 if (curNode === undefined) {
                     curNode = Array<number>(ALPHABET_SIZE).fill(-1);
-                    t[tv] = curNode;
+                    transitionNodes[currentNode] = curNode;
                 }
 
                 if (curNode[c] === -1) {
                     createNewLeaf(c);
                     continue;
                 }
-                tv = curNode[c];
-                tp = l[tv];
+                currentNode = curNode[c];
+                currentPosition = leftEdges[currentNode];
             }
-            if (tp === -1 || c === listsAsConcatedNumericList[tp]) {
-                tp++;
+            if (currentPosition === -1 || c === listsAsConcatedNumericList[currentPosition]) {
+                currentPosition++;
             } else {
                 splitEdge(c);
                 continue;
@@ -180,76 +180,76 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
     }
 
     function createNewLeaf(c: number) {
-        const curNode = t[tv];
+        const curNode = transitionNodes[currentNode];
         if (curNode === undefined) {
             throw new Error('createNewLeaf: curNode should not be undefined');
         }
 
-        curNode[c] = ts;
-        l[ts] = la;
-        p[ts++] = tv;
-        tv = s[tv];
+        curNode[c] = nodeCounter;
+        leftEdges[nodeCounter] = currentIndex;
+        parent[nodeCounter++] = currentNode;
+        currentNode = suffixLink[currentNode];
 
-        const rEdge = getOrCreateREdge(tv);
-        tp = rEdge + 1;
+        const rEdge = getOrCreateREdge(currentNode);
+        currentPosition = rEdge + 1;
     }
 
     function splitEdge(c: number) {
-        l[ts] = l[tv];
-        r[ts] = tp - 1;
-        p[ts] = p[tv];
-        let tTs = t[ts];
-        if (tTs === undefined) {
-            tTs = Array<number>(ALPHABET_SIZE).fill(-1);
-            t[ts] = tTs;
+        leftEdges[nodeCounter] = leftEdges[currentNode];
+        rightEdges[nodeCounter] = currentPosition - 1;
+        parent[nodeCounter] = parent[currentNode];
+        let transitionTable = transitionNodes[nodeCounter];
+        if (transitionTable === undefined) {
+            transitionTable = Array<number>(ALPHABET_SIZE).fill(-1);
+            transitionNodes[nodeCounter] = transitionTable;
         }
-        tTs[listsAsConcatedNumericList[tp]] = tv;
-        tTs[c] = ts + 1;
-        l[ts + 1] = la;
-        p[ts + 1] = ts;
-        l[tv] = tp;
-        p[tv] = ts;
+        transitionTable[listsAsConcatedNumericList[currentPosition]] = currentNode;
+        transitionTable[c] = nodeCounter + 1;
+        leftEdges[nodeCounter + 1] = currentIndex;
+        parent[nodeCounter + 1] = nodeCounter;
+        leftEdges[currentNode] = currentPosition;
+        parent[currentNode] = nodeCounter;
 
-        let tpts = t[p[ts]];
-        if (tpts === undefined) {
-            tpts = Array<number>(ALPHABET_SIZE).fill(-1);
-            t[p[ts]] = tpts;
+        let parentTransitionNodes = transitionNodes[parent[nodeCounter]];
+        if (parentTransitionNodes === undefined) {
+            parentTransitionNodes = Array<number>(ALPHABET_SIZE).fill(-1);
+            transitionNodes[parent[nodeCounter]] = parentTransitionNodes;
         }
-        tpts[listsAsConcatedNumericList[l[ts]]] = ts;
-        ts += 2;
-        handleDescent(ts);
+        parentTransitionNodes[listsAsConcatedNumericList[leftEdges[nodeCounter]]] = nodeCounter;
+        nodeCounter += 2;
+        handleDescent(nodeCounter);
     }
 
     function handleDescent(ts: number) {
-        tv = s[p[ts - 2]];
-        tp = l[ts - 2];
-        while (tp <= (r[ts - 2] ?? defaultREdgeValue)) {
-            const tTv = t[tv];
+        currentNode = suffixLink[parent[ts - 2]];
+        currentPosition = leftEdges[ts - 2];
+        while (currentPosition <= (rightEdges[ts - 2] ?? defaultREdgeValue)) {
+            const tTv = transitionNodes[currentNode];
             if (tTv === undefined) {
                 throw new Error('handleDescent: tTv should not be undefined');
             }
-            tv = tTv[listsAsConcatedNumericList[tp]];
-            const rEdge = getOrCreateREdge(tv);
-            tp += rEdge - l[tv] + 1;
+            currentNode = tTv[listsAsConcatedNumericList[currentPosition]];
+            const rEdge = getOrCreateREdge(currentNode);
+            currentPosition += rEdge - leftEdges[currentNode] + 1;
         }
-        if (tp === (r[ts - 2] ?? defaultREdgeValue) + 1) {
-            s[ts - 2] = tv;
+        if (currentPosition === (rightEdges[ts - 2] ?? defaultREdgeValue) + 1) {
+            suffixLink[ts - 2] = currentNode;
         } else {
-            s[ts - 2] = ts;
+            suffixLink[ts - 2] = ts;
         }
-        const rEdge = getOrCreateREdge(tv);
-        tp = rEdge - (tp - (r[ts - 2] ?? defaultREdgeValue)) + 2;
+        const rEdge = getOrCreateREdge(currentNode);
+        currentPosition = rEdge - (currentPosition - (rightEdges[ts - 2] ?? defaultREdgeValue)) + 2;
     }
 
     function resetTreeTraversal() {
-        tv = 0;
-        tp = 0;
+        currentNode = 0;
+        currentPosition = 0;
     }
 
     function build() {
         initializeTree();
-        for (la = 0; la < listsAsConcatedNumericList.length; ++la) {
-            const c = listsAsConcatedNumericList[la];
+        for (currentIndex = 0; currentIndex < listsAsConcatedNumericList.length; ++currentIndex) {
+            const c = listsAsConcatedNumericList[currentIndex];
             processCharacter(c);
         }
     }
@@ -310,8 +310,8 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
             const [node, depth] = st.pop()!;
 
             let isLeaf = true;
-            const leftRange = l[node];
-            const rightRange = r[node] ?? listsAsConcatedNumericList.length - 1;
+            const leftRange = leftEdges[node];
+            const rightRange = rightEdges[node] ?? listsAsConcatedNumericList.length - 1;
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
             let matches = true;
@@ -327,7 +327,7 @@ function makeTree<T>(lists: Array<PrepareDataParams<T>>) {
             }
 
             for (let i = ALPHABET_SIZE - 1; i >= 0; --i) {
-                const tNode = t[node]?.[i];
+                const tNode = transitionNodes[node]?.[i];
                 if (tNode !== undefined && tNode !== -1) {
                     isLeaf = false;
                     st.push([tNode, depth + rangeLen]);
