@@ -33,7 +33,6 @@ function ManageTrips() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policy = usePolicy(activePolicyID);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
@@ -56,7 +55,7 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        TripsResevationUtils.bookATrip(translate, account?.primaryLogin ?? '', setCtaErrorMessage, ctaErrorMessage);
+                        TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage);
                     }}
                     ctaErrorMessage={ctaErrorMessage}
                     illustration={LottieAnimations.TripsEmptyState}

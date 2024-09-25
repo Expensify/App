@@ -31,6 +31,14 @@ Onyx.connect({
     },
 });
 
+let primaryLogin: string;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (val) => {
+        primaryLogin = val?.primaryLogin ?? '';
+    },
+});
+
 function getTripReservationIcon(reservationType: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
@@ -65,7 +73,7 @@ function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     }
 }
 
-function bookATrip(translate: LocaleContextProps['translate'], primaryLogin: string, setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
+function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessage: Dispatch<SetStateAction<string>>, ctaErrorMessage = ''): void {
     if (Str.isSMSLogin(primaryLogin)) {
         setCtaErrorMessage(translate('travel.phoneError'));
         return;

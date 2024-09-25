@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -17,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -41,7 +39,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [primaryLogin = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
     const subtitleComponent = useMemo(() => {
@@ -100,7 +97,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: () => TripsResevationUtils.bookATrip(translate, primaryLogin ?? '', setCtaErrorMessage, ctaErrorMessage),
+                    buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -116,7 +113,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: styles.emptyStateFolderWebStyles,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, primaryLogin, ctaErrorMessage]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, ctaErrorMessage]);
 
     return (
         <EmptyStateComponent
