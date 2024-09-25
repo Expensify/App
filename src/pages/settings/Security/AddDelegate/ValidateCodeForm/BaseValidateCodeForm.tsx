@@ -17,7 +17,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Delegate from '@userActions/Delegate';
 import CONST from '@src/CONST';
@@ -54,7 +53,6 @@ type BaseValidateCodeFormProps = {
 
 function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -62,7 +60,8 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const login = UserUtils.getContactMethod();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const login = account?.primaryLogin;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

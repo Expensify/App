@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as UserUtils from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,7 +21,6 @@ type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, t
 function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const contactMethod = UserUtils.getContactMethod();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
@@ -57,7 +55,7 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
                         title={translate('delegate.makeSureItIsYou')}
                         onBackButtonPress={onBackButtonPress}
                     />
-                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod})}</Text>
+                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
                     <ValidateCodeForm
                         ref={validateCodeFormRef}
                         delegate={login}
