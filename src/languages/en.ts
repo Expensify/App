@@ -2211,6 +2211,8 @@ const translations = {
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',
+        bookADemo: 'Book a demo',
+        toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
@@ -3244,6 +3246,7 @@ const translations = {
             disableTags: 'Disable tags',
             addTag: 'Add tag',
             editTag: 'Edit tag',
+            editTags: 'Edit tags',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",

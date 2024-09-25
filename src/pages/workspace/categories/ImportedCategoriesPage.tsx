@@ -14,6 +14,8 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -104,6 +106,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             importPolicyCategories(policyID, categories);
         }
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
+
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
