@@ -171,12 +171,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         >
             <EducationalTooltip
                 shouldRender={
-                    isFirstTimeNewExpensifyUser &&
-                    !shouldHideGBRTooltip &&
-                    isOnboardingCompleted &&
-                    isScreenFocused &&
-                    shouldUseNarrowLayout &&
-                    ReportUtils.isConciergeChatReport(report)
+                    isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)
                 }
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
