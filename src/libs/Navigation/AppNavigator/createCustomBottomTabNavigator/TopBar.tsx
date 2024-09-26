@@ -5,6 +5,7 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
@@ -22,9 +23,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; isCustomSearchQuery?: boolean};
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; isCustomSearchQuery?: boolean; shouldDisplaySearchRouter?: boolean};
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, isCustomSearchQuery = false}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, isCustomSearchQuery = false, shouldDisplaySearchRouter = false}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -73,6 +74,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                {shouldDisplaySearchRouter && <SearchButton />}
                 {displaySearch && (
                     <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback

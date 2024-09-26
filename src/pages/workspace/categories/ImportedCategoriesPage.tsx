@@ -14,6 +14,8 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,8 +34,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const isControl = isControlPolicy(policy);
-
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
         roles.push(
@@ -42,7 +42,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
         );
 
-        if (isControl) {
+        if (isControlPolicy(policy)) {
             roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
@@ -66,14 +66,15 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             });
         } else {
             const duplicate = findDuplicate(columns);
-            if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+            if (duplicateColumn) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);
@@ -106,6 +107,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         }
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
+
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
         return;
@@ -133,7 +139,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
-                headerText={translate('workspace.categories.importedCategoriesMessage')}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
