@@ -38,13 +38,15 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
 
-type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
+type Route<TRouteName extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, TRouteName>;
 
-type WithFullTransactionOrNotFoundProps<T extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {
-    route: Route<T>;
+type WithFullTransactionOrNotFoundProps<TRouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {
+    route: Route<TRouteName>;
 };
 
-export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & RefAttributes<TRef>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
