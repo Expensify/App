@@ -121,7 +121,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
                                 return (
                                     <OfflineWithFeedback
-                                        pendingAction={pendingAction ? undefined : report.pendingFields?.[fieldKey]}
+                                        pendingAction={!pendingAction && report.pendingFields?.[fieldKey]}
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
