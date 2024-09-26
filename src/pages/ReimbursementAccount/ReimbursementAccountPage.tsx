@@ -179,13 +179,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(getShouldShowContinueSetupButtonInitialValue());
-    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(() => {
-        // By default return true (loading), if there are already loaded data we can skip the loading state
-        if (isPreviousPolicy && hasACHDataBeenLoaded && typeof reimbursementAccount?.isLoading === 'boolean' && !reimbursementAccount?.isLoading) {
-            return false;
-        }
-        return true;
-    });
 
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
@@ -205,9 +198,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      * @param ignoreLocalSubStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
     function fetchData(ignoreLocalCurrentStep?: boolean, ignoreLocalSubStep?: boolean) {
-        // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
-        BankAccounts.setReimbursementAccountLoading(true);
-
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams(route);
@@ -217,9 +207,12 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     }
 
     useEffect(() => {
-        if (!isPreviousPolicy) {
-            ReimbursementAccount.clearReimbursementAccountDraft();
+        if (isPreviousPolicy) {
+            return;
         }
+
+        BankAccounts.setReimbursementAccountLoading(true);
+        ReimbursementAccount.clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
         const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
@@ -227,7 +220,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             BankAccounts.setBankAccountSubStep(null);
             BankAccounts.setPlaidEvent(null);
         }
-        fetchData(false, isStepToOpenEmpty);
+        fetchData(true, isStepToOpenEmpty);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
@@ -235,7 +228,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         if (typeof reimbursementAccount?.isLoading !== 'boolean' || reimbursementAccount.isLoading === prevIsReimbursementAccountLoading) {
             return;
         }
-        setIsReimbursementAccountLoading(reimbursementAccount.isLoading);
         setHasACHDataBeenLoaded(true);
     }, [prevIsReimbursementAccountLoading, reimbursementAccount?.isLoading]);
 
@@ -247,7 +239,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isReimbursementAccountLoading === false) {
+                if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && reimbursementAccount?.isLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
@@ -290,10 +282,9 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const policyID = route.params.policyID;
             const backTo = route.params.backTo;
 
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyIDParam, backTo));
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
@@ -359,7 +350,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         }
     };
 
-    const isLoading = (!!isLoadingApp || !!account?.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+    const isLoading = (!!isLoadingApp || !!account?.isLoading || reimbursementAccount?.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
     const shouldShowOfflineLoader = !(
         isOffline &&
@@ -375,7 +366,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
-    if (isLoading && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
+    if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
