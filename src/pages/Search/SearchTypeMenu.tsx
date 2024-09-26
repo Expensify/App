@@ -132,8 +132,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftHorizontal: -32,
                 tooltipShiftVertical: 15,
                 tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                onHideTooltip: () => SearchActions.dismissSavedSearchRenameTooltip(),
                 renderTooltipContent: () => {
-                    SearchActions.dismissSavedSearchRenameTooltip();
                     return (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Expensicons.Lightbulb
