@@ -29,7 +29,6 @@ function ThreeDotsMenu({
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
-    isPaneMenu = false,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
@@ -102,7 +101,6 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
-                isPaneMenu={isPaneMenu}
             />
         </>
     );

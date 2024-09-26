@@ -86,7 +86,6 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             shouldShowRightIcon: item.shouldShowRightIcon,
             shouldBlockSelection: !!item.link,
             wrapperStyle: styles.sectionMenuItem,
-            isPaneMenu: true,
             focused: item.focused,
             brickRoadIndicator: item.brickRoadIndicator,
         }));

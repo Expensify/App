@@ -342,7 +342,6 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                                     !!item.routeName &&
                                     !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
                                 }
-                                isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                             />
