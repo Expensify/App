@@ -82,8 +82,8 @@ export default function (pageTitle: TranslationPaths) {
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    ref={ref}
                     {...(props as TProps)}
+                    ref={ref}
                     session={session}
                 />
             );
