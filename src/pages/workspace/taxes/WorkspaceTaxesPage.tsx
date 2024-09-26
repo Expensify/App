@@ -315,7 +315,9 @@ function WorkspaceTaxesPage({
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     sections={[{data: taxesList, isDisabled: false}]}
                     onCheckboxPress={toggleTax}
-                    onSelectRow={(item) => {selectionMode?.isEnabled ? toggleTax(item):(setShouldPreserveSelection(true),navigateToEditTaxRate(item))}}
+                    onSelectRow={(item) => {
+                        selectionMode?.isEnabled ? toggleTax(item) : (setShouldPreserveSelection(true), navigateToEditTaxRate(item));
+                    }}
                     onSelectAll={toggleAllTaxes}
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}

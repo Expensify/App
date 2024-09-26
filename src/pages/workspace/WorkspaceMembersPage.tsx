@@ -677,7 +677,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
-                            onSelectRow={(item) => {selectionMode?.isEnabled ? (!item.isDisabledCheckbox && toggleUser(item?.accountID)):(setShouldPreserveSelection(true),openMemberDetails(item))}}
+                            onSelectRow={(item) => {
+                                selectionMode?.isEnabled ? !item.isDisabledCheckbox && toggleUser(item?.accountID) : (setShouldPreserveSelection(true), openMemberDetails(item));
+                            }}
                             shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}

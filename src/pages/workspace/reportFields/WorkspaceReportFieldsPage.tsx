@@ -306,7 +306,9 @@ function WorkspaceReportFieldsPage({
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={(item) => {selectionMode?.isEnabled ? updateSelectedReportFields(item):(setShouldPreserveSelection(true),navigateToReportFieldsSettings(item))}}
+                        onSelectRow={(item) => {
+                            selectionMode?.isEnabled ? updateSelectedReportFields(item) : (setShouldPreserveSelection(true), navigateToReportFieldsSettings(item));
+                        }}
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

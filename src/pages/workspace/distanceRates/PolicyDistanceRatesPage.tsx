@@ -324,7 +324,9 @@ function PolicyDistanceRatesPage({
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         sections={[{data: distanceRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleRate}
-                        onSelectRow={(item) => {selectionMode?.isEnabled ? toggleRate(item):(setShouldPreserveSelection(true),openRateDetails(item))}}
+                        onSelectRow={(item) => {
+                            selectionMode?.isEnabled ? toggleRate(item) : (setShouldPreserveSelection(true), openRateDetails(item));
+                        }}
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
                         ListItem={TableListItem}

@@ -423,7 +423,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
-                        onSelectRow={(item) => {selectionMode?.isEnabled ? toggleTag(item): (setShouldPreserveSelection(true),navigateToTagSettings(item))}}
+                        onSelectRow={(item) => {
+                            selectionMode?.isEnabled ? toggleTag(item) : (setShouldPreserveSelection(true), navigateToTagSettings(item));
+                        }}
                         shouldSingleExecuteRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}

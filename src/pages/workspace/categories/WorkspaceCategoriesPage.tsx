@@ -412,7 +412,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         sections={[{data: categoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}
-                        onSelectRow={(item) => {selectionMode?.isEnabled ? toggleCategory(item): (setShouldPreserveSelection(true),navigateToCategorySettings(item))}}
+                        onSelectRow={(item) => {
+                            selectionMode?.isEnabled ? toggleCategory(item) : (setShouldPreserveSelection(true), navigateToCategorySettings(item));
+                        }}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         onSelectAll={toggleAllCategories}
                         ListItem={TableListItem}
