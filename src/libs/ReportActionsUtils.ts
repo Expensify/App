@@ -1728,7 +1728,7 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
-    const assigneeAccountID = (reportAction?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
 
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
