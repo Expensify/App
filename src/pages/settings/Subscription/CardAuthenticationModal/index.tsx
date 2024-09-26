@@ -41,7 +41,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             const message = event.data;
             if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
-                    PolicyActions.verifySetupIntentAndRequestPolicyOwnerChange(session?.accountID ?? -1, policyID);
+                    PolicyActions.verifySetupIntentAndRequestPolicyOwnerChange(policyID);
                 } else {
                     PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
                 }

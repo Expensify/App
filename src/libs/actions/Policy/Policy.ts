@@ -877,7 +877,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(accountID: number, policyID: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -916,7 +916,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(accountID: number, policyI
             },
         },
     ];
-    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID, policyID}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {sessionAccountID, policyID}, {optimisticData, successData, failureData});
 }
 
 /**
