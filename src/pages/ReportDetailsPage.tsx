@@ -22,6 +22,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -87,6 +88,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    const {currentSearchHash} = useSearchContext();
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -571,6 +573,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
                     isDelegateAccessRestricted,
                     setIsNoDelegateAccessMenuVisible,
+                    currentSearchHash,
                 }),
             );
         }
@@ -582,7 +585,18 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID, isDelegateAccessRestricted, backTo]);
+    }, [
+        report,
+        moneyRequestAction,
+        currentSearchHash,
+        canJoin,
+        isExpenseReport,
+        shouldShowHoldAction,
+        canHoldUnholdReportAction.canHoldRequest,
+        transactionThreadReportID,
+        isDelegateAccessRestricted,
+        backTo,
+    ]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
