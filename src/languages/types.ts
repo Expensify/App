@@ -2,13 +2,14 @@
 import type en from './en';
 
 type PluralParams = {count: number};
+type PluralHandler = ((count: number) => string) | string;
 type PluralForm = {
     zero?: string;
     one: string;
     two?: string;
-    few?: (count: number) => string;
-    many?: (count: number) => string;
-    other: (count: number) => string;
+    few?: PluralHandler;
+    many?: PluralHandler;
+    other: PluralHandler;
 };
 
 /**

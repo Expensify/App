@@ -131,6 +131,10 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                 return pluralResult(phraseObject.count);
             }
 
+            if (typeof translateResult.other === 'string') {
+                return translateResult.other;
+            }
+
             return translateResult.other(phraseObject.count);
         }
 

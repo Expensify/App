@@ -3663,7 +3663,7 @@ const translations = {
             trackTax: 'Track tax',
             deleteRates: () => ({
                 one: 'Delete rate',
-                other: () => `Delete rates`,
+                other: 'Delete rates',
             }),
             enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
