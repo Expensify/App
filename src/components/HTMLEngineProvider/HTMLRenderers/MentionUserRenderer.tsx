@@ -61,7 +61,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '');
-        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
+        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
@@ -69,7 +69,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
 
         accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
-        navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
@@ -94,7 +94,11 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                     }}
                     onPress={(event) => {
                         event.preventDefault();
-                        Navigation.navigate(navigationRoute);
+                        if (!isEmpty(htmlAttribAccountID)) {
+                            Navigation.navigate(ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute()));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
                     }}
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}

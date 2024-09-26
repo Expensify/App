@@ -58,11 +58,11 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: string) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
 };
 
 const showWorkspaceDetails = (reportID: string) => {
-    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
 };
 
 function ReportActionItemSingle({
@@ -81,19 +81,20 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
-
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+    const icons = ReportUtils.getIcons(iouReport ?? null, personalDetails);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const displayAllActors = isReportPreviewAction && !isTripRoom;
+    const displayAllActors = isReportPreviewAction && !isTripRoom && ReportUtils.isIOUReport(iouReport ?? null) && icons.length > 1;
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
+    const managerID = iouReport?.managerID ?? action?.childManagerAccountID;
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
 
@@ -130,10 +131,9 @@ function ReportActionItemSingle({
             };
         } else {
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
+            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? managerID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
             const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
-
             secondaryAvatar = {
                 source: secondaryUserAvatar,
                 type: CONST.ICON_TYPE_AVATAR,
@@ -150,24 +150,41 @@ function ReportActionItemSingle({
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
-    const icon = {
-        source: avatarSource ?? FallbackAvatar,
-        type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
-        name: primaryDisplayName ?? '',
-        id: avatarId,
-    };
+
+    const icon = useMemo(
+        () => ({
+            source: avatarSource ?? FallbackAvatar,
+            type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
+            name: primaryDisplayName ?? '',
+            id: avatarId,
+        }),
+        [avatarSource, isWorkspaceActor, primaryDisplayName, avatarId],
+    );
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
-        ? [
-              {
-                  type: 'TEXT',
-                  text: displayName,
-              },
-          ]
-        : action?.person;
+    const personArray = useMemo(() => {
+        const baseArray = displayName
+            ? [
+                  {
+                      type: 'TEXT',
+                      text: displayName,
+                  },
+              ]
+            : action?.person ?? [];
+
+        if (displayAllActors) {
+            return [
+                ...baseArray,
+                {
+                    type: 'TEXT',
+                    text: secondaryAvatar.name ?? '',
+                },
+            ];
+        }
+        return baseArray;
+    }, [displayName, action?.person, displayAllActors, secondaryAvatar?.name]);
 
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
@@ -178,7 +195,7 @@ function ReportActionItemSingle({
         } else {
             // Show participants page IOU report preview
             if (iouReportID && displayAllActors) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
                 return;
             }
             showUserDetails(action?.delegateAccountID ? String(action.delegateAccountID) : String(actorAccountID));
@@ -192,45 +209,130 @@ function ReportActionItemSingle({
         [action, isWorkspaceActor, actorAccountID],
     );
 
-    const getAvatar = () => {
-        if (displayAllActors) {
-            return (
-                <MultipleAvatars
-                    icons={[icon, secondaryAvatar]}
-                    isInReportAction
-                    shouldShowTooltip
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-                />
-            );
-        }
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    mainAvatar={icon}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
-                />
-            );
-        }
-        return (
-            <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? -1)}
-                delegateAccountID={Number(action?.delegateAccountID ?? -1)}
-                icon={icon}
-            >
-                <View>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={icon.source}
-                        type={icon.type}
-                        name={icon.name}
-                        avatarID={icon.id}
-                        fallbackIcon={fallbackIcon}
+    const getAvatar = useMemo(() => {
+        return () => {
+            if (displayAllActors) {
+                return (
+                    <MultipleAvatars
+                        icons={icons}
+                        isInReportAction
+                        shouldShowTooltip
+                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
                     />
+                );
+            }
+            if (shouldShowSubscriptAvatar) {
+                return (
+                    <SubscriptAvatar
+                        mainAvatar={icons[0]}
+                        secondaryAvatar={icons[1] ?? secondaryAvatar}
+                        noMargin
+                        backgroundColor={isHovered ? theme.hoverComponentBG : theme.componentBG}
+                    />
+                );
+            }
+            return (
+                <UserDetailsTooltip
+                    accountID={Number(actorAccountID ?? -1)}
+                    delegateAccountID={Number(action?.delegateAccountID ?? -1)}
+                    icon={icon}
+                >
+                    <View>
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={icon.source}
+                            type={icon.type}
+                            name={icon.name}
+                            avatarID={icon.id}
+                            fallbackIcon={fallbackIcon}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            );
+        };
+    }, [
+        displayAllActors,
+        shouldShowSubscriptAvatar,
+        actorAccountID,
+        action?.delegateAccountID,
+        icon,
+        styles.actionAvatar,
+        fallbackIcon,
+        icons,
+        StyleUtils,
+        theme.appBG,
+        theme.hoverComponentBG,
+        theme.componentBG,
+        isHovered,
+        secondaryAvatar,
+    ]);
+
+    const getHeading = useMemo(() => {
+        return () => {
+            if (displayAllActors && secondaryAvatar.name && isReportPreviewAction) {
+                return (
+                    <View style={[styles.flexRow]}>
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${0}`}
+                            accountID={actorAccountID ?? -1}
+                            fragment={{...personArray[0], type: 'TEXT', text: displayName ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.chatItemMessageHeaderSender, styles.pre]}
+                        >
+                            {` & `}
+                        </Text>
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${1}`}
+                            accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
+                            fragment={{...personArray[1], type: 'TEXT', text: secondaryAvatar.name ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={secondaryAvatar}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    </View>
+                );
+            }
+            return (
+                <View>
+                    {personArray?.map((fragment) => (
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${actorAccountID}`}
+                            accountID={actorAccountID ?? -1}
+                            fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    ))}
                 </View>
-            </UserDetailsTooltip>
-        );
-    };
+            );
+        };
+    }, [
+        displayAllActors,
+        secondaryAvatar,
+        isReportPreviewAction,
+        personArray,
+        styles.flexRow,
+        styles.flex1,
+        styles.chatItemMessageHeaderSender,
+        styles.pre,
+        action,
+        actorAccountID,
+        displayName,
+        icon,
+    ]);
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -261,18 +363,7 @@ function ReportActionItemSingle({
                             accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
-                            {personArray?.map((fragment, index) => (
-                                <ReportActionItemFragment
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={actorAccountID ?? -1}
-                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
-                                    isSingleLine
-                                    actorIcon={icon}
-                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                />
-                            ))}
+                            {getHeading()}
                         </PressableWithoutFeedback>
                         {!!hasEmojiStatus && (
                             <Tooltip text={statusTooltipText}>
@@ -290,7 +381,5 @@ function ReportActionItemSingle({
         </View>
     );
 }
-
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
-
 export default ReportActionItemSingle;
