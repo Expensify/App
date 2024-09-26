@@ -133,9 +133,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
             return;
         }
 
-        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-        // Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID))
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
     return (

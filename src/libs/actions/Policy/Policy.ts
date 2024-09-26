@@ -3187,10 +3187,9 @@ function enablePolicyInvoicing(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICING, parameters, onyxData);
 
-    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-    // if (enabled && getIsNarrowLayout()) {
-    //     navigateWhenEnableFeature(policyID);
-    // }
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
+    }
 }
 
 function openPolicyMoreFeaturesPage(policyID: string) {
