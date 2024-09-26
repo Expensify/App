@@ -52,13 +52,14 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const styles = useThemeStyles();
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
+    const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
-    if (!reportFieldsEnabled || !reportField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -149,7 +150,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                     policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
-                    fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions[index])}
+                    fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions[index])}
                     onSubmit={handleReportFieldChange}
                 />
             )}
