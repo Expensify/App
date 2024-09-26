@@ -97,6 +97,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
         setSelectedCategories({});
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
     const categoryList = useMemo<PolicyOption[]>(

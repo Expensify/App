@@ -98,6 +98,7 @@ function WorkspaceReportFieldsPage({
             return;
         }
         setSelectedReportFields([]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
     const reportFieldsSections = useMemo(() => {

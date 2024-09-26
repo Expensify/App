@@ -83,6 +83,7 @@ function WorkspaceTaxesPage({
             return;
         }
         setSelectedTaxesIDs([]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
     const textForDefault = useCallback(

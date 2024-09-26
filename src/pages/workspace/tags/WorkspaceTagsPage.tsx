@@ -86,6 +86,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return;
         }
         setSelectedTags({});
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
