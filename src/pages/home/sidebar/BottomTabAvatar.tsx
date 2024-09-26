@@ -50,7 +50,15 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
         }
 
         if (route.name === SCREENS.WORKSPACE.INITIAL) {
-            Navigation.dismissModal();
+            const previousRoute = navigationRef.getRootState().routes.at(-2);
+
+            // If there is the settings split navigator we can dismiss safely
+            if (previousRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+                Navigation.dismissModal();
+            } else {
+                // If not, we are going to replace this route with the settings route
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+            }
             return;
         }
 
