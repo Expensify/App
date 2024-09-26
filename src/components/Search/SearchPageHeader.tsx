@@ -33,6 +33,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import SearchRouterInput from './SearchRouter/SearchRouterInput';
+import SearchButton from './SearchRouter/SearchButton';
 import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
@@ -282,10 +283,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     }
 
     const onPress = () => {
-        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        const values = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
+
+    const displaySearchRouter = SearchUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <HeaderWrapper
@@ -313,6 +316,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     onPress={onPress}
                 />
             )}
+            {displaySearchRouter && <SearchButton />}
         </HeaderWrapper>
     );
 }
