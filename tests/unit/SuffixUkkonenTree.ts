@@ -12,4 +12,8 @@ describe('SuffixUkkonenTree', () => {
         tree.build();
         expect(tree.findSubstring(stringToNumeric('an'))).toEqual(expect.arrayContaining([1, 3, 8, 10]));
     });
+
+    it('should convert string to numeric with a list of chars to skip', () => {
+        expect(stringToNumeric('abcabc', new Set(['b']))).toEqual([0, 2, 0, 2]);
+    });
 });
