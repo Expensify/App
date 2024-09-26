@@ -224,8 +224,10 @@ function makeTree(numericSearchValues: number[]) {
             let isLeaf = true;
             for (let i = 0; i < ALPHABET_SIZE; ++i) {
                 const tNode = transitionNodes[node * ALPHABET_SIZE + i];
-                const correctChar = true; // ((depth + rangeLen) >= searchString.length) || i === (searchString[depth + rangeLen] )
-                // console.log('correctChar', correctChar, i, (depth + rangeLen));
+
+                // Search speed optimization: don't go through the edge if it's different than the next char:
+                const correctChar = depth + rangeLen >= searchString.length || i === searchString[depth + rangeLen];
+
                 if (tNode && tNode !== -1 && correctChar) {
                     isLeaf = false;
                     dfs(tNode, depth + rangeLen);
