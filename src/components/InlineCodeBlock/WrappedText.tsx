@@ -72,13 +72,11 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
 
-    const textMatrix = useMemo(() => {
-        const fontSize = getFontSizeFromStyles(textStyles);
-        const charsPerLine = Math.floor(windowWidth / (fontSize * variables.fontSizeToWidthRatio));
+    const fontSize = useMemo(() => getFontSizeFromStyles(textStyles), [textStyles]);
+    const childrenString = typeof children === 'string' ? children : '';
+    const charsPerLine = useMemo(() => Math.floor(windowWidth / (fontSize * variables.fontSizeToWidthRatio)), [windowWidth, fontSize]);
 
-        const childrenString = typeof children === 'string' ? children : '';
-        return getTextMatrix(childrenString).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
-    }, [textStyles, children, windowWidth]);
+    const textMatrix = getTextMatrix(childrenString).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
 
     if (typeof children !== 'string') {
         return null;
