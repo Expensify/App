@@ -618,7 +618,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     /**
-     * Changes isTextInputFocusedRef value when using external TextInput, to handle shouldSync focus properly
+     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput is not defocused when typing in it.
      *
      * @param isTextInputFocused - Is external TextInput focused.
      */

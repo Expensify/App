@@ -17,13 +17,12 @@ type SearchQueryItem = ListItem & {
 type SearchQueryListItemProps = {
     item: SearchQueryItem;
     isFocused?: boolean;
-    showTooltip?: boolean;
+    showTooltip: boolean;
     onSelectRow: (item: SearchQueryItem) => void;
     onFocus?: () => void;
     shouldSyncFocus?: boolean;
 };
 
-// type Testt = SearchQueryItem extends ListItem ? string : boolean;
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -39,6 +38,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             onFocus={onFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldSyncFocus={shouldSyncFocus}
+            showTooltip={showTooltip}
         >
             <>
                 {item.singleIcon && (

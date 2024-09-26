@@ -32,7 +32,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     isDisabled?: boolean | null;
 
     /** Whether this item should show Tooltip */
-    showTooltip?: boolean;
+    showTooltip: boolean;
 
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple?: boolean;
