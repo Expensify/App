@@ -214,6 +214,7 @@ function isActionOfType<T extends ReportActionName[]>(
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
+    // Test
     if (!Array.isArray(reportAction?.message)) {
         return reportAction?.message ?? reportAction?.originalMessage;
     }
