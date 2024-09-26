@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Log from './Log';
 import * as ReportConnection from './ReportConnection';
+import { Extras } from 'expensify-common/dist/ExpensiMark';
 
 const accountIDToNameMap: Record<string, string> = {};
 
@@ -19,13 +20,6 @@ Onyx.connect({
         });
     },
 });
-
-type Extras = {
-    reportIDToName?: Record<string, string>;
-    accountIDToName?: Record<string, string>;
-    mediaAttributeCachingFn?: (mediaSource: string, attrs: string) => void;
-    mediaAttributeCache?: Record<string, string>;
-};
 
 class ExpensiMarkWithContext extends ExpensiMark {
     htmlToMarkdown(htmlString: string, extras?: Extras): string {
