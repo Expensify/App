@@ -146,6 +146,10 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields(isAllSelected ? [] : availableReportFields);
     };
 
+    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
+    };
+
     const onSelectReportField = (field: ReportFieldForList) => {
         if (selectionMode?.isEnabled) {
             updateSelectedReportFields(field);
@@ -153,10 +157,6 @@ function WorkspaceReportFieldsPage({
         }
         setShouldPreserveSelection(true);
         navigateToReportFieldsSettings(field);
-    };
-
-    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
     const handleDeleteReportFields = () => {

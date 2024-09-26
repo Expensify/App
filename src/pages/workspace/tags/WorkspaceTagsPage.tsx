@@ -152,15 +152,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setSelectedTags(isAllSelected ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
-    const onSelectTag = (tag: TagListItem) => {
-        if (selectionMode?.isEnabled) {
-            toggleTag(tag);
-            return;
-        }
-        setShouldPreserveSelection(true);
-        navigateToTagSettings(tag);
-    };
-
     const getCustomListHeader = () => {
         const header = (
             <View
@@ -196,6 +187,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
+    };
+
+    const onSelectTag = (tag: TagListItem) => {
+        if (selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
+        setShouldPreserveSelection(true);
+        navigateToTagSettings(tag);
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);

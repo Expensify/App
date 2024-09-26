@@ -150,15 +150,6 @@ function WorkspaceTaxesPage({
         });
     };
 
-    const onSelectTax = (tax: ListItem) => {
-        if (selectionMode?.isEnabled) {
-            toggleTax(tax);
-            return;
-        }
-        setShouldPreserveSelection(true);
-        navigateToEditTaxRate(tax);
-    };
-
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
@@ -191,6 +182,15 @@ function WorkspaceTaxesPage({
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));
+    };
+
+    const onSelectTax = (tax: ListItem) => {
+        if (selectionMode?.isEnabled) {
+            toggleTax(tax);
+            return;
+        }
+        setShouldPreserveSelection(true);
+        navigateToEditTaxRate(tax);
     };
 
     const dropdownMenuOptions = useMemo(() => {

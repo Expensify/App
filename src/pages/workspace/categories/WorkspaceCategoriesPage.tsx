@@ -133,14 +133,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const isAllSelected = availableCategories.length === Object.keys(selectedCategories).length;
         setSelectedCategories(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
-    const onSelectCategory = (category: PolicyOption) => {
-        if (selectionMode?.isEnabled) {
-            toggleCategory(category);
-            return;
-        }
-        setShouldPreserveSelection(true);
-        navigateToCategorySettings(category);
-    };
 
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
@@ -155,6 +147,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
+    };
+
+    const onSelectCategory = (category: PolicyOption) => {
+        if (selectionMode?.isEnabled) {
+            toggleCategory(category);
+            return;
+        }
+        setShouldPreserveSelection(true);
+        navigateToCategorySettings(category);
     };
 
     const navigateToCategoriesSettings = () => {

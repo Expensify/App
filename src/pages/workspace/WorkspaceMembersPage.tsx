@@ -286,16 +286,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [selectedEmployees, addUser, removeUser, policy?.ownerAccountID, session?.accountID],
     );
 
-    const onSelectMember = (member: MemberOption) => {
-        if (selectionMode?.isEnabled) {
-            !member.isDisabledCheckbox && toggleUser(member?.accountID);
-            return;
-        }
-
-        setShouldPreserveSelection(true);
-        openMemberDetails(member);
-    };
-
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
@@ -308,6 +298,17 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
+
+    const onSelectMember = (member: MemberOption) => {
+        if (selectionMode?.isEnabled) {
+            if (!member.isDisabledCheckbox) {
+                toggleUser(member?.accountID);
+            }
+            return;
+        }
+        setShouldPreserveSelection(true);
+        openMemberDetails(member);
+    };
 
     /**
      * Dismisses the errors on one item

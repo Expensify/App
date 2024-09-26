@@ -203,6 +203,7 @@ function PolicyDistanceRatesPage({
         setShouldPreserveSelection(true);
         openRateDetails(rate);
     };
+
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
