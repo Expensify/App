@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
  *
  * Warning: This hook should be used only once in the app
  */
-function useOnboardingFlow() {
+function useOnboardingFlowRouter() {
     const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -43,4 +43,4 @@ function useOnboardingFlow() {
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
 }
 
-export default useOnboardingFlow;
+export default useOnboardingFlowRouter;
