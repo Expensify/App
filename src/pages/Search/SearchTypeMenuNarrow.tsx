@@ -57,7 +57,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
     const onPress = () => {
-        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        const values = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
@@ -84,7 +84,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             };
         });
 
-        if (title) {
+        if (title && !currentSavedSearch) {
             items.push({
                 text: title,
                 onSelected: closeMenu,
@@ -109,6 +109,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         text: item.title ?? '',
         styles: [styles.textSupporting],
         onSelected: item.onPress,
+        icon: Expensicons.Bookmark,
+        iconFill: currentSavedSearch?.hash === item.hash ? theme.iconSuccessFill : theme.icon,
         shouldShowRightComponent: true,
         rightComponent: (
             <ThreeDotsMenu
