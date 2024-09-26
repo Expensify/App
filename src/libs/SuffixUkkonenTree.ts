@@ -130,9 +130,6 @@ function makeTree(numericSearchValues: number[]) {
             }
             break;
         }
-        if (char === DELIMITER_CHAR_CODE) {
-            resetTreeTraversal();
-        }
     }
 
     function createNewLeaf(c: number) {
@@ -195,11 +192,6 @@ function makeTree(numericSearchValues: number[]) {
         }
         const rEdge = getOrCreateREdge(currentNode);
         currentPosition = rEdge - (currentPosition - (rightEdges[ts - 2] ?? defaultREdgeValue)) + 2;
-    }
-
-    function resetTreeTraversal() {
-        currentNode = 0;
-        currentPosition = 0;
     }
 
     function build() {
