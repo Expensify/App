@@ -43,7 +43,7 @@ const ACCESS_VARIANTS = {
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
-type AccessOrNotFoundWrapperOnyxProps = {
+type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -56,7 +56,7 @@ type AccessOrNotFoundWrapperOnyxProps = {
 
 type AccessOrNotFoundWrapperProps = {
     /** The children to render */
-    children: ((props: AccessOrNotFoundWrapperOnyxProps) => React.ReactNode) | React.ReactNode;
+    children: ((props: AccessOrNotFoundWrapperChildrenProps) => React.ReactNode) | React.ReactNode;
 
     /** The id of the report that holds the transaction */
     reportID?: string;
@@ -102,8 +102,17 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
     );
 }
 
-function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
-    const {policyID, reportID, iouType, allPolicies, featureName} = props;
+function AccessOrNotFoundWrapper({
+    accessVariants = [],
+    fullPageNotFoundViewProps,
+    shouldBeBlocked,
+    policyID,
+    reportID,
+    iouType,
+    allPolicies,
+    featureName,
+    ...props
+}: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
