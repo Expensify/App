@@ -76,6 +76,8 @@ jobs:
             # Merge pull request locally and get merge commit sha
             git merge --allow-unrelated-histories -X ours --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
             git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+
+            # Create and push a branch so it can be checked out in another runner
             git checkout -b e2eDelta-${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
             git push origin e2eDelta-${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
             echo "DELTA_REF=e2eDelta-${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
