@@ -51,7 +51,7 @@ type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName exte
 type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = RouteProp<ParamList, RouteName>;
 
 type PlatformStackScreenProps<
-    ParamList extends ParamListBase,
+    ParamList extends ParamListBase = ParamListBase,
     RouteName extends keyof ParamList = keyof ParamList,
     NavigatorID extends string | undefined = undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-redundant-type-constituents
