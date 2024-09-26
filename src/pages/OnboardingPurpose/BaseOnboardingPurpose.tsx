@@ -45,14 +45,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const theme = useTheme();
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
-    const customChoices = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES)[0] || [];
-
-    const onboardingChoices = customChoices.length > 0
-    ? Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).filter(choice => customChoices.includes(choice))
-    : Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES)
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
+
+    const customChoices = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES)[0] ?? [];
+    const onboardingChoices = customChoices.length > 0 ? Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).filter((choice) => customChoices.includes(choice)) : Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
 
     const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
