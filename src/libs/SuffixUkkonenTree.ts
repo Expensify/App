@@ -8,34 +8,41 @@
  * You probably don't want to use this directly, but rather use @libs/FastSearch.ts as a easy to use wrapper around this.
  */
 
-const CHAR_CODE_A = 'a'.charCodeAt(0);
-const LETTER_ALPHABET_SIZE = 26;
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const LETTER_ALPHABET_SIZE = ALPHABET.length;
 const ALPHABET_SIZE = LETTER_ALPHABET_SIZE + 3; // +3: special char, delimiter char, end char
 const SPECIAL_CHAR_CODE = ALPHABET_SIZE - 3;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
 const END_CHAR_CODE = ALPHABET_SIZE - 1;
 
-/**
- * Converts a number to a base26 string number.
- * This is used to fit all kinds of characters in the range of a-z.
- */
 function convertToBase26(num: number): string {
     if (num < 0) {
         throw new Error('convertToBase26: Input must be a non-negative integer');
     }
 
-    const alphabet = 'abcdefghijklmnopqrstuvwxyz';
     let result = '';
-    let numCopy = num;
 
     do {
-        numCopy -= 1; // Adjust to 0-based index
-        result = alphabet[numCopy % 26] + result;
-        numCopy = Math.floor(numCopy / 26);
-    } while (numCopy > 0);
+        // eslint-disable-next-line no-param-reassign
+        num--;
+        result = ALPHABET[num % 26] + result;
+        // eslint-disable-next-line no-bitwise, no-param-reassign
+        num >>= 5; // Equivalent to Math.floor(num / 26), but faster
+    } while (num > 0);
 
     return result;
 }
+
+// Pre-compute base26 lookup table
+const base26LookupTable = new Array<string>(65536);
+for (let i = 0; i < 65536; i++) {
+    base26LookupTable[i] = convertToBase26(i);
+}
+
+const letterMap = Array.from(ALPHABET).reduce((acc, char, index) => {
+    acc[char] = index;
+    return acc;
+}, {} as Record<string, number>);
 
 /**
  * Converts a string to an array of numbers representing the characters of the string.
@@ -49,20 +56,27 @@ function convertToBase26(num: number): string {
  *
  * Note: The string should be converted to lowercase first (otherwise uppercase letters get base26'ed taking more space than necessary).
  */
-function stringToNumeric(input: string) {
-    const res: number[] = [];
-    for (const char of input) {
-        const charCode = char.charCodeAt(0);
-        const charCodeABased = charCode - CHAR_CODE_A;
-        if (charCodeABased >= 0 && charCodeABased < LETTER_ALPHABET_SIZE) {
-            res.push(charCodeABased);
+function stringToNumeric(input: string): number[] {
+    const maxSize = input.length * 2; // Estimate maximum size
+    const res = new Array<number>(maxSize);
+    let index = 0;
+
+    for (let i = 0; i < input.length; i++) {
+        const char = input[i];
+        if (char >= 'a' && char <= 'z') {
+            res[index++] = letterMap[char];
         } else {
-            const asBase26String = convertToBase26(charCode);
-            const asCharCodes = stringToNumeric(asBase26String);
-            res.push(SPECIAL_CHAR_CODE, ...asCharCodes);
+            const charCode = input.charCodeAt(i);
+            const asBase26String = base26LookupTable[charCode];
+            res[index++] = SPECIAL_CHAR_CODE;
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
+            for (let j = 0; j < asBase26String.length; j++) {
+                res[index++] = letterMap[asBase26String[j]];
+            }
         }
     }
-    return res;
+
+    return res.slice(0, index); // Trim to actual size
 }
 
 /**
