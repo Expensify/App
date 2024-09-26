@@ -10,7 +10,9 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import createModalCardStyleInterpolator from '@navigation/AppNavigator/createModalCardStyleInterpolator';
 import type {ThemeStyles} from '@src/styles';
 
-function useModalScreenOptions(getScreenOptions?: (styles: ThemeStyles) => PlatformStackNavigationOptions) {
+type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
+
+function useModalScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -38,3 +40,4 @@ function useModalScreenOptions(getScreenOptions?: (styles: ThemeStyles) => Platf
 }
 
 export default useModalScreenOptions;
+export type {GetModalStackScreenOptions};
