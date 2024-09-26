@@ -182,11 +182,9 @@ function ReportActionsList({
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
-    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -226,7 +224,6 @@ function ReportActionsList({
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
         setUnreadMarkerTime(report.lastReadTime ?? '');
-        setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -247,16 +244,9 @@ function ReportActionsList({
 
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            let shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
-
-            if (shouldDisplay && !messageManuallyMarkedUnread) {
-                // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
-                const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
-                const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                shouldDisplay = !isFromCurrentUser && isWithinVisibleThreshold;
-            }
-
-            return shouldDisplay;
+            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
+            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
+            return shouldDisplay && isWithinVisibleThreshold;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -268,7 +258,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, lastOfflineAt, lastOnlineAt, preferredLocale, unreadMarkerTime, messageManuallyMarkedUnread, accountID]);
+    }, [sortedVisibleReportActions, lastOfflineAt, lastOnlineAt, preferredLocale, unreadMarkerTime]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
@@ -276,11 +266,10 @@ function ReportActionsList({
     useEffect(() => {
         const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
-            setMessageManuallyMarkedUnread(new Date().getTime());
+            userActiveSince.current = DateUtils.getDBTime();
         });
         const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
-            setMessageManuallyMarkedUnread(0);
         });
 
         return () => {
@@ -306,7 +295,6 @@ function ReportActionsList({
         }
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
-        setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sortedVisibleReportActions]);
@@ -649,7 +637,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        loadNewerChats(false);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
