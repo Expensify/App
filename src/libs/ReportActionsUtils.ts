@@ -988,20 +988,20 @@ const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
     CONST.IOU.REPORT_ACTION_TYPE.TRACK,
 ]);
 
-/**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
+function getMoneyRequestActions(
+    reportID: string,
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+    isOffline: boolean | undefined = undefined,
+): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    // If the report is not an IOU, Expense report, or Invoice, it shouldn't have money request actions.
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-        return;
+        return [];
     }
 
     const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
-        return;
+        return [];
     }
 
     const iouRequestActions = [];
@@ -1029,6 +1029,15 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
             iouRequestActions.push(action);
         }
     }
+    return iouRequestActions;
+}
+
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
+    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
@@ -1046,6 +1055,27 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // Ensure we have a childReportID associated with the IOU report action
     return singleAction.childReportID;
+}
+
+/**
+ * Returns true if all transactions on the report have the same ownerID
+ */
+function hasSameActorForAllTransactions(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
+    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
+    if (!iouRequestActions.length) {
+        return true;
+    }
+
+    let actorID: number | undefined;
+
+    for (const action of iouRequestActions) {
+        if (actorID !== undefined && actorID !== action?.actorAccountID) {
+            return false;
+        }
+        actorID = action?.actorAccountID;
+    }
+
+    return true;
 }
 
 /**
@@ -1692,7 +1722,7 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
-    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID ?? -1;
+    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
 
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
@@ -1829,6 +1859,7 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
+    hasSameActorForAllTransactions,
 };
 
 export type {LastVisibleMessage};
