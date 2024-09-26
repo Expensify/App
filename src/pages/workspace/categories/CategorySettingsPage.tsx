@@ -256,27 +256,29 @@ function CategorySettingsPage({
                                         </OfflineWithFeedback>
                                     )}
                                     {canUseCategoryAndTagApprovers && (
-                                        <MenuItemWithTopDescription
-                                            title={approverText}
-                                            description={translate('workspace.rules.categoryRules.approver')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                            disabled={approverDisabled}
-                                        />
-                                    )}
-                                    {approverDisabled && (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                            <TextLink
-                                                style={[styles.link, styles.label]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                            >
-                                                {translate('workspace.common.moreFeatures')}
-                                            </TextLink>{' '}
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                        </Text>
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                title={approverText}
+                                                description={translate('workspace.rules.categoryRules.approver')}
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                                }}
+                                                shouldShowRightIcon
+                                                disabled={approverDisabled}
+                                            />
+                                            {approverDisabled && (
+                                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
+                                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
+                                                    <TextLink
+                                                        style={[styles.link, styles.label]}
+                                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                                                    >
+                                                        {translate('workspace.common.moreFeatures')}
+                                                    </TextLink>{' '}
+                                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
+                                                </Text>
+                                            )}
+                                        </>
                                     )}
                                     {policy?.tax?.trackingEnabled && (
                                         <MenuItemWithTopDescription
