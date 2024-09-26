@@ -48,6 +48,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         );
     };
 
+    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
     const optionItems = [
         {
             title: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
@@ -62,11 +63,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(policyID, isEnabled),
             subMenuItems: [
                 <OfflineWithFeedback
-                    pendingAction={
-                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.defaultValue
-                            ? policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.defaultValue
-                            : null
-                    }
+                    pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.defaultValue ? reportTitlePendingFields.defaultValue : null}
                     key="customName"
                 >
                     <MenuItemWithTopDescription
@@ -78,11 +75,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     />
                 </OfflineWithFeedback>,
                 <ToggleSettingOptionRow
-                    pendingAction={
-                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.deletable
-                            ? policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].pendingFields?.deletable
-                            : null
-                    }
+                    pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.deletable ? reportTitlePendingFields.deletable : null}
                     key="preventMembersFromChangingCustomNames"
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
