@@ -87,12 +87,27 @@ function stringToNumeric(input: string): number[] {
  * The tree will be built using the Ukkonen's algorithm: https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
  */
 function makeTree(numericSearchValues: number[]) {
-    const transitionNodes: Array<number[] | undefined> = [];
-    const leftEdges: number[] = [];
-    const rightEdges: Array<number | undefined> = [];
+    const maxNodes = 2 * numericSearchValues.length;
+    // Allocate an ArrayBuffer to store all transitions (flat buffer)
+    const buffer = new ArrayBuffer(maxNodes * ALPHABET_SIZE * 4); // 4 bytes per transition (Uint32)
+    const transitionNodes = new Int32Array(buffer);
+    transitionNodes.fill(-1); // Initialize all transitions to -1 (no transition)
+
+    const bufferLeftEdges = new ArrayBuffer(maxNodes * 4); // 4 bytes per left edge (Uint32)
+    const leftEdges = new Int32Array(bufferLeftEdges);
+
+    // const rightEdges: Array<number | undefined> = [];
+    const bufferRightEdges = new ArrayBuffer(maxNodes * 4); // 4 bytes per right edge (Uint32)
+    const rightEdges = new Int32Array(bufferRightEdges);
     const defaultREdgeValue = numericSearchValues.length - 1;
-    const parent: number[] = [];
-    const suffixLink: number[] = [];
+
+    // const parent: number[] = [];
+    const bufferParent = new ArrayBuffer(maxNodes * 4); // 4 bytes per parent (Uint32)
+    const parent = new Int32Array(bufferParent);
+
+    // const suffixLink: number[] = [];
+    const bufferSuffixLink = new ArrayBuffer(maxNodes * 4); // 4 bytes per suffix link (Uint32)
+    const suffixLink = new Int32Array(bufferSuffixLink);
 
     let currentNode = 0;
     let currentPosition = 0;
@@ -100,40 +115,25 @@ function makeTree(numericSearchValues: number[]) {
     let currentIndex = 0;
 
     function initializeTree() {
+        rightEdges.fill(numericSearchValues.length - 1);
         suffixLink[0] = 1;
         leftEdges[0] = -1;
         rightEdges[0] = -1;
         leftEdges[1] = -1;
         rightEdges[1] = -1;
-        transitionNodes[1] = Array<number>(ALPHABET_SIZE).fill(0);
-    }
-
-    function getOrCreateREdge(node: number): number {
-        let rEdge = rightEdges[node];
-        if (rEdge === undefined) {
-            rEdge = defaultREdgeValue;
-            rightEdges[node] = rEdge;
+        for (let i = 0; i < ALPHABET_SIZE; ++i) {
+            transitionNodes[ALPHABET_SIZE + i] = 0;
         }
-        return rEdge;
     }
 
     function processCharacter(char: number) {
-        // eslint-disable-next-line no-constant-condition
         while (true) {
-            const rEdge = getOrCreateREdge(currentNode);
-            if (rEdge < currentPosition) {
-                let curNode = transitionNodes[currentNode];
-
-                if (curNode === undefined) {
-                    curNode = Array<number>(ALPHABET_SIZE).fill(-1);
-                    transitionNodes[currentNode] = curNode;
-                }
-
-                if (curNode[char] === -1) {
+            if (rightEdges[currentNode] < currentPosition) {
+                if (transitionNodes[currentNode * ALPHABET_SIZE + char] === -1) {
                     createNewLeaf(char);
                     continue;
                 }
-                currentNode = curNode[char];
+                currentNode = transitionNodes[currentNode * ALPHABET_SIZE + char];
                 currentPosition = leftEdges[currentNode];
             }
             if (currentPosition === -1 || char === numericSearchValues[currentPosition]) {
@@ -147,42 +147,27 @@ function makeTree(numericSearchValues: number[]) {
     }
 
     function createNewLeaf(c: number) {
-        const curNode = transitionNodes[currentNode];
-        if (curNode === undefined) {
-            throw new Error('createNewLeaf: curNode should not be undefined');
-        }
-
-        curNode[c] = nodeCounter;
+        transitionNodes[currentNode * ALPHABET_SIZE + c] = nodeCounter;
         leftEdges[nodeCounter] = currentIndex;
         parent[nodeCounter++] = currentNode;
         currentNode = suffixLink[currentNode];
 
-        const rEdge = getOrCreateREdge(currentNode);
-        currentPosition = rEdge + 1;
+        currentPosition = rightEdges[currentNode] + 1;
     }
 
     function splitEdge(c: number) {
         leftEdges[nodeCounter] = leftEdges[currentNode];
         rightEdges[nodeCounter] = currentPosition - 1;
         parent[nodeCounter] = parent[currentNode];
-        let transitionTable = transitionNodes[nodeCounter];
-        if (transitionTable === undefined) {
-            transitionTable = Array<number>(ALPHABET_SIZE).fill(-1);
-            transitionNodes[nodeCounter] = transitionTable;
-        }
-        transitionTable[numericSearchValues[currentPosition]] = currentNode;
-        transitionTable[c] = nodeCounter + 1;
+
+        transitionNodes[nodeCounter * ALPHABET_SIZE + numericSearchValues[currentPosition]] = currentNode;
+        transitionNodes[nodeCounter * ALPHABET_SIZE + c] = nodeCounter + 1;
         leftEdges[nodeCounter + 1] = currentIndex;
         parent[nodeCounter + 1] = nodeCounter;
         leftEdges[currentNode] = currentPosition;
         parent[currentNode] = nodeCounter;
 
-        let parentTransitionNodes = transitionNodes[parent[nodeCounter]];
-        if (parentTransitionNodes === undefined) {
-            parentTransitionNodes = Array<number>(ALPHABET_SIZE).fill(-1);
-            transitionNodes[parent[nodeCounter]] = parentTransitionNodes;
-        }
-        parentTransitionNodes[numericSearchValues[leftEdges[nodeCounter]]] = nodeCounter;
+        transitionNodes[parent[nodeCounter] * ALPHABET_SIZE + numericSearchValues[leftEdges[nodeCounter]]] = nodeCounter;
         nodeCounter += 2;
         handleDescent(nodeCounter);
     }
@@ -191,21 +176,15 @@ function makeTree(numericSearchValues: number[]) {
         currentNode = suffixLink[parent[ts - 2]];
         currentPosition = leftEdges[ts - 2];
         while (currentPosition <= (rightEdges[ts - 2] ?? defaultREdgeValue)) {
-            const tTv = transitionNodes[currentNode];
-            if (tTv === undefined) {
-                throw new Error('handleDescent: tTv should not be undefined');
-            }
-            currentNode = tTv[numericSearchValues[currentPosition]];
-            const rEdge = getOrCreateREdge(currentNode);
-            currentPosition += rEdge - leftEdges[currentNode] + 1;
+            currentNode = transitionNodes[currentNode * ALPHABET_SIZE + numericSearchValues[currentPosition]];
+            currentPosition += rightEdges[currentNode] - leftEdges[currentNode] + 1;
         }
         if (currentPosition === (rightEdges[ts - 2] ?? defaultREdgeValue) + 1) {
             suffixLink[ts - 2] = currentNode;
         } else {
             suffixLink[ts - 2] = ts;
         }
-        const rEdge = getOrCreateREdge(currentNode);
-        currentPosition = rEdge - (currentPosition - (rightEdges[ts - 2] ?? defaultREdgeValue)) + 2;
+        currentPosition = rightEdges[currentNode] - (currentPosition - (rightEdges[ts - 2] ?? defaultREdgeValue)) + 2;
     }
 
     function build() {
@@ -236,7 +215,7 @@ function makeTree(numericSearchValues: number[]) {
             const rightRange = rightEdges[node] ?? defaultREdgeValue;
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
-            for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
+            for (let i = 0; i < rangeLen && depth + i < searchString.length && leftRange + i < numericSearchValues.length; i++) {
                 if (searchString[depth + i] !== numericSearchValues[leftRange + i]) {
                     return;
                 }
@@ -244,8 +223,9 @@ function makeTree(numericSearchValues: number[]) {
 
             let isLeaf = true;
             for (let i = 0; i < ALPHABET_SIZE; ++i) {
-                const tNode = transitionNodes[node]?.[i];
-                const correctChar = depth + rangeLen >= searchString.length || i === searchString[depth + rangeLen];
+                const tNode = transitionNodes[node * ALPHABET_SIZE + i];
+                const correctChar = true; // ((depth + rangeLen) >= searchString.length) || i === (searchString[depth + rangeLen] )
+                // console.log('correctChar', correctChar, i, (depth + rangeLen));
                 if (tNode && tNode !== -1 && correctChar) {
                     isLeaf = false;
                     dfs(tNode, depth + rangeLen);
