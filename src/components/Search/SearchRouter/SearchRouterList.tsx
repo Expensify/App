@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type ItemWithQuery = {
@@ -30,14 +29,14 @@ type SearchRouterListProps = {
     closeAndClearRouter: () => void;
 };
 
-function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps<SearchQueryItem>): listItem is SearchQueryListItemProps<SearchQueryItem> {
+function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
     if ('singleIcon' in listItem.item && listItem.item.singleIcon && 'query' in listItem.item && !!listItem.item.query) {
         return true;
     }
     return false;
 }
 
-function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps<SearchQueryItem>) {
+function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps) {
     const styles = useThemeStyles();
 
     if (isSearchQueryListItem(props)) {
@@ -105,8 +104,8 @@ function SearchRouterList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    const recentReportsData = recentReports.map((item) => ({...item, pressableStyle: styles.br2, itemType: CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.REPORT}));
-    sections.push({title: translate('search.recentChats'), data: recentReportsData});
+    const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2}));
+    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {

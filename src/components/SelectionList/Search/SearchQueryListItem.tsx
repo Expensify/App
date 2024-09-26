@@ -8,22 +8,23 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type SearchQueryItem = {
-    singleIcon: IconAsset;
-    query: string;
+type SearchQueryItem = ListItem & {
+    singleIcon?: IconAsset;
+    query?: string;
     isContextualSearchItem?: boolean;
-} & ListItem;
+};
 
-type SearchQueryListItemProps<TItem extends SearchQueryItem> = {
-    item: TItem;
+type SearchQueryListItemProps = {
+    item: SearchQueryItem;
     isFocused?: boolean;
     showTooltip?: boolean;
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: SearchQueryItem) => void;
     onFocus?: () => void;
     shouldSyncFocus?: boolean;
 };
 
-function SearchQueryListItem<TItem extends SearchQueryItem>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps<TItem>) {
+// type Testt = SearchQueryItem extends ListItem ? string : boolean;
+function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
