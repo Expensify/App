@@ -286,6 +286,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [selectedEmployees, addUser, removeUser, policy?.ownerAccountID, session?.accountID],
     );
 
+    const onSelectMember = (member: MemberOption) => {
+        if (selectionMode?.isEnabled) {
+            !member.isDisabledCheckbox && toggleUser(member?.accountID);
+            return;
+        }
+
+        setShouldPreserveSelection(true);
+        openMemberDetails(member);
+    };
+
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
@@ -677,9 +687,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
-                            onSelectRow={(item) => {
-                                selectionMode?.isEnabled ? !item.isDisabledCheckbox && toggleUser(item?.accountID) : (setShouldPreserveSelection(true), openMemberDetails(item));
-                            }}
+                            onSelectRow={onSelectMember}
                             shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}

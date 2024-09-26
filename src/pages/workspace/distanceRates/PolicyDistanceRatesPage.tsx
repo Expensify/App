@@ -195,6 +195,14 @@ function PolicyDistanceRatesPage({
         }
     };
 
+    const onSelectDistanceRate = (rate: RateForList) => {
+        if (selectionMode?.isEnabled) {
+            toggleRate(rate);
+            return;
+        }
+        setShouldPreserveSelection(true);
+        openRateDetails(rate);
+    };
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
@@ -324,9 +332,7 @@ function PolicyDistanceRatesPage({
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         sections={[{data: distanceRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleRate}
-                        onSelectRow={(item) => {
-                            selectionMode?.isEnabled ? toggleRate(item) : (setShouldPreserveSelection(true), openRateDetails(item));
-                        }}
+                        onSelectRow={onSelectDistanceRate}
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
                         ListItem={TableListItem}

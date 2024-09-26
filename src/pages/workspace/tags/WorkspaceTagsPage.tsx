@@ -152,6 +152,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setSelectedTags(isAllSelected ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
+    const onSelectTag = (tag: TagListItem) => {
+        if (selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
+        setShouldPreserveSelection(true);
+        navigateToTagSettings(tag);
+    };
+
     const getCustomListHeader = () => {
         const header = (
             <View
@@ -423,9 +432,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
-                        onSelectRow={(item) => {
-                            selectionMode?.isEnabled ? toggleTag(item) : (setShouldPreserveSelection(true), navigateToTagSettings(item));
-                        }}
+                        onSelectRow={onSelectTag}
                         shouldSingleExecuteRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}

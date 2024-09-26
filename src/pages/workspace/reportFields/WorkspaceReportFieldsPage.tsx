@@ -146,6 +146,15 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields(isAllSelected ? [] : availableReportFields);
     };
 
+    const onSelectReportField = (field: ReportFieldForList) => {
+        if (selectionMode?.isEnabled) {
+            updateSelectedReportFields(field);
+            return;
+        }
+        setShouldPreserveSelection(true);
+        navigateToReportFieldsSettings(field);
+    };
+
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
@@ -306,9 +315,7 @@ function WorkspaceReportFieldsPage({
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={(item) => {
-                            selectionMode?.isEnabled ? updateSelectedReportFields(item) : (setShouldPreserveSelection(true), navigateToReportFieldsSettings(item));
-                        }}
+                        onSelectRow={onSelectReportField}
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
