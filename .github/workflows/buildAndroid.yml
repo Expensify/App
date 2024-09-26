@@ -132,6 +132,12 @@ jobs:
             SHOULD_UPLOAD_SOURCEMAPS='true'
           fi
 
+          echo "AAB_PATH=$aabPath"
+          echo "AAB_FILE_NAME=$(basename "$aabPath")"
+          echo "APK_PATH=$apkPath"
+          echo "APK_FILE_NAME=$(basename "$apkPath")"
+          echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
+
           {
             # aabPath and apkPath are environment varibles set within the Fastfile
             echo "AAB_PATH=$aabPath"
