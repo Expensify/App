@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -17,15 +16,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 
-type AllSettingsScreenOnyxProps = {
-    policies: OnyxCollection<Policy>;
-};
+function AllSettingsScreen() {
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-type AllSettingsScreenProps = AllSettingsScreenOnyxProps;
-
-function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
@@ -121,8 +115,4 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
 
 AllSettingsScreen.displayName = 'AllSettingsScreen';
 
-export default withOnyx<AllSettingsScreenProps, AllSettingsScreenOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(AllSettingsScreen);
+export default AllSettingsScreen;
