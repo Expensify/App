@@ -7637,7 +7637,6 @@ function detachReceipt(transactionID: string) {
             },
         },
     ];
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
