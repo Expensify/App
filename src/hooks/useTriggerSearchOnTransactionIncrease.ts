@@ -1,25 +1,20 @@
-import { useEffect, useRef } from 'react';
+import {useEffect, useRef} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {SearchQueryJSON} from '@components/Search/types';
 import * as SearchActions from '@libs/actions/Search';
-import { OnyxCollection } from 'react-native-onyx';
-import { Transaction } from '@src/types/onyx';
-import { SearchQueryJSON } from '@components/Search/types';
+import type {Transaction} from '@src/types/onyx';
 
 type UseTriggerSearchOnNewTransaction = {
     transactions: OnyxCollection<Transaction>;
     previousTransactions: OnyxCollection<Transaction>;
     queryJSON: SearchQueryJSON;
     offset: number;
-}
+};
 
 /**
  * Hook used to trigger a new Search API call when a new transaction is created.
  */
-function useTriggerSearchOnNewTransaction({
-    transactions,
-    previousTransactions,
-    queryJSON,
-    offset,
-}: UseTriggerSearchOnNewTransaction) {
+function useTriggerSearchOnNewTransaction({transactions, previousTransactions, queryJSON, offset}: UseTriggerSearchOnNewTransaction) {
     const searchTriggeredRef = useRef(false);
 
     useEffect(() => {
@@ -35,8 +30,7 @@ function useTriggerSearchOnNewTransaction({
         // if we check for existance and initially it's 0 then the check will fail)
         if (transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength) {
             // A new transaction was added, trigger the action
-            console.log('queryJSON, offset', queryJSON, offset);
-            SearchActions.search({ queryJSON, offset });
+            SearchActions.search({queryJSON, offset});
             // Set the flag to true to prevent further triggers
             searchTriggeredRef.current = true;
         }

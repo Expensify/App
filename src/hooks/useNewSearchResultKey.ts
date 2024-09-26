@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import usePrevious from './usePrevious'; // Assuming you have this hook
-import ONYXKEYS from '@src/ONYXKEYS';
-import { SearchResults } from '@src/types/onyx';
-import { OnyxEntry } from 'react-native-onyx';
+import {useEffect, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
-import { ReportListItemType, TransactionListItemType } from '@components/SelectionList/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults} from '@src/types/onyx';
+import usePrevious from './usePrevious';
 
 /**
  * Hook used to get the Search results' new transaction key for animation purposes.
@@ -24,11 +24,12 @@ function useNewSearchResultKey(searchResults: OnyxEntry<SearchResults>) {
 
     // Initialize the set with existing transaction IDs only once
     useEffect(() => {
-        if (!initializedRef.current && searchResults?.data) {
-            const existingTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
-            highlightedTransactionIDs.current = new Set(existingTransactionIDs);
-            initializedRef.current = true;
+        if (initializedRef.current || !searchResults?.data) {
+            return;
         }
+        const existingTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
+        highlightedTransactionIDs.current = new Set(existingTransactionIDs);
+        initializedRef.current = true;
     }, [searchResults?.data]);
 
     useEffect(() => {
@@ -40,10 +41,7 @@ function useNewSearchResultKey(searchResults: OnyxEntry<SearchResults>) {
         const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
 
         // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
-        const newTransactionIDs = currentTransactionIDs.filter(
-            (id) =>
-                !previousTransactionIDs.includes(id) && !highlightedTransactionIDs.current.has(id)
-        );
+        const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedTransactionIDs.current.has(id));
 
         if (newTransactionIDs.length > 0) {
             const newTransactionID = newTransactionIDs[0];
@@ -56,14 +54,15 @@ function useNewSearchResultKey(searchResults: OnyxEntry<SearchResults>) {
 
     // Reset newSearchResultKey after it's been used
     useEffect(() => {
-        if (newSearchResultKey !== null) {
-            // Reset after a delay if needed (e.g. match animation highlight duration)
-            const timer = setTimeout(() => {
-                setNewSearchResultKey(null);
-            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-
-            return () => clearTimeout(timer);
+        if (newSearchResultKey === null) {
+            return;
         }
+        // Reset after a delay if needed (e.g. match animation highlight duration)
+        const timer = setTimeout(() => {
+            setNewSearchResultKey(null);
+        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+
+        return () => clearTimeout(timer);
     }, [newSearchResultKey]);
 
     return newSearchResultKey;
@@ -81,9 +80,10 @@ function extractTransactionIDsFromSearchResults(searchResultsData: SearchResults
         // Check for transactions array within the item (ReportListItemType)
         if (Array.isArray((item as ReportListItemType)?.transactions)) {
             (item as ReportListItemType)?.transactions?.forEach((transaction) => {
-                if (transaction?.transactionID) {
-                    transactionIDs.push(transaction?.transactionID);
+                if (!transaction?.transactionID) {
+                    return;
                 }
+                transactionIDs.push(transaction?.transactionID);
             });
         }
     });

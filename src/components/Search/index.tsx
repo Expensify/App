@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -14,9 +14,11 @@ import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useNewSearchResultKey from '@hooks/useNewSearchResultKey';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTriggerSearchOnNewTransaction from '@hooks/useTriggerSearchOnTransactionIncrease';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -36,8 +38,6 @@ import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
 import SearchStatusBar from './SearchStatusBar';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
-import useTriggerSearchOnNewTransaction from '@hooks/useTriggerSearchOnTransactionIncrease';
-import useNewSearchResultKey from '@hooks/useNewSearchResultKey';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -268,7 +268,7 @@ function Search({queryJSON}: SearchProps) {
         });
         // Determine if either the base key or any transaction key matches
         const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
-        
+
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
