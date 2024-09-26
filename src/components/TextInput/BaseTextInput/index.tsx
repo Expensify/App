@@ -76,6 +76,7 @@ function BaseTextInput(
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -95,6 +96,7 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
+
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<HTMLInputElement | null>(null);
@@ -282,6 +284,16 @@ function BaseTextInput(
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
+    const verticalPadding = useMemo (() => {
+        const flattenedInputStyle = StyleSheet.flatten(inputStyle);
+        const topBottomPadding = (flattenedInputStyle.paddingTop ?? 0) + (flattenedInputStyle.paddingBottom ?? 0);
+        if (topBottomPadding !== 0) {
+            return topBottomPadding;
+        }
+
+        return flattenedInputStyle.padding ?? 0;
+    }, [inputStyle]);
+
     return (
         <>
             <View
@@ -298,9 +310,10 @@ function BaseTextInput(
                     // or if multiline is not supplied we calculate the textinput height, using onLayout.
                     onLayout={onLayout}
                     style={[
-                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                        (autoGrowHeight && !isAutoGrowHeightMarkdown && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0)),
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
+                        isAutoGrowHeightMarkdown ? {minHeight: variables.componentSizeLarge} : undefined, 
                     ]}
                 >
                     <View
@@ -325,7 +338,8 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+
+                        <View style={[isAutoGrowHeightMarkdown ? undefined : styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
@@ -372,11 +386,12 @@ function BaseTextInput(
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
                                     inputPaddingRight,
+                                    isAutoGrowHeightMarkdown? {maxHeight: maxAutoGrowHeight - verticalPadding} : undefined,
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && {height, lineHeight},
+                                    !isMultiline && !isAutoGrowHeightMarkdown && {height, lineHeight},
 
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
@@ -385,7 +400,7 @@ function BaseTextInput(
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(autoGrowHeight
+                                    ...(autoGrowHeight && !isAutoGrowHeightMarkdown
                                         ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
                                         : []),
 
@@ -460,7 +475,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {contentWidth && (
+            {contentWidth && !isAutoGrowHeightMarkdown (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
@@ -489,7 +504,7 @@ function BaseTextInput(
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(!!autoGrow || autoGrowHeight) && (
+            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
                 // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
