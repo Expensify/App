@@ -108,7 +108,7 @@ module.exports = {
         'plugin:you-dont-need-lodash-underscore/all',
         'plugin:prettier/recommended',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation']
     ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -177,6 +177,7 @@ module.exports = {
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
         'es/no-optional-chaining': 'off',
+        'deprecation/deprecation': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
