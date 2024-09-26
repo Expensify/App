@@ -21,6 +21,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -62,6 +63,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.COMPANY_CARDS
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS
         | typeof SCREENS.WORKSPACE.RULES;
+    badgeText?: string;
 };
 
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
@@ -106,6 +108,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -172,6 +175,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             };
         });
     }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
+        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.invoices',
+            icon: Expensicons.InvoiceGeneric,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.INVOICES,
+            badgeText: `${CurrencyUtils.getCurrencySymbol(currencyCode)}${CurrencyUtils.convertToFrontendAmountAsString(
+                policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0,
+                currencyCode,
+            )}`,
+        });
+    }
 
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
@@ -393,6 +411,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     isPaneMenu
+                                    badgeText={item.badgeText}
                                 />
                             ))}
                         </View>
