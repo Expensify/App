@@ -3,7 +3,6 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -13,7 +12,6 @@ import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
-import type {Network} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
@@ -41,46 +39,34 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     }
 }
 
-type FormProviderOnyxProps = {
-    /** Contains the form state that must be accessed outside the component */
-    formState: OnyxEntry<Form>;
+type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TFormID> & {
+    /** Children to render. */
+    children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
-    /** Contains draft values for each input in the form */
-    draftValues: OnyxEntry<Form>;
+    /** Callback to validate the form */
+    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** Information about the network */
-    network: OnyxEntry<Network>;
+    /** Should validate function be called when input loose focus */
+    shouldValidateOnBlur?: boolean;
+
+    /** Should validate function be called when the value of the input is changed */
+    shouldValidateOnChange?: boolean;
+
+    /** Whether to remove invisible characters from strings before validation and submission */
+    shouldTrimValues?: boolean;
+
+    /** Styles that will be applied to the submit button only */
+    submitButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to apply flex to the submit button */
+    submitFlexEnabled?: boolean;
+
+    /** Whether button is disabled */
+    isSubmitDisabled?: boolean;
+
+    /** Whether HTML is allowed in form inputs */
+    allowHTML?: boolean;
 };
-
-type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProviderOnyxProps &
-    FormProps<TFormID> & {
-        /** Children to render. */
-        children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
-
-        /** Callback to validate the form */
-        validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
-
-        /** Should validate function be called when input loose focus */
-        shouldValidateOnBlur?: boolean;
-
-        /** Should validate function be called when the value of the input is changed */
-        shouldValidateOnChange?: boolean;
-
-        /** Whether to remove invisible characters from strings before validation and submission */
-        shouldTrimValues?: boolean;
-
-        /** Styles that will be applied to the submit button only */
-        submitButtonStyles?: StyleProp<ViewStyle>;
-
-        /** Whether to apply flex to the submit button */
-        submitFlexEnabled?: boolean;
-
-        /** Whether button is disabled */
-        isSubmitDisabled?: boolean;
-
-        /** Whether HTML is allowed in form inputs */
-        allowHTML?: boolean;
-    };
 
 function FormProvider(
     {
@@ -404,6 +390,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID> & RefAttributes<FormRef>, keyof FormProviderOnyxProps>) => ReactNode;
+export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID> & RefAttributes<FormRef>) => ReactNode;
 
 export type {FormProviderProps};
