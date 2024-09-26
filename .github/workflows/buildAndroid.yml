@@ -5,12 +5,17 @@ on:
     inputs:
       type:
         description: 'What type of build to run. Must be one of ["release", "adhoc", "e2e", "e2eDelta"]'
-        required: true
         type: string
+        required: true
       ref:
         description: Git ref to checkout and build
-        required: true
         type: string
+        required: true
+      artifact-prefix:
+        description: 'The prefix for build artifact names. This is useful if you need to call multiple builds from the same workflow'
+        type: string
+        required: false
+        default: ''
     outputs:
       AAB_FILE_NAME:
         value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
@@ -136,7 +141,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: android-artifact-aab
+          name: ${{ inputs.artifact-prefix }}android-artifact-aab
           path: ${{ steps.build.outputs.AAB_PATH }}
 
       - name: Upload Android APK artifact
@@ -144,7 +149,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: android-artifact-apk
+          name: ${{ inputs.artifact-prefix }}android-artifact-apk
           path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload Android sourcemaps artifact
@@ -152,7 +157,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: android-artifact-sourcemaps
+          name: ${{ inputs.artifact-prefix }}android-artifact-sourcemaps
           path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Announce failure in slack
