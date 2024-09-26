@@ -4,7 +4,7 @@ import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
