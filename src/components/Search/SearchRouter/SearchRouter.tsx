@@ -63,23 +63,28 @@ function SearchRouter() {
         setUserSearchQuery(undefined);
     };
 
-    const onSearchChange = debounce((userQuery: string) => {
-        if (!userQuery) {
-            clearUserQuery();
-            return;
-        }
-        listRef.current?.updateAndScrollToFocusedIndex(0);
-        const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
+    const onSearchChange = useMemo(
+        // eslint-disable-next-line react-compiler/react-compiler
+        () =>
+            debounce((userQuery: string) => {
+                if (!userQuery) {
+                    clearUserQuery();
+                    return;
+                }
+                listRef.current?.updateAndScrollToFocusedIndex(0);
+                const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
 
-        if (queryJSON) {
-            // eslint-disable-next-line
-            console.log('parsedQuery', queryJSON);
+                if (queryJSON) {
+                    // eslint-disable-next-line
+                    console.log('parsedQuery', queryJSON);
 
-            setUserSearchQuery(queryJSON);
-        } else {
-            // Handle query parsing error
-        }
-    }, SEARCH_DEBOUNCE_DELAY);
+                    setUserSearchQuery(queryJSON);
+                } else {
+                    // Handle query parsing error
+                }
+            }, SEARCH_DEBOUNCE_DELAY),
+        [],
+    );
 
     const updateUserSearchQuery = (newSearchQuery: string) => {
         setTextInputValue(newSearchQuery);

@@ -137,7 +137,7 @@ function SearchRouterList(
             sections={sections}
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
-            containerStyle={styles.mh100}
+            containerStyle={[styles.mh100, styles.mt2]}
             ref={ref}
         />
     );
