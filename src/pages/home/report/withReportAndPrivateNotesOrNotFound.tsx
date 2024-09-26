@@ -17,24 +17,26 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundOnyxProps, WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
-type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps & {
+type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps;
+
+type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
+    /** Session of currently logged in user */
     session: OnyxEntry<Session>;
 };
 
 export default function (pageTitle: TranslationPaths) {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
-        WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-    ): React.ComponentType<Readonly<Omit<TProps & RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>>> => {
+        WrappedComponent: ComponentType<TProps & WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundOnyxProps & RefAttributes<TRef>>,
+    ): React.ComponentType<TProps & React.RefAttributes<TRef>> => {
         // eslint-disable-next-line rulesdir/no-negated-variables
-        function WithReportAndPrivateNotesOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+        function WithReportAndPrivateNotesOrNotFound(props: TProps & WithReportOrNotFoundOnyxProps, ref: ForwardedRef<TRef>) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
             const {route, report} = props;
             const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
-            const isPrivateNotesFetchTriggered = report.isLoadingPrivateNotes !== undefined;
+            const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
             const isReconnecting = prevIsOffline && !isOffline;
             const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
@@ -47,9 +49,9 @@ export default function (pageTitle: TranslationPaths) {
                     return;
                 }
 
-                Report.getReportPrivateNote(report.reportID);
+                Report.getReportPrivateNote(report?.reportID);
                 // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
-            }, [report.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
+            }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
             const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
 
