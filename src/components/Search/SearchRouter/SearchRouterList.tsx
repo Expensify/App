@@ -1,10 +1,11 @@
-import React, {useCallback} from 'react';
+import React, {forwardRef, useCallback} from 'react';
+import type {ForwardedRef} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {SearchQueryJSON, SearchRouterListItem} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleIconListItem from '@components/SelectionList/Search/SingleIconListItem';
 import type {ListItemWithSingleIcon, SingleIconListItemProps} from '@components/SelectionList/Search/SingleIconListItem';
-import type {SectionListDataType, UserListItemProps} from '@components/SelectionList/types';
+import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,7 +45,10 @@ function SearchRouterItem(props: UserListItemProps<SearchRouterListItem> | Singl
     return <SingleIconListItem {...(props as SingleIconListItemProps<ListItemWithSingleIcon & ItemWithQuery>)} />;
 }
 
-function SearchRouterList({currentQuery, reportForContextualSearch, recentSearches, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps) {
+function SearchRouterList(
+    {currentQuery, reportForContextualSearch, recentSearches, recentReports, onSearchSubmit, updateUserSearchQuery, closeAndClearRouter}: SearchRouterListProps,
+    ref: ForwardedRef<SelectionListHandle>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const sections: Array<SectionListDataType<SearchRouterListItem>> = [];
@@ -96,7 +100,7 @@ function SearchRouterList({currentQuery, reportForContextualSearch, recentSearch
 
     const onSelectRow = useCallback(
         (item: SearchRouterListItem) => {
-            // eslint-disable-next-line default-case
+            // eslint-disable-next-line default-case, @typescript-eslint/switch-exhaustiveness-check
             switch (item.itemType) {
                 case CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.SEARCH:
                     // Handle selection of "Recent search"
@@ -131,10 +135,11 @@ function SearchRouterList({currentQuery, reportForContextualSearch, recentSearch
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={styles.mh100}
+            ref={ref}
         />
     );
 }
 
-export default SearchRouterList;
+export default forwardRef(SearchRouterList);
 export {SearchRouterItem};
 export type {ItemWithQuery};

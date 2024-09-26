@@ -1,12 +1,13 @@
 import {useNavigationState} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +31,7 @@ function SearchRouter() {
 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+    const listRef = useRef<SelectionListHandle>(null);
 
     const [textInputValue, setTextInputValue] = useState('');
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
@@ -66,7 +68,7 @@ function SearchRouter() {
             clearUserQuery();
             return;
         }
-
+        listRef.current?.updateAndScrollToFocusedIndex(0);
         const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
 
         if (queryJSON) {
@@ -127,8 +129,8 @@ function SearchRouter() {
                         onSubmit={() => {
                             onSearchSubmit(userSearchQuery);
                         }}
+                        routerListRef={listRef}
                     />
-
                     <SearchRouterList
                         currentQuery={userSearchQuery}
                         reportForContextualSearch={contextualReportData}
@@ -137,6 +139,7 @@ function SearchRouter() {
                         onSearchSubmit={onSearchSubmit}
                         updateUserSearchQuery={updateUserSearchQuery}
                         closeAndClearRouter={closeAndClearRouter}
+                        ref={listRef}
                     />
                 </View>
             </FocusTrapForModal>

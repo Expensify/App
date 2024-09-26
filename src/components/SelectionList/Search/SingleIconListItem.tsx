@@ -16,9 +16,10 @@ type SingleIconListItemProps<TItem extends ListItemWithSingleIcon> = {
     showTooltip?: boolean;
     onSelectRow: (item: TItem) => void;
     onFocus?: () => void;
+    shouldSyncFocus?: boolean;
 };
 
-function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocused, showTooltip, onSelectRow, onFocus}: SingleIconListItemProps<TItem>) {
+function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SingleIconListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -32,6 +33,7 @@ function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocus
             keyForList={item.keyForList}
             onFocus={onFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            shouldSyncFocus={shouldSyncFocus}
         >
             <>
                 {item.singleIcon && (

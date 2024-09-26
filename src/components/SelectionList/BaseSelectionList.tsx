@@ -617,7 +617,21 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
+    /**
+     * Changes isTextInputFocusedRef value when using external TextInput, to handle shouldSync focus properly
+     *
+     * @param isTextInputFocused - Is external TextInput focused.
+     */
+    const updateExternalTextInputFocus = useCallback((isTextInputFocused: boolean) => {
+        isTextInputFocusedRef.current = isTextInputFocused;
+    }, []);
+
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus}), [
+        scrollAndHighlightItem,
+        clearInputAfterSelect,
+        updateAndScrollToFocusedIndex,
+        updateExternalTextInputFocus,
+    ]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {

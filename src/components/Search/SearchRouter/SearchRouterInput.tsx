@@ -1,4 +1,6 @@
 import React from 'react';
+import type {RefObject} from 'react';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import BaseTextInput from '@components/TextInput/BaseTextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -8,9 +10,10 @@ type SearchRouterInputProps = {
     setValue: (searchTerm: string) => void;
     updateSearch: (searchTerm: string) => void;
     onSubmit: () => void;
+    routerListRef: RefObject<SelectionListHandle>;
 };
 
-function SearchRouterInput({value, setValue, updateSearch, onSubmit}: SearchRouterInputProps) {
+function SearchRouterInput({value, setValue, updateSearch, onSubmit, routerListRef}: SearchRouterInputProps) {
     const styles = useThemeStyles();
 
     const onChangeText = (text: string) => {
@@ -28,6 +31,12 @@ function SearchRouterInput({value, setValue, updateSearch, onSubmit}: SearchRout
             inputStyle={[styles.searchInputStyle, styles.searchRouterInputStyle, styles.ph2]}
             role={CONST.ROLE.PRESENTATION}
             autoCapitalize="none"
+            onFocus={() => {
+                routerListRef?.current?.updateExternalTextInputFocus(true);
+            }}
+            onBlur={() => {
+                routerListRef?.current?.updateExternalTextInputFocus(false);
+            }}
         />
     );
 }
