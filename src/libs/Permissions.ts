@@ -45,6 +45,10 @@ function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
 }
 
+function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
+}
+
 function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
@@ -81,4 +85,5 @@ export default {
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
     canUseNewSearchRouter,
+    canUseCategoryAndTagApprovers,
 };
