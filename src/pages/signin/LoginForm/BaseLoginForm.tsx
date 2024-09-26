@@ -240,7 +240,7 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
                     value={login}
                     returnKeyType="go"
-                    autoCompleteType="username"
+                    autoComplete="username"
                     textContentType="username"
                     id="username"
                     name="username"

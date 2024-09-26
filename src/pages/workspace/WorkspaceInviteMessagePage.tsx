@@ -191,7 +191,7 @@ function WorkspaceInviteMessagePage({
                             inputID={INPUT_IDS.WELCOME_MESSAGE}
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
-                            autoCompleteType="off"
+                            autoComplete="off"
                             autoCorrect={false}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
