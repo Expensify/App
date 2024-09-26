@@ -94,7 +94,7 @@ function SecuritySettingsPage() {
             return {
                 title: personalDetail?.displayName ?? formattedEmail,
                 description: personalDetail?.displayName ? formattedEmail : '',
-                badgeText: translate('delegate.role', role),
+                badgeText: translate('delegate.role', {role}),
                 avatarID: personalDetail?.accountID ?? -1,
                 icon: personalDetail?.avatar ?? FallbackAvatar,
                 iconType: CONST.ICON_TYPE_AVATAR,
@@ -117,7 +117,7 @@ function SecuritySettingsPage() {
         return {
             title: personalDetail?.displayName ?? formattedEmail,
             description: personalDetail?.displayName ? formattedEmail : '',
-            badgeText: translate('delegate.role', role),
+            badgeText: translate('delegate.role', {role}),
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? FallbackAvatar,
             iconType: CONST.ICON_TYPE_AVATAR,

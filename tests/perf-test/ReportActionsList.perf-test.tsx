@@ -81,14 +81,6 @@ beforeEach(() => {
 });
 
 function ReportActionsListWrapper() {
-    const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
-    const lastVisibleActionCreated = reportActions[0].created;
-    const report = {
-        ...LHNTestUtilsModule.getFakeReport(),
-        lastVisibleActionCreated,
-        lastReadTime: lastVisibleActionCreated,
-    };
-
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider]}>
             <ReactionListContext.Provider value={mockRef}>
@@ -96,8 +88,8 @@ function ReportActionsListWrapper() {
                     <ReportActionsList
                         parentReportAction={createRandomReportAction(1)}
                         parentReportActionForTransactionThread={undefined}
-                        sortedReportActions={reportActions}
-                        report={report}
+                        sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
+                        report={LHNTestUtilsModule.getFakeReport()}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
                         onContentSizeChange={() => {}}
@@ -105,7 +97,7 @@ function ReportActionsListWrapper() {
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
                         transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
-                        reportActions={reportActions}
+                        reportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
