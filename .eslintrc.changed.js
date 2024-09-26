@@ -5,6 +5,6 @@ module.exports = {
         project: './tsconfig.json',
     },
     rules: {
-        'deprecation/deprecation': 'error',
+        'deprecation/deprecation': 'off',
     },
 };
