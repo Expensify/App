@@ -178,7 +178,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     function hasInProgressVBBA(): boolean {
-        return isPreviousPolicy && !!achData?.bankAccountID && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
+        return !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
     }
 
     /*
@@ -195,16 +195,14 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
 
     /**
      * Retrieve verified business bank account currently being set up.
-     * @param ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
-     * @param ignoreLocalSubStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    function fetchData(ignoreLocalCurrentStep?: boolean, ignoreLocalSubStep?: boolean) {
+    function fetchData() {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams(route);
-        const subStep = achData?.subStep ?? '';
-        const localCurrentStep = achData?.currentStep ?? '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, ignoreLocalSubStep ? '' : subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
+        const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
+        const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
 
     useEffect(() => {
@@ -221,7 +219,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
             BankAccounts.setBankAccountSubStep(null);
             BankAccounts.setPlaidEvent(null);
         }
-        fetchData(true, isStepToOpenEmpty);
+        fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
@@ -241,7 +239,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
 
             if (!hasACHDataBeenLoaded) {
                 if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && reimbursementAccount?.isLoading === false) {
-                    setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
                 return;
@@ -295,7 +292,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
         });
-        fetchData(true);
     };
 
     const goBack = () => {
