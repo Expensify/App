@@ -28,7 +28,7 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
     const onHide = useCallback(() => {
         clearError();
         onModalHide?.();
-    }, [onModalHide, onClose]);
+    }, [onModalHide, clearError]);
 
     useEffect(() => {
         if (!firstRenderRef.current || !isVisible) {

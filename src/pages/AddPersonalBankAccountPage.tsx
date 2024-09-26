@@ -1,8 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -19,25 +17,18 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
-type AddPersonalBankAccountPageWithOnyxProps = {
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-
-    /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
-};
-
-function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersonalBankAccountPageWithOnyxProps) {
+function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const validateLoginError = ErrorUtils.getLatestErrorField(loginList?.[account?.primaryLogin ?? ''], 'validateLogin');
 
     const handleSubmitForm = useCallback(
@@ -143,12 +134,4 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
 }
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
-export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(AddPersonalBankAccountPage);
+export default AddPersonalBankAccountPage;
