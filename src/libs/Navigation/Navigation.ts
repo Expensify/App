@@ -20,6 +20,7 @@ import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
+import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import linkTo from './linkTo';
@@ -154,6 +155,13 @@ function getActiveRoute(): string {
         return routeFromState;
     }
 
+    return '';
+}
+
+function getReportRHPActiveRoute(): string {
+    if (isReportOpenInRHP(navigationRef.getRootState())) {
+        return getActiveRoute();
+    }
     return '';
 }
 
@@ -419,6 +427,7 @@ export default {
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,
+    getReportRHPActiveRoute,
     closeAndNavigate,
     goBack,
     isNavigationReady,

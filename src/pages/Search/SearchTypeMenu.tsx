@@ -43,6 +43,7 @@ type SavedSearchMenuItem = MenuItemBaseProps & {
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
+    searchName?: string;
 };
 
 type SearchTypeMenuItem = {
@@ -52,14 +53,14 @@ type SearchTypeMenuItem = {
     route?: Route;
 };
 
-function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [shouldHideSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, {initialValue: true});
+    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const personalDetails = usePersonalDetails();
@@ -99,7 +100,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [showDeleteModal],
     );
 
-    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean) => {
+    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
         let title = item.name;
         if (title === item.query) {
             const jsonQuery = SearchUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
@@ -115,16 +116,16 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             focused: Number(key) === hash,
             onPress: () => {
                 SearchActions.clearAllFilters();
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
             },
-            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
+            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(title, Number(key), item.query)} />,
             styles: [styles.alignItemsCenter],
         };
 
         if (!isNarrow) {
             return {
                 ...baseMenuItem,
-                shouldRenderTooltip: !shouldHideSavedSearchRenameTooltip,
+                shouldRenderTooltip: index === 0 && shouldShowSavedSearchRenameTooltip === true,
                 tooltipAnchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -132,8 +133,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftHorizontal: -32,
                 tooltipShiftVertical: 15,
                 tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                onHideTooltip: () => SearchActions.dismissSavedSearchRenameTooltip(),
                 renderTooltipContent: () => {
-                    SearchActions.dismissSavedSearchRenameTooltip();
                     return (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Expensicons.Lightbulb
@@ -178,7 +179,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        return Object.entries(savedSearches).map(([key, item]) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout));
+        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout, index));
     };
 
     const renderSavedSearchesSection = useCallback(
@@ -202,7 +203,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+        const title = searchName ?? (isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates));
 
         return (
             <SearchTypeMenuNarrow

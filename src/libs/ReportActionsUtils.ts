@@ -215,8 +215,11 @@ function isActionOfType<T extends ReportActionName[]>(
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
+        // eslint-disable-next-line
         return reportAction?.message ?? reportAction?.originalMessage;
     }
+
+    // eslint-disable-next-line
     return reportAction.originalMessage;
 }
 
@@ -593,6 +596,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 
     // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
     // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    // eslint-disable-next-line
     if (String(reportAction.sequenceNumber) === key) {
         Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
         return true;
@@ -753,6 +757,18 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
     return sortedReportActions[0];
 }
 
+function formatLastMessageText(lastMessageText: string) {
+    const trimmedMessage = String(lastMessageText).trim();
+
+    // Add support for inline code containing only space characters
+    // The message will appear as a blank space in the LHN
+    if ((trimmedMessage === '' && lastMessageText.length > 0) || (trimmedMessage === '?\u2026' && lastMessageText.length > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)) {
+        return ' ';
+    }
+
+    return StringUtils.lineBreaksToSpaces(trimmedMessage).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+}
+
 function getLastVisibleMessage(
     reportID: string,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
@@ -777,7 +793,7 @@ function getLastVisibleMessage(
 
     let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
     if (messageText) {
-        messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = formatLastMessageText(messageText);
     }
     return {
         lastMessageText: messageText,
@@ -994,20 +1010,20 @@ const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
     CONST.IOU.REPORT_ACTION_TYPE.TRACK,
 ]);
 
-/**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
+function getMoneyRequestActions(
+    reportID: string,
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+    isOffline: boolean | undefined = undefined,
+): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    // If the report is not an IOU, Expense report, or Invoice, it shouldn't have money request actions.
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-        return;
+        return [];
     }
 
     const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
-        return;
+        return [];
     }
 
     const iouRequestActions = [];
@@ -1035,6 +1051,15 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
             iouRequestActions.push(action);
         }
     }
+    return iouRequestActions;
+}
+
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
+    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
@@ -1052,6 +1077,27 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // Ensure we have a childReportID associated with the IOU report action
     return singleAction.childReportID;
+}
+
+/**
+ * Returns true if all transactions on the report have the same ownerID
+ */
+function hasSameActorForAllTransactions(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
+    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
+    if (!iouRequestActions.length) {
+        return true;
+    }
+
+    let actorID: number | undefined;
+
+    for (const action of iouRequestActions) {
+        if (actorID !== undefined && actorID !== action?.actorAccountID) {
+            return false;
+        }
+        actorID = action?.actorAccountID;
+    }
+
+    return true;
 }
 
 /**
@@ -1698,7 +1744,7 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
-    const assigneeAccountID = (reportAction?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
 
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
@@ -1732,6 +1778,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
+    formatLastMessageText,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
@@ -1754,6 +1801,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    // eslint-disable-next-line
     getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,
@@ -1834,6 +1882,7 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
+    hasSameActorForAllTransactions,
 };
 
 export type {LastVisibleMessage};

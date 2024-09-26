@@ -2170,6 +2170,8 @@ export default {
         },
         bookTravel: 'Reservar viajes',
         bookDemo: 'Pedir demostración',
+        bookADemo: 'Reserva una demo',
+        toLearnMore: ' para obtener más información.',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
@@ -2264,6 +2266,8 @@ export default {
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
+            authenticationError: (connectionName: string) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
+            learnMore: 'Más información.',
             memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
             adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
             auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
@@ -2517,8 +2521,6 @@ export default {
             syncReimbursedReportsDescription:
                 'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
             paymentAccount: 'Cuenta de pago Sage Intacct',
-            authenticationError: 'No se puede conectar a Sage Intacct debido a un error de autenticación. ',
-            learnMore: 'Más información.',
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
@@ -2926,6 +2928,7 @@ export default {
             startTransactionDate: 'Fecha de inicio de transacciones',
             cardName: 'Nombre de la tarjeta',
             assignedYouCard: (assigner: string) => `¡${assigner} te ha asignado una tarjeta de empresa! Las transacciones importadas aparecerán en este chat.`,
+            chooseCardFeed: 'Elige feed de tarjetas',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -3220,6 +3223,7 @@ export default {
             disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
             editTag: 'Editar etiqueta',
+            editTags: 'Editar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
