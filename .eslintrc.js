@@ -177,7 +177,7 @@ module.exports = {
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
         'es/no-optional-chaining': 'off',
-        'deprecation/deprecation': 'off',
+        'deprecation/deprecation': 'error',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
