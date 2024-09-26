@@ -72,18 +72,19 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
+    const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
-    const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(avatarSize);
+    const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
 
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
     }
 
     return (
-        <View style={[styles.chatItemMessage]}>
+        <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
@@ -110,7 +111,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             accessibilityLabel={translate('task.task')}
                         />
                     </View>
-                    {taskAssigneeAccountID > 0 && (
+                    {hasAssignee && (
                         <Avatar
                             containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
                             source={avatar}
