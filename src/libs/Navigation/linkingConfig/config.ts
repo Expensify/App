@@ -1111,7 +1111,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
                     screens: {
-                        [SCREENS.EDIT_REQUEST.REPORT_FIELD]: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
+                        [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
+                            path: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
+                            parse: {
+                                fieldID: (fieldID: string) => decodeURIComponent(fieldID),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SIGN_IN]: {
