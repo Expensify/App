@@ -32,8 +32,8 @@ import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults'
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import SearchRouterInput from './SearchRouter/SearchRouterInput';
 import SearchButton from './SearchRouter/SearchButton';
+import SearchRouterInput from './SearchRouter/SearchRouterInput';
 import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
@@ -288,8 +288,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const displaySearchRouter = SearchUtils.isCannedSearchQuery(queryJSON);
-
     return (
         <HeaderWrapper
             icon={headerIcon}
@@ -316,7 +314,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     onPress={onPress}
                 />
             )}
-            {displaySearchRouter && <SearchButton />}
+            {isCannedQuery && <SearchButton />}
         </HeaderWrapper>
     );
 }
