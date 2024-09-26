@@ -14,6 +14,9 @@ type SearchableData<T> = {
     toSearchableString: (data: T) => string;
 };
 
+// There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
+const charSetToSkip = new Set(['@', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!']);
+
 /**
  * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for (sub-)strings in a list of strings.
  * You can provide multiple datasets. The search results will be returned for each dataset.
@@ -25,9 +28,10 @@ function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
     const indexesByList: Array<Array<T | undefined>> = [];
     for (const {data, toSearchableString} of dataSet) {
         const [numericRepresentation, searchIndexList] = dataToNumericRepresentation({data, toSearchableString});
-        for (const num of numericRepresentation) {
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < numericRepresentation.length; i++) {
             // Note: we had to use a loop here as push with spread yields a maximum call stack exceeded error
-            listsAsConcatedNumericList.push(num);
+            listsAsConcatedNumericList.push(numericRepresentation[i]);
         }
         indexesByList.push(searchIndexList);
     }
@@ -47,13 +51,16 @@ function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
      * Searches for the given input and returns results for each dataset.
      */
     function search(searchInput: string): T[][] {
-        const searchValueNumeric = stringToNumeric(cleanString(searchInput));
+        const cleanedSearchString = cleanString(searchInput);
+        const searchValueNumeric = stringToNumeric(cleanedSearchString, charSetToSkip);
         const result = tree.findSubstring(searchValueNumeric);
 
         // Map the results to the original options
         const mappedResults = Array.from({length: indexesByList.length}, () => new Set<T>());
-        result.forEach((index) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let rI = 0; rI < result.length; rI++) {
             let offset = 0;
+            const index = result[rI];
             for (let i = 0; i < indexesByList.length; i++) {
                 const relativeIndex = index - offset + 1;
                 if (relativeIndex < indexesByList[i].length && relativeIndex >= 0) {
@@ -65,7 +72,7 @@ function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
                     offset += indexesByList[i].length;
                 }
             }
-        });
+        }
 
         return mappedResults.map((set) => Array.from(set));
     }
@@ -93,7 +100,7 @@ function dataToNumericRepresentation<T>({data, toSearchableString}: SearchableDa
             return;
         }
 
-        const numericRepresentation = stringToNumeric(cleanedSearchStringForTree);
+        const numericRepresentation = stringToNumeric(cleanedSearchStringForTree, charSetToSkip);
 
         // We need to push an array that has the same length as the length of the string we insert for this option:
         const indexes = Array.from({length: numericRepresentation.length}, () => option);
@@ -110,14 +117,14 @@ function dataToNumericRepresentation<T>({data, toSearchableString}: SearchableDa
 }
 
 // Removes any special characters, except for numbers and letters (including unicode letters)
-const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
+// const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
 
 /**
  * Everything in the tree is treated as lowercase. Strings will additionally be cleaned from
  * special characters, as they are irrelevant for the search, and thus we can save some space.
  */
 function cleanString(input: string) {
-    return input.toLowerCase().replace(nonAlphanumericRegex, '');
+    return input.toLowerCase(); // .replace(nonAlphanumericRegex, '');
 }
 
 const FastSearch = {

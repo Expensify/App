@@ -56,13 +56,17 @@ const letterMap = Array.from(ALPHABET).reduce((acc, char, index) => {
  *
  * Note: The string should be converted to lowercase first (otherwise uppercase letters get base26'ed taking more space than necessary).
  */
-function stringToNumeric(input: string): number[] {
+function stringToNumeric(input: string, charSetToSkip?: Set<string>): number[] {
     const maxSize = input.length * 2; // Estimate maximum size
     const res = new Array<number>(maxSize);
     let index = 0;
 
     for (let i = 0; i < input.length; i++) {
         const char = input[i];
+        if (charSetToSkip?.has(char)) {
+            continue;
+        }
+
         if (char >= 'a' && char <= 'z') {
             res[index++] = letterMap[char];
         } else {

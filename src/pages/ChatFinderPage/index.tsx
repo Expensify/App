@@ -99,26 +99,25 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
                 data: searchOptions.personalDetails,
                 toSearchableString: (option) => {
                     const displayName = option.participantsList?.[0]?.displayName ?? '';
-                    return (option.login ?? '') + (option.login !== displayName ? displayName : '');
+                    return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
                 },
             },
             {
                 data: searchOptions.recentReports,
                 toSearchableString: (option) => {
-                    let searchStringForTree = option.text ?? '';
-                    searchStringForTree += option.login ?? '';
+                    const searchStringForTree = [option.text ?? '', option.login ?? ''];
 
                     if (option.isThread) {
                         if (option.alternateText) {
-                            searchStringForTree += option.alternateText;
+                            searchStringForTree.push(option.alternateText);
                         }
                     } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
                         if (option.subtitle) {
-                            searchStringForTree += option.subtitle;
+                            searchStringForTree.push(option.subtitle);
                         }
                     }
 
-                    return searchStringForTree;
+                    return searchStringForTree.join();
                 },
             },
         ]);
