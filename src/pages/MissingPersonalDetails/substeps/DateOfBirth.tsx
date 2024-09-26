@@ -17,7 +17,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.DATE_OF_BIRTH];
 
-function DateOfBirthStep({isEditing, onNext, privatePersonalDetails}: CustomSubStepProps) {
+function DateOfBirthStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -27,7 +27,7 @@ function DateOfBirthStep({isEditing, onNext, privatePersonalDetails}: CustomSubS
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const validate = useCallback(
@@ -60,10 +60,9 @@ function DateOfBirthStep({isEditing, onNext, privatePersonalDetails}: CustomSubS
                     inputID={INPUT_IDS.DATE_OF_BIRTH}
                     label={translate('common.dob')}
                     placeholder={translate('common.dateFormat')}
-                    defaultValue={privatePersonalDetails?.dob}
+                    defaultValue={personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]}
                     minDate={minDate}
                     maxDate={maxDate}
-                    shouldSaveDraft={!isEditing}
                 />
             </View>
         </FormProvider>

@@ -17,7 +17,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME];
 
-function LegalNameStep({isEditing, onNext, privatePersonalDetails}: CustomSubStepProps) {
+function LegalNameStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -58,7 +58,7 @@ function LegalNameStep({isEditing, onNext, privatePersonalDetails}: CustomSubSte
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     return (
@@ -81,9 +81,8 @@ function LegalNameStep({isEditing, onNext, privatePersonalDetails}: CustomSubSte
                         label={translate('privatePersonalDetails.legalFirstName')}
                         aria-label={translate('privatePersonalDetails.legalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={privatePersonalDetails?.legalFirstName}
+                        defaultValue={personalDetailsValues[INPUT_IDS.LEGAL_FIRST_NAME]}
                         spellCheck={false}
-                        shouldSaveDraft={!isEditing}
                     />
                 </View>
                 <View style={[styles.flex2, styles.mb6]}>
@@ -94,9 +93,8 @@ function LegalNameStep({isEditing, onNext, privatePersonalDetails}: CustomSubSte
                         label={translate('privatePersonalDetails.legalLastName')}
                         aria-label={translate('privatePersonalDetails.legalLastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={privatePersonalDetails?.legalLastName}
+                        defaultValue={personalDetailsValues[INPUT_IDS.LEGAL_LAST_NAME]}
                         spellCheck={false}
-                        shouldSaveDraft={!isEditing}
                     />
                 </View>
             </View>

@@ -19,14 +19,14 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
-function PhoneNumberStep({isEditing, onNext, privatePersonalDetails}: CustomSubStepProps) {
+function PhoneNumberStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const validate = useCallback(
@@ -64,9 +64,8 @@ function PhoneNumberStep({isEditing, onNext, privatePersonalDetails}: CustomSubS
                     aria-label={translate('common.phoneNumber')}
                     role={CONST.ROLE.PRESENTATION}
                     inputMode={CONST.INPUT_MODE.TEL}
-                    defaultValue={privatePersonalDetails?.phoneNumber}
+                    defaultValue={personalDetailsValues[INPUT_IDS.PHONE_NUMBER]}
                     containerStyles={[styles.mt6]}
-                    shouldSaveDraft={!isEditing}
                 />
             </View>
         </FormProvider>

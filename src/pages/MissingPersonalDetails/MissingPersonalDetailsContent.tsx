@@ -109,7 +109,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, cardList, draftV
                 onNext={handleNextScreen}
                 onMove={moveTo}
                 screenIndex={screenIndex}
-                privatePersonalDetails={privatePersonalDetails}
+                personalDetailsValues={values}
             />
         </ScreenWrapper>
     );

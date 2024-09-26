@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -10,24 +9,15 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import {getSubstepValues} from '@pages/MissingPersonalDetails/utils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const PERSONAL_DETAILS_STEP_INDEXES = CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
 
-function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepProps) {
+function Confirmation({personalDetailsValues: values, onNext, onMove}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-
-    const [draftValues, formMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
-
-    const values = getSubstepValues(privatePersonalDetails, draftValues);
-
-    const isLoading = isLoadingOnyxValue(formMetadata);
 
     return (
         <SafeAreaConsumer>
@@ -39,7 +29,7 @@ function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepPro
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('personalInfoStep.legalName')}
-                        title={`${values[INPUT_IDS.LEGAL_FIRST_NAME].trim()} ${values[INPUT_IDS.LEGAL_LAST_NAME].trim()}`}
+                        title={`${values[INPUT_IDS.LEGAL_FIRST_NAME]} ${values[INPUT_IDS.LEGAL_LAST_NAME]}`}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(PERSONAL_DETAILS_STEP_INDEXES.LEGAL_NAME);
@@ -55,9 +45,9 @@ function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepPro
                     />
                     <MenuItemWithTopDescription
                         description={translate('personalInfoStep.address')}
-                        title={`${values[INPUT_IDS.ADDRESS_LINE_1].trim()}, ${values[INPUT_IDS.ADDRESS_LINE_2].trim() ? `${values[INPUT_IDS.ADDRESS_LINE_2].trim()}, ` : ''}${values[
-                            INPUT_IDS.CITY
-                        ].trim()}, ${values[INPUT_IDS.STATE].trim()}, ${values[INPUT_IDS.ZIP_POST_CODE].trim().toUpperCase()}, ${values[INPUT_IDS.COUNTRY]}`}
+                        title={`${values[INPUT_IDS.ADDRESS_LINE_1]}, ${values[INPUT_IDS.ADDRESS_LINE_2] ? `${values[INPUT_IDS.ADDRESS_LINE_2]}, ` : ''}${values[INPUT_IDS.CITY]}, ${
+                            values[INPUT_IDS.STATE]
+                        }, ${values[INPUT_IDS.ZIP_POST_CODE].toUpperCase()}, ${values[INPUT_IDS.COUNTRY]}`}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(PERSONAL_DETAILS_STEP_INDEXES.ADDRESS);
@@ -76,7 +66,6 @@ function Confirmation({privatePersonalDetails, onNext, onMove}: CustomSubStepPro
                             isDisabled={isOffline}
                             success
                             large
-                            isLoading={isLoading}
                             style={[styles.w100]}
                             onPress={onNext}
                             text={translate('common.confirm')}
