@@ -393,6 +393,8 @@ function ReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? ''}), [report?.reportID]);
+
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
             return [
@@ -891,8 +893,6 @@ function ReportActionItem({
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
-
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? ''}), [report?.reportID]);
 
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
