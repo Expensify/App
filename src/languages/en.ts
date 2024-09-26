@@ -97,6 +97,7 @@ import type {
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
+    OnBehalfOfParams,
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
     OptionalParam,
@@ -4818,7 +4819,7 @@ const translations = {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
-        onBehalfOfMessage: (delegator: string) => `on behalf of ${delegator}`,
+        onBehalfOfMessage: ({delegator}: OnBehalfOfParams) => `on behalf of ${delegator}`,
         accessLevel: 'Access level',
         confirmCopilot: 'Confirm your copilot below.',
         accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',

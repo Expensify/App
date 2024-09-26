@@ -546,6 +546,10 @@ type AuthenticationErrorParams = {
     connectionName: string;
 };
 
+type OnBehalfOfParams = {
+    delegator: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -748,4 +752,5 @@ export type {
     CharacterLengthLimitParams,
     OptionalParam,
     AssignCardParams,
+    OnBehalfOfParams,
 };
