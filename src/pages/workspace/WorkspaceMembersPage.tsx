@@ -536,35 +536,35 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!isPolicyAdmin) {
             return null;
         }
-        return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
-                    <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                        shouldAlwaysShowDropdownMenu
-                        pressOnEnter
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        onPress={() => null}
-                        options={getBulkActionsButtonOptions()}
-                        isSplitButton={false}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                        isDisabled={!selectedEmployees.length}
-                    />
-                ) : (
-                    <Button
-                        success
-                        onPress={inviteUser}
-                        text={translate('workspace.invite.member')}
-                        icon={Expensicons.Plus}
-                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    />
-                )}
-            </View>
+        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+            <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                onPress={() => null}
+                options={getBulkActionsButtonOptions()}
+                isSplitButton={false}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedEmployees.length}
+            />
+        ) : (
+            <Button
+                success
+                onPress={inviteUser}
+                text={translate('workspace.invite.member')}
+                icon={Expensicons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            />
         );
     };
 
     const threeDotsMenuItems = useMemo(() => {
+        if (!isPolicyAdmin) {
+            return [];
+        }
+
         const menuItems = [
             {
                 icon: Expensicons.Table,
@@ -596,7 +596,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [policyID, translate, isOffline, isPolicyAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -610,7 +610,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowThreeDotsButton
+            shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
             threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             shouldShowNonAdmin

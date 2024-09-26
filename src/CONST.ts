@@ -171,7 +171,7 @@ const CONST = {
     },
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
-    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -2097,6 +2097,9 @@ const CONST = {
         },
         ACCESS_VARIANTS: {
             CREATE: 'create',
+        },
+        PAGE_INDEX: {
+            CONFIRM: 'confirm',
         },
         PAYMENT_SELECTED: {
             BBA: 'BBA',
@@ -4557,7 +4560,7 @@ const CONST = {
                 {
                     type: 'setupTags',
                     autoCompleted: false,
-                    title: 'Set up tags (optional)',
+                    title: 'Set up tags',
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
                         '\n' +

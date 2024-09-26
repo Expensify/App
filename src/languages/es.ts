@@ -2170,6 +2170,8 @@ export default {
         },
         bookTravel: 'Reservar viajes',
         bookDemo: 'Pedir demostración',
+        bookADemo: 'Reserva una demo',
+        toLearnMore: ' para obtener más información.',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
@@ -3221,6 +3223,7 @@ export default {
             disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
             editTag: 'Editar etiqueta',
+            editTags: 'Editar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',

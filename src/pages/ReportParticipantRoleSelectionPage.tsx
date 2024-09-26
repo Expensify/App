@@ -30,7 +30,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const styles = useThemeStyles();
 
     const accountID = Number(route?.params?.accountID) ?? -1;
-    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '-1', accountID);
+    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '-1', accountID, route.params.backTo);
     const member = report.participants?.[accountID];
 
     if (!member) {
