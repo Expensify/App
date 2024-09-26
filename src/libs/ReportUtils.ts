@@ -127,6 +127,7 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childCommenterCount'
     | 'childLastVisibleActionCreated'
     | 'childOldestFourAccountIDs'
+    | 'delegateAccountID'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -180,6 +181,7 @@ type OptimisticIOUReportAction = Pick<
     | 'childReportID'
     | 'childVisibleActionCount'
     | 'childCommenterCount'
+    | 'delegateAccountID'
 >;
 
 type PartialReportAction = OnyxInputOrEntry<ReportAction> | Partial<ReportAction> | OptimisticIOUReportAction | OptimisticApprovedReportAction | OptimisticSubmittedReportAction | undefined;
@@ -196,12 +198,36 @@ type ReportOfflinePendingActionAndErrors = {
 
 type OptimisticApprovedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticUnapprovedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticSubmittedReportAction = Pick<
@@ -219,6 +245,7 @@ type OptimisticSubmittedReportAction = Pick<
     | 'shouldShow'
     | 'created'
     | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticHoldReportAction = Pick<
@@ -233,7 +260,7 @@ type OptimisticCancelPaymentReportAction = Pick<
 
 type OptimisticEditedTaskReportAction = Pick<
     ReportAction,
-    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person'
+    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person' | 'delegateAccountID'
 >;
 
 type OptimisticClosedReportAction = Pick<
@@ -248,7 +275,7 @@ type OptimisticDismissedViolationReportAction = Pick<
 
 type OptimisticCreatedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>,
-    'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName'
+    'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'delegateAccountID'
 >;
 
 type OptimisticRenamedReportAction = Pick<
@@ -321,6 +348,7 @@ type OptimisticTaskReportAction = Pick<
     | 'previousMessage'
     | 'errors'
     | 'linkMetadata'
+    | 'delegateAccountID'
 >;
 
 type OptimisticWorkspaceChats = {
@@ -340,7 +368,19 @@ type OptimisticWorkspaceChats = {
 
 type OptimisticModifiedExpenseReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachmentOnly' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'isAttachmentOnly'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'pendingAction'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'delegateAccountID'
 > & {reportID?: string};
 
 type OptimisticTaskReport = Pick<
@@ -635,6 +675,14 @@ let onboarding: OnyxEntry<Onboarding | []>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
+});
+
+let delegateEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        delegateEmail = value?.delegatedAccess?.delegate ?? '';
+    },
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -4149,6 +4197,7 @@ function buildOptimisticAddCommentReportAction(
     const isAttachmentOnly = file && !text;
     const isAttachmentWithText = !!text && file !== undefined;
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     // Remove HTML from text when applying optimistic offline comment
     return {
@@ -4185,6 +4234,7 @@ function buildOptimisticAddCommentReportAction(
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
             isOptimisticAction: true,
+            delegateAccountID: delegateAccountDetails?.accountID,
         },
     };
 }
@@ -4613,6 +4663,8 @@ function buildOptimisticIOUReportAction(
         type,
     };
 
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // In pay someone flow, we store amount, comment, currency in IOUDetails when type = pay
         if (isSendMoneyFlow) {
@@ -4664,6 +4716,7 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4676,6 +4729,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         currency,
         expenseReportID,
     };
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
@@ -4696,6 +4750,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4703,6 +4758,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
 function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticUnapprovedReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         actorAccountID: currentUserAccountID,
@@ -4726,6 +4782,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4782,6 +4839,8 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         expenseReportID,
     };
 
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: currentUserAccountID,
@@ -4802,6 +4861,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4902,6 +4962,8 @@ function buildOptimisticModifiedExpenseReportAction(
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
@@ -4929,6 +4991,7 @@ function buildOptimisticModifiedExpenseReportAction(
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThread?.reportID,
         shouldShow: true,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4938,6 +5001,8 @@ function buildOptimisticModifiedExpenseReportAction(
  * @param movedToReportID - The reportID of the report the transaction is moved to
  */
 function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
@@ -4967,6 +5032,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThreadID,
         shouldShow: true,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -5042,6 +5108,8 @@ function buildOptimisticTaskReportAction(
         html: message,
         whisperedTo: [],
     };
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName,
         actorAccountID,
@@ -5068,6 +5136,7 @@ function buildOptimisticTaskReportAction(
         created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
         isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -5397,6 +5466,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
     } else if (field) {
         changelog = `removed the ${field}`;
     }
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     return {
         reportActionID: NumberUtils.rand64(),
@@ -5421,10 +5491,13 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
 function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
@@ -5448,6 +5521,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
