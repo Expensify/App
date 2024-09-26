@@ -115,23 +115,23 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                 return translateResult;
             }
 
-            const phraseObject = parameters[0];
-            if (phraseObject && typeof phraseObject === 'object' && 'count' in phraseObject && typeof phraseObject.count === 'number') {
-                const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
-
-                const pluralResult = translateResult[pluralRule];
-                if (pluralResult) {
-                    if (typeof pluralResult === 'string') {
-                        return pluralResult;
-                    }
-
-                    return pluralResult(phraseObject.count);
-                }
-
-                return translateResult.other(phraseObject.count);
+            const phraseObject = parameters[0] as {count?: number};
+            if (typeof phraseObject?.count !== 'number') {
+                throw new Error(`Invalid plural form for '${phraseKey}'`);
             }
 
-            throw new Error(`Invalid plural form for '${phraseKey}'`);
+            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+
+            const pluralResult = translateResult[pluralRule];
+            if (pluralResult) {
+                if (typeof pluralResult === 'string') {
+                    return pluralResult;
+                }
+
+                return pluralResult(phraseObject.count);
+            }
+
+            return translateResult.other(phraseObject.count);
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
