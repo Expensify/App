@@ -35,6 +35,7 @@ function IOURequestStartPage({
     route: {
         params: {iouType, reportID},
     },
+    navigation,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
