@@ -29,10 +29,13 @@ function SelectionListWithModal<TItem extends ListItem>(
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectionMode} = useMobileSelectionMode(shouldAutoTurnOff);
     const wasSelectionOnRef = useRef(false);
+    const selectionRef = useRef(0);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems = sections[0].data.filter((item) => !!item.isSelected || (item as unknown as ReportListItemType)?.transactions?.some((transaction) => transaction.isSelected));
+        selectionRef.current = selectedItems.length;
+
         if (!isSmallScreenWidth) {
             if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
@@ -48,6 +51,16 @@ function SelectionListWithModal<TItem extends ListItem>(
             turnOffMobileSelectionMode();
         }
     }, [sections, selectionMode, isSmallScreenWidth]);
+
+    useEffect(
+        () => () => {
+            if (selectionRef.current !== 0) {
+                return;
+            }
+            turnOffMobileSelectionMode();
+        },
+        [],
+    );
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
