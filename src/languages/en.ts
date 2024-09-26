@@ -54,6 +54,7 @@ import type {
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
     DelegateSubmitParams,
+    DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DeleteExpenseTranslationParams,
@@ -4818,7 +4819,7 @@ const translations = {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
-        onBehalfOfMessage: (delegator: string) => `on behalf of ${delegator}`,
+        onBehalfOfMessage: ({delegator}: DelegatorParams) => `on behalf of ${delegator}`,
         accessLevel: 'Access level',
         confirmCopilot: 'Confirm your copilot below.',
         accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
