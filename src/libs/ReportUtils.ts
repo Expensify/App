@@ -19,7 +19,8 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
+import type {ParentNavigationSummaryParams} from '@src/languages/params';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -83,7 +84,6 @@ import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
-import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -459,6 +459,7 @@ type OptionData = {
     tabIndex?: 0 | -1;
     isConciergeChat?: boolean;
     isBold?: boolean;
+    lastIOUCreationDate?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -1581,11 +1582,19 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 }
 
 /**
+ * Checks if a report has only transactions with same ownerID
+ */
+function isSingleActorMoneyReport(reportID: string): boolean {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    return !!ReportActionsUtils.hasSameActorForAllTransactions(reportID, reportActions);
+}
+
+/**
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-    return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
+    return !!ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions);
 }
 
 /*
@@ -1830,7 +1839,8 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
-    return StringUtils.lineBreaksToSpaces(String(lastMessageText).trim()).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+
+    return ReportActionsUtils.formatLastMessageText(lastMessageText);
 }
 
 /**
@@ -2217,7 +2227,7 @@ function getIcons(
     if (isChatThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-        const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
+        const actorAccountID = getReportActionActorAccountID(parentReportAction);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
@@ -2312,7 +2322,7 @@ function getIcons(
         const isManager = currentUserAccountID === report?.managerID;
 
         // For one transaction IOUs, display a simplified report icon
-        if (isOneTransactionReport(report?.reportID ?? '-1')) {
+        if (isOneTransactionReport(report?.reportID ?? '-1') || isSingleActorMoneyReport(report?.reportID ?? '-1')) {
             return [ownerIcon];
         }
 
@@ -3127,7 +3137,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string, searchHash?: number): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -3144,11 +3154,13 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
+        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '', searchHash);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
+        Navigation.navigate(
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute, searchHash),
+        );
     }
 };
 
@@ -4826,9 +4838,9 @@ function buildOptimisticReportPreview(
             },
         ],
         created,
-        accountID: iouReport?.managerID ?? -1,
+        accountID: iouReport?.ownerAccountID ?? -1,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? -1,
+        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.ownerAccountID ?? -1,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
@@ -6649,7 +6661,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isExpenseReport(report) && isOneTransactionReport(report?.reportID ?? '-1')) {
+    if (isExpenseReport(report)) {
         return true;
     }
 
@@ -6661,7 +6673,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isInvoiceRoom(report)) {
+    if (isInvoiceRoom(report) || isInvoiceReport(report)) {
         return true;
     }
 
@@ -7543,10 +7555,10 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined): number | undefined {
+function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
-            return !isEmptyObject(iouReport) ? iouReport.managerID : reportAction?.childManagerAccountID;
+            return reportAction?.childOwnerAccountID ?? reportAction?.actorAccountID;
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
@@ -7701,7 +7713,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 
     switch (violation) {
         case 'fieldRequired':
-            return Localize.translateLocal('reportViolations.fieldRequired', reportField.name);
+            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
         default:
             return '';
     }
@@ -7815,8 +7827,8 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
 }
 
-function isExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID;
+function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
 export {
@@ -8014,7 +8026,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
-    isExpenseReportManagerWithoutParentAccess,
+    isExpenseReportWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
@@ -8127,6 +8139,7 @@ export {
     isIndividualInvoiceRoom,
     isAuditor,
     hasMissingInvoiceBankAccount,
+    isSingleActorMoneyReport,
 };
 
 export type {

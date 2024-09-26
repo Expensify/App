@@ -40,9 +40,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     {translate('workspace.common.moreFeatures').toLowerCase()}
                 </TextLink>{' '}
                 {variant === 'unlock' ? (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', featureName)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName})}</Text>
                 ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', featureName)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName})}</Text>
                 )}
             </Text>
         );
