@@ -2143,7 +2143,14 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         return report.reportName;
     }
 
-    let participantAccountIDs = participants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
+    const pendingMemberAccountIDs = new Set(
+        report?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
+    );
+    let participantAccountIDs =
+        participants?.map((participant) => participant.accountID) ??
+        Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => !pendingMemberAccountIDs.has(accountID.toString()));
     if (shouldApplyLimit) {
         participantAccountIDs = participantAccountIDs.slice(0, 5);
     }
@@ -7808,8 +7815,8 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
 }
 
-function isExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID;
+function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
 export {
@@ -8007,7 +8014,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
-    isExpenseReportManagerWithoutParentAccess,
+    isExpenseReportWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
