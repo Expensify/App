@@ -672,7 +672,7 @@ jobs:
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ needs.android.result }}
+      android: ${{ github.ref == 'refs/heads/production' && needs.submitAndroid.result || needs.uploadAndroid.result }}
       ios: ${{ needs.iOS.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}

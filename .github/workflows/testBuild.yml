@@ -65,7 +65,6 @@ jobs:
     uses: ./.github/workflows/buildAndroid.yml
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     needs: [validateActor, getBranchRef]
-    id: buildAndroid
     secrets: inherit
     with:
       type: adhoc
