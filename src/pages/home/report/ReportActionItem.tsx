@@ -9,6 +9,7 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
@@ -891,99 +892,103 @@ function ReportActionItem({
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? ''}), [report?.reportID]);
+
     return (
-        <PressableWithSecondaryInteraction
-            ref={popoverAnchorRef}
-            onPress={draftMessage === undefined ? onPress : undefined}
-            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
-            onPressIn={() => shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={() => ControlSelection.unblock()}
-            onSecondaryInteraction={showPopover}
-            preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
-            withoutFocusOnSecondaryInteraction
-            accessibilityLabel={translate('accessibilityHints.chatMessage')}
-            accessible
-        >
-            <Hoverable
-                shouldHandleScroll
-                isDisabled={draftMessage !== undefined}
+        <MentionReportContext.Provider value={mentionReportContextValue}>
+            <PressableWithSecondaryInteraction
+                ref={popoverAnchorRef}
+                onPress={draftMessage === undefined ? onPress : undefined}
+                style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+                onPressIn={() => shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onSecondaryInteraction={showPopover}
+                preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
+                withoutFocusOnSecondaryInteraction
+                accessibilityLabel={translate('accessibilityHints.chatMessage')}
+                accessible
             >
-                {(hovered) => (
-                    <View style={highlightedBackgroundColorIfNeeded}>
-                        {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        {shouldDisplayContextMenu && (
-                            <MiniReportActionContextMenu
-                                reportID={reportID}
-                                reportActionID={action.reportActionID}
-                                anchor={popoverAnchorRef}
-                                originalReportID={originalReportID}
-                                isArchivedRoom={isArchivedRoom}
-                                displayAsGroup={displayAsGroup}
-                                disabledActions={disabledActions}
-                                isVisible={hovered && draftMessage === undefined && !hasErrors}
-                                draftMessage={draftMessage}
-                                isChronosReport={isChronosReport}
-                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                setIsEmojiPickerActive={setIsEmojiPickerActive}
-                            />
-                        )}
-                        <View
-                            style={StyleUtils.getReportActionItemStyle(
-                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
-                                draftMessage === undefined && !!onPress,
+                <Hoverable
+                    shouldHandleScroll
+                    isDisabled={draftMessage !== undefined}
+                >
+                    {(hovered) => (
+                        <View style={highlightedBackgroundColorIfNeeded}>
+                            {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
+                            {shouldDisplayContextMenu && (
+                                <MiniReportActionContextMenu
+                                    reportID={reportID}
+                                    reportActionID={action.reportActionID}
+                                    anchor={popoverAnchorRef}
+                                    originalReportID={originalReportID}
+                                    isArchivedRoom={isArchivedRoom}
+                                    displayAsGroup={displayAsGroup}
+                                    disabledActions={disabledActions}
+                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                    draftMessage={draftMessage}
+                                    isChronosReport={isChronosReport}
+                                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                                    setIsEmojiPickerActive={setIsEmojiPickerActive}
+                                />
                             )}
-                        >
-                            <OfflineWithFeedback
-                                onClose={() => {
-                                    const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        Transaction.clearError(transactionID);
-                                    }
-                                    ReportActions.clearAllRelatedReportActionErrors(reportID, action);
-                                }}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                pendingAction={
-                                    draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
-                                }
-                                shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, reportID)}
-                                errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                                needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
-                                shouldDisableStrikeThrough
+                            <View
+                                style={StyleUtils.getReportActionItemStyle(
+                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
+                                    draftMessage === undefined && !!onPress,
+                                )}
                             >
-                                {isWhisper && (
-                                    <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
-                                        <View style={[styles.pl6, styles.mr3]}>
-                                            <Icon
-                                                fill={theme.icon}
-                                                src={Expensicons.Eye}
-                                                small
+                                <OfflineWithFeedback
+                                    onClose={() => {
+                                        const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+                                        if (transactionID) {
+                                            Transaction.clearError(transactionID);
+                                        }
+                                        ReportActions.clearAllRelatedReportActionErrors(reportID, action);
+                                    }}
+                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                    pendingAction={
+                                        draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
+                                    }
+                                    shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, reportID)}
+                                    errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                    needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
+                                    shouldDisableStrikeThrough
+                                >
+                                    {isWhisper && (
+                                        <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
+                                            <View style={[styles.pl6, styles.mr3]}>
+                                                <Icon
+                                                    fill={theme.icon}
+                                                    src={Expensicons.Eye}
+                                                    small
+                                                />
+                                            </View>
+                                            <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                                                {translate('reportActionContextMenu.onlyVisible')}
+                                                &nbsp;
+                                            </Text>
+                                            <DisplayNames
+                                                fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo) ?? ''}
+                                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
+                                                shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                             />
                                         </View>
-                                        <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                                            {translate('reportActionContextMenu.onlyVisible')}
-                                            &nbsp;
-                                        </Text>
-                                        <DisplayNames
-                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo) ?? ''}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
-                                            shouldUseFullTitle={isWhisperOnlyVisibleByUser}
-                                        />
-                                    </View>
-                                )}
-                                {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
-                            </OfflineWithFeedback>
+                                    )}
+                                    {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                </OfflineWithFeedback>
+                            </View>
                         </View>
-                    </View>
-                )}
-            </Hoverable>
-            <View style={styles.reportActionSystemMessageContainer}>
-                <InlineSystemMessage message={action.error} />
-            </View>
-        </PressableWithSecondaryInteraction>
+                    )}
+                </Hoverable>
+                <View style={styles.reportActionSystemMessageContainer}>
+                    <InlineSystemMessage message={action.error} />
+                </View>
+            </PressableWithSecondaryInteraction>
+        </MentionReportContext.Provider>
     );
 }
 
