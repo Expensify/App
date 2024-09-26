@@ -92,6 +92,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
     const {selectionMode} = useMobileSelectionMode();
+    const [shouldPreserveSelection, setShouldPreserveSelection] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
@@ -144,10 +145,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
-        if (!isFocused) {
-            setSelectedEmployees([]);
+        if (isFocused || shouldPreserveSelection) {
+            setShouldPreserveSelection(false);
             return;
         }
+        setSelectedEmployees([]);
         getWorkspaceMembers();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
@@ -570,6 +572,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
+                    setShouldPreserveSelection(true);
                     if (isOffline) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
@@ -674,7 +677,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
-                            onSelectRow={openMemberDetails}
+                            onSelectRow={(item) => {selectionMode?.isEnabled ? (!item.isDisabledCheckbox && toggleUser(item?.accountID)):(setShouldPreserveSelection(true),openMemberDetails(item))}}
                             shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}

@@ -53,6 +53,7 @@ function PolicyDistanceRatesPage({
     const isFocused = useIsFocused();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
+    const [shouldPreserveSelection, setShouldPreserveSelection] = useState(false);
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -93,7 +94,8 @@ function PolicyDistanceRatesPage({
     );
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused || shouldPreserveSelection) {
+            setShouldPreserveSelection(false);
             return;
         }
         setSelectedDistanceRates([]);
@@ -322,7 +324,7 @@ function PolicyDistanceRatesPage({
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         sections={[{data: distanceRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleRate}
-                        onSelectRow={openRateDetails}
+                        onSelectRow={(item) => {selectionMode?.isEnabled ? toggleRate(item):(setShouldPreserveSelection(true),openRateDetails(item))}}
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
                         ListItem={TableListItem}

@@ -65,6 +65,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {selectionMode} = useMobileSelectionMode();
+    const [shouldPreserveSelection, setShouldPreserveSelection] = useState(false);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
@@ -80,7 +81,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     useFocusEffect(fetchTags);
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused || shouldPreserveSelection) {
+            setShouldPreserveSelection(false);
             return;
         }
         setSelectedTags({});
@@ -300,6 +302,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
+                    setShouldPreserveSelection(true);
                     if (isOffline) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
@@ -420,7 +423,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
+                        onSelectRow={(item) => {selectionMode?.isEnabled ? toggleTag(item): (setShouldPreserveSelection(true),navigateToTagSettings(item))}}
                         shouldSingleExecuteRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}

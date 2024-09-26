@@ -55,6 +55,7 @@ function WorkspaceTaxesPage({
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {selectionMode} = useMobileSelectionMode();
+    const [shouldPreserveSelection, setShouldPreserveSelection] = useState(false);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
@@ -77,7 +78,8 @@ function WorkspaceTaxesPage({
     );
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused || shouldPreserveSelection) {
+            setShouldPreserveSelection(false);
             return;
         }
         setSelectedTaxesIDs([]);
@@ -313,7 +315,7 @@ function WorkspaceTaxesPage({
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     sections={[{data: taxesList, isDisabled: false}]}
                     onCheckboxPress={toggleTax}
-                    onSelectRow={navigateToEditTaxRate}
+                    onSelectRow={(item) => {selectionMode?.isEnabled ? toggleTax(item):(setShouldPreserveSelection(true),navigateToEditTaxRate(item))}}
                     onSelectAll={toggleAllTaxes}
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}

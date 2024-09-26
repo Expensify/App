@@ -72,6 +72,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
+    const [shouldPreserveSelection, setShouldPreserveSelection] = useState(false);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
@@ -91,7 +92,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused || shouldPreserveSelection) {
+            setShouldPreserveSelection(false);
             return;
         }
         setSelectedCategories({});
@@ -308,6 +310,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
+                    setShouldPreserveSelection(true);
                     if (isOffline) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
@@ -409,7 +412,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         sections={[{data: categoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}
-                        onSelectRow={navigateToCategorySettings}
+                        onSelectRow={(item) => {selectionMode?.isEnabled ? toggleCategory(item): (setShouldPreserveSelection(true),navigateToCategorySettings(item))}}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         onSelectAll={toggleAllCategories}
                         ListItem={TableListItem}

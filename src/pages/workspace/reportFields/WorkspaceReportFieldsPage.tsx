@@ -74,6 +74,7 @@ function WorkspaceReportFieldsPage({
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
+    const [shouldPreserveSelection, setShouldPreserveSelection] = useState(false);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -92,7 +93,8 @@ function WorkspaceReportFieldsPage({
     useFocusEffect(fetchReportFields);
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused || shouldPreserveSelection) {
+            setShouldPreserveSelection(false);
             return;
         }
         setSelectedReportFields([]);
@@ -304,7 +306,7 @@ function WorkspaceReportFieldsPage({
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={navigateToReportFieldsSettings}
+                        onSelectRow={(item) => {selectionMode?.isEnabled ? updateSelectedReportFields(item):(setShouldPreserveSelection(true),navigateToReportFieldsSettings(item))}}
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
