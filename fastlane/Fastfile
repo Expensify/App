@@ -104,7 +104,7 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
-  lane :build_e2eDelta
+  lane :build_e2eDelta do
     ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
     ENV["E2E_TESTING"]="true"
