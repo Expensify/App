@@ -12,6 +12,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
@@ -78,10 +79,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
@@ -534,35 +536,35 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!isPolicyAdmin) {
             return null;
         }
-        return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
-                    <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                        shouldAlwaysShowDropdownMenu
-                        pressOnEnter
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        onPress={() => null}
-                        options={getBulkActionsButtonOptions()}
-                        isSplitButton={false}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                        isDisabled={!selectedEmployees.length}
-                    />
-                ) : (
-                    <Button
-                        success
-                        onPress={inviteUser}
-                        text={translate('workspace.invite.member')}
-                        icon={Expensicons.Plus}
-                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    />
-                )}
-            </View>
+        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+            <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                onPress={() => null}
+                options={getBulkActionsButtonOptions()}
+                isSplitButton={false}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedEmployees.length}
+            />
+        ) : (
+            <Button
+                success
+                onPress={inviteUser}
+                text={translate('workspace.invite.member')}
+                icon={Expensicons.Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            />
         );
     };
 
     const threeDotsMenuItems = useMemo(() => {
+        if (!isPolicyAdmin) {
+            return [];
+        }
+
         const menuItems = [
             {
                 icon: Expensicons.Table,
@@ -583,13 +585,18 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Member.downloadMembersCSV(policyID);
+
+                    Modal.close(() => {
+                        Member.downloadMembersCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    });
                 },
             },
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [policyID, translate, isOffline, isPolicyAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -603,7 +610,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowThreeDotsButton
+            shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
             threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             shouldShowNonAdmin
@@ -645,6 +652,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 textInputRef.current.focus();
                             });
                         }}
+                    />
+                    <DecisionModal
+                        title={translate('common.downloadFailedTitle')}
+                        prompt={translate('common.downloadFailedDescription')}
+                        isSmallScreenWidth={isSmallScreenWidth}
+                        onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                        secondOptionText={translate('common.buttonConfirm')}
+                        isVisible={isDownloadFailureModalVisible}
+                        onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
                     <View style={[styles.w100, styles.flex1]}>
                         <SelectionListWithModal

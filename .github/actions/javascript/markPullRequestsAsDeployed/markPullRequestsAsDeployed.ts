@@ -55,9 +55,16 @@ async function run() {
     const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}) as PlatformResult);
     const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}) as PlatformResult);
 
+    const date = core.getInput('DATE');
+    const note = core.getInput('NOTE');
+
     function getDeployMessage(deployer: string, deployVerb: string, prTitle?: string): string {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-        message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
+        message += ` by https://github.com/${deployer} in version: ${version} `;
+        if (date) {
+            message += `on ${date}`;
+        }
+        message += `🚀`;
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
 
@@ -65,6 +72,10 @@ async function run() {
             // eslint-disable-next-line max-len
             message +=
                 '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+        }
+
+        if (note) {
+            message += `\n\n_Note:_ ${note}`;
         }
 
         return message;
