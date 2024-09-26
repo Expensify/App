@@ -4,7 +4,7 @@ import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -63,6 +63,9 @@ type ReimbursementAccountOnyxProps = {
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: OnyxEntry<string>;
+
+    /** The application id which connected to onfido session */
+    onfidoApplicantID: OnyxEntry<string>;
 };
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps &
@@ -128,6 +131,7 @@ function ReimbursementAccountPage({
     reimbursementAccount,
     route,
     onfidoToken = '',
+    onfidoApplicantID = '',
     policy,
     account,
     isLoadingApp = false,
@@ -225,6 +229,7 @@ function ReimbursementAccountPage({
     const prevIsReimbursementAccountLoading = usePrevious(reimbursementAccount?.isLoading);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
+    const onfidoLocalTokensRef = useRef({onfidoToken: '', onfidoApplicantID: ''});
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -242,6 +247,20 @@ function ReimbursementAccountPage({
         const localCurrentStep = achData?.currentStep ?? '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, ignoreLocalSubStep ? '' : subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
     }
+
+    useEffect(() => {
+        if (!onfidoToken) {
+            return;
+        }
+        onfidoLocalTokensRef.current = {onfidoToken, onfidoApplicantID};
+    }, [onfidoToken, onfidoApplicantID]);
+
+    useEffect(() => {
+        if (!prevIsReimbursementAccountLoading && !onfidoLocalTokensRef.current.onfidoToken) {
+            return;
+        }
+        BankAccounts.setLocalOnfidoTokens(onfidoLocalTokensRef.current.onfidoToken, onfidoLocalTokensRef.current.onfidoApplicantID);
+    }, [prevIsReimbursementAccountLoading]);
 
     useEffect(() => {
         if (!isReimbursementAccountLoading) {
@@ -526,6 +545,9 @@ export default withPolicy(
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
+        },
+        onfidoApplicantID: {
+            key: ONYXKEYS.ONFIDO_APPLICANT_ID,
         },
         isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,

@@ -117,6 +117,11 @@ function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_ID, '');
 }
 
+function setLocalOnfidoTokens(token: string, applicationID: string) {
+    Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, token);
+    Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_ID, applicationID);
+}
+
 function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccountForm>) {
     Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, bankData);
 }
@@ -546,6 +551,7 @@ export {
     addBusinessWebsiteForDraft,
     addPersonalBankAccount,
     clearOnfidoToken,
+    setLocalOnfidoTokens,
     clearPersonalBankAccount,
     clearPlaid,
     setPlaidEvent,

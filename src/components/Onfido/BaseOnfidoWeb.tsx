@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -23,7 +23,7 @@ type OnfidoEvent = Event & {
 };
 
 function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}: InitializeOnfidoProps) {
-    OnfidoSDK.init({
+    return OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         customUI: {
@@ -94,10 +94,13 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error: OnfidoError) => {
+        onError: (error) => {
             const errorType = error.type;
             const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
+            if (errorType === CONST.WALLET.ERROR.ONFIDO_EXCEPTION) {
+                return;
+            }
             if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
                 onUserExit();
                 return;
@@ -129,7 +132,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
     const theme = useTheme();
 
     useEffect(() => {
-        initializeOnfido({
+        const onfido = initializeOnfido({
             sdkToken,
             onSuccess,
             onError,
@@ -138,9 +141,11 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
             translate,
             theme,
         });
-
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
-        return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
+        return () => {
+            onfido.tearDown();
+            window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
+        };
         // Onfido should be initialized only once on mount
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
