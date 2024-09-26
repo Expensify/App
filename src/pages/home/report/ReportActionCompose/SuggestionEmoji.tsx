@@ -1,6 +1,6 @@
-import type {ForwardedRef, RefAttributes} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -19,16 +19,10 @@ type SuggestionsValue = {
     shouldShowSuggestionMenu: boolean;
 };
 
-type SuggestionEmojiOnyxProps = {
-    /** Preferred skin tone */
-    preferredSkinTone: number;
+type SuggestionEmojiProps = SuggestionProps & {
+    /** Function to clear the input */
+    resetKeyboardInput?: () => void;
 };
-
-type SuggestionEmojiProps = SuggestionProps &
-    SuggestionEmojiOnyxProps & {
-        /** Function to clear the input */
-        resetKeyboardInput?: () => void;
-    };
 
 /**
  * Check if this piece of string looks like an emoji
@@ -46,23 +40,15 @@ const defaultSuggestionsValues: SuggestionsValue = {
 };
 
 function SuggestionEmoji(
-    {
-        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        isAutoSuggestionPickerLarge,
-        resetKeyboardInput,
-        measureParentContainerAndReportCursor,
-        isComposerFocused,
-    }: SuggestionEmojiProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused}: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     const isInitialFocusRef = useRef(true);
     suggestionValuesRef.current = suggestionValues;
+
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
 
@@ -242,9 +228,4 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default withOnyx<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, SuggestionEmojiOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-    },
-})(forwardRef(SuggestionEmoji));
+export default forwardRef(SuggestionEmoji);
