@@ -236,10 +236,12 @@ function ReportActionsList({
             const nextMessage = sortedVisibleReportActions[index + 1];
 
             // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
-            const isCurrentMessageOffline = wasMessageReceivedWhileOffline(reportAction, lastOfflineAt, lastOnlineAt, preferredLocale);
-            const isNextMessageOffline = (nextMessage && wasMessageReceivedWhileOffline(nextMessage, lastOfflineAt, lastOnlineAt, preferredLocale)) || !nextMessage;
-            if (isCurrentMessageOffline && !isNextMessageOffline) {
-                return true;
+            if (!ReportActionsUtils.wasActionTakenByCurrentUser(reportAction)) {
+                const isCurrentMessageOffline = wasMessageReceivedWhileOffline(reportAction, lastOfflineAt, lastOnlineAt, preferredLocale);
+                const isNextMessageOffline = (nextMessage && wasMessageReceivedWhileOffline(nextMessage, lastOfflineAt, lastOnlineAt, preferredLocale)) || !nextMessage;
+                if (isCurrentMessageOffline && !isNextMessageOffline) {
+                    return true;
+                }
             }
 
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
