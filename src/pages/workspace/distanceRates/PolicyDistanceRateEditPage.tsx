@@ -94,7 +94,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.RATE}
-                        extraDecimals={1}
+                        fixedDecimals={4}
                         defaultValue={currentRateValue}
                         isCurrencyPressable={false}
                         currency={currency}

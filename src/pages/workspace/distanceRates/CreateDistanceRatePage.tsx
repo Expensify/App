@@ -90,7 +90,7 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                         <InputWrapperWithRef
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.RATE}
-                            extraDecimals={1}
+                            fixedDecimals={4}
                             isCurrencyPressable={false}
                             currency={currency}
                             ref={inputCallbackRef}
