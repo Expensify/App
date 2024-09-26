@@ -995,8 +995,8 @@ type NetSuiteConnection = {
     /** Date when the connection's last failed sync occurred */
     lastErrorSyncDate: string;
 
-    /** Where did the connection's last sync came from */
-    source: JobSourceValues;
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
 
     /** Config object used solely to store autosync settings */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -1373,10 +1373,10 @@ type PendingJoinRequestPolicy = {
 /** Data informing when a given rule should be applied */
 type ApplyRulesWhen = {
     /** The condition for applying the rule to the workspace */
-    condition: 'matches';
+    condition: string;
 
     /** The target field to which the rule is applied */
-    field: 'category';
+    field: string;
 
     /** The value of the target field */
     value: string;
@@ -1411,9 +1411,6 @@ type ExpenseRule = {
     /** An id of the rule */
     id?: string;
 };
-
-/** The name of the category or tag */
-type CategoryOrTagName = string;
 
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -1686,18 +1683,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
-
-        /** Information about rules being updated */
-        pendingRulesUpdates?: Record<
-            CategoryOrTagName,
-            {
-                /** Indicates whether the approval rule is updated for the given category or tag */
-                approvalRule: OnyxCommon.PendingAction;
-
-                /** Indicates whether the expense rule is updated for the given category or tag */
-                expenseRule: OnyxCommon.PendingAction;
-            }
-        >;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
