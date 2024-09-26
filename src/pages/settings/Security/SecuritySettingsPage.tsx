@@ -17,7 +17,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAddDelegateErrors} from '@libs/actions/Delegate';
@@ -36,7 +35,6 @@ function SecuritySettingsPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
@@ -188,7 +186,6 @@ function SecuritySettingsPage() {
                                             <MenuItem
                                                 title={translate('delegate.addCopilot')}
                                                 icon={Expensicons.UserPlus}
-                                                iconFill={theme.iconSuccessFill}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                                 shouldShowRightIcon
                                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
