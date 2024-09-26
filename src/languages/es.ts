@@ -53,6 +53,7 @@ import type {
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
     DelegateSubmitParams,
+    DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DeleteExpenseTranslationParams,
@@ -5338,7 +5339,7 @@ const translations = {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
-        onBehalfOfMessage: (delegator: string) => `en nombre de ${delegator}`,
+        onBehalfOfMessage: ({delegator}: DelegatorParams) => `en nombre de ${delegator}`,
         accessLevel: 'Nivel de acceso',
         confirmCopilot: 'Confirma tu copiloto a continuación.',
         accessLevelDescription: 'Elige un nivel de acceso a continuación. Tanto el acceso Completo como el Limitado permiten a los copilotos ver todas las conversaciones y gastos.',
