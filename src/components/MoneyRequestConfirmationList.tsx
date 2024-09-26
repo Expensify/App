@@ -727,7 +727,7 @@ function MoneyRequestConfirmationList({
      * Navigate to report details or profile of selected user
      */
     const navigateToReportOrUserDetail = (option: MoneyRequestConfirmationListItem) => {
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
+        const activeRoute = Navigation.getActiveRoute();
 
         if (option.isSelfDM) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
