@@ -3,3 +3,7 @@ apple_id("ios@expensify.com") # Your Apple email address
 
 itc_team_id("152696") # App Store Connect Team ID
 team_id("368M544MTT") # Developer Portal Team ID
+
+for_lane :build_hybrid, :build_unsigned_hybrid do
+  app_identifier("com.expensify.expensifylite")
+end

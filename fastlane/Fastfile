@@ -232,6 +232,36 @@ platform :ios do
     setIOSBuildOutputsInEnv()
   end
 
+  desc "Build an iOS HybridApp production build"
+    lane :build_hybrid do
+      ENV["ENVFILE"]=".env.production"
+
+      setupIOSSigningCertificate()
+
+      install_provisioning_profile(
+        path: "./ios/NewApp_AppStore.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
+      )
+
+      build_app(
+        workspace: "./ios/NewExpensify.xcworkspace",
+        scheme: "New Expensify",
+        output_name: "New Expensify.ipa",
+        export_options: {
+          provisioningProfiles: {
+            "com.chat.expensify.chat" => "(NewApp) AppStore",
+            "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
+          },
+          manageAppVersionAndBuildNumber: false
+        }
+      )
+
+      setIOSBuildOutputsInEnv()
+    end
+
   desc "Build an unsigned iOS production build"
   lane :build_unsigned do
     ENV["ENVFILE"]=".env.production"
@@ -241,6 +271,16 @@ platform :ios do
     )
     setIOSBuildOutputsInEnv()
   end
+
+  desc "Build an unsigned iOS HybridApp production build"
+    lane :build_unsigned_hybrid do
+      ENV["ENVFILE"]=".env.production"
+      build_app(
+          workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
+          scheme: "Expensify"
+      )
+      setIOSBuildOutputsInEnv()
+    end
 
   desc "Build AdHoc app for testing"
   lane :build_adhoc do
