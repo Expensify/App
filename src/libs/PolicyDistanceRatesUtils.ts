@@ -2,7 +2,6 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
-import * as CurrencyUtils from './CurrencyUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import * as Localize from './Localize';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
