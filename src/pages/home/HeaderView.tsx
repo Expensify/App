@@ -66,7 +66,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
 
-    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report).slice(0, 5);
+    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
@@ -164,7 +164,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                         )}
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <PressableWithoutFeedback
-                                onPress={() => ReportUtils.navigateToDetailsPage(report)}
+                                onPress={() => ReportUtils.navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                 disabled={shouldDisableDetailPage}
                                 accessibilityLabel={title}
@@ -218,11 +218,12 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     {isChatRoom && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                         <PressableWithoutFeedback
                                             onPress={() => {
+                                                const activeRoute = Navigation.getReportRHPActiveRoute();
                                                 if (ReportUtils.canEditReportDescription(report, policy)) {
-                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID));
+                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID, activeRoute));
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, activeRoute));
                                             }}
                                             style={[styles.alignSelfStart, styles.mw100]}
                                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -242,7 +243,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                                     Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                                             }}
                                             style={[styles.alignSelfStart, styles.mw100]}
                                             accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
