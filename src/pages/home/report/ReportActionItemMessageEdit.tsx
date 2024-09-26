@@ -80,8 +80,8 @@ const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
-// video source -> video attributes
-const draftMessageVideoAttributeCache = new Map<string, string>();
+// video or img source -> video or img attributes
+const draftMessageMediaAttributeCache = new Map<string, string>();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
@@ -126,11 +126,15 @@ function ReportActionItemMessageEdit(
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        draftMessageVideoAttributeCache.clear();
+        draftMessageMediaAttributeCache.clear();
 
         const originalMessage = Parser.htmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), {
-            cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
+            mediaAttributeCachingFn: (mediaSource, attrs) => draftMessageMediaAttributeCache.set(mediaSource, attrs),
         });
+
+        console.log(ReportActionsUtils.getReportActionHtml(action), 'orgAction');
+        console.log(draftMessageMediaAttributeCache, 'cachedAttributes');
+
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
@@ -329,7 +333,8 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageMediaAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 

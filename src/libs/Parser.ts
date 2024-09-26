@@ -23,8 +23,8 @@ Onyx.connect({
 type Extras = {
     reportIDToName?: Record<string, string>;
     accountIDToName?: Record<string, string>;
-    cacheVideoAttributes?: (vidSource: string, attrs: string) => void;
-    videoAttributeCache?: Record<string, string>;
+    mediaAttributeCachingFn?: (mediaSource: string, attrs: string) => void;
+    mediaAttributeCache?: Record<string, string>;
 };
 
 class ExpensiMarkWithContext extends ExpensiMark {
@@ -32,7 +32,7 @@ class ExpensiMarkWithContext extends ExpensiMark {
         return super.htmlToMarkdown(htmlString, {
             reportIDToName: extras?.reportIDToName ?? ReportConnection.getAllReportsNameMap(),
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
-            cacheVideoAttributes: extras?.cacheVideoAttributes,
+            mediaAttributeCachingFn: extras?.mediaAttributeCachingFn,
         });
     }
 
@@ -40,7 +40,7 @@ class ExpensiMarkWithContext extends ExpensiMark {
         return super.htmlToText(htmlString, {
             reportIDToName: extras?.reportIDToName ?? ReportConnection.getAllReportsNameMap(),
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
-            cacheVideoAttributes: extras?.cacheVideoAttributes,
+            mediaAttributeCachingFn: extras?.mediaAttributeCachingFn,
         });
     }
 

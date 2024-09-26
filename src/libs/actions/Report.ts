@@ -1566,9 +1566,9 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
- * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
+ * @param mediaAttributeCache cache of media attributes - img and video ([mediaSource]: mediaAttributes)
  */
-function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
+function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, mediaAttributeCache?: Record<string, string>): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
@@ -1576,14 +1576,14 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
     const textWithMention = ReportUtils.completeShortMention(newCommentText);
 
     const htmlForNewComment = Parser.replace(textWithMention, {
-        extras: {videoAttributeCache},
+        extras: {mediaAttributeCache},
     });
     const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, textWithMention);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
+function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, mediaAttributeCache?: Record<string, string>) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
     if (!originalReportID || !originalReportAction) {
@@ -1600,7 +1600,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     if (originalCommentMarkdown === textForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, mediaAttributeCache);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
