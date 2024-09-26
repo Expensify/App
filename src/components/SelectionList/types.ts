@@ -14,7 +14,7 @@ import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
-import type SingleIconListItem from './Search/SingleIconListItem';
+import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -315,7 +315,7 @@ type ValidListItem =
     | typeof TransactionListItem
     | typeof ReportListItem
     | typeof ChatListItem
-    | typeof SingleIconListItem
+    | typeof SearchQueryListItem
     | typeof SearchRouterItem;
 
 type Section<TItem extends ListItem> = {

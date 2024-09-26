@@ -8,9 +8,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ListItemWithSingleIcon = {singleIcon?: IconAsset} & ListItem;
+type SearchQueryItem = {
+    singleIcon: IconAsset;
+    query: string;
+    isContextualSearchItem?: boolean;
+} & ListItem;
 
-type SingleIconListItemProps<TItem extends ListItemWithSingleIcon> = {
+type SearchQueryListItemProps<TItem extends SearchQueryItem> = {
     item: TItem;
     isFocused?: boolean;
     showTooltip?: boolean;
@@ -19,7 +23,7 @@ type SingleIconListItemProps<TItem extends ListItemWithSingleIcon> = {
     shouldSyncFocus?: boolean;
 };
 
-function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SingleIconListItemProps<TItem>) {
+function SearchQueryListItem<TItem extends SearchQueryItem>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -70,7 +74,7 @@ function SingleIconListItem<TItem extends ListItemWithSingleIcon>({item, isFocus
     );
 }
 
-SingleIconListItem.displayName = 'SingleIconListItem';
+SearchQueryListItem.displayName = 'SingleIconListItem';
 
-export default SingleIconListItem;
-export type {ListItemWithSingleIcon, SingleIconListItemProps};
+export default SearchQueryListItem;
+export type {SearchQueryItem, SearchQueryListItemProps};

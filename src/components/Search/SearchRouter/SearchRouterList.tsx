@@ -1,10 +1,10 @@
 import React, {forwardRef, useCallback} from 'react';
 import type {ForwardedRef} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {SearchQueryJSON, SearchRouterListItem} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
-import SingleIconListItem from '@components/SelectionList/Search/SingleIconListItem';
-import type {ListItemWithSingleIcon, SingleIconListItemProps} from '@components/SelectionList/Search/SingleIconListItem';
+import SearchQueryListItem from '@components/SelectionList/Search/SearchQueryListItem';
+import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -30,19 +30,31 @@ type SearchRouterListProps = {
     closeAndClearRouter: () => void;
 };
 
-function SearchRouterItem(props: UserListItemProps<SearchRouterListItem> | SingleIconListItemProps<SearchRouterListItem>) {
+function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps<SearchQueryItem>): listItem is SearchQueryListItemProps<SearchQueryItem> {
+    if ('singleIcon' in listItem.item && listItem.item.singleIcon && 'query' in listItem.item && !!listItem.item.query) {
+        return true;
+    }
+    return false;
+}
+
+function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps<SearchQueryItem>) {
     const styles = useThemeStyles();
-    if (props.item.itemType === CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.REPORT) {
+
+    if (isSearchQueryListItem(props)) {
         return (
-            <UserListItem
-                pressableStyle={styles.br2}
+            <SearchQueryListItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as UserListItemProps<OptionData>)}
+                {...props}
             />
         );
     }
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <SingleIconListItem {...(props as SingleIconListItemProps<ListItemWithSingleIcon & ItemWithQuery>)} />;
+    return (
+        <UserListItem
+            pressableStyle={styles.br2}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
 }
 
 function SearchRouterList(
@@ -51,7 +63,7 @@ function SearchRouterList(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const sections: Array<SectionListDataType<SearchRouterListItem>> = [];
+    const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
     if (currentQuery?.inputQuery) {
         sections.push({
@@ -62,7 +74,6 @@ function SearchRouterList(
                     query: currentQuery?.inputQuery,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'findItem',
-                    itemType: CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.SEARCH,
                 },
             ],
         });
@@ -77,7 +88,7 @@ function SearchRouterList(
                     query: `in:${reportForContextualSearch.reportID}`,
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
-                    itemType: CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                    isContextualSearchItem: true,
                 },
             ],
         });
@@ -88,7 +99,6 @@ function SearchRouterList(
         singleIcon: Expensicons.History,
         query,
         keyForList: query,
-        itemType: CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.SEARCH,
     }));
 
     if (recentSearchesData && recentSearchesData.length > 0) {
@@ -99,38 +109,32 @@ function SearchRouterList(
     sections.push({title: translate('search.recentChats'), data: recentReportsData});
 
     const onSelectRow = useCallback(
-        (item: SearchRouterListItem) => {
-            // eslint-disable-next-line default-case, @typescript-eslint/switch-exhaustiveness-check
-            switch (item.itemType) {
-                case CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.SEARCH:
-                    // Handle selection of "Recent search"
-                    if (!('query' in item) || !item?.query) {
-                        return;
-                    }
-                    onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
-                    return;
-                case CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.CONTEXTUAL_SUGGESTION:
-                    // Handle selection of "Contextual search suggestion"
-                    if (!('query' in item) || !item?.query || currentQuery?.inputQuery.includes(item?.query)) {
-                        return;
-                    }
-                    updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
-                    return;
-                case CONST.SEARCH.ROUTER_LIST_ITEM_TYPE.REPORT:
-                    // Handle selection of "Recent chat"
-                    closeAndClearRouter();
-                    if ('reportID' in item && item?.reportID) {
-                        Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-                    } else if ('login' in item) {
-                        Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
-                    }
+        (item: OptionData | SearchQueryItem) => {
+            if (!('query' in item) || !item.query) {
+                // Handle selection of "Recent chat"
+                closeAndClearRouter();
+                if ('reportID' in item && item?.reportID) {
+                    Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                } else if ('login' in item) {
+                    Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
+                }
+                return;
             }
+
+            if (item.isContextualSearchItem) {
+                // Handle selection of "Contextual search suggestion"
+                updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
+                return;
+            }
+
+            // Handle selection of "Recent search"
+            onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
         },
         [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
     );
 
     return (
-        <SelectionList<SearchRouterListItem>
+        <SelectionList<OptionData | SearchQueryItem>
             sections={sections}
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
