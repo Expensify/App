@@ -1,15 +1,19 @@
 import debounce from 'lodash/debounce';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
+import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
@@ -21,6 +25,10 @@ function SearchRouter() {
 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
 
@@ -53,11 +61,13 @@ function SearchRouter() {
 
         closeSearchRouter();
 
-        const query = SearchUtils.buildSearchQueryString(userSearchQuery);
+        const standardQuery = SearchUtils.standardizeQueryJSON(userSearchQuery, cardList, reports, taxRates);
+        const query = SearchUtils.buildSearchQueryString(standardQuery);
+        SearchActions.clearAllFilters();
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
 
         clearUserQuery();
-    }, [closeSearchRouter, userSearchQuery]);
+    }, [closeSearchRouter, userSearchQuery, cardList, reports, taxRates]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         closeSearchRouter();

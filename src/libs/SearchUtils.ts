@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
@@ -803,6 +804,63 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
     ];
 }
 
+function getIDFromDisplayValue(filterName: string, filter: string | string[], cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>, taxRates: Record<string, string[]>) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        if (typeof filter === 'string') {
+            const email = filter;
+            return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+        }
+        const emails = filter;
+        return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        const names = Array.isArray(filter) ? filter : ([filter] as string[]);
+        return names.map((name) => taxRates[name] ?? name).flat();
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        if (typeof filter === 'string') {
+            const bank = filter;
+            return Object.values(cardList)
+                .filter((card) => card.bank === bank)
+                .map((card) => card.cardID.toString());
+        }
+        const banks = filter;
+        return Object.values(cardList)
+            .filter((card) => banks.includes(card.bank))
+            .map((card) => card.cardID.toString());
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+        const names = Array.isArray(filter) ? filter : ([filter] as string[]);
+
+        return Object.values(reports ?? {})
+            .filter((report) => names.includes(ReportUtils.getReportName(report)))
+            .map((report) => report?.reportID.toString() ?? '');
+    }
+    return filter;
+}
+
+function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>, taxRates: Record<string, string[]>) {
+    const standardQuery = cloneDeep(queryJSON);
+    const filters = standardQuery.filters;
+    const traverse = (node: ASTNode) => {
+        if (!node.operator) {
+            return;
+        }
+        if (typeof node.left === 'object' && node.left) {
+            traverse(node.left);
+        }
+        if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
+            traverse(node.right);
+        }
+        // eslint-disable-next-line no-param-reassign
+        node.right = getIDFromDisplayValue(node.left as string, node.right as string | string[], cardList, reports, taxRates);
+    };
+
+    traverse(filters);
+    standardQuery.flatFilters = getFilters(standardQuery);
+    return standardQuery;
+}
+
 /**
  * Returns whether a given search query is a Canned query.
  *
@@ -839,4 +897,5 @@ export {
     getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
+    standardizeQueryJSON,
 };
