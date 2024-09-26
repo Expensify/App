@@ -192,7 +192,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     iconWidth={variables.iconSizeNormal}
                     iconHeight={variables.iconSizeNormal}
                     shouldUseSingleExecution
-                    isPaneMenu
                 />
             </View>
         ),
@@ -237,7 +236,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
-                            isPaneMenu
                         />
                     );
                 })}
