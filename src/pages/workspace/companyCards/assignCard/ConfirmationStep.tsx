@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Policy from '@libs/actions/Policy/Policy';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -17,7 +18,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
-function ConfirmationStep() {
+type ConfirmationStepProps = {
+    /** Current policy id */
+    policyID: string;
+};
+
+function ConfirmationStep({policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -28,6 +34,7 @@ function ConfirmationStep() {
     const data = assignCard?.data;
 
     const submit = () => {
+        Policy.assignWorkspaceCompanyCard(policyID, data);
         Navigation.goBack();
         CompanyCards.clearAssignCardStepAndData();
     };

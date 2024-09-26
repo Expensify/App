@@ -23,21 +23,21 @@ import ROUTES from '@src/ROUTES';
 
 type MockedCard = {
     key: string;
-    cardNumber: string;
+    encryptedCardNumber: string;
 };
 
 const mockedCardList = [
     {
         key: '1',
-        cardNumber: '123412XXXXXX1234',
+        encryptedCardNumber: '123412XXXXXX1234',
     },
     {
         key: '2',
-        cardNumber: '123412XXXXXX1235',
+        encryptedCardNumber: '123412XXXXXX1235',
     },
     {
         key: '3',
-        cardNumber: '123412XXXXXX1236',
+        encryptedCardNumber: '123412XXXXXX1236',
     },
 ];
 
@@ -62,7 +62,7 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.cardName ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const handleBackButtonPress = () => {
@@ -88,7 +88,7 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
         }
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {cardName: cardSelected},
+            data: {encryptedCardNumber: cardSelected},
             isEditing: false,
         });
     };
@@ -97,10 +97,10 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
     const mockedCards = !Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME).some((value) => value === feed) ? mockedCardListEmpty : mockedCardList;
 
     const cardListOptions = mockedCards.map((item) => ({
-        keyForList: item?.cardNumber,
-        value: item?.cardNumber,
-        text: item?.cardNumber,
-        isSelected: cardSelected === item?.cardNumber,
+        keyForList: item?.encryptedCardNumber,
+        value: item?.encryptedCardNumber,
+        text: item?.encryptedCardNumber,
+        isSelected: cardSelected === item?.encryptedCardNumber,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}

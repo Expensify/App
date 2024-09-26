@@ -8,6 +8,7 @@ import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
+    AssignCompanyCardParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
@@ -88,6 +89,7 @@ import type {
     TaxRatesWithDefault,
     Transaction,
 } from '@src/types/onyx';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -4540,6 +4542,24 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
     API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, onyxData);
 }
 
+function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardData>) {
+    if (!data) {
+        return;
+    }
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = ''} = data;
+
+    const parameters: AssignCompanyCardParams = {
+        policyID,
+        bankName,
+        encryptedCardNumber,
+        email,
+        startDate,
+        // reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters);
+}
+
 function unassignWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -4879,6 +4899,7 @@ export {
     deleteWorkspaceCompanyCardFeed,
     setWorkspaceCompanyCardTransactionLiability,
     openPolicyCompanyCardsPage,
+    assignWorkspaceCompanyCard,
     unassignWorkspaceCompanyCard,
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
