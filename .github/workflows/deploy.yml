@@ -491,11 +491,11 @@ jobs:
 
           if [ ${{ github.ref }} == 'refs/heads/production' ]; then
             if [ "${{ needs.submitAndroid.result }}" != "success" ]; then
-              isAtLeastOnePlatformDeployed="false"
+              isAllPlatformsDeployed="false"
             fi
           else
             if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
-              isAtLeastOnePlatformDeployed="false"
+              isAllPlatformsDeployed="false"
             fi
           fi
 
