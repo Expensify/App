@@ -1185,14 +1185,14 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING);
 }
 
-function findSelfDMReportID(): string | undefined {
+function findSelfDMReport(): OnyxEntry<Report> {
     const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return;
     }
 
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-    return selfDMReport?.reportID;
+    return selfDMReport;
 }
 
 /**
@@ -7898,7 +7898,7 @@ export {
     doesReportBelongToWorkspace,
     doesTransactionThreadHaveViolations,
     findLastAccessedReport,
-    findSelfDMReportID,
+    findSelfDMReport,
     formatReportLastMessageText,
     generateReportID,
     getAddWorkspaceRoomOrChatReportErrors,

@@ -351,7 +351,7 @@ function FloatingActionButtonAndPopover(
     };
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReport()?.reportID, [isLoading]);
 
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         if (canUseCombinedTrackSubmit) {
@@ -365,8 +365,7 @@ function FloatingActionButtonAndPopover(
                                 CONST.IOU.TYPE.GLOBAL_CREATE,
                                 // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                 // for all of the routes in the creation flow.
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                ReportUtils.generateReportID(),
                             ),
                         ),
                 },
@@ -386,7 +385,7 @@ function FloatingActionButtonAndPopover(
                                       // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                       // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
                                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                      ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                      ReportUtils.findSelfDMReport()?.reportID || ReportUtils.generateReportID(),
                                   ),
                               );
                               if (!hasSeenTrackTraining && !isOffline) {
