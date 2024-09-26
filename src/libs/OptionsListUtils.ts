@@ -1588,7 +1588,7 @@ function orderOptions(
                 if (option.isSelfDM) {
                     return 0;
                 }
-                if (preferRecentExpenseReports && !!option?.lastIOUTime) {
+                if (preferRecentExpenseReports && !!option?.lastIOUCreationDate) {
                     return 1;
                 }
                 if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
@@ -1610,8 +1610,8 @@ function orderOptions(
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
-            // For Submit Expense flow, prioritze the most recent expense reports and then policy expense chats (without expense requests)
-            preferRecentExpenseReports ? (option) => option?.lastIOUTime ?? '' : '',
+            // For Submit Expense flow, prioritize the most recent expense reports and then policy expense chats (without expense requests)
+            preferRecentExpenseReports ? (option) => option?.lastIOUCreationDate ?? '' : '',
             preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
         ['asc', 'desc', 'desc'],
@@ -2006,7 +2006,7 @@ function getOptions(
                     const iouReportActions = allSortedReportActions[iouReportID] ?? [];
                     const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                     if (lastIOUAction) {
-                        reportOption.lastIOUTime = lastIOUAction.lastModified;
+                        reportOption.lastIOUCreationDate = lastIOUAction.lastModified;
                     }
                 }
             }
