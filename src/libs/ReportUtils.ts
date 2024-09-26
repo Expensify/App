@@ -19,7 +19,8 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
+import type {ParentNavigationSummaryParams} from '@src/languages/params';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -83,7 +84,6 @@ import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
-import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -459,6 +459,7 @@ type OptionData = {
     tabIndex?: 0 | -1;
     isConciergeChat?: boolean;
     isBold?: boolean;
+    lastIOUCreationDate?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -1838,7 +1839,8 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
-    return StringUtils.lineBreaksToSpaces(String(lastMessageText).trim()).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+
+    return ReportActionsUtils.formatLastMessageText(lastMessageText);
 }
 
 /**
@@ -3135,7 +3137,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string, searchHash?: number): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -3152,11 +3154,13 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
+        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '', searchHash);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
+        Navigation.navigate(
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute, searchHash),
+        );
     }
 };
 
@@ -7709,7 +7713,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 
     switch (violation) {
         case 'fieldRequired':
-            return Localize.translateLocal('reportViolations.fieldRequired', reportField.name);
+            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
         default:
             return '';
     }
