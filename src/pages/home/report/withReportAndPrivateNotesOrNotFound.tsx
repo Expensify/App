@@ -17,19 +17,19 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundOnyxProps, WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
-type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps;
-
 type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
     /** Session of currently logged in user */
     session: OnyxEntry<Session>;
 };
 
+type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps & WithReportAndPrivateNotesOrNotFoundOnyxProps;
+
 export default function (pageTitle: TranslationPaths) {
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
         WrappedComponent: ComponentType<TProps & WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundOnyxProps & RefAttributes<TRef>>,
-    ): React.ComponentType<TProps & React.RefAttributes<TRef>> => {
+    ): React.ComponentType<Omit<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & React.RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> => {
         // eslint-disable-next-line rulesdir/no-negated-variables
-        function WithReportAndPrivateNotesOrNotFound(props: TProps & WithReportOrNotFoundOnyxProps, ref: ForwardedRef<TRef>) {
+        function WithReportAndPrivateNotesOrNotFound(props: Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -82,8 +82,8 @@ export default function (pageTitle: TranslationPaths) {
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
                     ref={ref}
+                    {...(props as TProps)}
                     session={session}
                 />
             );
