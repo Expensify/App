@@ -233,6 +233,7 @@ type ReportListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
 
+        /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
     };
 
