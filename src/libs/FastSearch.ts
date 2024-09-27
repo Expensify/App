@@ -20,6 +20,9 @@ const charSetToSkip = new Set(['@', '#', '$', '%', '&', '*', '+', '-', '/', ':',
 /**
  * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for (sub-)strings in a list of strings.
  * You can provide multiple datasets. The search results will be returned for each dataset.
+ *
+ * Note: Creating a FastSearch instance with a lot of data is computationally expensive. You should create an instance once and reuse it.
+ * Searches will be very fast though, even with a lot of data.
  */
 function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     // Create a numeric list for the suffix tree, and a look up indexes array
