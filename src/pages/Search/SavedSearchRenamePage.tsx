@@ -28,6 +28,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: q,
+                name: newName,
             }),
         );
     };
@@ -37,7 +38,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
         SearchActions.saveSearch({
             queryJSON,
-            name: newName,
+            newName,
         });
 
         applyFiltersAndNavigate();
