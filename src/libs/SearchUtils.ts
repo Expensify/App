@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -20,8 +19,6 @@ import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import navigationRef from './Navigation/navigationRef';
-import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
@@ -64,6 +61,7 @@ const emptyPersonalDetails = {
     displayName: undefined,
     login: undefined,
 };
+/* Search list and results related */
 
 /**
  * @private
@@ -391,14 +389,6 @@ function getSortedReportActionData(data: ReportActionListItemType[]) {
     });
 }
 
-function getCurrentSearchParams() {
-    const rootState = navigationRef.getRootState() as State<RootStackParamList>;
-
-    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
-
-    return lastSearchRoute ? (lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) : undefined;
-}
-
 function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
@@ -406,6 +396,20 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
+
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+    }
+}
+
+/* Search query related */
 
 /**
  * Update string query with all the default params that are set by parser
@@ -467,16 +471,58 @@ function sanitizeString(str: string) {
     return str;
 }
 
-function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (expenseType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return 'common.distance';
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return 'common.card';
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
-            return 'iou.cash';
+/**
+ * @private
+ * traverses the AST and returns filters as a QueryFilters object
+ */
+function getFilters(queryJSON: SearchQueryJSON) {
+    const filters = {} as QueryFilters;
+    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
+
+    function traverse(node: ASTNode) {
+        if (!node.operator) {
+            return;
+        }
+
+        if (typeof node?.left === 'object' && node.left) {
+            traverse(node.left);
+        }
+
+        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
+            traverse(node.right);
+        }
+
+        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+        if (!filterKeys.includes(nodeKey)) {
+            return;
+        }
+
+        if (!filters[nodeKey]) {
+            filters[nodeKey] = [];
+        }
+
+        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
+        const filterArray = filters[nodeKey] ?? [];
+        if (!Array.isArray(node.right)) {
+            filterArray.push({
+                operator: node.operator,
+                value: node.right as string | number,
+            });
+        } else {
+            node.right.forEach((element) => {
+                filterArray.push({
+                    operator: node.operator,
+                    value: element as string | number,
+                });
+            });
+        }
     }
+
+    if (queryJSON.filters) {
+        traverse(queryJSON.filters);
+    }
+
+    return filters;
 }
 
 function buildSearchQueryJSON(query: SearchQueryString) {
@@ -528,7 +574,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 /**
  * Given object with chosen search filters builds correct query string from them
  */
-function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
+function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
@@ -593,64 +639,9 @@ function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFi
 }
 
 /**
- *
- * @private
- * traverses the AST and returns filters as a QueryFilters object
- */
-function getFilters(queryJSON: SearchQueryJSON) {
-    const filters = {} as QueryFilters;
-    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
-
-    function traverse(node: ASTNode) {
-        if (!node.operator) {
-            return;
-        }
-
-        if (typeof node?.left === 'object' && node.left) {
-            traverse(node.left);
-        }
-
-        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
-            traverse(node.right);
-        }
-
-        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!filterKeys.includes(nodeKey)) {
-            return;
-        }
-
-        if (!filters[nodeKey]) {
-            filters[nodeKey] = [];
-        }
-
-        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
-        const filterArray = filters[nodeKey] ?? [];
-        if (!Array.isArray(node.right)) {
-            filterArray.push({
-                operator: node.operator,
-                value: node.right as string | number,
-            });
-        } else {
-            node.right.forEach((element) => {
-                filterArray.push({
-                    operator: node.operator,
-                    value: element as string | number,
-                });
-            });
-        }
-    }
-
-    if (queryJSON.filters) {
-        traverse(queryJSON.filters);
-    }
-
-    return filters;
-}
-
-/**
  * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
  */
-function getFiltersFormValues(queryJSON: SearchQueryJSON) {
+function buildFilterFormValuesFromQuery(queryJSON: SearchQueryJSON) {
     const filters = getFilters(queryJSON);
     const filterKeys = Object.keys(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -793,7 +784,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
                 }
-                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery}));
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
             },
             icon: Expensicons.Pencil,
             shouldShowRightIcon: false,
@@ -827,14 +818,12 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 export {
-    buildQueryStringFromFilterValues,
+    buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
-    getCurrentSearchParams,
-    getFiltersFormValues,
+    buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
     getListItem,
-    getSearchHeaderTitle,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
@@ -842,6 +831,7 @@ export {
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
+    getSearchHeaderTitle,
     normalizeQuery,
     shouldShowYear,
     buildCannedSearchQuery,

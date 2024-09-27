@@ -84,6 +84,9 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'DESKTOP':
         case 'WEB':
             return 'success';
+        case 'DATE':
+        case 'NOTE':
+            return '';
         default:
             throw new Error('Trying to access invalid input');
     }
