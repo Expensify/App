@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashDebounce from 'lodash/debounce';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
@@ -60,16 +60,19 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         [policy?.name, currentUserPersonalDetails?.displayName],
     );
 
-    const getDefaultWelcomeNote = () =>
-        // workspaceInviteMessageDraft can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        workspaceInviteMessageDraft ||
-        // policy?.description can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        Parser.htmlToMarkdown(policy?.description ?? '') ||
-        translate('workspace.common.welcomeNote', {
-            workspaceName: policy?.name ?? '',
-        });
+    const getDefaultWelcomeNote = useCallback(() => {
+        return (
+            // workspaceInviteMessageDraft can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            workspaceInviteMessageDraft ||
+            // policy?.description can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            Parser.htmlToMarkdown(policy?.description ?? '') ||
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            })
+        );
+    }, [workspaceInviteMessageDraft, policy, translate]);
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
@@ -88,7 +91,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             return;
         }
         setWelcomeNote(getDefaultWelcomeNote());
-    }, [invitedEmailsToAccountIDsDraft, workspaceInviteMessageDraft, route.params.policyID, policy]);
+    }, [getDefaultWelcomeNote, invitedEmailsToAccountIDsDraft]);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
