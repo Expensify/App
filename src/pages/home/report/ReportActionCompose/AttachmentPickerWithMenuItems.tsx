@@ -213,6 +213,27 @@ function AttachmentPickerWithMenuItems({
         setMenuVisibility(false);
     }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
+    const getMenuItems = useCallback(
+        (triggerAttachmentPicker: () => void) => {
+            return [
+                ...moneyRequestOptions,
+                ...taskOption,
+                {
+                    icon: Expensicons.Paperclip,
+                    text: translate('reportActionCompose.addAttachment'),
+                    onSelected: () => {
+                        if (Browser.isSafari()) {
+                            return;
+                        }
+                        triggerAttachmentPicker();
+                    },
+                    shouldCallAfterModalHide: true,
+                },
+            ];
+        },
+        [moneyRequestOptions, taskOption, translate],
+    );
+
     return (
         <AttachmentPicker>
             {({openPicker}) => {
@@ -223,21 +244,7 @@ function AttachmentPickerWithMenuItems({
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
-                const menuItems = [
-                    ...moneyRequestOptions,
-                    ...taskOption,
-                    {
-                        icon: Expensicons.Paperclip,
-                        text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
-                        shouldCallAfterModalHide: true,
-                    },
-                ];
+                const menuItems = getMenuItems(triggerAttachmentPicker);
                 return (
                     <>
                         <View style={[styles.dFlex, styles.flexColumn, isFullComposerAvailable || isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter]}>
