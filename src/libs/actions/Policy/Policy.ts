@@ -916,7 +916,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {sessionAccountID, policyID}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID: sessionAccountID, policyID}, {optimisticData, successData, failureData});
 }
 
 /**
