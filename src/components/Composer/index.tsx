@@ -19,9 +19,7 @@ import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
 
@@ -72,7 +70,6 @@ function Composer(
             start: 0,
             end: 0,
         },
-        isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
@@ -277,14 +274,6 @@ function Composer(
 
     useEffect(() => {
         setIsRendered(true);
-
-        return () => {
-            if (isReportActionCompose) {
-                return;
-            }
-            ReportActionComposeFocusManager.clear();
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const clear = useCallback(() => {
@@ -292,7 +281,7 @@ function Composer(
             return;
         }
 
-        const currentText = textInput.current.innerText;
+        const currentText = textInput.current.value;
         textInput.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
@@ -408,17 +397,6 @@ function Composer(
                 }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
-                onFocus={(e) => {
-                    ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!textInput.current) {
-                            return;
-                        }
-
-                        focusComposerWithDelay(textInput.current)(true);
-                    });
-
-                    props.onFocus?.(e);
-                }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>

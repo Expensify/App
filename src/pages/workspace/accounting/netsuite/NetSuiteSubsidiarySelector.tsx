@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSubsidiary} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -70,15 +71,11 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
 
     const listHeaderComponent = useMemo(
         () => (
-            <OfflineWithFeedback
-                errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
-                errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
-                onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
-            >
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
-            </OfflineWithFeedback>
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
+            </View>
         ),
-        [netsuiteConfig, styles.ph5, styles.mt2, styles.pb5, styles.mb4, translate, policyID],
+        [styles.pb2, styles.ph5, styles.textNormal, translate],
     );
 
     return (
@@ -96,6 +93,10 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack()}
             title="workspace.netsuite.subsidiary"
             listEmptyContent={listEmptyContent}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SUBSIDIARY], netsuiteConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
         />
     );
 }

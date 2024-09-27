@@ -69,9 +69,11 @@ if ! read_lines_into_array PODSPEC_PATHS < <(npx react-native config | jq --raw-
   cleanupAndExit 1
 fi
 
+PODSPECS=$(./.github/scripts/printPodspec.rb "${PODSPEC_PATHS[@]}")
+
 # Format a list of Pods based on the output of the config command
 if ! FORMATTED_PODS=$( \
-  jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$(./.github/scripts/printPodspec.rb "${PODSPEC_PATHS[@]}")" \
+  jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$(./.github/scripts/removeInvalidJson.rb "${PODSPECS}")" \
 ); then
   error "Error: could not parse podspecs at paths parsed from react-native config"
   cleanupAndExit 1

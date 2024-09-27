@@ -107,6 +107,7 @@ function RequestEarlyCancellationPage() {
                 footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgementText}</Text>}
                 isNoteRequired
                 isLoading={isLoading}
+                enabledWhenOffline={false}
             />
         ),
         [acknowledgementText, isLoading, styles.flex1, styles.mb2, styles.mt4, translate],

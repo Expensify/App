@@ -5,13 +5,14 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
-type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon}>;
+type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon; lastFourPAN?: string}>;
 
 function CardListItem<TItem extends ListItem>({
     item,
@@ -27,6 +28,7 @@ function CardListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: CardListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -65,7 +67,7 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={Str.removeSMSDomain(item.text ?? '')}
@@ -77,6 +79,13 @@ function CardListItem<TItem extends ListItem>({
                                 item.alternateText ? styles.mb1 : null,
                             ]}
                         />
+                        {!!item.lastFourPAN && (
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={`${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}`}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            />
+                        )}
                     </View>
                 </View>
                 {canSelectMultiple && !item.isDisabled && (

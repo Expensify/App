@@ -79,7 +79,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     <ImageSVG src={Computer} />
                 </View>
 
-                <Text style={[styles.textHeadlineH1, styles.p5, styles.pb6]}>{translate('workspace.intacct.prerequisitesTitle')}</Text>
+                <Text style={[styles.textHeadlineH1, styles.p5, styles.p6]}>{translate('workspace.intacct.prerequisitesTitle')}</Text>
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution

@@ -1,14 +1,16 @@
 import {fastMerge, Str} from 'expensify-common';
-import _ from 'lodash';
+import clone from 'lodash/clone';
 import lodashFindLast from 'lodash/findLast';
+import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import ROUTES from '@src/ROUTES';
+import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {IssueNewCardOriginalMessage, JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -82,6 +84,14 @@ Onyx.connect({
     },
 });
 
+let privatePersonalDetails: PrivatePersonalDetails | undefined;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (personalDetails) => {
+        privatePersonalDetails = personalDetails;
+    },
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -152,6 +162,7 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 }
+
 function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
 }
@@ -237,7 +248,10 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
     }
 
     if (typeof originalMessage !== 'object') {
-        Log.info('Original message is not an object for reportAction: ', true, {reportActionID: reportAction?.reportActionID, actionName: reportAction?.actionName});
+        Log.info('Original message is not an object for reportAction: ', true, {
+            reportActionID: reportAction?.reportActionID,
+            actionName: reportAction?.actionName,
+        });
     }
 
     return [];
@@ -404,11 +418,12 @@ function getCombinedReportActions(
     transactionThreadReportID: string | null,
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
+    shouldFilterIOUAction = true,
 ): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (_.isEmpty(transactionThreadReportID) || isSentMoneyReport) {
+    if (isEmpty(transactionThreadReportID) || isSentMoneyReport) {
         return reportActions;
     }
 
@@ -431,7 +446,7 @@ function getCombinedReportActions(
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        if (!isMoneyRequestAction(action)) {
+        if (!isMoneyRequestAction(action) || !shouldFilterIOUAction) {
             return true;
         }
         const actionType = getOriginalMessage(action)?.type ?? '';
@@ -708,7 +723,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return reportAction;
     }
 
-    const updatedReportAction = _.clone(reportAction);
+    const updatedReportAction = clone(reportAction);
 
     if (!updatedReportAction.message) {
         return updatedReportAction;
@@ -723,7 +738,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
 
 function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
-    if (!_.isEmpty(actionsToMerge)) {
+    if (!isEmpty(actionsToMerge)) {
         reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
             ReportAction | null | undefined
         >;
@@ -957,6 +972,20 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
+/**
+ * @param actionName - The name of the action
+ * @returns - Whether the action is a tag modification action
+ * */
+function isTagModificationAction(actionName: string): boolean {
+    return (
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG
+    );
+}
+
 // Get all IOU report actions for the report.
 const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
     CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -964,20 +993,21 @@ const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
     CONST.IOU.REPORT_ACTION_TYPE.PAY,
     CONST.IOU.REPORT_ACTION_TYPE.TRACK,
 ]);
-/**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
+
+function getMoneyRequestActions(
+    reportID: string,
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+    isOffline: boolean | undefined = undefined,
+): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    // If the report is not an IOU, Expense report, or Invoice, it shouldn't have money request actions.
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-        return;
+        return [];
     }
 
     const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
-        return;
+        return [];
     }
 
     const iouRequestActions = [];
@@ -1005,6 +1035,15 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
             iouRequestActions.push(action);
         }
     }
+    return iouRequestActions;
+}
+
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
+    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
@@ -1022,6 +1061,27 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // Ensure we have a childReportID associated with the IOU report action
     return singleAction.childReportID;
+}
+
+/**
+ * Returns true if all transactions on the report have the same ownerID
+ */
+function hasSameActorForAllTransactions(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
+    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
+    if (!iouRequestActions.length) {
+        return true;
+    }
+
+    let actorID: number | undefined;
+
+    for (const action of iouRequestActions) {
+        if (actorID !== undefined && actorID !== action?.actorAccountID) {
+            return false;
+        }
+        actorID = action?.actorAccountID;
+    }
+
+    return true;
 }
 
 /**
@@ -1375,7 +1435,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
         const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
-        const handleText = _.isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
+        const handleText = isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
     const preMentionsText = 'Heads up, ';
@@ -1648,11 +1708,55 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
 }
 
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
-    const initialMessage = getOriginalMessage(reportAction);
+    const originalMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
-        oldName: initialMessage?.oldName ?? '',
-        newName: initialMessage?.newName ?? '',
+        oldName: originalMessage?.oldName ?? '',
+        newName: originalMessage?.newName ?? '',
     });
+}
+
+function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
+    const originalMessage = getOriginalMessage(reportAction);
+    const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? -1).map(
+        ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
+    );
+    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames});
+}
+
+function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
+}
+
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
+    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
+
+    const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
+    const link = shouldRenderHTML
+        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+        : Localize.translateLocal('cardPage.expensifyCard');
+
+    const missingDetails =
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0;
+
+    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
+
+    const shouldShowAddMissingDetailsButton = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
+    switch (reportAction?.actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
+            return Localize.translateLocal('workspace.expensifyCard.issuedCard', assignee);
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
+            return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
+            return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, assignee);
+        default:
+            return '';
+    }
 }
 
 export {
@@ -1681,6 +1785,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getParentReportAction,
+    getRemovedFromApprovalChainMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
@@ -1741,6 +1846,7 @@ export {
     isApprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
+    isTagModificationAction,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
@@ -1756,6 +1862,9 @@ export {
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getRenamedAction,
+    isCardIssuedAction,
+    getCardIssuedMessage,
+    hasSameActorForAllTransactions,
 };
 
 export type {LastVisibleMessage};

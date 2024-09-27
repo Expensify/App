@@ -11,11 +11,16 @@ import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselIte
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldUseNewPager from '@libs/shouldUseNewPager';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
 
 const WrappedPagerView = createNativeWrapper(PagerView) as React.ForwardRefExoticComponent<
-    PagerViewProps & NativeViewGestureHandlerProps & React.RefAttributes<React.Component<PagerViewProps>>
+    PagerViewProps &
+        NativeViewGestureHandlerProps &
+        React.RefAttributes<React.Component<PagerViewProps>> & {
+            useNext: boolean;
+        }
 >;
 const AnimatedPagerView = Animated.createAnimatedComponent(WrappedPagerView);
 
@@ -53,12 +58,11 @@ function AttachmentCarouselPager(
     {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
-    const {handleTap, handleScaleChange} = useCarouselContextEvents(setShouldShowArrows);
+    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
     const isPagerScrolling = useSharedValue(false);
-    const isScrollEnabled = useSharedValue(true);
 
     const activePage = useSharedValue(initialPage);
     const [activePageIndex, setActivePageIndex] = useState(initialPage);
@@ -141,6 +145,7 @@ function AttachmentCarouselPager(
                 onPageSelected={onPageSelected}
                 style={styles.flex1}
                 initialPage={initialPage}
+                useNext={shouldUseNewPager()}
                 animatedProps={animatedProps}
                 ref={pagerRef}
             >

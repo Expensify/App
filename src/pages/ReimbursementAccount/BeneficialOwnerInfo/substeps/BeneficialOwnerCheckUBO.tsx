@@ -47,7 +47,7 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{title}</Text>
             <Text style={[styles.pv3, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>

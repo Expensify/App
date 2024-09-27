@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -25,6 +26,10 @@ function CardNameStep() {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const isEditing = issueNewCard?.isEditing;
+    const data = issueNewCard?.data;
+
+    const userName = PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
+    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? `${userName}'s Card` : '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
@@ -88,8 +93,7 @@ function CardNameStep() {
                     hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
                     aria-label={translate('workspace.card.issueNewCard.cardName')}
                     role={CONST.ROLE.PRESENTATION}
-                    // TODO: default value for card name
-                    defaultValue={issueNewCard?.data?.cardTitle}
+                    defaultValue={issueNewCard?.data?.cardTitle ?? defaultCardTitle}
                     containerStyles={[styles.mb6]}
                     ref={inputCallbackRef}
                 />

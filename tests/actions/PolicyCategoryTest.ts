@@ -34,11 +34,11 @@ describe('actions/PolicyCategory', () => {
             Category.setWorkspaceRequiresCategory(fakePolicy.id, true);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         // Check if policy requiresCategory was updated with correct values
                         expect(policy?.requiresCategory).toBeTruthy();
                         expect(policy?.pendingFields?.requiresCategory).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -50,11 +50,11 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         // Check if the policy pendingFields was cleared
                         expect(policy?.pendingFields?.requiresCategory).toBeFalsy();
                         resolve();
@@ -74,11 +74,11 @@ describe('actions/PolicyCategory', () => {
             Category.createPolicyCategory(fakePolicy.id, newCategoryName);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         const newCategory = policyCategories?.[newCategoryName];
 
                         expect(newCategory?.name).toBe(newCategoryName);
@@ -91,11 +91,11 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         const newCategory = policyCategories?.[newCategoryName];
                         expect(newCategory?.errors).toBeFalsy();
@@ -122,11 +122,11 @@ describe('actions/PolicyCategory', () => {
             });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         expect(policyCategories?.[oldCategoryName]).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.name).toBe(newCategoryName);
@@ -140,11 +140,11 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         expect(policyCategories?.[newCategoryName]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.pendingFields?.name).toBeFalsy();
@@ -172,11 +172,11 @@ describe('actions/PolicyCategory', () => {
             Category.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         expect(policyCategories?.[categoryNameToUpdate]?.enabled).toBeTruthy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -189,11 +189,11 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingFields?.enabled).toBeFalsy();
@@ -217,11 +217,11 @@ describe('actions/PolicyCategory', () => {
             Category.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         expect(policyCategories?.[categoryNameToDelete]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         resolve();
@@ -231,11 +231,11 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         expect(policyCategories?.[categoryNameToDelete]).toBeFalsy();
 
                         resolve();
