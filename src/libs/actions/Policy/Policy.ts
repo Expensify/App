@@ -224,7 +224,6 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
-// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
@@ -4161,9 +4160,10 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
 function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
     const policy = getPolicy(policyID);
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
-    const parsedAuditRate = parseInt(fallbackAuditRate, 10);
+    const parsedAuditRate = parseInt(fallbackAuditRate, 10) / 100;
 
-    if (parsedAuditRate === policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) {
+    // The auditRate arrives as an int to this method so we will convert it to a float before sending it to the API.
+    if (parsedAuditRate === (policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE)) {
         return;
     }
 
@@ -4239,17 +4239,8 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
         return;
     }
 
-    const autoApprovalCleanupValues = !enabled
-        ? {
-              pendingFields: {
-                  limit: null,
-                  auditRate: null,
-              },
-          }
-        : {};
-    const autoApprovalValues = !enabled ? {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS} : {};
-    const autoApprovalFailureValues = !enabled ? {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, ...autoApprovalCleanupValues}} : {};
-
+    const autoApprovalValues = {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS};
+    const autoApprovalFailureValues = {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, pendingFields: null}};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4275,7 +4266,7 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoApproval: {...autoApprovalCleanupValues},
+                autoApproval: {pendingFields: null},
                 pendingFields: {
                     shouldShowAutoApprovalOptions: null,
                 },
@@ -4368,7 +4359,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     ];
 
     const parameters: SetPolicyAutoReimbursementLimitParams = {
-        autoReimbursement: {limit: parsedLimit},
+        limit: parsedLimit,
         policyID,
     };
 
@@ -4381,6 +4372,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
 
 /**
  * Call the API to enable auto-payment for the reports in the given policy
+ *
  * @param policyID - id of the policy to apply the limit to
  * @param enabled - whether auto-payment for the reports is enabled in the given policy
  */
@@ -4391,16 +4383,8 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
         return;
     }
 
-    const autoReimbursementCleanupValues = !enabled
-        ? {
-              pendingFields: {
-                  limit: null,
-              },
-          }
-        : {};
-    const autoReimbursementFailureValues = !enabled ? {autoReimbursement: {limit: policy?.autoReimbursement?.limit, ...autoReimbursementCleanupValues}} : {};
-    const autoReimbursementValues = !enabled ? {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS} : {};
-
+    const autoReimbursementFailureValues = {autoReimbursement: {limit: policy?.autoReimbursement?.limit, pendingFields: null}};
+    const autoReimbursementValues = {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4425,7 +4409,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReimbursement: {...autoReimbursementCleanupValues},
+                autoReimbursement: {pendingFields: null},
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: null,
                 },

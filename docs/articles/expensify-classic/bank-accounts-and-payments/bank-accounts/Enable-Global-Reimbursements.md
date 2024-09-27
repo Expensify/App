@@ -90,6 +90,10 @@ Have the employee double-check that their [default workspace](https://help.expen
 - **Authorized User**: The person who will process global reimbursements. The Authorized User should be the same person who manages the bank account connection in Expensify.
 - **User**: You can leave this section blank because the “User” is Expensify.
 
+**Does Global Reimbursement support Sepa in the EU?**
+
+Global Reimbursement uses Sepa B2B to facilitate payments from EU-based accounts. Sepa Core is not supported.
+
 {% include faq-end.md %}
 
 </div>
