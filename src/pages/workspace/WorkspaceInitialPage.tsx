@@ -392,7 +392,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     wrapperStyle={styles.sectionMenuItem}
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    isPaneMenu
                                 />
                             ))}
                         </View>
