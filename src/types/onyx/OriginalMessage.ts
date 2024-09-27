@@ -145,6 +145,8 @@ type OriginalMessageActionableReportMentionWhisper = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    reportNames?: string[];
 };
 
 /** Model of `submitted` report action */

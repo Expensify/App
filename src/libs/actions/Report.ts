@@ -102,7 +102,7 @@ import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
@@ -3886,7 +3886,7 @@ function resolveActionableReportMentionWhisper(
             },
         },
     };
-
+    
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
@@ -3935,12 +3935,72 @@ function resolveActionableReportMentionWhisper(
         },
     ];
 
+    const successData: OnyxUpdate[] = [];
+
+    const reportIDList = [];
+
+    if (resolution === CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE) {
+        const originalMessage = reportAction.originalMessage as OriginalMessage<'ACTIONABLEREPORTMENTIONWHISPER'>;
+        originalMessage.reportNames?.map((roomName: string) => {
+            const optimisticRoom = ReportUtils.buildOptimisticChatReport(
+                report?.participantAccountIDs ?? [],
+                roomName,
+                CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                report?.policyID ?? '',
+                CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+                false,
+                '',
+                report?.visibility,
+                report?.writeCapability,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                '',
+                '',
+                '',
+            );
+
+            reportIDList.push(optimisticRoom.reportID);
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticRoom.reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticRoom.reportID}`,
+                value: {
+                    ...optimisticRoom,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    isOptimisticReport: true,
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticRoom.reportID}`,
+                value: {
+                    pendingFields: null,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticRoom.reportID}`,
+                value: null,
+            });
+        });
+    }
+
     const parameters: ResolveActionableReportMentionWhisperParams = {
         reportActionID: reportAction.reportActionID,
         resolution,
     };
 
-    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, successData, failureData});
 }
 
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
