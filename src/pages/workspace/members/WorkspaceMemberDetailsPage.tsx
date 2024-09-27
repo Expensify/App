@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -24,6 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import getPlatform from '@libs/getPlatform';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -79,6 +81,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
     const companyCards = CardUtils.getMemberCards(policy, allCardsList, accountID);
+
+    // To render correctly transfer owner button
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}});
+    const isNative = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
+    const shouldShowTransferButton = !isNative || (isNative && !isEmpty(fundList));
 
     // TODO: for now enabled for testing purposes. Change this to check for the actual multiple feeds when API is ready
     const hasMultipleFeeds = policy?.areCompanyCardsEnabled;
@@ -240,14 +247,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         </Text>
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                        <Button
-                                            text={translate('workspace.people.transferOwner')}
-                                            onPress={startChangeOwnershipFlow}
-                                            isDisabled={isOffline}
-                                            icon={Expensicons.Transfer}
-                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                            style={styles.mv5}
-                                        />
+                                        shouldShowTransferButton && (
+                                            <Button
+                                                text={translate('workspace.people.transferOwner')}
+                                                onPress={startChangeOwnershipFlow}
+                                                isDisabled={isOffline}
+                                                icon={Expensicons.Transfer}
+                                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                                style={styles.mv5}
+                                            />
+                                        )
                                     ) : (
                                         <Button
                                             text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
