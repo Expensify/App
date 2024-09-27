@@ -30,7 +30,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
-function SplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
+function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
