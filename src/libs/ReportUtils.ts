@@ -19,7 +19,8 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
+import type {ParentNavigationSummaryParams} from '@src/languages/params';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -83,7 +84,6 @@ import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
-import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -127,6 +127,7 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childCommenterCount'
     | 'childLastVisibleActionCreated'
     | 'childOldestFourAccountIDs'
+    | 'delegateAccountID'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -180,6 +181,7 @@ type OptimisticIOUReportAction = Pick<
     | 'childReportID'
     | 'childVisibleActionCount'
     | 'childCommenterCount'
+    | 'delegateAccountID'
 >;
 
 type PartialReportAction = OnyxInputOrEntry<ReportAction> | Partial<ReportAction> | OptimisticIOUReportAction | OptimisticApprovedReportAction | OptimisticSubmittedReportAction | undefined;
@@ -196,12 +198,36 @@ type ReportOfflinePendingActionAndErrors = {
 
 type OptimisticApprovedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticUnapprovedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticSubmittedReportAction = Pick<
@@ -219,6 +245,7 @@ type OptimisticSubmittedReportAction = Pick<
     | 'shouldShow'
     | 'created'
     | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticHoldReportAction = Pick<
@@ -233,7 +260,7 @@ type OptimisticCancelPaymentReportAction = Pick<
 
 type OptimisticEditedTaskReportAction = Pick<
     ReportAction,
-    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person'
+    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person' | 'delegateAccountID'
 >;
 
 type OptimisticClosedReportAction = Pick<
@@ -248,7 +275,7 @@ type OptimisticDismissedViolationReportAction = Pick<
 
 type OptimisticCreatedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>,
-    'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName'
+    'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'delegateAccountID'
 >;
 
 type OptimisticRenamedReportAction = Pick<
@@ -321,6 +348,7 @@ type OptimisticTaskReportAction = Pick<
     | 'previousMessage'
     | 'errors'
     | 'linkMetadata'
+    | 'delegateAccountID'
 >;
 
 type OptimisticWorkspaceChats = {
@@ -340,7 +368,19 @@ type OptimisticWorkspaceChats = {
 
 type OptimisticModifiedExpenseReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachmentOnly' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'isAttachmentOnly'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'pendingAction'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'delegateAccountID'
 > & {reportID?: string};
 
 type OptimisticTaskReport = Pick<
@@ -635,6 +675,14 @@ let onboarding: OnyxEntry<Onboarding | []>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
+});
+
+let delegateEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        delegateEmail = value?.delegatedAccess?.delegate ?? '';
+    },
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -1839,7 +1887,8 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
-    return StringUtils.lineBreaksToSpaces(String(lastMessageText).trim()).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+
+    return ReportActionsUtils.formatLastMessageText(lastMessageText);
 }
 
 /**
@@ -3136,7 +3185,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string, searchHash?: number): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -3153,11 +3202,13 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
+        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '', searchHash);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
+        Navigation.navigate(
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute, searchHash),
+        );
     }
 };
 
@@ -3722,7 +3773,7 @@ function getReportName(
     }
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
         return getIOUSubmittedMessage(parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
@@ -4146,6 +4197,7 @@ function buildOptimisticAddCommentReportAction(
     const isAttachmentOnly = file && !text;
     const isAttachmentWithText = !!text && file !== undefined;
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     // Remove HTML from text when applying optimistic offline comment
     return {
@@ -4182,6 +4234,7 @@ function buildOptimisticAddCommentReportAction(
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
             isOptimisticAction: true,
+            delegateAccountID: delegateAccountDetails?.accountID,
         },
     };
 }
@@ -4457,7 +4510,11 @@ function getFormattedAmount(reportAction: ReportAction) {
     return formattedAmount;
 }
 
-function getIOUSubmittedMessage(reportAction: ReportAction) {
+function getReportAutomaticallySubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>) {
+    return Localize.translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+}
+
+function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>) {
     return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
@@ -4606,6 +4663,8 @@ function buildOptimisticIOUReportAction(
         type,
     };
 
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // In pay someone flow, we store amount, comment, currency in IOUDetails when type = pay
         if (isSendMoneyFlow) {
@@ -4657,6 +4716,7 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4669,6 +4729,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         currency,
         expenseReportID,
     };
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
@@ -4689,6 +4750,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4696,6 +4758,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
 function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticUnapprovedReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         actorAccountID: currentUserAccountID,
@@ -4719,6 +4782,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4775,6 +4839,8 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         expenseReportID,
     };
 
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: currentUserAccountID,
@@ -4795,6 +4861,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4895,6 +4962,8 @@ function buildOptimisticModifiedExpenseReportAction(
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
@@ -4922,6 +4991,7 @@ function buildOptimisticModifiedExpenseReportAction(
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThread?.reportID,
         shouldShow: true,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -4931,6 +5001,8 @@ function buildOptimisticModifiedExpenseReportAction(
  * @param movedToReportID - The reportID of the report the transaction is moved to
  */
 function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
@@ -4960,6 +5032,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThreadID,
         shouldShow: true,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -5035,6 +5108,8 @@ function buildOptimisticTaskReportAction(
         html: message,
         whisperedTo: [],
     };
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         actionName,
         actorAccountID,
@@ -5061,6 +5136,7 @@ function buildOptimisticTaskReportAction(
         created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
         isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -5390,6 +5466,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
     } else if (field) {
         changelog = `removed the ${field}`;
     }
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     return {
         reportActionID: NumberUtils.rand64(),
@@ -5414,10 +5491,13 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
 function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+    const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
@@ -5441,6 +5521,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
+        delegateAccountID: delegateAccountDetails?.accountID,
     };
 }
 
@@ -7710,7 +7791,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 
     switch (violation) {
         case 'fieldRequired':
-            return Localize.translateLocal('reportViolations.fieldRequired', reportField.name);
+            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
         default:
             return '';
     }
@@ -7926,6 +8007,7 @@ export {
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
+    getReportAutomaticallySubmittedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,

@@ -2070,6 +2070,16 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        chatDelegateMessage: {
+            color: theme.textSupporting,
+            fontSize: 11,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
         renderHTMLTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
