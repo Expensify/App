@@ -7900,9 +7900,10 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     ];
 
     parentReportActionOptimistic.forEach((parentActionData) => {
-        if (parentActionData) {
-            optimisticData.push(parentActionData);
+        if (!parentActionData) {
+            return;
         }
+        optimisticData.push(parentActionData);
     });
 
     const successData: OnyxUpdate[] = [
