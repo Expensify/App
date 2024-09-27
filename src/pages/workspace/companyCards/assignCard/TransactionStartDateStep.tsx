@@ -99,25 +99,25 @@ function TransactionStartDateStep() {
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
-                    containerStyle={[styles.flex0, styles.flexShrink0, styles.flexBasisAuto, styles.pb0]}
-                    // containerStyle={[styles.flexReset, styles.pb0]}
+                    listFooterContent={
+                        dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
+                            <>
+                                <MenuItemWithTopDescription
+                                    description={translate('common.date')}
+                                    title={startDate}
+                                    shouldShowRightIcon
+                                    onPress={() => setIsModalOpened(true)}
+                                />
+                                <TransactionStartDateSelectorModal
+                                    isVisible={isModalOpened}
+                                    date={startDate}
+                                    handleSelectDate={handleSelectDate}
+                                    onClose={() => setIsModalOpened(false)}
+                                />
+                            </>
+                        ) : null
+                    }
                 />
-                {dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && (
-                    <>
-                        <MenuItemWithTopDescription
-                            description={translate('common.date')}
-                            title={startDate}
-                            shouldShowRightIcon
-                            onPress={() => setIsModalOpened(true)}
-                        />
-                        <TransactionStartDateSelectorModal
-                            isVisible={isModalOpened}
-                            date={startDate}
-                            handleSelectDate={handleSelectDate}
-                            onClose={() => setIsModalOpened(false)}
-                        />
-                    </>
-                )}
             </View>
             <Button
                 success
