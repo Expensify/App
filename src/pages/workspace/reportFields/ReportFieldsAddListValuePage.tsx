@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -38,13 +38,16 @@ function ReportFieldsAddListValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    let listValues: string[];
-    if (reportFieldID) {
-        const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-        listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
-    } else {
-        listValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
-    }
+    const listValues = useMemo(() => {
+        let reportFieldListValues: string[];
+        if (reportFieldID) {
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            reportFieldListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+        } else {
+            reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
+        }
+        return reportFieldListValues;
+    }, [formDraft, policy?.fieldList, reportFieldID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
