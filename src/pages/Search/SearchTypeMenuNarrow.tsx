@@ -80,6 +80,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: isSelected,
                 success: isSelected,
+                shouldCallAfterModalHide: true,
                 containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
             };
         });
@@ -94,6 +95,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 success: true,
                 containerStyle: undefined,
                 iconRight: Expensicons.Checkmark,
+                shouldCallAfterModalHide: true,
                 shouldShowRightIcon: false,
             });
         }
