@@ -84,7 +84,7 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
-        const backTo = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: reportItem.currentSearchQuery});
+        const backTo = Navigation.getActiveRoute();
 
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionItem.transactionThreadReportID, backTo}));
     };
