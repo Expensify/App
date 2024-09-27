@@ -1,17 +1,13 @@
-import React from 'react';
+import React, {useState} from 'react';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
-import AttachmentPicker from '@components/AttachmentPicker';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {KEYS_TO_PRESERVE, setIsUsingImportedState} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
 import {cleanAndTransformState} from './utils';
 
@@ -68,8 +64,7 @@ function applyStateInChunks(state: OnyxValues) {
 }
 
 export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxStateProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
@@ -88,6 +83,9 @@ export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxSta
                     });
                 });
             })
+            .catch(() => {
+                setIsErrorModalVisible(true);
+            })
             .finally(() => {
                 setIsLoading(false);
             });
@@ -98,25 +96,10 @@ export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxSta
     };
 
     return (
-        <AttachmentPicker
-            acceptedFileTypes={['text']}
-            shouldHideCameraOption
-            shouldHideGalleryOption
-        >
-            {({openPicker}) => {
-                return (
-                    <MenuItem
-                        icon={Expensicons.Upload}
-                        title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                        onPress={() => {
-                            openPicker({
-                                onPicked: handleFileRead,
-                            });
-                        }}
-                    />
-                );
-            }}
-        </AttachmentPicker>
+        <BaseImportOnyxState
+            onFileRead={handleFileRead}
+            isErrorModalVisible={isErrorModalVisible}
+            setIsErrorModalVisible={setIsErrorModalVisible}
+        />
     );
 }

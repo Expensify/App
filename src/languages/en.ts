@@ -1182,6 +1182,8 @@ const translations = {
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
+            invalidFile: 'Invalid file',
+            invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
         },
         debugConsole: {
             saveLog: 'Save log',
