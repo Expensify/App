@@ -153,7 +153,7 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
                         title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importCategoriesSuccessfullDescription', categoriesLength),
+                        prompt: translateLocal('spreadsheet.importCategoriesSuccessfullDescription', {categories: categoriesLength}),
                     },
                 },
             },

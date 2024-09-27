@@ -211,6 +211,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                pendingChatMembers: reportOnyx.pendingChatMembers,
             },
         [reportOnyx, permissions],
     );
@@ -693,6 +694,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.

@@ -109,7 +109,7 @@ function AccountSwitcher() {
                 const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', role),
+                    badgeText: translate('delegate.role', {role}),
                     onSelected: () => {
                         if (isOffline) {
                             Modal.close(() => setShouldShowOfflineModal(true));
