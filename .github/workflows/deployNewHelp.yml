@@ -39,7 +39,6 @@ jobs:
         with:
           ruby-version: '3.3.4'  # Match your local Ruby version
           bundler-cache: true
-        working-directory: ./help  # Ensures Ruby setup is applied in /help
 
       - name: Install dependencies
         run: |
@@ -61,7 +60,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: newhelp
           directory: ./help/_site  # Deploy the built site
-        working-directory: ./help  # Ensure deployment is done from /help
 
       - name: Setup Cloudflare CLI
         if: env.IS_PR_FROM_FORK != 'true'
@@ -81,5 +79,4 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your New Help changes have been deployed to {0} :zap:️', steps.deploy.outputs.alias) }}
-        working-directory: ./help  # Leave comment from /help
 
