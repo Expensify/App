@@ -469,6 +469,8 @@ type ReconciliationWorksParams = {lastFourPAN: string};
 
 type DelegateRoleParams = {role: DelegateRole};
 
+type DelegatorParams = {delegator: string};
+
 type RoleNamesParams = {role: string};
 
 type AssignCardParams = {
@@ -565,6 +567,7 @@ export type {
     AssignedYouCardParams,
     SpreadCategoriesParams,
     DelegateRoleParams,
+    DelegatorParams,
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
