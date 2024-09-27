@@ -390,14 +390,11 @@ function ReportPreview({
             return {supportText: formattedMerchant};
         }
         return {
-            supportText: translate(
-                'iou.expenseCount',
-                {
-                    scanningReceipts: numberOfScanningReceipts,
-                    pendingReceipts: numberOfPendingRequests,
-                    count: numberOfRequests,
-                },
-            ),
+            supportText: translate('iou.expenseCount', {
+                scanningReceipts: numberOfScanningReceipts,
+                pendingReceipts: numberOfPendingRequests,
+                count: numberOfRequests,
+            }),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 

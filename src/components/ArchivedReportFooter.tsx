@@ -57,35 +57,14 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
         policyName = lodashEscape(policyName);
     }
 
-    let text: string;
-    switch (archiveReason) {
-        case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
-            text = translate(`reportArchiveReasons.${archiveReason}`, {
-                displayName: `<strong>${displayName}</strong>`,
-            });
-            break;
-        case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED:
-            text = translate(`reportArchiveReasons.${archiveReason}`, {
-                displayName: `<strong>${displayName}</strong>`,
-                oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-            });
-            break;
-        case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            text = translate(`reportArchiveReasons.${archiveReason}`, {
-                displayName: `<strong>${displayName}</strong>`,
-                policyName: `<strong>${policyName}</strong>`,
-                shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
-            });
-            break;
-        case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
-            text = translate(`reportArchiveReasons.${archiveReason}`, {
-                policyName: `<strong>${policyName}</strong>`,
-            });
-            break;
-        default:
-            text = translate(`reportArchiveReasons.${archiveReason}`);
-            break;
-    }
+    const text = shouldRenderHTML
+        ? translate(`reportArchiveReasons.${archiveReason}`, {
+              displayName: `<strong>${displayName}</strong>`,
+              oldDisplayName: `<strong>${oldDisplayName}</strong>`,
+              policyName: `<strong>${policyName}</strong>`,
+              shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
+          })
+        : translate(`reportArchiveReasons.${archiveReason}`);
 
     return (
         <Banner

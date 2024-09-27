@@ -279,11 +279,7 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
 
-type DistanceRateOperationsParams = {count: number};
-
 type ReimbursementRateParams = {unit: Unit};
-
-type ConfirmHoldExpenseParams = {transactionCount: number};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -329,10 +325,6 @@ type RemoveMembersWarningPrompt = {
 
 type RemoveMemberPromptParams = {
     memberName: string;
-};
-
-type DeleteExpenseTranslationParams = {
-    count: number;
 };
 
 type IssueVirtualCardParams = {
@@ -383,8 +375,6 @@ type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
 type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 
 type AmountWithCurrencyParams = {amountWithCurrency: string};
-
-type SelectedNumberParams = {selectedNumber: number};
 
 type LowerUpperParams = {lower: string; upper: string};
 
@@ -454,11 +444,7 @@ type RequiredFieldParams = {fieldName: string};
 
 type ImportFieldParams = {importField: string};
 
-type DimensionsCountParams = {dimensionsCount: number};
-
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
-
-type AgeParams = {age: number};
 
 type LastSyncAccountingParams = {relativeDate: string};
 
@@ -570,9 +556,7 @@ export type {
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
-    AgeParams,
     RequiredFieldParams,
-    DimensionsCountParams,
     IntacctMappingTitleParams,
     ImportFieldParams,
     AssigneeParams,
@@ -608,7 +592,6 @@ export type {
     SecondaryLoginParams,
     TaxAmountParams,
     CategoryNameParams,
-    SelectedNumberParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
@@ -622,7 +605,6 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     CompanyCardFeedNameParams,
     DateShouldBeAfterParams,
@@ -630,7 +612,6 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
@@ -732,7 +713,6 @@ export type {
     StripePaidParams,
     UnapprovedParams,
     RemoveMembersWarningPrompt,
-    DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
     LastSyncDateParams,
