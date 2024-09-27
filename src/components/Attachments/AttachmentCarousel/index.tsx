@@ -96,7 +96,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             initialPage = currentPage;
         }
 
-        // If no matching attachment is found in both targetAttachments and attachments, dismiss the modal
+        // If no matching attachment with the same index, dismiss the modal
         if (initialPage === -1 && currentPage !== -1) {
             Navigation.dismissModal();
         } else {
