@@ -30,6 +30,8 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
             if (!onboardingPurposeSelected) {
@@ -73,7 +75,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier !== CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB}
                 progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
                 onBackButtonPress={OnboardingFlow.goBack}
             />
