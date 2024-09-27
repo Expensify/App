@@ -34,7 +34,8 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit.rates[rateID];
     const currency = rate.currency ?? CONST.CURRENCY.USD;
-    const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(4) : '';
+    const currentTaxReclaimableOnValue =
+        rate.attributes?.taxClaimablePercentage && rate.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) : '';
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
         if (values.taxClaimableValue === currentTaxReclaimableOnValue) {
@@ -85,7 +86,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
-                        fixedDecimals={4}
+                        fixedDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentTaxReclaimableOnValue?.toString() ?? ''}
                         isCurrencyPressable={false}
                         currency={currency}
