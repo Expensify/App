@@ -53,9 +53,7 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {
-        initWithStoredValues: false,
-    });
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500);
