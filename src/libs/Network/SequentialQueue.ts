@@ -205,15 +205,14 @@ function isPaused(): boolean {
 NetworkStore.onReconnection(flush);
 
 function push(newRequest: OnyxRequest) {
-    // If a request is already being processed, ignore it when looking for potentially conflicting requests
-    const requests = PersistedRequests.getAll();
-
     const {checkAndFixConflictingRequest} = newRequest;
+
     if (checkAndFixConflictingRequest) {
+        const requests = PersistedRequests.getAll();
         const {conflictAction} = checkAndFixConflictingRequest(requests);
         Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
 
-        // No need to serialize it.
+        // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
 

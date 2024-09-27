@@ -215,7 +215,7 @@ function isActionOfType<T extends ReportActionName[]>(
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
         // eslint-disable-next-line deprecation/deprecation
-        return reportAction?.message ?? reportAction.originalMessage;
+        return reportAction?.message ?? reportAction?.originalMessage;
     }
     // eslint-disable-next-line deprecation/deprecation
     return reportAction.originalMessage;
@@ -697,7 +697,7 @@ function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): bo
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
-function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>, key: string | number): boolean {
+function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -709,7 +709,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     // If a whisper action is the REPORT_PREVIEW action, we are displaying it.
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
-        shouldReportActionBeVisible(reportAction, key) &&
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
         !isResolvedActionTrackExpense(reportAction)
@@ -823,7 +823,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([, reportAction]) => shouldReportActionBeVisible(reportAction))
+            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
             .map(([, reportAction]) => reportAction);
     }
 
