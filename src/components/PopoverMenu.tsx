@@ -15,6 +15,7 @@ import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
@@ -22,6 +23,7 @@ import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -49,6 +51,8 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Whether to close all modals */
     shouldCloseAllModals?: boolean;
+
+    pendingAction?: PendingAction;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -293,25 +297,31 @@ function PopoverMenu({
                         {currentMenuItems.map((item, menuIndex) => {
                             const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
                             return (
-                                <FocusableMenuItem
+                                <OfflineWithFeedback
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`${item.text}_${menuIndex}`}
-                                    title={text}
-                                    onPress={() => selectItem(menuIndex)}
-                                    focused={focusedIndex === menuIndex}
-                                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                                    shouldCheckActionAllowedOnPress={false}
-                                    onFocus={() => {
-                                        if (!shouldUpdateFocusedIndex) {
-                                            return;
-                                        }
-                                        setFocusedIndex(menuIndex);
-                                    }}
-                                    style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
-                                    titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
-                                    {...menuItemProps}
-                                />
+                                    pendingAction={item.pendingAction}
+                                >
+                                    <FocusableMenuItem
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${item.text}_${menuIndex}`}
+                                        title={text}
+                                        onPress={() => selectItem(menuIndex)}
+                                        focused={focusedIndex === menuIndex}
+                                        shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                                        shouldCheckActionAllowedOnPress={false}
+                                        onFocus={() => {
+                                            if (!shouldUpdateFocusedIndex) {
+                                                return;
+                                            }
+                                            setFocusedIndex(menuIndex);
+                                        }}
+                                        style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                        titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                                        // eslint-disable-next-line react/jsx-props-no-spreading
+                                        {...menuItemProps}
+                                    />
+                                </OfflineWithFeedback>
                             );
                         })}
                     </WrapComponent>
