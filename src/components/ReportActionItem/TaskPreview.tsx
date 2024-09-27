@@ -81,6 +81,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
+    const titleStyle = StyleUtils.getTaskPreviewTitleStyle(iconWrapperStyle.height, isTaskCompleted);
 
     const shouldShowGreenDotIndicator = ReportUtils.isOpenTaskReport(taskReport, action) && ReportUtils.isReportManager(taskReport);
     if (isDeletedParentAction) {
@@ -124,7 +125,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             type={CONST.ICON_TYPE_AVATAR}
                         />
                     )}
-                    <Text style={[styles.flex1, styles.alignSelfCenter, isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : {}]}>{taskTitle}</Text>
+                    <Text style={titleStyle}>{taskTitle}</Text>
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={styles.ml2}>
