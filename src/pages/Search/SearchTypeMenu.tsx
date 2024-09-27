@@ -43,6 +43,7 @@ type SavedSearchMenuItem = MenuItemBaseProps & {
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
+    searchName?: string;
 };
 
 type SearchTypeMenuItem = {
@@ -52,7 +53,7 @@ type SearchTypeMenuItem = {
     route?: Route;
 };
 
-function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -115,9 +116,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             focused: Number(key) === hash,
             onPress: () => {
                 SearchActions.clearAllFilters();
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
             },
-            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
+            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(title, Number(key), item.query)} />,
             styles: [styles.alignItemsCenter],
         };
 
@@ -191,7 +192,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     iconWidth={variables.iconSizeNormal}
                     iconHeight={variables.iconSizeNormal}
                     shouldUseSingleExecution
-                    isPaneMenu
                 />
             </View>
         ),
@@ -202,7 +202,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+        const title = searchName ?? (isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates));
 
         return (
             <SearchTypeMenuNarrow
@@ -236,7 +236,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
-                            isPaneMenu
                         />
                     );
                 })}
