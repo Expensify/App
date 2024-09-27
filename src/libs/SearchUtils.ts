@@ -793,7 +793,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
                 }
-                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery}));
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
             },
             icon: Expensicons.Pencil,
             shouldShowRightIcon: false,
