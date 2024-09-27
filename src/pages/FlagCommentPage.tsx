@@ -136,7 +136,10 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(reportAction, report)}>
-                    <HeaderWithBackButton title={translate('reportActionContextMenu.flagAsOffensive')} />
+                    <HeaderWithBackButton
+                        title={translate('reportActionContextMenu.flagAsOffensive')}
+                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={styles.settingsPageBackground}
