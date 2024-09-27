@@ -533,7 +533,7 @@ function setPaymentCardForm(values: AccountData) {
 }
 
 /**
- * Sets the default bank account or debit card for the Invoices
+ *  Sets the default bank account to use for receiving payouts from
  *
  */
 function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string, previousBankAccountID: number) {
