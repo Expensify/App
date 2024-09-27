@@ -514,7 +514,7 @@ function setIsUsingImportedState(usingImportedState: boolean) {
     Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, usingImportedState);
 }
 
-function clearOnyxAndResetApp() {
+function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
     const sequentialQueue = PersistedRequests.getAll();
@@ -523,6 +523,11 @@ function clearOnyxAndResetApp() {
         if (isStateImported) {
             setShouldForceOffline(false);
         }
+
+        if (shouldNavigateToHomepage) {
+            Navigation.navigate(ROUTES.HOME);
+        }
+
         // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
         // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
         // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.

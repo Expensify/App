@@ -24,7 +24,7 @@ function ImportedStateIndicator() {
                 shouldRemoveLeftBorderRadius
                 shouldRemoveRightBorderRadius
                 text={translate('initialSettingsPage.troubleshoot.usingImportedState')}
-                onPress={clearOnyxAndResetApp}
+                onPress={() => clearOnyxAndResetApp(true)}
                 textStyles={[styles.fontWeightNormal]}
             />
         </View>
