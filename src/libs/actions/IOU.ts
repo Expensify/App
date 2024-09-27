@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import {totalmem} from 'node:os';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
@@ -7273,6 +7274,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const parentReport = ReportUtils.getReportOrDraftReport(expenseReport.parentReportID);
     const policy = PolicyUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
+
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
@@ -7331,6 +7333,39 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 iouReportID: null,
             },
         });
+    }
+
+    // Handle moving pending/scanning expenses to a new report if needed
+    const reportTransactions = TransactionUtils.getAllReportTransactions(expenseReport.reportID);
+    let hasPendingOrScanningTransactions = false;
+
+    const unheldTotal = reportTransactions?.reduce((total: number, transaction: OnyxTypes.Transaction) => {
+        if (!TransactionUtils.isPending(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction)) {
+            return total + transaction.amount;
+        }
+        hasPendingOrScanningTransactions = true;
+        return total;
+    }, 0);
+
+    // Check if we have a mix of smartscanning transactions and complete transactions
+    const shouldMovePendingAndScanningTransactions = Math.abs(unheldTotal) > 0 && hasPendingOrScanningTransactions;
+
+    // If yes, Create optimistic preview, optimistic iou action, and created action of the new expense report
+    if (shouldMovePendingAndScanningTransactions) {
+        optimisticData.push(
+            // Update current report's total to be = `unheldTotal`
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                value: {
+                    total: unheldTotal,
+                    nonReimbursableTotal: 0,
+                },
+            },
+            // Create optimistic expense report and created action
+        );
+        // Create optimistic report preview
+        // Set the pending/scanning transactions' reportID to the new report
     }
 
     const successData: OnyxUpdate[] = [];
