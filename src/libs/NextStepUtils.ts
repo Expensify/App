@@ -253,6 +253,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 )
             ) {
                 optimisticNextStep = noActionRequired;
+
                 break;
             }
             // Self review
