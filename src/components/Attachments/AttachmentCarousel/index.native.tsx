@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -15,13 +15,15 @@ import CarouselButtons from './CarouselButtons';
 import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
-import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
+import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
@@ -150,13 +152,4 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-        canEvict: false,
-    },
-    reportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        canEvict: false,
-    },
-})(AttachmentCarousel);
+export default AttachmentCarousel;
