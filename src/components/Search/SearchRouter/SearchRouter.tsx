@@ -149,7 +149,7 @@ function SearchRouter() {
                     <SearchRouterList
                         currentQuery={userSearchQuery}
                         reportForContextualSearch={contextualReportData}
-                        recentSearches={sortedRecentSearches}
+                        recentSearches={sortedRecentSearches?.slice(0, 5)}
                         recentReports={searchOptions?.recentReports?.slice(0, 5)}
                         onSearchSubmit={onSearchSubmit}
                         updateUserSearchQuery={updateUserSearchQuery}
