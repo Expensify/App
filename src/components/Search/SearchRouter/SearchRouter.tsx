@@ -4,11 +4,13 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -26,6 +28,7 @@ const SEARCH_DEBOUNCE_DELAY = 150;
 
 function SearchRouter() {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [betas] = useOnyx(`${ONYXKEYS.BETAS}`);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
 
@@ -36,7 +39,7 @@ function SearchRouter() {
     const [textInputValue, setTextInputValue] = useState('');
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
-        return state.routes.at(-1)?.params?.reportID;
+        return state?.routes.at(-1)?.params?.reportID;
     });
     const sortedRecentSearches = useMemo(() => {
         return Object.values(recentSearches ?? {}).sort((a, b) => {
@@ -69,6 +72,7 @@ function SearchRouter() {
             debounce((userQuery: string) => {
                 if (!userQuery) {
                     clearUserQuery();
+                    listRef.current?.updateAndScrollToFocusedIndex(-1);
                     return;
                 }
                 listRef.current?.updateAndScrollToFocusedIndex(0);
@@ -114,7 +118,7 @@ function SearchRouter() {
         clearUserQuery();
     });
 
-    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.POPOVER;
+    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.POPOVER;
     const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
@@ -126,7 +130,13 @@ function SearchRouter() {
             onClose={closeSearchRouter}
         >
             <FocusTrapForModal active={isSearchRouterDisplayed}>
-                <View style={[styles.flex1, styles.p3, modalWidth, styles.mh100, !isSmallScreenWidth && styles.mh85vh]}>
+                <View style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}>
+                    {isSmallScreenWidth && (
+                        <HeaderWithBackButton
+                            title={translate('common.search')}
+                            onBackButtonPress={() => closeSearchRouter()}
+                        />
+                    )}
                     <SearchRouterInput
                         value={textInputValue}
                         setValue={setTextInputValue}

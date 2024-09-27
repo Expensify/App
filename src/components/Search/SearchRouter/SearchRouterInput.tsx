@@ -27,6 +27,7 @@ function SearchRouterInput({value, setValue, updateSearch, onSubmit, routerListR
             onChangeText={onChangeText}
             onSubmitEditing={onSubmit}
             autoFocus
+            containerStyles={[styles.pv3, styles.ph5]}
             textInputContainerStyles={[{borderBottomWidth: 0}, styles.w100]}
             inputStyle={[styles.searchInputStyle, styles.searchRouterInputStyle, styles.ph2]}
             role={CONST.ROLE.PRESENTATION}
