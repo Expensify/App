@@ -194,7 +194,7 @@ function ReportActionsList({
                         ReportActionsUtils.isDeletedParentAction(reportAction) ||
                         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction),
+                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
             ),
         [sortedReportActions, isOffline],
     );
@@ -268,7 +268,7 @@ function ReportActionsList({
         }
 
         const mostRecentReportActionCreated = sortedVisibleReportActions[0]?.created ?? '';
-        if (mostRecentReportActionCreated === unreadMarkerTime) {
+        if (mostRecentReportActionCreated <= unreadMarkerTime) {
             return;
         }
 
