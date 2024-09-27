@@ -5,7 +5,7 @@ import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -26,7 +26,7 @@ import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachments from './extractAttachments';
 import AttachmentCarouselPagerContext from './Pager/AttachmentCarouselPagerContext';
-import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
+import type {AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 import useCarouselContextEvents from './useCarouselContextEvents';
 
@@ -38,7 +38,7 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -48,7 +48,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
     const nope = useSharedValue(false);
     const pagerRef = useRef<GestureType>(null);
-
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -312,13 +313,4 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-        canEvict: false,
-    },
-    reportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        canEvict: false,
-    },
-})(AttachmentCarousel);
+export default AttachmentCarousel;
