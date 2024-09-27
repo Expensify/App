@@ -638,8 +638,8 @@ function ReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(action)} />;
             }
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
+        } else if (ReportActionsUtils.isUnapprovedOrApprovedAction(action)) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedOrApprovedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {

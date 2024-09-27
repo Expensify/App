@@ -442,8 +442,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
                     const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
+                } else if (ReportActionsUtils.isUnapprovedOrApprovedAction(reportAction)) {
+                    const displayMessage = ReportUtils.getIOUUnapprovedOrApprovedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
                     const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);

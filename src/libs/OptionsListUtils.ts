@@ -662,8 +662,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
         lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-        lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
+    } else if (ReportActionUtils.isUnapprovedOrApprovedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getIOUUnapprovedOrApprovedMessage(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
         lastMessageTextFromReport = ReportUtils.getIOUForwardedMessage(lastReportAction, report);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {

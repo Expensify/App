@@ -3782,8 +3782,8 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-        return getIOUApprovedMessage(parentReportAction);
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) {
+        return getIOUUnapprovedOrApprovedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -4502,7 +4502,7 @@ function buildOptimisticExpenseReport(
 }
 
 function getFormattedAmount(reportAction: ReportAction) {
-    if (!ReportActionsUtils.isSubmittedAction(reportAction) && !ReportActionsUtils.isForwardedAction(reportAction) && !ReportActionsUtils.isApprovedAction(reportAction)) {
+    if (!ReportActionsUtils.isSubmittedAction(reportAction) && !ReportActionsUtils.isForwardedAction(reportAction) && !ReportActionsUtils.isUnapprovedOrApprovedAction(reportAction)) {
         return '';
     }
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
@@ -4518,8 +4518,14 @@ function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
     return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction) {
-    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
+function getIOUUnapprovedOrApprovedMessage(reportAction: ReportAction) {
+    let translationKey: TranslationPaths;
+    if (ReportActionsUtils.isApprovedAction(reportAction)) {
+        translationKey = 'iou.approvedAmount';
+    } else {
+        translationKey = 'report.actions.type.unapproved';
+    }
+    return Localize.translateLocal(translationKey, {amount: getFormattedAmount(reportAction)});
 }
 
 /**
@@ -8003,7 +8009,7 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
-    getIOUApprovedMessage,
+    getIOUUnapprovedOrApprovedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
