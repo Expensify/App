@@ -22,7 +22,7 @@ function DateOfBirthStep({isEditing, onNext, personalDetailsValues}: CustomSubSt
     const styles = useThemeStyles();
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
-    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
