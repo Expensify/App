@@ -98,6 +98,16 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
+    const noActionRequired = {
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        type,
+        message: [
+            {
+                text: 'No further action required!',
+            },
+        ],
+    };
+
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
@@ -125,6 +135,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                 ],
             };
+
+            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+                optimisticNextStep = noActionRequired;
+
+                break;
+            }
 
             // Scheduled submit enabled
             if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
@@ -217,16 +233,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         }
 
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
+        // or when a report has been paid
         case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = {
-                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                type,
-                message: [
-                    {
-                        text: 'No further action required!',
-                    },
-                ],
-            };
+        case CONST.REPORT.STATUS_NUM.REIMBURSED:
+            optimisticNextStep = noActionRequired;
 
             break;
 
@@ -242,15 +252,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     report,
                 )
             ) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                    message: [
-                        {
-                            text: 'No further action required!',
-                        },
-                    ],
-                };
+                optimisticNextStep = noActionRequired;
                 break;
             }
             // Self review
@@ -276,21 +278,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                 ],
             };
-            break;
-
-        // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            // Paid with wallet
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                message: [
-                    {
-                        text: 'No further action required!',
-                    },
-                ],
-            };
-
             break;
 
         // Resets a nextStep
