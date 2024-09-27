@@ -25,7 +25,6 @@ const charSetToSkip = new Set(['@', '#', '$', '%', '&', '*', '+', '-', '/', ':',
  * Searches will be very fast though, even with a lot of data.
  */
 function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
-    // Create a numeric list for the suffix tree, and a look up indexes array
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
     const maxNumericListSize = 400_000;
     // The user might provide multiple data sets, but internally, the search values will be stored in this one list:
@@ -38,7 +37,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     const listOffsets: number[] = [];
 
     for (const {data, toSearchableString} of dataSets) {
-        // Performance critical: the array parameters are out parameters, so we don't want to create new arrays every time:
+        // Performance critical: the array parameters are out parameters, so we don't have to create new arrays every time:
         dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, offset, {data, toSearchableString});
         listOffsets.push(offset.value);
     }
