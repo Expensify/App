@@ -386,23 +386,11 @@ jobs:
 
       - name: Verify staging deploy
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          sleep 5
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ needs.prep.outputs.APP_VERSION }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ needs.prep.outputs.APP_VERSION }}. Something went wrong..."
-            exit 1
-          fi
+        run: ./.github/scripts/verifyDeploy.sh staging ${{ needs.prep.outputs.APP_VERSION }}
 
       - name: Verify production deploy
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          sleep 5
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ needs.prep.outputs.APP_VERSION }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ needs.prep.outputs.APP_VERSION }}. Something went wrong..."
-            exit 1
-          fi
+        run: ./.github/scripts/verifyDeploy.sh production ${{ needs.prep.outputs.APP_VERSION }}
 
       - name: Upload web sourcemaps artifact
         uses: actions/upload-artifact@v4
