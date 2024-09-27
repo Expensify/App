@@ -169,7 +169,7 @@
     "react-native-svg": "15.6.0",
     "react-native-tab-view": "^3.5.2",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-view-shot": "3.8.0",
+    "react-native-view-shot": "4.0.0-alpha.3",
     "react-native-vision-camera": "4.0.0-beta.13",
     "react-native-web": "^0.19.12",
     "react-native-web-sound": "^0.1.3",
