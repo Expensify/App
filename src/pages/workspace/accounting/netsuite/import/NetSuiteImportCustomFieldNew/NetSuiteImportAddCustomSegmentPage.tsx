@@ -4,7 +4,7 @@ import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useLocalize from '@hooks/useLocalize';
@@ -35,6 +35,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
@@ -67,6 +68,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             return;
         }
         ref.current?.movePrevious();
+        formRef.current?.resetError();
         prevScreen();
     };
 
@@ -206,6 +208,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     renderSubStepContent
                 ) : (
                     <FormProvider
+                        ref={formRef}
                         formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM}
                         submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                         onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomSegments : handleNextScreen}
