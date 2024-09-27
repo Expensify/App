@@ -271,6 +271,9 @@ type OriginalMessageChangeLog = {
 
     /** Old role of user */
     oldValue?: string;
+
+    /** Name of removed connection */
+    connectionName?: string;
 };
 
 /** Model of `join policy changelog` report action */

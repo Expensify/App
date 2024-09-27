@@ -350,6 +350,10 @@ type ConnectionNameParams = {
     connectionName: ConnectionName;
 };
 
+type AllConnectionNameParams = {
+    connectionName: string;
+};
+
 type LastSyncDateParams = {
     connectionName: string;
     formattedDate: string;
@@ -751,4 +755,5 @@ export type {
     CharacterLengthLimitParams,
     OptionalParam,
     AssignCardParams,
+    AllConnectionNameParams,
 };

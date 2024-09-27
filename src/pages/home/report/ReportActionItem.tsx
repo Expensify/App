@@ -64,7 +64,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -683,6 +683,8 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(action) ?? {label: '', errorMessage: ''};
             children = <ReportActionItemBasicMessage message={translate('report.actions.type.integrationSyncFailed', {label, errorMessage})} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getRemovedConnectionMessage(action)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
