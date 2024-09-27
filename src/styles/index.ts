@@ -2070,6 +2070,16 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        chatDelegateMessage: {
+            color: theme.textSupporting,
+            fontSize: 11,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
         renderHTMLTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -5132,16 +5142,11 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        emptyStateScrollView: {
-            height: '100%',
-            flex: 1,
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            flexGrow: 1,
         },
 
         emptyStateContent: {

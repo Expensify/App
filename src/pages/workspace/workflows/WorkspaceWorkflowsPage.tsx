@@ -181,7 +181,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             icon={Expensicons.Plus}
                             iconHeight={20}
                             iconWidth={20}
-                            iconFill={theme.success}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                             onPress={addApprovalAction}
                         />
@@ -282,7 +281,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         preferredLocale,
         onPressAutoReportingFrequency,
         approvalWorkflows,
-        theme.success,
         theme.spinner,
         addApprovalAction,
         isOffline,
