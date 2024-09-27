@@ -36,7 +36,6 @@ jobs:
         with:
           source: ./help/
           destination: ./help/_site
-        working-directory: ./help
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1 # Using the latest stable version
@@ -67,4 +66,3 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your New Help changes have been deployed to {0} :zap:️', steps.deploy.outputs.alias) }}
-        working-directory: ./help
