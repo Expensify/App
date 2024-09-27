@@ -139,6 +139,7 @@ function WorkspacePageWithSections({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
+    const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -152,7 +153,7 @@ function WorkspacePageWithSections({
     );
 
     const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = usePrevious(shouldShowPolicy);
+    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
