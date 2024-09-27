@@ -139,9 +139,9 @@ function CardSection() {
                                 <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName,
+                                        name: defaultCard?.accountData?.addressName ?? '',
                                         expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency,
+                                        currency: defaultCard?.accountData?.currency ?? '',
                                     })}
                                 </Text>
                             </View>
