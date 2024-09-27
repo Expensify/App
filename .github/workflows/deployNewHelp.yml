@@ -39,6 +39,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+          working-directory: ./help
 
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site
