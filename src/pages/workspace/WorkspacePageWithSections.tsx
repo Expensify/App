@@ -140,7 +140,6 @@ function WorkspacePageWithSections({
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
-
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
         firstRender.current = false;
