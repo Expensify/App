@@ -25,7 +25,7 @@ while [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; do
   fi
 
   if [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; then
-    echo "Version mismatch. Retrying in 5 seconds..."
+    echo "Version mismatch, found $DOWNLOADED_VERSION. Retrying in 5 seconds..."
     sleep 5
   fi
 done
