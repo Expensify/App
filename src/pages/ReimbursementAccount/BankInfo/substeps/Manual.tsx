@@ -33,7 +33,7 @@ function Manual({onNext}: ManualProps) {
         [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
     };
 
-    const shouldBeInputsReadonly = reimbursementAccount?.achData?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+    const shouldBeReadonlyInput = reimbursementAccount?.achData?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -88,7 +88,7 @@ function Manual({onNext}: ManualProps) {
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
                 shouldUseDefaultValue={hasBankAccountData}
-                disabled={shouldBeInputsReadonly}
+                disabled={shouldBeReadonlyInput}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -101,7 +101,7 @@ function Manual({onNext}: ManualProps) {
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
                 shouldUseDefaultValue={hasBankAccountData}
-                disabled={shouldBeInputsReadonly}
+                disabled={shouldBeReadonlyInput}
             />
         </FormProvider>
     );

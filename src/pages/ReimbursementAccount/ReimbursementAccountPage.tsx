@@ -156,7 +156,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const achData = reimbursementAccount?.achData;
     const isPreviousPolicy = policyIDParam === achData?.policyID;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : (achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
