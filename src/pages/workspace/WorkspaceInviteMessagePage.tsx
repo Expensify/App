@@ -2,8 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -35,42 +34,26 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type WorkspaceInviteMessagePageOnyxProps = {
-    /** All of the personal details for everyone */
-    allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-
-    /** Updated workspace invite message */
-    workspaceInviteMessageDraft: OnyxEntry<string>;
-};
-
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
-    WorkspaceInviteMessagePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-function WorkspaceInviteMessagePage({
-    workspaceInviteMessageDraft,
-    invitedEmailsToAccountIDsDraft,
-    policy,
-    route,
-    allPersonalDetails,
-    currentUserPersonalDetails,
-}: WorkspaceInviteMessagePageProps) {
+function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [workspaceInviteMessageDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -99,6 +82,13 @@ function WorkspaceInviteMessagePage({
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
+            return;
+        }
+        setWelcomeNote(getDefaultWelcomeNote());
+    }, [invitedEmailsToAccountIDsDraft, workspaceInviteMessageDraft, route.params.policyID, policy]);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
@@ -221,18 +211,4 @@ function WorkspaceInviteMessagePage({
 
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
-export default withPolicyAndFullscreenLoading(
-    withCurrentUserPersonalDetails(
-        withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-            allPersonalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-            invitedEmailsToAccountIDsDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-            },
-            workspaceInviteMessageDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-            },
-        })(WorkspaceInviteMessagePage),
-    ),
-);
+export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(WorkspaceInviteMessagePage));
