@@ -14,12 +14,14 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -81,11 +83,14 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+    const policy = usePolicy(report?.policyID);
+    const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const icons = ReportUtils.getIcons(iouReport ?? null, personalDetails);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
+    const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
@@ -99,19 +104,14 @@ function ReportActionItemSingle({
     let avatarId: number | string | undefined = actorAccountID;
 
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report);
+        displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
-        avatarSource = ReportUtils.getWorkspaceIcon(report).source;
+        avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
-        // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
-        // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = personalDetails[action.delegateAccountID];
-        const delegateDisplayName = delegateDetails?.displayName;
-        actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
-        displayName = actorHint;
-        avatarSource = delegateDetails?.avatar;
-        avatarId = action.delegateAccountID;
+        displayName = delegatePersonalDetails?.displayName ?? '';
+        avatarSource = delegatePersonalDetails?.avatar;
+        avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
     }
@@ -376,6 +376,9 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
+                {action?.delegateAccountID && !isReportPreviewAction && (
+                    <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
+                )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>
