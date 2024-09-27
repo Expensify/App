@@ -277,10 +277,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
         }
         if (signupQualifier) {
-            if (signupQualifier === 'individual') {
+            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL) {
                 Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
             }
-            if (signupQualifier === 'vsb') {
+            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB) {
                 Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             }
         }
