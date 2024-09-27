@@ -49,8 +49,16 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const customChoices = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES)[0] ?? [];
-    const onboardingChoices = customChoices.length > 0 ? Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).filter((choice) => customChoices.includes(choice)) : Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
+    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const showBusinessModal = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB
+    
+    if (showBusinessModal) {
+        Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute());
+    }
+
+    const onboardingChoices = customChoices.length > 0 ? Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).filter((choice) => customChoices.includes(choice))
+            : Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
 
     const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
