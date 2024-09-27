@@ -17,7 +17,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getImportCustomFieldsSettings,
@@ -43,10 +43,12 @@ function getAccountingIntegrationData(
     translate: LocaleContextProps['translate'],
     policy?: Policy,
     key?: number,
+    integrationToDisconnect?: ConnectionName,
+    shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const netsuiteConfig = policy?.connections?.netsuite?.options.config;
+    const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
 
     switch (connectionName) {
@@ -70,7 +72,7 @@ function getAccountingIntegrationData(
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
-                    CONST.QUICKBOOKS_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
                     CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT,
@@ -189,7 +191,9 @@ function getAccountingIntegrationData(
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
-                    backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
+                    backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
+                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields},
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields},
@@ -234,7 +238,9 @@ function getAccountingIntegrationData(
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
-                    backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID),
+                    backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
+                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID),
                 },
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
@@ -251,7 +257,23 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+    if (isAuthenticationError(policy, connectionName)) {
+        return (
+            <Text style={[styles?.formError]}>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
+                {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
+                    <TextLink
+                        style={[styles?.link, styles?.fontSizeLabel]}
+                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
+                    >
+                        {translate('workspace.common.learnMore')}
+                    </TextLink>
+                )}
+            </Text>
+        );
+    }
+
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         if (
@@ -268,19 +290,6 @@ function getSynchronizationErrorMessage(
         return;
     }
 
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)) {
-        return (
-            <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.sageIntacct.authenticationError')}</Text>
-                <TextLink
-                    style={[styles?.link, styles?.fontSizeLabel]}
-                    href={CONST.SAGE_INTACCT_HELP_LINK}
-                >
-                    {translate('workspace.sageIntacct.learnMore')}
-                </TextLink>
-            </Text>
-        );
-    }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
 }
 

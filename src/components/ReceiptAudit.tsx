@@ -22,7 +22,7 @@ function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
 
     let auditText = '';
     if (notes.length > 0 && shouldShowAuditResult) {
-        auditText = translate('iou.receiptIssuesFound', undefined, notes.length);
+        auditText = translate('iou.receiptIssuesFound', {count: notes.length});
     } else if (!notes.length && shouldShowAuditResult) {
         auditText = translate('common.verified');
     }

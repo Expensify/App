@@ -3,6 +3,7 @@ import type Form from './Form';
 
 const FILTER_KEYS = {
     TYPE: 'type',
+    STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
     CURRENCY: 'currency',
@@ -21,7 +22,6 @@ const FILTER_KEYS = {
     FROM: 'from',
     TO: 'to',
     IN: 'in',
-    HAS: 'has',
 } as const;
 
 type InputID = ValueOf<typeof FILTER_KEYS>;
@@ -30,6 +30,7 @@ type SearchAdvancedFiltersForm = Form<
     InputID,
     {
         [FILTER_KEYS.TYPE]: string;
+        [FILTER_KEYS.STATUS]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
@@ -48,7 +49,6 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
-        [FILTER_KEYS.HAS]: string[];
     }
 >;
 

@@ -7,6 +7,7 @@ import Lottie from '@components/Lottie';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
@@ -21,13 +22,16 @@ function EmptyStateComponent({
     buttonAction,
     containerStyles,
     title,
+    titleStyles,
     subtitle,
     headerStyles,
     headerContentStyles,
+    lottieWebViewStyles,
     minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -63,6 +67,7 @@ function EmptyStateComponent({
                         autoPlay
                         loop
                         style={headerContentStyles}
+                        webStyle={lottieWebViewStyles}
                     />
                 );
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
@@ -75,10 +80,13 @@ function EmptyStateComponent({
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
-        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}>
+        <ScrollView
+            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
+            style={styles.flex1}
+        >
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
@@ -88,9 +96,9 @@ function EmptyStateComponent({
             <View style={styles.emptyStateForeground}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
-                    <View style={styles.p8}>
-                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
-                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
+                    <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
+                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
+                        {typeof subtitle === 'string' ? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text> : subtitle}
                         {!!buttonText && !!buttonAction && (
                             <Button
                                 success

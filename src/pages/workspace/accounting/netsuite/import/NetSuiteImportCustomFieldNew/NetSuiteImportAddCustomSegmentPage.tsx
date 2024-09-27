@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
@@ -40,7 +40,9 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
+        });
     }, [policyID]);
 
     const {
@@ -86,22 +88,21 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             switch (screenIndex) {
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_NAME:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SEGMENT_NAME])) {
-                        errors[INPUT_IDS.SEGMENT_NAME] = translate(
-                            'workspace.netsuite.import.importCustomFields.requiredFieldError',
-                            translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
-                        );
+                        errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {
+                            fieldName: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
+                        });
                     } else if (customSegments.find((customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLowerCase())) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
-                        errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
+                        errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.INTERNAL_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.INTERNAL_ID])) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
-                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customSegments.find((customSegment) => customSegment.internalID.toLowerCase() === values[INPUT_IDS.INTERNAL_ID].toLowerCase())) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
-                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
+                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SCRIPT_ID:
@@ -111,14 +112,14 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                                 customSegmentRecordType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT ? 'scriptID' : 'customRecordScriptID'
                             }`,
                         );
-                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customSegments.find((customSegment) => customSegment.scriptID.toLowerCase() === values[INPUT_IDS.SCRIPT_ID].toLowerCase())) {
                         const fieldLabel = translate(
                             `workspace.netsuite.import.importCustomFields.customSegments.fields.${
                                 customSegmentRecordType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT ? 'scriptID' : 'customRecordScriptID'
                             }`,
                         );
-                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
+                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING:

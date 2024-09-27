@@ -108,7 +108,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             return '';
         }
 
-        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', undefined, policy?.maxExpenseAge);
+        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge});
     }, [policy?.maxExpenseAge, translate]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
@@ -158,9 +158,11 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         >
             <View style={[styles.mt3, styles.gap3]}>
                 {individualExpenseRulesItems.map((item) => (
-                    <OfflineWithFeedback pendingAction={item.pendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={item.pendingAction}
+                        key={translate(item.descriptionTranslationKey)}
+                    >
                         <MenuItemWithTopDescription
-                            key={translate(item.descriptionTranslationKey)}
                             shouldShowRightIcon
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}

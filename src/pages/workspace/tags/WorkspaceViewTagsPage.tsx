@@ -224,7 +224,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', undefined, selectedTagsArray.length)}
+                customText={translate('workspace.common.selected', {count: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTagsArray.length}

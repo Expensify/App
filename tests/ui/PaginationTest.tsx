@@ -198,7 +198,10 @@ async function signInAndGetApp(): Promise<void> {
             reportID: REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
-            participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+            participants: {
+                [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
             lastActorAccountID: USER_B_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
@@ -212,7 +215,7 @@ async function signInAndGetApp(): Promise<void> {
             reportID: COMMENT_LINKING_REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
-            participants: {[USER_A_ACCOUNT_ID]: {hidden: false}},
+            participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             lastActorAccountID: USER_A_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
@@ -234,6 +237,10 @@ async function signInAndGetApp(): Promise<void> {
                 actorAccountID: USER_A_ACCOUNT_ID,
             },
         });
+
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
+
+        await Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, '1');
 
         // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
         AppActions.setSidebarLoaded();
@@ -336,6 +343,7 @@ describe('Pagination', () => {
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
@@ -351,6 +359,7 @@ describe('Pagination', () => {
         mockGetNewerActions(0);
 
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 

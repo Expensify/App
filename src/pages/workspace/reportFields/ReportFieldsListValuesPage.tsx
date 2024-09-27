@@ -59,7 +59,9 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
+    // See https://github.com/Expensify/App/issues/48724 for more details
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {selectionMode} = useMobileSelectionMode();
 
@@ -67,7 +69,7 @@ function ReportFieldsListValuesPage({
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -177,7 +179,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if (shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
+        if (isSmallScreenWidth ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -256,10 +258,10 @@ function ReportFieldsListValuesPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', undefined, selectedValuesArray.length)}
+                    customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     isDisabled={!selectedValuesArray.length}
                 />
             );
@@ -267,8 +269,7 @@ function ReportFieldsListValuesPage({
 
         return (
             <Button
-                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                medium
+                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
@@ -277,7 +278,7 @@ function ReportFieldsListValuesPage({
         );
     };
 
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
     return (
         <AccessOrNotFoundWrapper
@@ -302,9 +303,9 @@ function ReportFieldsListValuesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && !hasAccountingConnections && getHeaderButtons()}
+                    {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
@@ -314,9 +315,9 @@ function ReportFieldsListValuesPage({
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMedia={Illustrations.FolderWithPapers}
+                        headerStyles={styles.emptyFolderDarkBG}
+                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (

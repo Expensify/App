@@ -24,12 +24,21 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; reportID?: string}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
+} & {
+    [CONST.PROMOTED_ACTIONS.HOLD]: (params: {
+        isTextHold: boolean;
+        reportAction: ReportAction | undefined;
+        reportID?: string;
+        isDelegateAccessRestricted: boolean;
+        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
+        currentSearchHash?: number;
+    }) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -37,9 +46,9 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.PIN,
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    share: (report) => ({
+    share: (report, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...HeaderUtils.getShareMenuItem(report),
+        ...HeaderUtils.getShareMenuItem(report, backTo),
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
@@ -70,11 +79,16 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, reportID}) => ({
+    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
         onSelected: () => {
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true); // Show the menu
+                return;
+            }
+
             if (!isTextHold) {
                 Navigation.goBack();
             }
@@ -86,7 +100,7 @@ const PromotedActions = {
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID), currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;
@@ -117,7 +131,6 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     <Button
                         onPress={onSelected}
                         iconFill={theme.icon}
-                        medium
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />

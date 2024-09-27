@@ -156,7 +156,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
         text: item.text,
         value: item.value,
         description: item.description ?? (item.isRequired ? translate('common.required') : undefined),
-        isSelected: spreadsheet?.columns[columnIndex] === item.value,
+        isSelected: spreadsheet?.columns?.[columnIndex] === item.value,
     }));
 
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
@@ -172,16 +172,21 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    const columnHeader = containsHeader ? column[0] : translate('spreadsheet.column', columnName);
+    const columnHeader = containsHeader ? column[0] : translate('spreadsheet.column', {name: columnName});
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
-            <Text style={[styles.textSupporting, styles.mw100]}>{columnHeader}</Text>
+            <Text
+                numberOfLines={1}
+                style={[styles.textSupporting, styles.mw100]}
+            >
+                {columnHeader}
+            </Text>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <Text
                     numberOfLines={2}
                     ellipsizeMode="tail"
-                    style={[styles.flex1, styles.flexWrap]}
+                    style={[styles.flex1, styles.flexWrap, styles.breakAll]}
                 >
                     {columnValuesString}
                 </Text>

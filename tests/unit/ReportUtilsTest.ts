@@ -54,7 +54,7 @@ const policy: Policy = {
     id: '1',
     name: 'Vikings Policy',
     role: 'user',
-    type: 'free',
+    type: CONST.POLICY.TYPE.TEAM,
     owner: '',
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
@@ -884,7 +884,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.isChatUsedForOnboarding(LHNTestUtils.getFakeReport())).toBeFalsy();
         });
 
-        it('should return true if the user account ID is odd and report is the system chat', async () => {
+        it('should return false if the user account ID is odd and report is the system chat - only the Concierge chat chat should be the onboarding chat for users without the onboarding NVP', async () => {
             const accountID = 1;
 
             await Onyx.multiSet({
@@ -901,7 +901,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeFalsy();
         });
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
@@ -954,28 +954,44 @@ describe('ReportUtils', () => {
             const invoiceReport: Report = {
                 reportID: '1',
                 type: CONST.REPORT.TYPE.INVOICE,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             const taskReport: Report = {
                 reportID: '2',
                 type: CONST.REPORT.TYPE.TASK,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             const iouReport: Report = {
                 reportID: '3',
                 type: CONST.REPORT.TYPE.IOU,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             groupChatReport = {
                 reportID: '4',
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: {[userAccountID]: {hidden: false}, [userAccountID2]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [userAccountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             oneOnOneChatReport = {
                 reportID: '5',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             const reportCollectionDataSet = toCollectionDataSet(
                 ONYXKEYS.COLLECTION.REPORT,

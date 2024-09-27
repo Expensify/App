@@ -59,7 +59,11 @@ describe('SidebarLinks', () => {
 
         // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-        Onyx.clear().then(waitForBatchedUpdates);
+        TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
+    });
+
+    afterEach(() => {
+        Onyx.clear();
     });
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
@@ -87,7 +91,7 @@ describe('SidebarLinks', () => {
              * Query for display names of participants [1, 2].
              * This will ensure that the sidebar renders a list of items.
              */
-            await screen.findAllByText('One, Two');
+            await screen.findAllByText('Email Two');
         };
 
         await waitForBatchedUpdates();

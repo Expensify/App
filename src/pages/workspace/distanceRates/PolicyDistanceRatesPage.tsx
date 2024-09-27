@@ -203,7 +203,7 @@ function PolicyDistanceRatesPage({
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
-                text: translate('workspace.distanceRates.deleteRates', undefined, selectedDistanceRates.length),
+                text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: Expensicons.Trashcan,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? setIsDeleteModalVisible(true) : setIsWarningModalVisible(true)),
@@ -213,7 +213,7 @@ function PolicyDistanceRatesPage({
         const enabledRates = selectedDistanceRates.filter((rate) => rate.enabled);
         if (enabledRates.length > 0) {
             options.push({
-                text: translate('workspace.distanceRates.disableRates', undefined, enabledRates.length),
+                text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 icon: Expensicons.DocumentSlash,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : setIsWarningModalVisible(true)),
@@ -223,7 +223,7 @@ function PolicyDistanceRatesPage({
         const disabledRates = selectedDistanceRates.filter((rate) => !rate.enabled);
         if (disabledRates.length > 0) {
             options.push({
-                text: translate('workspace.distanceRates.enableRates', undefined, disabledRates.length),
+                text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 icon: Expensicons.Document,
                 onSelected: enableRates,
@@ -240,7 +240,6 @@ function PolicyDistanceRatesPage({
             {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
-                        medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         style={[shouldUseNarrowLayout && styles.flex1]}
@@ -249,7 +248,6 @@ function PolicyDistanceRatesPage({
                     />
 
                     <Button
-                        medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
                         style={[shouldUseNarrowLayout && styles.flex1]}
@@ -260,7 +258,7 @@ function PolicyDistanceRatesPage({
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
-                    customText={translate('workspace.common.selected', undefined, selectedDistanceRates.length)}
+                    customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
@@ -349,7 +347,7 @@ function PolicyDistanceRatesPage({
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteRates}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workspace.distanceRates.areYouSureDelete', undefined, selectedDistanceRates.length)}
+                    prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

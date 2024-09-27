@@ -13,6 +13,7 @@ import type {
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {SaveSearchParams} from '@libs/API/parameters';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -67,6 +68,7 @@ type CentralPaneScreensParamList = {
 
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
+        name?: string;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -181,16 +183,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
-    [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVITE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
@@ -210,6 +209,26 @@ type SettingsNavigatorParamList = {
         categoryName: string;
     };
     [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
         policyID: string;
         categoryName: string;
     };
@@ -255,6 +274,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAGS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAGS_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
@@ -269,6 +294,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAG_APPROVER]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -326,6 +356,10 @@ type SettingsNavigatorParamList = {
         reportFieldID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
+        policyID: string;
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
         policyID: string;
         accountID: string;
     };
@@ -604,6 +638,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {
         policyID: string;
         reimbursable: string;
@@ -631,6 +671,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
         backTo?: Routes;
         forwardTo?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
+        login: string;
+        role?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
+        login: string;
+        role: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
+        login: string;
+        role: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
@@ -673,6 +726,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
+        policyID: string;
+        bank: string;
+        cardID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+        bank: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
+        policyID: string;
+        cardID: string;
+        bank: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
         backTo?: Routes;
@@ -712,6 +781,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
         cardID: string;
     };
+    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
         policyID: string;
     };
@@ -749,52 +830,87 @@ type ProfileNavigatorParamList = {
 };
 
 type ReportDetailsNavigatorParamList = {
-    [SCREENS.REPORT_DETAILS.ROOT]: undefined;
+    [SCREENS.REPORT_DETAILS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+        backTo?: Routes;
     };
     [SCREENS.REPORT_DETAILS.EXPORT]: {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+        backTo?: Routes;
     };
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.NAME]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
 type ReportDescriptionNavigatorParamList = {
-    [SCREENS.REPORT_DESCRIPTION_ROOT]: {reportID: string};
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
-    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
 type RoomMembersNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS_ROOT]: undefined;
-};
-
-type RoomInviteNavigatorParamList = {
-    [SCREENS.ROOM_INVITE_ROOT]: {
+    [SCREENS.ROOM_MEMBERS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.ROOM_MEMBERS.INVITE]: {
         reportID: string;
         role?: 'accountant';
+        backTo?: Routes;
+    };
+    [SCREENS.ROOM_MEMBERS.DETAILS]: {
+        reportID: string;
+        accountID: string;
+        backTo?: Routes;
     };
 };
 
@@ -908,6 +1024,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: never;
         action: never;
         currency: never;
+        pageIndex?: string;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: IOUType;
@@ -921,6 +1038,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         backTo: Routes;
         action: IOUAction;
+        pageIndex?: string;
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
@@ -959,12 +1077,22 @@ type MoneyRequestNavigatorParamList = {
 };
 
 type NewTaskNavigatorParamList = {
-    [SCREENS.NEW_TASK.ROOT]: undefined;
-    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: undefined;
+    [SCREENS.NEW_TASK.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: {
+        backTo?: Routes;
+    };
     [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: undefined;
-    [SCREENS.NEW_TASK.DETAILS]: undefined;
-    [SCREENS.NEW_TASK.TITLE]: undefined;
-    [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
+    [SCREENS.NEW_TASK.DETAILS]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.TITLE]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.DESCRIPTION]: {
+        backTo?: Routes;
+    };
 };
 
 type TeachersUniteNavigatorParamList = {
@@ -975,9 +1103,12 @@ type TeachersUniteNavigatorParamList = {
 };
 
 type TaskDetailsNavigatorParamList = {
-    [SCREENS.TASK.TITLE]: undefined;
+    [SCREENS.TASK.TITLE]: {
+        backTo?: Routes;
+    };
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
@@ -989,6 +1120,7 @@ type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportID: string;
         reportActionID: string;
+        backTo?: Routes;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
         field: string;
@@ -1022,11 +1154,17 @@ type FlagCommentNavigatorParamList = {
     [SCREENS.FLAG_COMMENT_ROOT]: {
         reportID: string;
         reportActionID: string;
+        backTo?: Routes;
     };
 };
 
 type EditRequestNavigatorParamList = {
-    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: undefined;
+    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
+        fieldID: string;
+        reportID: string;
+        policyID: string;
+        backTo?: Routes;
+    };
 };
 
 type SignInNavigatorParamList = {
@@ -1049,37 +1187,48 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
+    [SCREENS.PRIVATE_NOTES.LIST]: {
+        backTo?: Routes;
+    };
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
+        backTo?: Routes;
     };
 };
 
 type TransactionDuplicateNavigatorParamList = {
     [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
 };
 
@@ -1100,7 +1249,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
@@ -1120,6 +1268,9 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
+    [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
+    [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1134,13 +1285,13 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
@@ -1164,7 +1315,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
-        approverIndex?: number;
+        approverIndex: number;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
@@ -1173,16 +1324,7 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REIMBURSE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.BILLS]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
@@ -1332,6 +1474,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
+        reportActionID?: string;
     };
 };
 
@@ -1339,9 +1482,42 @@ type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
 };
 
+type SearchSavedSearchParamList = {
+    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
+    };
+};
+
+type MissingPersonalDetailsParamList = {
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: {
+        policyID: string;
+    };
+};
+
+type DebugParamList = {
+    [SCREENS.DEBUG.REPORT]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION]: {
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+        fieldName: string;
+        fieldValue?: string;
+        backTo?: string;
+    };
+    [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
+        fieldName: string;
+        fieldValue?: string;
+        backTo?: string;
     };
 };
 
@@ -1397,7 +1573,6 @@ export type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     RightModalNavigatorParamList,
-    RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
     SettingsNavigatorParamList,
@@ -1416,5 +1591,8 @@ export type {
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
     SearchAdvancedFiltersParamList,
+    SearchSavedSearchParamList,
     RestrictedActionParamList,
+    MissingPersonalDetailsParamList,
+    DebugParamList,
 };

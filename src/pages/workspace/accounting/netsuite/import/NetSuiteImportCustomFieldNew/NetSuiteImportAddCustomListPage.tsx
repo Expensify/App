@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -36,7 +36,9 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
+        });
     }, [policyID]);
 
     const {
@@ -86,7 +88,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.TRANSACTION_FIELD_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.TRANSACTION_FIELD_ID])) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`);
-                        errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customLists.find((customList) => customList.transactionFieldID.toLowerCase() === values[INPUT_IDS.TRANSACTION_FIELD_ID].toLowerCase())) {
                         errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.customLists.errors.uniqueTransactionFieldIDError');
                     }

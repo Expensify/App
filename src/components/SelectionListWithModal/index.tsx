@@ -23,13 +23,15 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
+    // See https://github.com/Expensify/App/issues/48675 for more details
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectionMode} = useMobileSelectionMode(true);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems = sections[0].data.filter((item) => item.isSelected);
-        if (!shouldUseNarrowLayout) {
+        if (!isSmallScreenWidth) {
             if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -38,11 +40,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [sections, selectionMode, shouldUseNarrowLayout]);
+    }, [sections, selectionMode, isSmallScreenWidth]);
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!turnOnSelectionModeOnLongPress || !shouldUseNarrowLayout || item?.isDisabled || item?.isDisabledCheckbox) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
             return;
         }
         setLongPressedItem(item);

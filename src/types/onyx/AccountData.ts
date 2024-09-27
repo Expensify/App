@@ -36,6 +36,9 @@ type AccountData = {
     /** The bankAccountID in the bankAccounts db */
     bankAccountID?: number;
 
+    /** Unique identifier for this account in Plaid */
+    plaidAccountID?: string;
+
     /** All data related to the bank account */
     additionalData?: BankAccountAdditionalData;
 

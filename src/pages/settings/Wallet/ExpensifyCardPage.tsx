@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,9 +82,12 @@ function ExpensifyCardPage({
         params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [currentCardID, setCurrentCardID] = useState<number>(-1);
     const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual;
     const domain = cardList?.[cardID]?.domainName ?? '';
     const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
@@ -105,30 +109,38 @@ function ExpensifyCardPage({
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
-    const handleRevealDetails = (revealedCardID: number) => {
+    const openValidateCodeModal = (revealedCardID: number) => {
+        setCurrentCardID(revealedCardID);
+        setIsValidateCodeActionModalVisible(true);
+    };
+
+    const handleRevealDetails = (validateCode: string) => {
         setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({
             ...prevState,
-            [revealedCardID]: true,
+            [currentCardID]: true,
         }));
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        Card.revealVirtualCardDetails(revealedCardID)
+        Card.revealVirtualCardDetails(currentCardID, validateCode)
             .then((value) => {
-                setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [revealedCardID]: value}));
+                setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [currentCardID]: value}));
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedCardID]: '',
+                    [currentCardID]: '',
                 }));
             })
             .catch((error: string) => {
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedCardID]: error,
+                    [currentCardID]: error,
                 }));
             })
-            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedCardID]: false})));
+            .finally(() => {
+                setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [currentCardID]: false}));
+                setIsValidateCodeActionModalVisible(false);
+            });
     };
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
@@ -186,7 +198,6 @@ function ExpensifyCardPage({
                                 />
 
                                 <Button
-                                    medium
                                     style={[styles.mh5, styles.mb5]}
                                     text={translate('cardPage.reviewTransaction')}
                                     onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
@@ -205,7 +216,7 @@ function ExpensifyCardPage({
                                 {limitNameKey && limitTitleKey && (
                                     <MenuItemWithTopDescription
                                         description={translate(limitNameKey)}
-                                        title={translate(limitTitleKey, formattedAvailableSpendAmount)}
+                                        title={translate(limitTitleKey, {formattedLimit: formattedAvailableSpendAmount})}
                                         interactive={false}
                                         titleStyle={styles.walletCardLimit}
                                         numberOfLinesTitle={3}
@@ -230,16 +241,15 @@ function ExpensifyCardPage({
                                                     shouldShowRightComponent
                                                     rightComponent={
                                                         <Button
-                                                            medium
                                                             text={translate('cardPage.cardDetails.revealDetails')}
-                                                            onPress={() => handleRevealDetails(card.cardID)}
+                                                            onPress={() => openValidateCodeModal(card.cardID)}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                             isLoading={isCardDetailsLoading[card.cardID]}
                                                         />
                                                     }
                                                 />
                                                 <DotIndicatorMessage
-                                                    messages={cardsDetailsErrors[card.cardID] ? {error: cardsDetailsErrors[card.cardID]} : {}}
+                                                    messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
                                                     type="error"
                                                     style={[styles.ph5]}
                                                 />
@@ -301,6 +311,14 @@ function ExpensifyCardPage({
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}
+                    <ValidateCodeActionModal
+                        handleSubmitForm={handleRevealDetails}
+                        clearError={() => {}}
+                        onClose={() => setIsValidateCodeActionModalVisible(false)}
+                        isVisible={isValidateCodeActionModalVisible}
+                        title={translate('cardPage.validateCardTitle')}
+                        description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                    />
                 </>
             )}
         </ScreenWrapper>

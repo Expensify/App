@@ -5,10 +5,11 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
@@ -60,6 +61,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to wrap the alternate text up to 2 lines */
     isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
@@ -206,6 +210,21 @@ type TransactionListItemType = ListItem &
         keyForList: string;
     };
 
+type ReportActionListItemType = ListItem &
+    SearchReportAction & {
+        /** The personal details of the user posting comment */
+        from: SearchPersonalDetails;
+
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final "date" value used for sorting */
+        date: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
@@ -241,6 +260,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
      * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
      */
     shouldSyncFocus?: boolean;
+
+    /** Whether to show RBR */
+    shouldDisplayRBR?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -254,6 +276,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
+    shouldDisplayRBR?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -277,7 +300,16 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem =
+    | typeof RadioListItem
+    | typeof UserListItem
+    | typeof TableListItem
+    | typeof InviteMemberListItem
+    | typeof TransactionListItem
+    | typeof ReportListItem
+    | typeof ChatListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -337,6 +369,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
+
+    /** Whether to show the text input */
+    shouldShowTextInput?: boolean;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -401,8 +436,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
-    /** Whether to stop automatic form submission on pressing enter key or not */
+    /** Whether to stop automatic propagation on pressing enter key or not */
     shouldStopPropagation?: boolean;
+
+    /** Whether to call preventDefault() on pressing enter key or not */
+    shouldPreventDefault?: boolean;
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
@@ -424,9 +462,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
-
-    /** Whether SectionList should use custom ScrollView */
-    shouldUseCustomScrollView?: boolean;
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
@@ -460,6 +495,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap the alternate text up to 2 lines */
     isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
@@ -556,4 +594,6 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    ReportActionListItemType,
+    ChatListItemProps,
 };
