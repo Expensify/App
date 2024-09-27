@@ -29,11 +29,15 @@ type SearchRouterListProps = {
     closeAndClearRouter: () => void;
 };
 
-function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
-    if ('singleIcon' in listItem.item && listItem.item.singleIcon && 'query' in listItem.item && !!listItem.item.query) {
+function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
+    if ('singleIcon' in item && item.singleIcon && 'query' in item && item.query) {
         return true;
     }
     return false;
+}
+
+function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
+    return isSearchQueryItem(listItem.item);
 }
 
 function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps) {
@@ -109,25 +113,27 @@ function SearchRouterList(
 
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {
-            if (!('query' in item) || !item.query) {
-                // Handle selection of "Recent chat"
-                closeAndClearRouter();
-                if ('reportID' in item && item?.reportID) {
-                    Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-                } else if ('login' in item) {
-                    Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
+            if (isSearchQueryItem(item)) {
+                if (item.isContextualSearchItem) {
+                    // Handle selection of "Contextual search suggestion"
+                    updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
+                    return;
                 }
-                return;
+
+                // Handle selection of "Recent search"
+                if (!item?.query) {
+                    return;
+                }
+                onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
             }
 
-            if (item.isContextualSearchItem) {
-                // Handle selection of "Contextual search suggestion"
-                updateUserSearchQuery(`${item?.query} ${currentQuery?.inputQuery ?? ''}`);
-                return;
+            // Handle selection of "Recent chat"
+            closeAndClearRouter();
+            if ('reportID' in item && item?.reportID) {
+                Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+            } else if ('login' in item) {
+                Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
             }
-
-            // Handle selection of "Recent search"
-            onSearchSubmit(SearchUtils.buildSearchQueryJSON(item?.query));
         },
         [closeAndClearRouter, onSearchSubmit, currentQuery, updateUserSearchQuery],
     );

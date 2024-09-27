@@ -13,6 +13,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -42,11 +43,7 @@ function SearchRouter() {
         return state?.routes.at(-1)?.params?.reportID;
     });
     const sortedRecentSearches = useMemo(() => {
-        return Object.values(recentSearches ?? {}).sort((a, b) => {
-            const dateA = new Date(a.timestamp);
-            const dateB = new Date(b.timestamp);
-            return dateB.getTime() - dateA.getTime();
-        });
+        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
     }, [recentSearches]);
 
     const {options, areOptionsInitialized} = useOptionsList({
@@ -79,12 +76,9 @@ function SearchRouter() {
                 const queryJSON = SearchUtils.buildSearchQueryJSON(userQuery);
 
                 if (queryJSON) {
-                    // eslint-disable-next-line
-                    console.log('parsedQuery', queryJSON);
-
                     setUserSearchQuery(queryJSON);
                 } else {
-                    // Handle query parsing error
+                    Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, userQuery, false);
                 }
             }, SEARCH_DEBOUNCE_DELAY),
         [],
@@ -150,7 +144,7 @@ function SearchRouter() {
                         currentQuery={userSearchQuery}
                         reportForContextualSearch={contextualReportData}
                         recentSearches={sortedRecentSearches?.slice(0, 5)}
-                        recentReports={searchOptions?.recentReports?.slice(0, 5)}
+                        recentReports={searchOptions?.recentReports?.slice(0, 10)}
                         onSearchSubmit={onSearchSubmit}
                         updateUserSearchQuery={updateUserSearchQuery}
                         closeAndClearRouter={closeAndClearRouter}

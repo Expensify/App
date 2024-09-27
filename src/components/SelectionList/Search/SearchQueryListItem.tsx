@@ -75,7 +75,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     );
 }
 
-SearchQueryListItem.displayName = 'SingleIconListItem';
+SearchQueryListItem.displayName = 'SearchQueryListItem';
 
 export default SearchQueryListItem;
 export type {SearchQueryItem, SearchQueryListItemProps};
