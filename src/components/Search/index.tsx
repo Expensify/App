@@ -7,18 +7,17 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import useNewSearchResultKey from '@hooks/useNewSearchResultKey';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTriggerSearchOnNewTransaction from '@hooks/useTriggerSearchOnTransactionIncrease';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -136,8 +135,6 @@ function Search({queryJSON}: SearchProps) {
         SearchActions.search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    useTriggerSearchOnNewTransaction({transactions, previousTransactions, queryJSON, offset});
-
     const handleOnCancelConfirmModal = () => {
         setDeleteExpensesConfirmModalVisible(false);
     };
@@ -194,22 +191,14 @@ function Search({queryJSON}: SearchProps) {
     }
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
-    const newSearchResultKey = useNewSearchResultKey(searchResults);
 
-    const handleSelectionListScroll = useCallback(
-        (data: Array<TransactionListItemType | ReportActionListItemType | ReportListItemType>) => (ref: SelectionListHandle | null) => {
-            const indexOfNewTransaction = data?.findIndex(
-                (transaction) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(transaction as TransactionListItemType)?.transactionID}` === newSearchResultKey,
-            );
-
-            if (!ref || indexOfNewTransaction < 0) {
-                return;
-            }
-
-            ref?.scrollToIndex(indexOfNewTransaction);
-        },
-        [newSearchResultKey],
-    );
+    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+        searchResults,
+        transactions,
+        previousTransactions,
+        queryJSON,
+        offset,
+    });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
