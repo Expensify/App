@@ -39,7 +39,7 @@ type VideoPlayerPreviewProps = {
     /** Callback executed when modal is pressed. */
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    /**  Whether the video is deleted */
+    /** Whether the video is deleted */
     isDeleted?: boolean;
 };
 

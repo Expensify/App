@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -32,9 +33,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const {translate} = useLocalize();
 
     const htmlAttribs = tnode.attributes;
-
-    const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
-    const isDeleted = 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
+    const isDeleted = isDeletedNode(tnode);
 
     // There are two kinds of images that need to be displayed:
     //

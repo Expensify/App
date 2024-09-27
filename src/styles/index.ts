@@ -1111,7 +1111,7 @@ const styles = (theme: ThemeColors) =>
             height: 25,
         },
 
-        deletedIndicator: {
+        deletedAttachmentIndicator: {
             zIndex: 20,
             width: '100%',
             height: '100%',

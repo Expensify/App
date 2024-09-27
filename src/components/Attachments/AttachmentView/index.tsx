@@ -78,7 +78,7 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /* Flag indicating whether the attachment has been uploaded. */
         isUploaded?: boolean;
 
-        /**  Whether the attachment is deleted */
+        /** Whether the attachment is deleted */
         isDeleted?: boolean;
     };
 

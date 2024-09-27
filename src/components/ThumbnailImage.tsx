@@ -57,7 +57,7 @@ type ThumbnailImageProps = {
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
 
-    /**  Whether the image is deleted */
+    /** Whether the image is deleted */
     isDeleted?: boolean;
 };
 

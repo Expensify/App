@@ -8,12 +8,12 @@ import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 
-type AttachmentOfflineIndicatorProps = {
-    /** Any additional styles to apply */
+type AttachmentDeletedIndicatorProps = {
+    /** Additional styles for container */
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function AttachmentDeletedIndicator({containerStyles}: AttachmentOfflineIndicatorProps) {
+function AttachmentDeletedIndicator({containerStyles}: AttachmentDeletedIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -25,9 +25,17 @@ function AttachmentDeletedIndicator({containerStyles}: AttachmentOfflineIndicato
     return (
         <>
             <View
-                style={[styles.pAbsolute, styles.alignItemsCenter, styles.justifyContentCenter, styles.highlightBG, styles.deletedIndicatorOverlay, styles.deletedIndicator, containerStyles]}
+                style={[
+                    styles.pAbsolute,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.highlightBG,
+                    styles.deletedIndicatorOverlay,
+                    styles.deletedAttachmentIndicator,
+                    containerStyles,
+                ]}
             />
-            <View style={[styles.pAbsolute, styles.deletedIndicator, styles.alignItemsCenter, styles.justifyContentCenter, containerStyles]}>
+            <View style={[styles.pAbsolute, styles.deletedAttachmentIndicator, styles.alignItemsCenter, styles.justifyContentCenter, containerStyles]}>
                 <Icon
                     fill={theme.icon}
                     src={Expensicons.Trashcan}
