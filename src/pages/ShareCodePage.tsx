@@ -84,6 +84,9 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
     }, [report, currentUserPersonalDetails, isReport]);
 
     const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
+    // We should remove this logic once https://github.com/Expensify/App/issues/19834 is done
+    // We shouldn't introduce platform specific code in our codebase
+    // This is a temporary solution while Web is not supported for the QR code download feature
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
@@ -139,6 +142,9 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
+                    We shouldn't introduce platform specific code in our codebase. 
+                    This is a temporary solution while Web is not supported for the QR code download feature */}
                     {isNative && (
                         <MenuItem
                             isAnonymousAction

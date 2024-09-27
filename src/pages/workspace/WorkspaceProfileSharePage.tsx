@@ -122,6 +122,9 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                 shouldLimitWidth={false}
                                 wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                             />
+                            {/* Remove this once https://github.com/Expensify/App/issues/19834 is done. 
+                            We shouldn't introduce platform specific code in our codebase. 
+                            This is a temporary solution while Web is not supported for the QR code download feature */}
                             {shouldAllowDownloadQRCode && (
                                 <MenuItem
                                     isAnonymousAction
