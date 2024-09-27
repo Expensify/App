@@ -1,4 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';

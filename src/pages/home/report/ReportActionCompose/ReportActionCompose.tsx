@@ -557,7 +557,7 @@ function ReportActionCompose({
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
                 </OfflineWithFeedback>
-                {isUsingImportedState && !isSmallScreenWidth && (
+                {!isSmallScreenWidth && (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <ImportedStateIndicator />
                     </View>
