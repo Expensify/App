@@ -325,7 +325,7 @@ function PaymentMethodList({
                     text={translate('walletPage.addBankAccount')}
                     large
                     success
-                    isDisabled={isLoadingPaymentMethods}
+                    isDisabled={!isUserValidated}
                     onPress={onPress}
                 />
             ) : (
@@ -339,7 +339,7 @@ function PaymentMethodList({
                 />
             ),
 
-        [shouldUseSuccessAddBankAccountButton, translate, onPress, isLoadingPaymentMethods, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
+        [shouldUseSuccessAddBankAccountButton, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
     );
 
     /**
