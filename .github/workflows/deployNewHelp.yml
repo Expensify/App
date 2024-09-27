@@ -2,11 +2,12 @@ name: Deploy New Help Site
 
 on:
   # Run on any push to main that has changes to the help directory
-  push:
-    branches:
-      - main
-    paths:
-      - 'help/**'
+# TEST: Verify Cloudflare picks this up even if not run when merged to main
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - 'help/**'
 
   # Run on any pull request (except PRs against staging or production) that has changes to the help directory
   pull_request:
@@ -38,7 +39,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          working-directory: ./help
 
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site
