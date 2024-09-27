@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import Timing from './actions/Timing';
-import {DELIMITER_CHAR_CODE, END_CHAR_CODE, makeTree, stringToNumeric} from './SuffixUkkonenTree';
+import SuffixUkkonenTree from './SuffixUkkonenTree';
 
 type SearchableData<T> = {
     /**
@@ -21,26 +21,34 @@ const charSetToSkip = new Set(['@', '#', '$', '%', '&', '*', '+', '-', '/', ':',
  * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for (sub-)strings in a list of strings.
  * You can provide multiple datasets. The search results will be returned for each dataset.
  */
-function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
+function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     // Create a numeric list for the suffix tree, and a look up indexes array
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
-    const listsAsConcatedNumericList: number[] = [];
-    const indexesByList: Array<Array<T | undefined>> = [];
-    for (const {data, toSearchableString} of dataSet) {
-        const [numericRepresentation, searchIndexList] = dataToNumericRepresentation({data, toSearchableString});
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < numericRepresentation.length; i++) {
-            // Note: we had to use a loop here as push with spread yields a maximum call stack exceeded error
-            listsAsConcatedNumericList.push(numericRepresentation[i]);
-        }
-        indexesByList.push(searchIndexList);
+    const maxNumericListSize = 400_000;
+    // The user might provide multiple data sets, but internally, the search values will be stored in this one list:
+    let concatenatedNumericList = new Int8Array(maxNumericListSize);
+    // Here we store the index of the data item in the original data list, so we can map the found occurrences back to the original data:
+    const occurrenceToIndex = new Int32Array(maxNumericListSize * 4);
+    // As we are working with ArrayBuffers, we need to keep track of the current offset:
+    const offset = {value: 0};
+    // We store the last offset for a dataSet, so we can map the found occurrences to the correct dataSet:
+    const listOffsets: number[] = [];
+
+    for (const {data, toSearchableString} of dataSets) {
+        // Performance critical: the array parameters are out parameters, so we don't want to create new arrays every time:
+        dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, offset, {data, toSearchableString});
+        listOffsets.push(offset.value);
     }
-    listsAsConcatedNumericList.push(END_CHAR_CODE);
+    concatenatedNumericList[offset.value++] = SuffixUkkonenTree.END_CHAR_CODE;
+    listOffsets[listOffsets.length - 1] = offset.value;
     Timing.end(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
+
+    // The list might be larger than necessary, so we clamp it to the actual size:
+    concatenatedNumericList = concatenatedNumericList.slice(0, offset.value);
 
     // Create & build the suffix tree:
     Timing.start(CONST.TIMING.SEARCH_MAKE_TREE);
-    const tree = makeTree(listsAsConcatedNumericList);
+    const tree = SuffixUkkonenTree.makeTree(concatenatedNumericList);
     Timing.end(CONST.TIMING.SEARCH_MAKE_TREE);
 
     Timing.start(CONST.TIMING.SEARCH_BUILD_TREE);
@@ -52,29 +60,32 @@ function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
      */
     function search(searchInput: string): T[][] {
         const cleanedSearchString = cleanString(searchInput);
-        const searchValueNumeric = stringToNumeric(cleanedSearchString, charSetToSkip);
-        const result = tree.findSubstring(searchValueNumeric);
+        const {numeric} = SuffixUkkonenTree.stringToNumeric(cleanedSearchString, {
+            charSetToSkip,
+            // stringToNumeric might return a list that is larger than necessary, so we clamp it to the actual size
+            // (otherwise the search could fail as we include in our search empty array values):
+            clamp: true,
+        });
+        const result = tree.findSubstring(Array.from(numeric));
 
-        // Map the results to the original options
-        const mappedResults = Array.from({length: indexesByList.length}, () => new Set<T>());
+        const resultsByDataSet = Array.from({length: dataSets.length}, () => new Set<T>());
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let rI = 0; rI < result.length; rI++) {
-            let offset = 0;
-            const index = result[rI];
-            for (let i = 0; i < indexesByList.length; i++) {
-                const relativeIndex = index - offset + 1;
-                if (relativeIndex < indexesByList[i].length && relativeIndex >= 0) {
-                    const option = indexesByList[i][relativeIndex];
-                    if (option) {
-                        mappedResults[i].add(option);
-                    }
-                } else {
-                    offset += indexesByList[i].length;
-                }
+        for (let i = 0; i < result.length; i++) {
+            const occurrenceIndex = result[i];
+            const itemIndexInDataSet = occurrenceToIndex[occurrenceIndex];
+            const dataSetIndex = listOffsets.findIndex((listOffset) => occurrenceIndex < listOffset);
+
+            if (dataSetIndex === -1) {
+                throw new Error('Programmatic error, this should never ever happen');
             }
+            const item = dataSets[dataSetIndex].data[itemIndexInDataSet];
+            if (!item) {
+                throw new Error('Programmatic error, this should never ever happen');
+            }
+            resultsByDataSet[dataSetIndex].add(item);
         }
 
-        return mappedResults.map((set) => Array.from(set));
+        return resultsByDataSet.map((set) => Array.from(set));
     }
 
     return {
@@ -87,44 +98,38 @@ function createFastSearch<T>(dataSet: Array<SearchableData<T>>) {
  * This function converts the user data (which are most likely objects) to a numeric representation.
  * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
  */
-function dataToNumericRepresentation<T>({data, toSearchableString}: SearchableData<T>): [number[], Array<T | undefined>] {
-    const searchIndexList: Array<T | undefined> = [];
-    const allDataAsNumbers: number[] = [];
+function dataToNumericRepresentation<T>(concatenatedNumericList: Int8Array, occurrenceToIndex: Int32Array, offset: {value: number}, {data, toSearchableString}: SearchableData<T>): void {
+    // const searchIndexList: Array<T | undefined> = [];
 
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
-        // Remove all none a-z chars:
         const cleanedSearchStringForTree = cleanString(searchStringForTree);
 
         if (cleanedSearchStringForTree.length === 0) {
             return;
         }
 
-        const numericRepresentation = stringToNumeric(cleanedSearchStringForTree, charSetToSkip);
-
-        // We need to push an array that has the same length as the length of the string we insert for this option:
-        const indexes = Array.from({length: numericRepresentation.length}, () => option);
-        // Note: we add undefined for the delimiter character
-        searchIndexList.push(...indexes, undefined);
-
-        allDataAsNumbers.push(...numericRepresentation);
-        if (index < data.length - 1) {
-            allDataAsNumbers.push(DELIMITER_CHAR_CODE);
-        }
+        SuffixUkkonenTree.stringToNumeric(cleanedSearchStringForTree, {
+            charSetToSkip,
+            out: {
+                outArray: concatenatedNumericList,
+                offset,
+                outOccurrenceToIndex: occurrenceToIndex,
+                index,
+            },
+        });
+        // eslint-disable-next-line no-param-reassign
+        occurrenceToIndex[offset.value] = index;
+        // eslint-disable-next-line no-param-reassign
+        concatenatedNumericList[offset.value++] = SuffixUkkonenTree.DELIMITER_CHAR_CODE;
     });
-
-    return [allDataAsNumbers, searchIndexList];
 }
 
-// Removes any special characters, except for numbers and letters (including unicode letters)
-// const nonAlphanumericRegex = /[^0-9\p{L}]/gu;
-
 /**
- * Everything in the tree is treated as lowercase. Strings will additionally be cleaned from
- * special characters, as they are irrelevant for the search, and thus we can save some space.
+ * Everything in the tree is treated as lowercase.
  */
 function cleanString(input: string) {
-    return input.toLowerCase(); // .replace(nonAlphanumericRegex, '');
+    return input.toLowerCase();
 }
 
 const FastSearch = {
