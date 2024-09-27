@@ -2693,28 +2693,31 @@ function openReportFromDeepLink(url: string) {
                             return;
                         }
 
+                        const handleDeeplinkNavigation = () => {
+                            const state = navigationRef.getRootState();
+                            const currentFocusedRoute = findFocusedRoute(state);
+
+                            if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                                Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                return;
+                            }
+
+                            if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            if (isAuthenticated) {
+                                return;
+                            }
+
+                            Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                        };
+
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         Welcome.isOnboardingFlowCompleted({
-                            onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
-                            onCompleted: () => {
-                                const state = navigationRef.getRootState();
-                                const currentFocusedRoute = findFocusedRoute(state);
-
-                                if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                    Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-                                    return;
-                                }
-
-                                if (shouldSkipDeepLinkNavigation(route)) {
-                                    return;
-                                }
-
-                                if (isAuthenticated) {
-                                    return;
-                                }
-
-                                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
-                            },
+                            onNotCompleted: OnboardingFlow.startOnboardingFlow,
+                            onCompleted: handleDeeplinkNavigation,
+                            onCanceled: handleDeeplinkNavigation,
                         });
                     });
                 },
