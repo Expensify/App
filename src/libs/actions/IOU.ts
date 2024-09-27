@@ -7975,7 +7975,6 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
 function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const parentReportActionOptimistic = ReportUtils.getOptimisticDataForParentReportAction(reportID, createdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -8008,12 +8007,6 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
         },
     ];
-
-    parentReportActionOptimistic.forEach((parentActionData) => {
-        if (parentActionData) {
-            optimisticData.push(parentActionData);
-        }
-    });
 
     const successData: OnyxUpdate[] = [
         {
