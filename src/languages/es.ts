@@ -831,8 +831,8 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         receiptIssuesFound: () => ({
-            one: `Problema encontrado`,
-            other: `Problemas encontrados`,
+            one: 'Problema encontrado',
+            other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
         receiptScanning: 'Escaneando recibo...',
@@ -867,12 +867,12 @@ const translations = {
             };
         },
         deleteExpense: () => ({
-            one: `Eliminar gasto`,
-            other: `Eliminar gastos`,
+            one: 'Eliminar gasto',
+            other: 'Eliminar gastos',
         }),
         deleteConfirmation: () => ({
-            one: `¿Estás seguro de que quieres eliminar esta solicitud?`,
-            other: `¿Estás seguro de que quieres eliminar estas solicitudes?`,
+            one: '¿Estás seguro de que quieres eliminar esta solicitud?',
+            other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
         }),
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
@@ -974,14 +974,14 @@ const translations = {
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
         confirmApprovalAllHoldAmount: () => ({
-            one: `Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?`,
-            other: `Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?`,
+            one: 'Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?',
+            other: 'Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?',
         }),
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({
-            one: `Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?`,
-            other: `Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?`,
+            one: 'Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?',
+            other: 'Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?',
         }),
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
@@ -2303,7 +2303,7 @@ const translations = {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             selected: () => ({
-                one: `1 seleccionado`,
+                one: '1 seleccionado',
                 other: (count: number) => `${count} seleccionados`,
             }),
             settlementFrequency: 'Frecuencia de liquidación',
@@ -2922,7 +2922,7 @@ const translations = {
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
             userDimensionsAdded: () => ({
-                one: `1 UDD añadido`,
+                one: '1 UDD añadido',
                 other: (count: number) => `${count} UDDs añadido`,
             }),
             mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
@@ -3923,7 +3923,7 @@ const translations = {
                 maxExpenseAge: 'Antigüedad máxima de los gastos',
                 maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
                 maxExpenseAgeDays: () => ({
-                    one: `1 día`,
+                    one: '1 día',
                     other: (count: number) => `${count} días`,
                 }),
                 billableDefault: 'Valor predeterminado facturable',

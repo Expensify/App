@@ -841,8 +841,8 @@ const translations = {
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptIssuesFound: () => ({
-            one: `Issue found`,
-            other: `Issues found`,
+            one: 'Issue found',
+            other: 'Issues found',
         }),
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
@@ -874,12 +874,12 @@ const translations = {
             };
         },
         deleteExpense: () => ({
-            one: `Delete expense`,
-            other: `Delete expenses`,
+            one: 'Delete expense',
+            other: 'Delete expenses',
         }),
         deleteConfirmation: () => ({
-            one: `Are you sure that you want to delete this expense?`,
-            other: `Are you sure that you want to delete these expenses?`,
+            one: 'Are you sure that you want to delete this expense?',
+            other: 'Are you sure that you want to delete these expenses?',
         }),
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
@@ -982,14 +982,14 @@ const translations = {
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
         confirmApprovalAllHoldAmount: () => ({
-            one: `This expense is on hold. Do you want to approve anyway?`,
-            other: `These expenses are on hold. Do you want to approve anyway?`,
+            one: 'This expense is on hold. Do you want to approve anyway?',
+            other: 'These expenses are on hold. Do you want to approve anyway?',
         }),
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
-            one: `This expense is on hold. Do you want to pay anyway?`,
-            other: `These expenses are on hold. Do you want to pay anyway?`,
+            one: 'This expense is on hold. Do you want to pay anyway?',
+            other: 'These expenses are on hold. Do you want to pay anyway?',
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
@@ -2283,7 +2283,7 @@ const translations = {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             selected: () => ({
-                one: `1 selected`,
+                one: '1 selected',
                 other: (count: number) => `${count} selected`,
             }),
             settlementFrequency: 'Settlement frequency',
@@ -2887,7 +2887,7 @@ const translations = {
             detailedInstructionsLink: 'View detailed instructions',
             detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
             userDimensionsAdded: () => ({
-                one: `1 UDD added`,
+                one: '1 UDD added',
                 other: (count: number) => `${count} UDDs added`,
             }),
             mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
@@ -3880,7 +3880,7 @@ const translations = {
                 maxExpenseAge: 'Max expense age',
                 maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
                 maxExpenseAgeDays: () => ({
-                    one: `1 day`,
+                    one: '1 day',
                     other: (count: number) => `${count} days`,
                 }),
                 billableDefault: 'Billable default',
