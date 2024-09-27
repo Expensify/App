@@ -37,6 +37,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         reportID?: string;
         isDelegateAccessRestricted: boolean;
         setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
+        currentSearchHash?: number;
     }) => PromotedAction;
 };
 
@@ -78,7 +79,7 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible}) => ({
+    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
@@ -99,7 +100,7 @@ const PromotedActions = {
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID), currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;

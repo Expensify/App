@@ -27,9 +27,12 @@ type BaseGenericTooltipProps = {
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number;
+
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
 } & Pick<
     SharedTooltipProps,
-    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onPressOverlay'
+    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onHideTooltip'
 >;
 
 // eslint-disable-next-line import/prefer-default-export
