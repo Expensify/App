@@ -5,7 +5,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -138,7 +138,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
