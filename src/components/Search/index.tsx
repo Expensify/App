@@ -324,13 +324,15 @@ function Search({queryJSON}: SearchProps) {
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
+        const backTo = Navigation.getActiveRoute();
+
         if (SearchUtils.isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID, reportActionID));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
     };
 
     const fetchMoreResults = () => {
