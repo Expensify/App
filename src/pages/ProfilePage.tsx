@@ -89,7 +89,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
         const reportID = isCurrentUser
-            ? ReportUtils.findSelfDMReport()?.reportID
+            ? ReportUtils.findSelfDMReportID()
             : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
 
         if (SessionActions.isAnonymousUser() || !reportID) {

@@ -786,7 +786,7 @@ function setAssigneeValue(
 ): OnyxEntry<OnyxTypes.Report> | undefined {
     let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (isCurrentUser) {
-        const selfDMReportID = ReportUtils.findSelfDMReport()?.reportID;
+        const selfDMReportID = ReportUtils.findSelfDMReportID();
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareToReportID && !skipShareDestination) {

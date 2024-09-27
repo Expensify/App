@@ -154,9 +154,9 @@ function IOURequestStepParticipants({
     const trackExpense = () => {
         // If coming from the combined submit/track flow and the user proceeds to just track the expense,
         // we will use the track IOU type in the confirmation flow.
-        const selfDMReport = ReportUtils.findSelfDMReport();
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID ?? '-1');
+        const selfDMReportID = ReportUtils.findSelfDMReportID() ?? '-1';
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
     };
 
