@@ -337,7 +337,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             shouldSingleExecuteRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             shouldPreventDefault={false}
-            listHeaderWrapperStyle={[styles.ph8, styles.pt5]}
+            listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
             containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
