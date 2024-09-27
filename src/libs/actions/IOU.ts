@@ -65,6 +65,7 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -7835,7 +7836,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, reportID: string) {
+function putOnHold(transactionID: string, comment: string, reportID: string, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
@@ -7892,6 +7893,34 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
         },
     ];
 
+    // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: true,
+                        canUnhold: false,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+    }
+
     API.write(
         'HoldRequest',
         {
@@ -7907,7 +7936,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string) {
+function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
@@ -7964,6 +7993,34 @@ function unholdRequest(transactionID: string, reportID: string) {
             value: transactionViolations ?? null,
         },
     ];
+
+    // If we are unholding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: true,
+                        canUnhold: false,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+    }
 
     API.write(
         'UnHoldRequest',

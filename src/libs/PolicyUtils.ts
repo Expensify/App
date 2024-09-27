@@ -827,7 +827,10 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
 
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, {
+        importFields,
+        importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
+    });
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 

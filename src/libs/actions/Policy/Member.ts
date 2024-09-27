@@ -183,7 +183,10 @@ function updateImportSpreadsheetData(membersLength: number): OnyxData {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfullTitle'), prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', membersLength)},
+                    importFinalModal: {
+                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
+                        prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {members: membersLength}),
+                    },
                 },
             },
         ],
