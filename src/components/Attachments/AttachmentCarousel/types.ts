@@ -9,15 +9,7 @@ type UpdatePageProps = {
     viewableItems: ViewToken[];
 };
 
-type AttachmentCaraouselOnyxProps = {
-    /** Object of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /** The report actions of the parent report */
-    parentReportActions: OnyxEntry<ReportActions>;
-};
-
-type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
+type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
     source: AttachmentSource;
 
@@ -40,4 +32,4 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
     onClose: () => void;
 };
 
-export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};
+export type {AttachmentCarouselProps, UpdatePageProps};
