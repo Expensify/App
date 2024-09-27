@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys, SearchQueryJSON} from '@components/Search/types';
+import type {AdvancedFiltersKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -230,8 +230,8 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters) || '', [searchAdvancedFilters]);
-    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON), [queryString]);
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
@@ -245,7 +245,7 @@ function AdvancedSearchFilters() {
 
     const onSaveSearch = () => {
         const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (savedSearches && savedSearchKeys.includes(String(queryJSON.hash))) {
+        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
             // If the search is already saved, return early to prevent unnecessary API calls
             Navigation.dismissModal();
             return;
@@ -299,6 +299,8 @@ function AdvancedSearchFilters() {
         };
     });
 
+    const displaySearchButton = queryJSON && !SearchUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
@@ -320,8 +322,7 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-
-            {!SearchUtils.isCannedSearchQuery(queryJSON) && (
+            {displaySearchButton && (
                 <Button
                     text={translate('search.saveSearch')}
                     onPress={onSaveSearch}
