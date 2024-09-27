@@ -100,7 +100,6 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 {...props}
                 report={report}
                 parentReport={parentReport}
-                reportActions={reportActions}
                 reportAction={linkedReportAction}
                 parentReportAction={parentReportAction}
                 ref={ref}
