@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${encodeURIComponent(query)}` as const,
+        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const,
     },
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
@@ -59,11 +59,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string) => {
-            if (reportActionID) {
-                return `search/view/${reportID}/${reportActionID}` as const;
-            }
-            return `search/view/${reportID}` as const;
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
@@ -383,9 +381,13 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
-        route: ':type/edit/reason/:transactionID?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
-            `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
+        route: ':type/edit/reason/:transactionID?/:searchHash?',
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
+            const route = searchHash
+                ? (`${type}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
+                : (`${type}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
+            return route;
+        },
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
@@ -1575,6 +1577,12 @@ type Route = {
 
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
+/**
+ * Represents all routes in the app as a union of literal strings.
+ *
+ * If TS throws on this line, it implies that one or more routes defined within `ROUTES` have not correctly used
+ * `as const` in their `getRoute` function return value.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
