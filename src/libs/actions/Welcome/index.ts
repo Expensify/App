@@ -142,8 +142,8 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
-function setOnboardingCustomChoices(value: string[]) {
-    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? null);
+function setOnboardingCustomChoices(value: OnboardingPurposeType[]) {
+    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {

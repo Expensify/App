@@ -5,6 +5,9 @@ type Onboarding = {
 
     /** A Boolean that informs whether the user has completed the guided setup onboarding flow */
     hasCompletedGuidedSetupFlow: boolean;
+
+    /** A string that informs which qualifier the user selected during sign up */
+    signupQualifier: string;
 };
 
 export default Onboarding;
