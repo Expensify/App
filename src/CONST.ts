@@ -4548,7 +4548,7 @@ const CONST = {
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
                         '5. Add or import your own categories.\n' +
-                        '6. Disable any default categories you don\'t need.\n' +
+                        "6. Disable any default categories you don't need.\n" +
                         '7. Require a category for every expense in *Settings*.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
