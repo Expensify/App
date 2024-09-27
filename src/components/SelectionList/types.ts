@@ -244,6 +244,7 @@ type ReportListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
 
+        /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
     };
 
@@ -447,8 +448,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
-    /** Whether to stop automatic form submission on pressing enter key or not */
+    /** Whether to stop automatic propagation on pressing enter key or not */
     shouldStopPropagation?: boolean;
+
+    /** Whether to call preventDefault() on pressing enter key or not */
+    shouldPreventDefault?: boolean;
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;

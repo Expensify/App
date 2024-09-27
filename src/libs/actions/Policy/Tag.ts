@@ -136,7 +136,10 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfullTitle'), prompt: translateLocal('spreadsheet.importTagsSuccessfullDescription', tagsLength)},
+                    importFinalModal: {
+                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
+                        prompt: translateLocal('spreadsheet.importTagsSuccessfullDescription', {tags: tagsLength}),
+                    },
                 },
             },
         ],
@@ -990,7 +993,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
 }
 
-function downloadTagsCSV(policyID: string) {
+function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
         policyID,
     });
@@ -1001,7 +1004,7 @@ function downloadTagsCSV(policyID: string) {
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 export {

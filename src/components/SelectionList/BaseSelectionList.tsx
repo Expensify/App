@@ -71,6 +71,7 @@ function BaseSelectionList<TItem extends ListItem>(
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
+        shouldPreventDefault = true,
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
@@ -625,6 +626,7 @@ function BaseSelectionList<TItem extends ListItem>(
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
+        shouldPreventDefault,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 

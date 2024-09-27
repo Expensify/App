@@ -34,6 +34,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
+import SearchButton from './SearchRouter/SearchButton';
 import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
@@ -59,7 +60,7 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
                 }
                 subtitle={
                     <Text
-                        numberOfLines={2}
+                        numberOfLines={1}
                         style={[styles.textLarge, subtitleStyles]}
                     >
                         {subtitle}
@@ -318,10 +319,12 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     }
 
     const onPress = () => {
-        const values = SearchUtils.getFiltersFormValues(queryJSON);
+        const values = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
+
+    const displaySearchRouter = SearchUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>
@@ -331,24 +334,27 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                 icon={headerIcon}
                 subtitleStyles={subtitleStyles}
             >
-                {headerButtonsOptions.length > 0 ? (
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        shouldAlwaysShowDropdownMenu
-                        pressOnEnter
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
-                        options={headerButtonsOptions}
-                        isSplitButton={false}
-                        shouldUseStyleUtilityForAnchorPosition
-                    />
-                ) : (
-                    <Button
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onPress}
-                    />
-                )}
+                <>
+                    {headerButtonsOptions.length > 0 ? (
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            shouldAlwaysShowDropdownMenu
+                            pressOnEnter
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                            customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                            options={headerButtonsOptions}
+                            isSplitButton={false}
+                            shouldUseStyleUtilityForAnchorPosition
+                        />
+                    ) : (
+                        <Button
+                            text={translate('search.filtersHeader')}
+                            icon={Expensicons.Filters}
+                            onPress={onPress}
+                        />
+                    )}
+                    {displaySearchRouter && <SearchButton />}
+                </>
             </HeaderWrapper>
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}

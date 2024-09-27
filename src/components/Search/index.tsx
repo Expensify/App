@@ -252,13 +252,15 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
+        const backTo = Navigation.getActiveRoute();
+
         if (SearchUtils.isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID, reportActionID));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
     };
 
     const fetchMoreResults = () => {
@@ -334,6 +336,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             getItemHeight={getItemHeightMemoized}
             shouldSingleExecuteRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefault={false}
             listHeaderWrapperStyle={[styles.ph8, styles.pv5]}
             containerStyle={[styles.pv0]}
             showScrollIndicator={false}
