@@ -1,15 +1,17 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
@@ -49,16 +51,27 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
+function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
+    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName});
+}
+
+function deleteSavedSearch(hash: number) {
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
-
+    const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const queryWithOffset = {
-        ...queryJSON,
+        ...queryJSONWithoutFlatFilters,
         offset,
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
@@ -128,11 +141,31 @@ function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FO
 /**
  * Clears all values for the advanced filters search form.
  */
-function clearAdvancedFilters() {
+function clearAllFilters() {
     Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
 }
 
+function clearAdvancedFilters() {
+    const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
+    Object.values(FILTER_KEYS)
+        .filter((key) => key !== FILTER_KEYS.TYPE && key !== FILTER_KEYS.STATUS)
+        .forEach((key) => {
+            values[key] = null;
+        });
+
+    Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+}
+
+function showSavedSearchRenameTooltip() {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
+}
+
+function dismissSavedSearchRenameTooltip() {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
+}
+
 export {
+    saveSearch,
     search,
     createTransactionThread,
     deleteMoneyRequestOnSearch,
@@ -140,5 +173,9 @@ export {
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     updateAdvancedFilters,
+    clearAllFilters,
     clearAdvancedFilters,
+    deleteSavedSearch,
+    dismissSavedSearchRenameTooltip,
+    showSavedSearchRenameTooltip,
 };

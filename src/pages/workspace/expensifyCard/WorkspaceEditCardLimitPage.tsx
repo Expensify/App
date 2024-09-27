@@ -88,7 +88,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
-            if (!Number(values.limit) || !Number.isInteger(Number(values.limit))) {
+            if (!Number.isInteger(Number(values.limit))) {
                 errors.limit = translate('iou.error.invalidAmount');
             }
 
@@ -137,7 +137,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 isVisible={isConfirmModalVisible}
                                 onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
                                 onCancel={() => setIsConfirmModalVisible(false)}
-                                prompt={translate(getPromptTextKey, CurrencyUtils.convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD))}
+                                prompt={translate(getPromptTextKey, {limit: CurrencyUtils.convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD)})}
                                 confirmText={translate('workspace.expensifyCard.changeLimit')}
                                 cancelText={translate('common.cancel')}
                                 danger

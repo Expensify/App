@@ -21,7 +21,6 @@ import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
@@ -68,7 +67,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'));
+        Navigation.goBack();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;

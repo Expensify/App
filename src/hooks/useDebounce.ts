@@ -1,3 +1,4 @@
+// eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc, DebounceSettings} from 'lodash';
 import lodashDebounce from 'lodash/debounce';
 import {useCallback, useEffect, useRef} from 'react';

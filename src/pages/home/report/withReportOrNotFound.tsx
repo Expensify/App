@@ -7,7 +7,14 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList} from '@navigation/types';
+import type {
+    ParticipantsNavigatorParamList,
+    PrivateNotesNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    RoomMembersNavigatorParamList,
+} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +43,13 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route:
         | RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
         | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
+        | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>
         | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
-        | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
+        | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
+        | RouteProp<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>
+        | RouteProp<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>
+        | RouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>
+        | RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -84,7 +96,7 @@ export default function (
                 }
 
                 if (shouldShowNotFoundPage) {
-                    return <NotFoundPage />;
+                    return <NotFoundPage isReportRelatedPage />;
                 }
             }
 

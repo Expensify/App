@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,7 +32,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -41,33 +40,10 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepConfirmationOnyxProps = {
-    /** The policy of the report */
-    policy: OnyxEntry<Policy>;
-
-    /** The draft policy of the report */
-    policyDraft: OnyxEntry<Policy>;
-
-    /** The category configuration of the report's policy */
-    policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** The draft category configuration of the report's policy */
-    policyCategoriesDraft: OnyxEntry<PolicyCategories>;
-
-    /** The tag configuration of the report's policy */
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
-
-type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
+type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 function IOURequestStepConfirmation({
-    policy: policyReal,
-    policyDraft,
-    policyTags,
-    policyCategories: policyCategoriesReal,
-    policyCategoriesDraft,
     report: reportReal,
     reportDraft,
     route: {
@@ -77,6 +53,12 @@ function IOURequestStepConfirmation({
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
@@ -121,6 +103,7 @@ function IOURequestStepConfirmation({
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
+    const [isConfirmed, setIsConfirmed] = useState(false);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -167,7 +150,11 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [isOffline, participants, transaction?.billable, policy, transactionID]);
+        const senderPolicyParticipant = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender);
+        if (senderPolicyParticipant?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            openDraftWorkspaceRequest(senderPolicyParticipant.policyID);
+        }
+    }, [isOffline, participants, policy?.pendingAction]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -355,6 +342,7 @@ function IOURequestStepConfirmation({
 
     const createTransaction = useCallback(
         (selectedParticipants: Participant[], locationPermissionGranted = false) => {
+            setIsConfirmed(true);
             let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
@@ -557,11 +545,13 @@ function IOURequestStepConfirmation({
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                setIsConfirmed(true);
                 IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                setIsConfirmed(true);
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
@@ -646,6 +636,7 @@ function IOURequestStepConfirmation({
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
                         shouldPlaySound={false}
+                        isConfirmed={isConfirmed}
                     />
                 </View>
             )}
@@ -655,25 +646,8 @@ function IOURequestStepConfirmation({
 
 IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
-const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
-    policy: {
-        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
-    },
-    policyDraft: {
-        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
-    },
-    policyCategories: {
-        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
-    },
-    policyCategoriesDraft: {
-        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
-    },
-    policyTags: {
-        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
-    },
-})(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationWithOnyx);
+const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;

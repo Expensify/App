@@ -2,7 +2,7 @@ import React from 'react';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
 import BaseEducationalTooltip from './BaseEducationalTooltip';
 
-function EducationalTooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
+function EducationalTooltip({children, shouldRender = false, ...props}: TooltipExtendedProps) {
     if (!shouldRender) {
         return children;
     }

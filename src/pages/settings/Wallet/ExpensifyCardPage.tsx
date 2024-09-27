@@ -198,7 +198,6 @@ function ExpensifyCardPage({
                                 />
 
                                 <Button
-                                    medium
                                     style={[styles.mh5, styles.mb5]}
                                     text={translate('cardPage.reviewTransaction')}
                                     onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
@@ -217,7 +216,7 @@ function ExpensifyCardPage({
                                 {limitNameKey && limitTitleKey && (
                                     <MenuItemWithTopDescription
                                         description={translate(limitNameKey)}
-                                        title={translate(limitTitleKey, formattedAvailableSpendAmount)}
+                                        title={translate(limitTitleKey, {formattedLimit: formattedAvailableSpendAmount})}
                                         interactive={false}
                                         titleStyle={styles.walletCardLimit}
                                         numberOfLinesTitle={3}
@@ -242,7 +241,6 @@ function ExpensifyCardPage({
                                                     shouldShowRightComponent
                                                     rightComponent={
                                                         <Button
-                                                            medium
                                                             text={translate('cardPage.cardDetails.revealDetails')}
                                                             onPress={() => openValidateCodeModal(card.cardID)}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
@@ -251,7 +249,7 @@ function ExpensifyCardPage({
                                                     }
                                                 />
                                                 <DotIndicatorMessage
-                                                    messages={cardsDetailsErrors[card.cardID] ? {error: cardsDetailsErrors[card.cardID]} : {}}
+                                                    messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
                                                     type="error"
                                                     style={[styles.ph5]}
                                                 />

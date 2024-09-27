@@ -49,7 +49,7 @@ type AmountFormProps = {
     /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
-    Pick<BaseTextInputProps, 'autoFocus' | 'hasError'>;
+    Pick<BaseTextInputProps, 'autoFocus'>;
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -69,6 +69,7 @@ function AmountForm(
         currency = CONST.CURRENCY.USD,
         extraDecimals = 0,
         amountMaxLength,
+        errorText,
         onInputChange,
         onCurrencyButtonPress,
         displayAsTextInput = false,
@@ -255,6 +256,7 @@ function AmountForm(
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
+                errorText={errorText}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -297,11 +299,11 @@ function AmountForm(
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
-                {!!rest.errorText && (
+                {!!errorText && (
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
-                        message={rest.errorText}
+                        message={errorText}
                     />
                 )}
             </View>
