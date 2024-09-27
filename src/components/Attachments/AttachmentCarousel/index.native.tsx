@@ -38,10 +38,16 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions});
         }
 
-        const initialPage = targetAttachments.findIndex(compareImage);
+        let initialPage = targetAttachments.findIndex(compareImage);
+        const currentPage = attachments.findIndex(compareImage);
 
-        // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && attachments.find(compareImage)) {
+        // If no matching attachment is found in targetAttachments but found in attachments, update initialPage
+        if (initialPage === -1 && currentPage !== -1 && targetAttachments[currentPage]) {
+            initialPage = currentPage;
+        }
+
+        // If no matching attachment with the same index, dismiss the modal
+        if (initialPage === -1 && currentPage !== -1) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
