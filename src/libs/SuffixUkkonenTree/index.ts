@@ -47,6 +47,7 @@ function makeTree(numericSearchValues: Int8Array) {
     }
 
     function processCharacter(char: number) {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             if (rightEdges[currentNode] < currentPosition) {
                 if (transitionNodes[currentNode * ALPHABET_SIZE + char] === -1) {
