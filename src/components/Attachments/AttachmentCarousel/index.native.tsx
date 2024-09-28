@@ -41,15 +41,15 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         }
 
         let initialPage = targetAttachments.findIndex(compareImage);
-        const currentPage = attachments.findIndex(compareImage);
+        const prevInitialPage = attachments.findIndex(compareImage);
 
         // If no matching attachment is found in targetAttachments but found in attachments, update initialPage
-        if (initialPage === -1 && currentPage !== -1 && targetAttachments[currentPage]) {
-            initialPage = currentPage;
+        if (initialPage === -1 && prevInitialPage !== -1 && targetAttachments[prevInitialPage]) {
+            initialPage = prevInitialPage;
         }
 
         // If no matching attachment with the same index, dismiss the modal
-        if (initialPage === -1 && currentPage !== -1) {
+        if (initialPage === -1 && prevInitialPage !== -1) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
