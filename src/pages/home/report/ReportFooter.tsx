@@ -149,18 +149,20 @@ function ReportFooter({
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
             let assigneeChatReport;
-            if (isValidMention) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                if (!Object.keys(assignee ?? {}).length) {
-                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
-                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
-                    assignee = optimisticDataForNewAssignee.assignee;
-                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+            if (mentionWithDomain) {
+                if (isValidMention) {
+                    assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                    if (!Object.keys(assignee ?? {}).length) {
+                        const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                        const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        assignee = optimisticDataForNewAssignee.assignee;
+                        assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                    }
+                } else {
+                    // If the mention is not valid, include it on the title.
+                    // The mention could be invalid if it's a short mention and failed to be converted to a full mention.
+                    title = `@${mentionWithDomain} ${title}`;
                 }
-            } else {
-                // If the mention is not valid, include it on the title.
-                // The mention could be invalid if it's a short mention and failed to be converted to a full mention.
-                title = `@${mentionWithDomain} ${title}`;
             }
             Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID);
             return true;
