@@ -69,7 +69,11 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting;
 
     const setNewCategory = (selectedCategory: ListItem) => {
-        if (!selectedCategory.keyForList || !groupID || categoryID === selectedCategory.keyForList) {
+        if (!selectedCategory.keyForList || !groupID) {
+            return;
+        }
+        if (categoryID === selectedCategory.keyForList) {
+            setIsSelectorModalVisible(false);
             return;
         }
         Policy.setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
