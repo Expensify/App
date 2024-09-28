@@ -143,8 +143,8 @@ function ReportFooter({
                 return false;
             }
 
-            const mention = match[1] ? match[1].trim() : undefined;
-            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention ?? '';
+            const mention = match[1] ? match[1].trim() : '';
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention) ?? mention;
             const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
