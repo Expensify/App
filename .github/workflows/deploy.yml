@@ -386,23 +386,11 @@ jobs:
 
       - name: Verify staging deploy
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          sleep 5
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ needs.prep.outputs.APP_VERSION }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ needs.prep.outputs.APP_VERSION }}. Something went wrong..."
-            exit 1
-          fi
+        run: ./.github/scripts/verifyDeploy.sh staging ${{ needs.prep.outputs.APP_VERSION }}
 
       - name: Verify production deploy
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          sleep 5
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ needs.prep.outputs.APP_VERSION }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ needs.prep.outputs.APP_VERSION }}. Something went wrong..."
-            exit 1
-          fi
+        run: ./.github/scripts/verifyDeploy.sh production ${{ needs.prep.outputs.APP_VERSION }}
 
       - name: Upload web sourcemaps artifact
         uses: actions/upload-artifact@v4
@@ -455,34 +443,40 @@ jobs:
   checkDeploymentSuccess:
     runs-on: ubuntu-latest
     outputs:
-      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
-      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
+      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
     needs: [android, desktop, iOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
-        id: checkDeploymentSuccess
+        id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED is $isAtLeastOnePlatformDeployed"
+
+      - name: Check deployment success on all platforms
+        id: checkDeploymentSuccessOnAtLeastAllPlatform
+        run: |
+          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] && \
             [ "${{ needs.iOS.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
-          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=\"$isAtLeastOnePlatformDeployed\"" >> "$GITHUB_OUTPUT"
-          echo "IS_ALL_PLATFORMS_DEPLOYED=\"$isAllPlatformsDeployed\"" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
   createPrerelease:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Download all workflow run artifacts
@@ -501,11 +495,13 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
+        continue-on-error: true
         run: |
           mv ./desktop-staging-sourcemaps-artifact/merged-source-map.js.map ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map
           mv ./web-staging-sourcemaps-artifact/merged-source-map.js.map ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map
 
       - name: Upload artifacts to GitHub Release
+        continue-on-error: true
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
@@ -540,16 +536,11 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
-
-      - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
-        run: |
-          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
-          mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
       - name: 🚀 Edit the release to be no longer a prerelease 🚀
         run: |
@@ -559,7 +550,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
+        continue-on-error: true
+        run: |
+          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
+          mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
+
       - name: Upload artifacts to GitHub Release
+        continue-on-error: true
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
             ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
@@ -643,34 +641,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  postGithubComment:
-    name: Post a GitHub comments on all deployed PRs when platforms are done building and deploying
-    runs-on: ubuntu-latest
+  postGithubComments:
+    uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Get Release Pull Request List
-        id: getReleasePRList
-        uses: ./.github/actions/javascript/getDeployPullRequestList
-        with:
-          TAG: ${{ needs.prep.outputs.APP_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-
-      - name: Comment on issues
-        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
-        with:
-          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
-          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-          DEPLOY_VERSION: ${{ needs.prep.outputs.APP_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          ANDROID: ${{ needs.android.result }}
-          DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.iOS.result }}
-          WEB: ${{ needs.web.result }}
+    with:
+      version: ${{ needs.prep.outputs.APP_VERSION }}
+      env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+      android: ${{ needs.android.result }}
+      ios: ${{ needs.iOS.result }}
+      web: ${{ needs.web.result }}
+      desktop: ${{ needs.desktop.result }}

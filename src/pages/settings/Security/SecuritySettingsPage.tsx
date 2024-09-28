@@ -22,7 +22,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -45,7 +44,6 @@ function SecuritySettingsPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -157,7 +155,7 @@ function SecuritySettingsPage() {
             return {
                 title: personalDetail?.displayName ?? formattedEmail,
                 description: personalDetail?.displayName ? formattedEmail : '',
-                badgeText: translate('delegate.role', role),
+                badgeText: translate('delegate.role', {role}),
                 avatarID: personalDetail?.accountID ?? -1,
                 icon: personalDetail?.avatar ?? FallbackAvatar,
                 iconType: CONST.ICON_TYPE_AVATAR,
@@ -180,9 +178,9 @@ function SecuritySettingsPage() {
         return {
             title: personalDetail?.displayName ?? formattedEmail,
             description: personalDetail?.displayName ? formattedEmail : '',
-            badgeText: translate('delegate.role', role),
+            badgeText: translate('delegate.role', {role}),
             avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
+            icon: personalDetail?.avatar ?? FallbackAvatar,
             iconType: CONST.ICON_TYPE_AVATAR,
             numberOfLinesDescription: 1,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -204,6 +202,7 @@ function SecuritySettingsPage() {
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.LockClosed}
+                        shouldDisplaySearchRouter
                     />
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -226,7 +225,7 @@ function SecuritySettingsPage() {
                                     <Section
                                         title={translate('delegate.copilotDelegatedAccess')}
                                         renderSubtitle={() => (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
                                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
                                                 <TextLink
                                                     style={[styles.link]}
@@ -234,7 +233,7 @@ function SecuritySettingsPage() {
                                                 >
                                                     {translate('common.learnMore')}
                                                 </TextLink>
-                                            </View>
+                                            </Text>
                                         )}
                                         isCentralPane
                                         subtitleMuted
@@ -251,7 +250,6 @@ function SecuritySettingsPage() {
                                             <MenuItem
                                                 title={translate('delegate.addCopilot')}
                                                 icon={Expensicons.UserPlus}
-                                                iconFill={theme.iconSuccessFill}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                                 shouldShowRightIcon
                                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}

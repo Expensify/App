@@ -1,12 +1,13 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -14,6 +15,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -27,44 +29,38 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type TaskPreviewOnyxProps = {
-    /* Onyx Props */
+type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
+    /** The ID of the associated policy */
+    // eslint-disable-next-line react/no-unused-prop-types
+    policyID: string;
+    /** The ID of the associated taskReport */
+    taskReportID: string;
 
-    /* current report of TaskPreview */
-    taskReport: OnyxEntry<Report>;
+    /** Whether the task preview is hovered so we can modify its style */
+    isHovered: boolean;
+
+    /** The linked reportAction */
+    action: OnyxEntry<ReportAction>;
+
+    /** The chat report associated with taskReport */
+    chatReportID: string;
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: ContextMenuAnchor;
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: () => void;
 };
 
-type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
-    TaskPreviewOnyxProps & {
-        /** The ID of the associated policy */
-        // eslint-disable-next-line react/no-unused-prop-types
-        policyID: string;
-        /** The ID of the associated taskReport */
-        taskReportID: string;
-
-        /** Whether the task preview is hovered so we can modify its style */
-        isHovered: boolean;
-
-        /** The linked reportAction */
-        action: OnyxEntry<ReportAction>;
-
-        /** The chat report associated with taskReport */
-        chatReportID: string;
-
-        /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: ContextMenuAnchor;
-
-        /** Callback for updating context menu active state, used for showing context menu */
-        checkIfContextMenuActive: () => void;
-    };
-
-function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false}: TaskPreviewProps) {
+function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const theme = useTheme();
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
 
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -74,10 +70,11 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
-    const [avatar] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => personalDetails?.[taskAssigneeAccountID]?.avatar});
+    const personalDetails = usePersonalDetails();
+    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
     const htmlForTaskPreview = `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
-
+    const shouldShowGreenDotIndicator = ReportUtils.isOpenTaskReport(taskReport, action) && ReportUtils.isReportManager(taskReport);
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
     }
@@ -99,7 +96,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
-                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID) || !Task.canActionTask(taskReport, currentUserPersonalDetails.accountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     Task.reopenTask(taskReport);
@@ -123,6 +120,14 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                         <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                     </View>
                 </View>
+                {shouldShowGreenDotIndicator && (
+                    <View style={styles.ml2}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.success}
+                        />
+                    </View>
+                )}
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
@@ -134,10 +139,4 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
 
 TaskPreview.displayName = 'TaskPreview';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<TaskPreviewProps, TaskPreviewOnyxProps>({
-        taskReport: {
-            key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-        },
-    })(TaskPreview),
-);
+export default withCurrentUserPersonalDetails(TaskPreview);
