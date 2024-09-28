@@ -121,6 +121,7 @@ type ReportActionItemProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
+    /** Linked report action ID */
     linkedReportActionID?: string;
 
     /** Callback to be called on onPress */
