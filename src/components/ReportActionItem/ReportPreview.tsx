@@ -325,6 +325,10 @@ function ReportPreview({
         [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
     );
 
+    const forceShowOnlyPayElsewhere = useMemo(
+        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, true),
+        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
+    );
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
@@ -516,8 +520,9 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && (
+                                {(shouldShowSettlementButton || forceShowOnlyPayElsewhere) && (
                                     <AnimatedSettlementButton
+                                        forceShowOnlyPayElsewhere={forceShowOnlyPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}

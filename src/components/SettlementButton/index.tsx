@@ -58,6 +58,7 @@ function SettlementButton({
     useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    forceShowOnlyPayElsewhere,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -100,6 +101,10 @@ function SettlementButton({
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
             return [approveButtonOption];
+        }
+
+        if (forceShowOnlyPayElsewhere) {
+            return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
@@ -173,6 +178,7 @@ function SettlementButton({
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,
+        forceShowOnlyPayElsewhere,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
