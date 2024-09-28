@@ -6974,9 +6974,6 @@ function canIOUBePaid(
     const shouldBeApproved = canApproveIOU(iouReport, policy);
 
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
-    if (iouReport.reportID === '6232570331764393') {
-        console.log('333333333333333333333', {isPayer, isOpenExpenseReport, iouSettled, isPayAtEndExpenseReport});
-    }
     return (
         isPayer &&
         !isOpenExpenseReport &&
