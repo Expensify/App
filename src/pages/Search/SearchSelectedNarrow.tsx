@@ -50,7 +50,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 onPress={openMenu}
                 ref={buttonRef}
                 style={[styles.w100, styles.ph5]}
-                text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
+                text={translate('workspace.common.selected', {count: itemsLength})}
                 isContentCentered
                 iconRight={Expensicons.DownArrow}
                 isDisabled={options.length === 0}

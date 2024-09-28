@@ -219,13 +219,19 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: n
  *
  * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
         if (!includeMemberWithErrors) {
             const member = members?.[email];
             if (Object.keys(member?.errors ?? {})?.length > 0) {
+                return;
+            }
+        }
+        if (!includeMemberWithPendingDelete) {
+            const member = members?.[email];
+            if (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
         }
