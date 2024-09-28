@@ -7,6 +7,7 @@ import type Middleware from './types';
 // date because all these requests are updating the app to the most current state.
 const requestsToIgnoreLastUpdateID: string[] = [
     WRITE_COMMANDS.OPEN_APP,
+    WRITE_COMMANDS.DELETE_MONEY_REQUEST,
     SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
     WRITE_COMMANDS.CLOSE_ACCOUNT,
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
