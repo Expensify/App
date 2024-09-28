@@ -90,7 +90,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         }
 
         let initialPage = targetAttachments.findIndex(compareImage);
-        const currentPage = attachments.findIndex(compareImage);
+        const prevInitialPage = attachments.findIndex(compareImage);
 
         // If no matching attachment is found in targetAttachments but found in attachments, update initialPage
         if (initialPage === -1 && currentPage !== -1 && targetAttachments[currentPage]) {
