@@ -189,7 +189,7 @@ function openPolicyCategoriesPage(policyID: string) {
 }
 
 function getPolicyCategories(policyID: string) {
-    if (!policyID) {
+    if (!policyID || policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
         Log.warn('GetPolicyCategories invalid params', {policyID});
         return;
     }

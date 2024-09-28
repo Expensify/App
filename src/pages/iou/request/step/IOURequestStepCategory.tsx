@@ -21,7 +21,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -108,7 +108,7 @@ function IOURequestStepCategory({
             return;
         }
 
-        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '-1');
+        Category.getPolicyCategories(report?.policyID ?? '-1');
     };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
