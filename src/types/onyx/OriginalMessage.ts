@@ -160,6 +160,9 @@ type OriginalMessageSubmitted = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Was the report submitted via harvesting (delayed submit) */
+    harvesting?: boolean;
 };
 
 /** Model of `closed` report action */
