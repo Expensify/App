@@ -130,6 +130,7 @@ function ReportFooter({
              * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
+            // The regex is copied from the expensify-common CONST file, but the domain is optional to accept short mention
             const emailWithOptionalDomainRegex =
                 /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
             const taskRegex = `^\\[\\]\\s+(?:@(?:${emailWithOptionalDomainRegex.source}))?\\s*([\\s\\S]*)`;
