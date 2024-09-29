@@ -36,7 +36,7 @@ function TransactionListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb3]}
+            containerStyle={[styles.mb2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}

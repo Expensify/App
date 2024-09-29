@@ -4658,6 +4658,7 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
+            minHeight: variables.optionRowHeight,
         },
 
         selectionListStickyHeader: {
