@@ -74,6 +74,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -849,14 +850,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency,
             isP2PDebitCard: false,
         };
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params).then((response) => {
-            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-            // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-            Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-        });
+        PaymentMethods.addPaymentCardGBP(params);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,

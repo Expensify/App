@@ -24,6 +24,7 @@ import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
@@ -254,15 +255,7 @@ function addSubscriptionPaymentCard(cardData: {
     ];
 
     if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
-            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-
-            // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-            Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-        });
+        addPaymentCardGBP(parameters, {optimisticData, successData, failureData});
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
@@ -271,6 +264,21 @@ function addSubscriptionPaymentCard(cardData: {
             failureData,
         });
     }
+}
+
+/**
+ * Calls the API to add a new GBP card.
+ * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
+ */
+function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
+        // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
+        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
+    });
 }
 
 /**
@@ -555,4 +563,5 @@ export {
     clearWalletTermsError,
     setPaymentCardForm,
     verifySetupIntent,
+    addPaymentCardGBP,
 };
