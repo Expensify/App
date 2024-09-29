@@ -77,6 +77,10 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         /* Flag indicating whether the attachment has been uploaded. */
         isUploaded?: boolean;
+
+        /** Flag indicating if the attachment is being uploaded. */
+        isUploading?: boolean;
+
     };
 
 function AttachmentView({
@@ -101,6 +105,7 @@ function AttachmentView({
     duration,
     isUsedAsChatAttachment,
     isUploaded = true,
+    isUploading = false,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -288,8 +293,9 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
+            isUploading={isUploading}
         />
     );
 }

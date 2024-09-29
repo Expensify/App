@@ -43,7 +43,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
         <ShowContextMenuContext.Consumer>
             {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <PressableWithoutFeedback
-                    style={[style, isOffline && styles.cursorDefault]}
+                    style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
                     onPress={() => {
                         if (isDownloading || isOffline || !sourceID) {
                             return;
@@ -69,6 +69,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
+                        isUploading={!sourceID}
                     />
                 </PressableWithoutFeedback>
             )}
