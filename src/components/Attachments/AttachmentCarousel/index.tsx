@@ -92,11 +92,11 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         let attachmentIndex = targetAttachments.findIndex(compareImage);
         const prevAttachmentIndex = attachments.findIndex(compareImage);
 
+        // If no matching attachment with the same index, dismiss the modal
         if (!targetAttachments[attachmentIndex] && targetAttachments[prevAttachmentIndex]) {
             attachmentIndex = prevAttachmentIndex;
         }
 
-        // If no matching attachment with the same index, dismiss the modal
         if (!targetAttachments[attachmentIndex] && attachments[prevAttachmentIndex]) {
             Navigation.dismissModal();
         } else {
