@@ -68,6 +68,7 @@ type CentralPaneScreensParamList = {
 
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
+        name?: string;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -1082,6 +1083,8 @@ type MoneyRequestNavigatorParamList = {
 
         /** Link to previous page */
         backTo: ExpensifyRoute;
+
+        searchHash?: number;
     };
 };
 
@@ -1494,6 +1497,8 @@ type SearchReportParamList = {
 
         /** Link to previous page */
         backTo: ExpensifyRoute;
+
+        searchHash?: number;
     };
 };
 

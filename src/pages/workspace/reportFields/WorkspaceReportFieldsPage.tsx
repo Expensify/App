@@ -176,7 +176,7 @@ function WorkspaceReportFieldsPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedReportFields.length})}
+                    customText={translate('workspace.common.selected', {count: selectedReportFields.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
