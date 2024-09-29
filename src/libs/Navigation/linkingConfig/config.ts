@@ -293,12 +293,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 login: (login: string) => decodeURIComponent(login),
                             },
                         },
-                        [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
-                        },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
                             path: ROUTES.SETTINGS_STATUS,
                             exact: true,

@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
@@ -17,6 +17,13 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ValidateCodeActionModal from "@components/ValidateCodeActionModal";
+import { useOnyx } from "react-native-onyx";
+import ONYXKEYS from "@src/ONYXKEYS";
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as Delegate from '@userActions/Delegate';
+import * as User from '@libs/actions/User';
+import DelegateMagicCodeModal from "@pages/settings/Security/AddDelegate/DelegateMagicCodeModal";
 
 type ConfirmDelegatePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
@@ -28,8 +35,9 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
 
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(login);
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(login);
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
@@ -42,7 +50,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             text={translate('delegate.addCopilot')}
             style={styles.mt6}
             pressOnEnter
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(login, role))}
+            onPress={() => setIsValidateCodeActionModalVisible(true)}
         />
     );
 
@@ -70,6 +78,14 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
                 shouldShowRightIcon
             />
+
+            {isValidateCodeActionModalVisible && (
+                <DelegateMagicCodeModal
+                    login={login}
+                    role={role}
+                />
+            )}
+
         </HeaderPageLayout>
     );
 }

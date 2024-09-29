@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -7,22 +6,20 @@ import useLocalize from '@hooks/useLocalize';
 import * as User from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as Delegate from '@userActions/Delegate';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
-type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
+type DelegateMagicCodeModalProps = {
+    login: string,
+    role: ValueOf<typeof CONST.DELEGATE_ROLE>
+}
 
-function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
+function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
-
-    const login = route.params.login;
-    const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
@@ -62,6 +59,6 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     );
 }
 
-DelegateMagicCodePage.displayName = 'DelegateMagicCodePage';
+DelegateMagicCodeModal.displayName = 'DelegateMagicCodeModal';
 
-export default DelegateMagicCodePage;
+export default DelegateMagicCodeModal;
