@@ -284,16 +284,6 @@ function BaseTextInput(
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
-    const verticalPadding = useMemo (() => {
-        const flattenedInputStyle = StyleSheet.flatten(inputStyle);
-        const topBottomPadding = (flattenedInputStyle.paddingTop ?? 0) + (flattenedInputStyle.paddingBottom ?? 0);
-        if (topBottomPadding !== 0) {
-            return topBottomPadding;
-        }
-
-        return flattenedInputStyle.padding ?? 0;
-    }, [inputStyle]);
-
     return (
         <>
             <View
@@ -311,9 +301,9 @@ function BaseTextInput(
                     onLayout={onLayout}
                     style={[
                         (autoGrowHeight && !isAutoGrowHeightMarkdown && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0)),
+                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
-                        isAutoGrowHeightMarkdown ? {minHeight: variables.componentSizeLarge} : undefined, 
                     ]}
                 >
                     <View
@@ -339,7 +329,7 @@ function BaseTextInput(
                             </>
                         ) : null}
 
-                        <View style={[isAutoGrowHeightMarkdown ? undefined : styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
@@ -386,12 +376,11 @@ function BaseTextInput(
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
                                     inputPaddingRight,
-                                    isAutoGrowHeightMarkdown? {maxHeight: maxAutoGrowHeight - verticalPadding} : undefined,
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && !isAutoGrowHeightMarkdown && {height, lineHeight},
+                                    !isMultiline && {height, lineHeight},
 
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
@@ -403,7 +392,7 @@ function BaseTextInput(
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
                                         ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
                                         : []),
-
+                                    isAutoGrowHeightMarkdown ? [{maxHeight: maxAutoGrowHeight}, styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -475,7 +464,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {contentWidth && !isAutoGrowHeightMarkdown (
+            {contentWidth && (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {

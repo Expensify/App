@@ -186,7 +186,7 @@ function IOURequestStepDescription({
                             inputRef.current = el;
                         }}
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        maxAutoGrowHeight={variables.markdownTextInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         isMarkdownEnabled
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}

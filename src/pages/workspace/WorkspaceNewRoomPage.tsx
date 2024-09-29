@@ -294,7 +294,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
-                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                    maxAutoGrowHeight={variables.markdownTextInputAutoGrowMaxHeight}
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     shouldInterceptSwipe

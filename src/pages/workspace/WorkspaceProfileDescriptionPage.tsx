@@ -101,7 +101,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                             inputID="description"
                             label={translate('workspace.editor.descriptionInputLabel')}
                             accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            maxAutoGrowHeight={variables.markdownTextInputAutoGrowMaxHeight}
                             value={description}
                             maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                             spellCheck={false}
