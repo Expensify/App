@@ -23,6 +23,7 @@ let onboarding: OnboardingData;
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
     onNotCompleted?: () => void;
+    onCanceled?: () => void;
 };
 
 type HasOpenedForTheFirstTimeFromHybridAppProps = {
@@ -50,9 +51,10 @@ function onServerDataReady(): Promise<void> {
 }
 
 let isOnboardingInProgress = false;
-function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
+function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
         if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+            onCanceled?.();
             return;
         }
 
