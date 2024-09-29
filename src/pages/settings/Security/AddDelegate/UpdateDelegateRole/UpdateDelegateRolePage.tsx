@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -8,12 +8,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidationCode, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
+import {clearDelegateRolePendingAction, requestValidationCode, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {DelegateRole} from '@src/types/onyx/Account';
 
 type UpdateDelegateRolePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
@@ -25,11 +26,18 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
-        text: translate('delegate.role', role),
+        text: translate('delegate.role', {role}),
         keyForList: role,
-        alternateText: translate('delegate.roleDescription', role),
+        alternateText: translate('delegate.roleDescription', {role}),
         isSelected: role === currentRole,
     }));
+
+    useEffect(() => {
+        updateDelegateRoleOptimistically(login ?? '', currentRole as DelegateRole);
+        return () => clearDelegateRolePendingAction(login);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [login]);
 
     return (
         <ScreenWrapper
@@ -60,7 +68,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                 }
                 onSelectRow={(option) => {
                     requestValidationCode();
-                    updateDelegateRoleOptimistically(login ?? '', option.value);
                     setCurrentRole(option.value);
                     Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
                 }}

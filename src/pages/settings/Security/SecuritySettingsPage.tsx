@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
@@ -92,7 +92,7 @@ function SecuritySettingsPage() {
 
     useLayoutEffect(() => {
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            _.debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+            debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
         });
 
         return () => {

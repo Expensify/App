@@ -410,6 +410,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                                   errorFields: {updateDelegateRole: null},
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                  isLoading: true,
                               }
                             : delegate,
                     ),
@@ -432,6 +433,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                                   errorFields: {updateDelegateRole: null},
                                   pendingAction: null,
                                   pendingFields: {role: null},
+                                  isLoading: false,
                               }
                             : delegate,
                     ),
@@ -453,8 +455,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                                   errorFields: {
                                       updateDelegateRole: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
                                   },
-                                  pendingAction: null,
-                                  pendingFields: {role: null},
+                                  isLoading: false,
+                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                               }
                             : delegate,
                     ),
@@ -498,6 +501,34 @@ function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
     Onyx.update(optimisticData);
 }
 
+function clearDelegateRolePendingAction(email: string) {
+    if (!delegatedAccess?.delegates) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    delegates: delegatedAccess.delegates.map((delegate) =>
+                        delegate.email === email
+                            ? {
+                                  ...delegate,
+                                  pendingAction: null,
+                                  pendingFields: undefined,
+                              }
+                            : delegate,
+                    ),
+                },
+            },
+        },
+    ];
+
+    Onyx.update(optimisticData);
+}
+
 export {
     connect,
     disconnect,
@@ -509,4 +540,5 @@ export {
     removeDelegate,
     updateDelegateRole,
     updateDelegateRoleOptimistically,
+    clearDelegateRolePendingAction,
 };
