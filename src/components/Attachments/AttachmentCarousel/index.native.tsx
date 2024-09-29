@@ -40,28 +40,28 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions});
         }
 
-        let initialPage = targetAttachments.findIndex(compareImage);
-        const prevInitialPage = attachments.findIndex(compareImage);
+        let attachmentIndex = targetAttachments.findIndex(compareImage);
+        const prevAttachmentIndex = attachments.findIndex(compareImage);
 
-        if (initialPage === -1 && prevInitialPage !== -1 && targetAttachments[prevInitialPage]) {
-            initialPage = prevInitialPage;
+        if (!targetAttachments[attachmentIndex] && targetAttachments[prevAttachmentIndex]) {
+            attachmentIndex = prevAttachmentIndex;
         }
 
         // If no matching attachment with the same index, dismiss the modal
-        if (initialPage === -1 && prevInitialPage !== -1) {
+        if (!targetAttachments[attachmentIndex] && attachments[prevAttachmentIndex]) {
             Navigation.dismissModal();
         } else {
-            setPage(initialPage);
+            setPage(attachmentIndex);
             setAttachments(targetAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(initialPage !== -1);
+                setDownloadButtonVisibility(attachmentIndex !== -1);
             }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments[initialPage] !== undefined && onNavigate) {
-                onNavigate(targetAttachments[initialPage]);
+            if (targetAttachments[attachmentIndex] !== undefined && onNavigate) {
+                onNavigate(targetAttachments[attachmentIndex]);
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
