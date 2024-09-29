@@ -23,9 +23,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; isCustomSearchQuery?: boolean};
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; isCustomSearchQuery?: boolean; shouldDisplaySearchRouter?: boolean};
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, isCustomSearchQuery = false}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, isCustomSearchQuery = false, shouldDisplaySearchRouter = false}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -74,8 +74,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {/* This is only temporary for development and will be cleaned up in: https://github.com/Expensify/App/issues/49122 */}
-                <SearchButton />
+                {shouldDisplaySearchRouter && <SearchButton />}
                 {displaySearch && (
                     <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback

@@ -161,11 +161,6 @@ function AttachmentModal({
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const transactionID = useMemo(() => {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        return ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
-    }, [report?.parentReportID, report?.parentReportActionID]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -184,6 +179,9 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -493,10 +491,11 @@ function AttachmentModal({
                     setShouldLoadAttachment(true);
                 }}
                 onModalHide={() => {
-                    onModalHide();
+                    if (!isPDFLoadError.current) {
+                        onModalHide();
+                    }
                     setShouldLoadAttachment(false);
                     if (isPDFLoadError.current) {
-                        isPDFLoadError.current = false;
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
                         setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
@@ -620,6 +619,13 @@ function AttachmentModal({
                     prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
+                    onModalHide={() => {
+                        if (!isPDFLoadError.current) {
+                            return;
+                        }
+                        isPDFLoadError.current = false;
+                        onModalHide?.();
+                    }}
                 />
             )}
 

@@ -6,8 +6,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -22,12 +24,12 @@ type ReportActionItemCreatedProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
-function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedProps) {
+function ReportActionItemCreated({policyID, reportID}: ReportActionItemCreatedProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
@@ -36,7 +38,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         return null;
     }
 
-    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
+    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
     if (ReportUtils.isInvoiceRoom(report) && ReportUtils.isCurrentUserInvoiceReceiver(report)) {
@@ -58,7 +60,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => ReportUtils.navigateToDetailsPage(report)}
+                            onPress={() => ReportUtils.navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
