@@ -439,7 +439,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (ReportActionsUtils.isRenamedAction(reportAction)) {
                     setClipboardMessage(ReportActionsUtils.getRenamedAction(reportAction));
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
                     const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
@@ -475,7 +475,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(reportAction));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
-                    setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', label, errorMessage));
+                    setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
                     setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true));
                 } else if (content) {
