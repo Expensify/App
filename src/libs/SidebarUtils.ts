@@ -507,11 +507,11 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
 
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const currentUserAccountID = getCurrentUserAccountID();
+    const ownerAccountID = report?.ownerAccountID || policy?.ownerAccountID;
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails);
-    const participantDisplayName = ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID || currentUserAccountID);
     
     if (ReportUtils.isChatRoom(report)) {
-        return getRoomWelcomeMessage(report, participantDisplayName);
+        return getRoomWelcomeMessage(report, ownerAccountID);
     }
 
     if (ReportUtils.isPolicyExpenseChat(report)) {
@@ -522,7 +522,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
-            welcomeMessage.messageText = `${welcomeMessage.phrase1}${participantDisplayName}${welcomeMessage.phrase2}${ReportUtils.getPolicyName(report)}${welcomeMessage.phrase3}`;
+            welcomeMessage.messageText = `${welcomeMessage.phrase1}${ReportUtils.getDisplayNameForParticipant(currentUserAccountID)}${welcomeMessage.phrase2}${ReportUtils.getPolicyName(report)}${welcomeMessage.phrase3}`;
         }
         return welcomeMessage;
     }
@@ -577,7 +577,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
  * Get welcome message based on room type
  */
 
-function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: string): WelcomeMessage {
+function getRoomWelcomeMessage(report: OnyxEntry<Report>, ownerAccountID: number): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
     
     if (report?.description) {
@@ -593,6 +593,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: strin
 
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+    const displayNameForOwner = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
 
     const displayName = (isArchivedRoom || isAdminRoom || isAnnounceRoom || isInvoiceRoom) ? ReportUtils.getPolicyName(report) : ReportUtils.getReportName(report);
     const displayNameOnly = isArchivedRoom || isDomainRoom || isAdminRoom || isAnnounceRoom || isInvoiceRoom;
@@ -615,7 +616,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: strin
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartThree');
-            welcomeMessage.messageText = `${welcomeMessage.phrase1}${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}${welcomeMessage.phrase2}${ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}`;
+            welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayNameForOwner}${welcomeMessage.phrase2}${ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}`;
             return welcomeMessage;
         }
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayName}${welcomeMessage.phrase2}`;
@@ -626,7 +627,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, participantName: strin
     welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartThree');
     
-    welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayName}${welcomeMessage.phrase2}${participantName}${welcomeMessage.phrase3}`;
+    welcomeMessage.messageText = `${welcomeMessage.phrase1}${displayName}${welcomeMessage.phrase2}${displayNameForOwner}${welcomeMessage.phrase3}`;
     return welcomeMessage;
 }
 

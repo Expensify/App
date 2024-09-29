@@ -122,7 +122,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isPolicyExpenseChat && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
-                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(ownerAccountID)}</Text>
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(currentUserAccountID)}</Text>
                         <Text>{welcomeMessage.phrase2}</Text>
                         <Text style={[styles.textStrong]}>{reportDisplayName}</Text>
                         <Text>{welcomeMessage.phrase3}</Text>
