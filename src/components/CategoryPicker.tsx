@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,9 +21,11 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const {isOffline} = useNetwork();
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const selectedOptions = useMemo(() => {
         if (!selectedCategory) {
@@ -73,6 +76,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
             headerMessage={headerMessage}
             textInputValue={searchValue}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
+            textInputHint={offlineMessage}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}

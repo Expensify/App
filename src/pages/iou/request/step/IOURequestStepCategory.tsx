@@ -6,11 +6,13 @@ import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineIndicator from '@components/OfflineIndicator';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -93,6 +95,7 @@ function IOURequestStepCategory({
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
     const shouldShowEmptyState = !isLoading && !shouldShowCategory;
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
         fetchData();
@@ -176,6 +179,7 @@ function IOURequestStepCategory({
                             />
                         </FixedFooter>
                     )}
+                    {!isSmallScreenWidth && <OfflineIndicator />}
                 </View>
             )}
             {!shouldShowEmptyState && !isLoading && (
