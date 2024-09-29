@@ -765,7 +765,8 @@ function ComposerWithSuggestions(
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={!!shouldAutoFocus}
+                    // autoFocus={!!shouldAutoFocus}
+                    autoFocus
                     multiline
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}

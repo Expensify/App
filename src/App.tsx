@@ -53,6 +53,10 @@ LogBox.ignoreLogs([
     // We silence this warning for now and will address all the places where it happens separately.
     // Then we can remove this line so the problem does not occur in the future.
     '[Reanimated] Tried to modify key `current`',
+    'Function components cannot be given refs',
+    'TRenderEngineProvider',
+    'Require cycle:',
+    'No native ExponentConstants',
 ]);
 
 const fill = {flex: 1};

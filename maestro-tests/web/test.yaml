@@ -1,0 +1,18 @@
+appId: "https://dev.new.expensify.com:8082"
+# appId: ${APP_ID}
+---
+- launchApp
+- assertVisible: 'Phone or email'
+- tapOn: 'Continue'
+- assertVisible: 'Please enter an email or phone number'
+- tapOn: 'Phone or email'
+- inputText: 'juliankobrynski@gmail'
+- tapOn: 'Continue'
+- assertVisible: 'The email entered is invalid. Please fix the format and try again.'
+- tapOn: 'juliankobrynski@gmail'
+- inputText: '.com'
+- tapOn: 'Continue'
+- assertVisible: 'Please enter the magic code sent to juliankobrynski@gmail.com. It should arrive within a minute or two.'
+- inputText: '123456'
+- assertVisible: 'Incorrect magic code. Please try again or request a new code.'
+- killApp

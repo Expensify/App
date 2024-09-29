@@ -1,0 +1,34 @@
+appId: ${APP_ID}
+name: Default native test flow
+onFlowStart:
+  - startRecording: recording
+onFlowComplete: 
+  - stopRecording
+---
+- launchApp
+- extendedWaitUntil:
+    visible: 
+        id: "floatingActionButton" 
+    timeout: 30000
+- tapOn: 
+    id: "floatingActionButton"
+- assertVisible: 'Start chat'
+- assertVisible: 'Track expense'
+- assertVisible: 'Submit expense'
+- tapOn: 'Start chat'
+- assertVisible: 'Name, email, or phone number'
+- inputText: 'juliankobrynski@gmail'
+- assertVisible: 'juliankobrynski@gmail.com'
+- tapOn: 'juliankobrynski@gmail.com'
+- assertVisible: 'Write something...'
+- assertVisible: 
+    id: "composer"
+- tapOn: 
+    id: "composer"
+- inputText: 'Hello from Maestro!'
+- assertVisible: 'Hello from Maestro!'
+- assertVisible:
+    id: "sendButton"
+- tapOn: 
+    id: "sendButton"
+- killApp

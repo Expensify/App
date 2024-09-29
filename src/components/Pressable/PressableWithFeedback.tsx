@@ -37,6 +37,8 @@ type PressableWithFeedbackProps = PressableProps & {
 
     /** The color of the underlay that will show through when the Pressable is active. */
     underlayColor?: Color;
+
+    testID?: string;
 };
 
 function PressableWithFeedback(

@@ -477,6 +477,7 @@ function FloatingActionButtonAndPopover(
                 isActive={isCreateMenuActive}
                 ref={fabRef}
                 onPress={toggleCreateMenu}
+                testID="floatingActionButton"
             />
         </View>
     );

@@ -51,9 +51,11 @@ type FloatingActionButtonProps = {
 
     /* An accessibility role for the button */
     role: Role;
+
+    testID?: string;
 };
 
-function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role, testID}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -113,6 +115,9 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 onLongPress={() => {}}
                 role={role}
                 shouldUseHapticsOnLongPress={false}
+                testID={testID}
+                id={testID}
+                accessible
             >
                 <Animated.View style={[styles.floatingActionButton, animatedStyle]}>
                     <Svg

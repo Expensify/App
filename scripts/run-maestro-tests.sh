@@ -6,22 +6,28 @@ PLATFORM=${1:-}
 
 # Validate passed platform
 case $PLATFORM in
-  ios | android )
+  ios | android | web )
     ;;
 
   *)
-    echo "Error! You must pass either 'android' or 'ios'"
+    echo "Error! You must pass either 'android', 'ios', or 'web'"
     echo ""
     exit 1
     ;;
 esac
 
 if [ "$PLATFORM" == "ios" ]; then
-  APPID="com.chat.expensify.chat"
-  allTestFiles=$(ls maestro-tests/*.yaml maestro-tests/basic_example/*.yaml)
-else
   APPID="com.expensify.chat.dev"
-  allTestFiles=$(ls maestro-tests/*.yaml maestro-tests/basic_example/*.yaml)
+  # allTestFiles=$(ls maestro-tests/*.yaml maestro-tests/basic_example/native.yaml)
+  allTestFiles=$(ls maestro-tests/native/*.yaml)
+elif [ "$PLATFORM" == "android" ]; then
+  APPID="com.expensify.chat.dev"
+  # allTestFiles=$(ls maestro-tests/native/*.yaml)
+  allTestFiles=$(ls maestro-tests/native/test.yaml)
+else 
+  APPID="https://dev.new.expensify.com:8082"
+  # APPID="https://127.0.0.1:8082"
+  allTestFiles=$(ls maestro-tests/web/*.yaml)
 fi
 
 failedTests=()
