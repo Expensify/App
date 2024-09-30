@@ -14,7 +14,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -83,7 +82,6 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
@@ -104,9 +102,9 @@ function ReportActionItemSingle({
     let avatarId: number | string | undefined = actorAccountID;
 
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(report, undefined, policy);
+        displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
-        avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
+        avatarSource = ReportUtils.getWorkspaceIcon(report).source;
         avatarId = report?.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         displayName = delegatePersonalDetails?.displayName ?? '';
