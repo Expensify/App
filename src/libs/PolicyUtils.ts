@@ -845,7 +845,9 @@ function getNetSuiteImportCustomFieldLabel(
     }
 
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
-    const importedTypes = Array.from(mappingSet).map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
+    const importedTypes = Array.from(mappingSet)
+        .sort((a, b) => b.localeCompare(a))
+        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, importedTypes);
 }
 
