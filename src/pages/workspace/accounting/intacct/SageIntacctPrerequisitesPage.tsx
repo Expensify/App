@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -15,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();

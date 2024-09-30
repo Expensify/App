@@ -1,11 +1,11 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import ImportSpreedsheet from '@components/ImportSpreadsheet';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ImportMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORT>;
+type ImportMembersPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORT>;
 
 function ImportMembersPage({route}: ImportMembersPageProps) {
     const policyID = route.params.policyID;

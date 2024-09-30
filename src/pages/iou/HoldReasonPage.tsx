@@ -1,24 +1,37 @@
+import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 import HoldReasonFormView from './HoldReasonFormView';
 
-type HoldReasonPageProps =
-    | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.HOLD>
-    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
+type HoldReasonPageRouteParams = {
+    /** ID of the transaction the page was opened for */
+    transactionID: string;
+
+    /** ID of the report that user is providing hold reason to */
+    reportID: string;
+
+    /** Link to previous page */
+    backTo: Route;
+
+    searchHash?: number;
+};
+
+type HoldReasonPageProps = {
+    /** Navigation route context info provided by react navigation */
+    route: RouteProp<{params: HoldReasonPageRouteParams}>;
+};
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();

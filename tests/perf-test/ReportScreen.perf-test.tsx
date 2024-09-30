@@ -1,3 +1,4 @@
+import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
@@ -8,7 +9,6 @@ import type Animated from 'react-native-reanimated';
 import {measurePerformance} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackNavigationProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import ComposeProviders from '@src/components/ComposeProviders';
 import DragAndDropProvider from '@src/components/DragAndDrop/Provider';
@@ -34,7 +34,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-type ReportScreenWrapperProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
+type ReportScreenWrapperProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
 jest.mock('@src/libs/API', () => ({
     write: jest.fn(),
@@ -209,7 +209,7 @@ test('[ReportScreen] should render ReportScreen', async () => {
         await screen.findByTestId(`report-screen-${report.reportID}`);
     };
 
-    const navigation = {addListener} as unknown as PlatformStackNavigationProp<AuthScreensParamList, 'Report', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
 
     await waitForBatchedUpdates();
     const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -243,7 +243,7 @@ test('[ReportScreen] should render composer', async () => {
         await screen.findByTestId('composer');
     };
 
-    const navigation = {addListener} as unknown as PlatformStackNavigationProp<AuthScreensParamList, 'Report', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
 
     await waitForBatchedUpdates();
 
@@ -278,7 +278,7 @@ test('[ReportScreen] should render report list', async () => {
         await screen.findByTestId('report-actions-list');
     };
 
-    const navigation = {addListener} as unknown as PlatformStackNavigationProp<AuthScreensParamList, 'Report', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
 
     await waitForBatchedUpdates();
 

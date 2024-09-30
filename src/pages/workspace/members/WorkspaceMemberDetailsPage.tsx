@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -23,7 +24,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -49,7 +49,7 @@ type WorkspacePolicyOnyxProps = {
 
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;

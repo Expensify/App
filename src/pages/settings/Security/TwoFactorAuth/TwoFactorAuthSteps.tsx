@@ -1,9 +1,9 @@
 import {useRoute} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
@@ -22,7 +22,7 @@ import type {BaseTwoFactorAuthFormOnyxProps} from './TwoFactorAuthForm/types';
 type TwoFactorAuthStepProps = BaseTwoFactorAuthFormOnyxProps;
 
 function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
+    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
     const backTo = route.params?.backTo ?? '';
     const forwardTo = route.params?.forwardTo ?? '';
 

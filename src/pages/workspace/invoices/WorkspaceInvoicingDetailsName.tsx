@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,7 +10,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInvoicesCompanyNameForm';
 
-type WorkspaceInvoicingDetailsNameProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_NAME>;
+type WorkspaceInvoicingDetailsNameProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_NAME>;
 
 function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNameProps) {
     const {policyID} = route.params;

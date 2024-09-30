@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -32,7 +32,7 @@ type NewTaskDetailsPageOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
+type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
 function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
     const styles = useThemeStyles();

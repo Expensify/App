@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type EditTagGLCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
+type EditTagGLCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
 
 function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();

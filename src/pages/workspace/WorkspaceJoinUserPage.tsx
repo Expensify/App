@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -5,7 +6,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -21,7 +21,7 @@ type WorkspaceJoinUserPageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceJoinUserPageRoute = {route: PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
+type WorkspaceJoinUserPageRoute = {route: StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
 type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUserPageOnyxProps;
 
 let isJoinLinkUsed = false;

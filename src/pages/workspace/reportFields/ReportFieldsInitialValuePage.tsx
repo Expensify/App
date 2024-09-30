@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -29,8 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import ReportFieldsInitialListValuePicker from './InitialListValueSelector/ReportFieldsInitialListValuePicker';
 
-type ReportFieldsInitialValuePageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
+type ReportFieldsInitialValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
 function ReportFieldsInitialValuePage({
     policy,
     route: {

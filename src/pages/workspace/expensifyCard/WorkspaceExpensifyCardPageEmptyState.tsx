@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -40,7 +40,7 @@ const expensifyCardFeatures: FeatureListItem[] = [
 ];
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
-    route: PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
+    route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {

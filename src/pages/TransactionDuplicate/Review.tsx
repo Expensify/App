@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
@@ -11,7 +12,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -25,7 +25,7 @@ import DuplicateTransactionsList from './DuplicateTransactionsList';
 function TransactionDuplicateReview() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');

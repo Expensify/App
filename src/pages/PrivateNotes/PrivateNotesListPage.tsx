@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,7 +13,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
@@ -44,7 +44,7 @@ type NoteListItem = {
 };
 
 function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
-    const route = useRoute<PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
+    const route = useRoute<RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();

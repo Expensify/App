@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,7 +7,6 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceTaxesSettingsWorkspaceCurrencyProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT>;
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT>;
 
 function WorkspaceTaxesSettingsWorkspaceCurrency({
     route: {

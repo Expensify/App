@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -24,7 +24,7 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
+type WorkspaceExpensifyCardBankAccountsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
 
 function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankAccountsProps) {
     const {translate} = useLocalize();

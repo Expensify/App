@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,7 +10,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
+type WorkspaceEditCardNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
 
 function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {policyID, cardID} = route.params;

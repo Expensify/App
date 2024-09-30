@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -14,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as AccountingUtils from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
+type WorkspaceSettlementAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();

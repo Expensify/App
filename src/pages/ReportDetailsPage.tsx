@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -29,7 +30,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -65,7 +65,7 @@ type ReportDetailsPageMenuItem = {
     shouldShowRightIcon?: boolean;
 };
 
-type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
+type ReportDetailsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
 
 const CASES = {
     DEFAULT: 'default',

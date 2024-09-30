@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -17,7 +18,6 @@ import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -41,7 +41,7 @@ type PrivateNotesEditPageOnyxProps = {
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     PrivateNotesEditPageOnyxProps &
-    PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
+    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
         /** The report currently being looked at */
         report: Report;
     };

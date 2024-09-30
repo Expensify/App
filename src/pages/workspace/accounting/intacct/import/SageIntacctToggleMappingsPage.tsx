@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -10,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
-type SageIntacctToggleMappingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
+type SageIntacctToggleMappingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
 type DisplayTypeTranslationKeys = {
     titleKey: TranslationPaths;

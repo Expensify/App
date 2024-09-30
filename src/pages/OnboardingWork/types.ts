@@ -1,10 +1,10 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type OnboardingWorkProps = Record<string, unknown> & PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>;
+type OnboardingWorkProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>;
 
 type BaseOnboardingWorkOnyxProps = {
     /** Saved onboarding purpose selected by the user */

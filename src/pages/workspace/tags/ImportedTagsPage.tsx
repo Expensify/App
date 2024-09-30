@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -11,7 +12,6 @@ import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ImportedTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
+type ImportedTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
 
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();

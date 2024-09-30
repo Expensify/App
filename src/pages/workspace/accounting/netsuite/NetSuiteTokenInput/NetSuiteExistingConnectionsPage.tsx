@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -7,14 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
+type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
 
 function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();

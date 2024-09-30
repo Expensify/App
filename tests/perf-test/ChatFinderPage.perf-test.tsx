@@ -1,4 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
+import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
@@ -9,7 +10,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
-import type {PlatformStackNavigationProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ChatFinderPage from '@pages/ChatFinderPage';
@@ -134,7 +134,7 @@ afterEach(() => {
     Onyx.clear();
 });
 
-type ChatFinderPageProps = PlatformStackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER> & {
+type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER> & {
     betas?: OnyxEntry<Beta[]>;
     reports?: OnyxCollection<Report>;
     isSearchingForReports?: OnyxEntry<boolean>;
@@ -175,7 +175,7 @@ test('[ChatFinderPage] should render list with cached options', async () => {
         await screen.findByTestId('ChatFinderPage');
     };
 
-    const navigation = {addListener} as unknown as PlatformStackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -209,7 +209,7 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
         fireEvent.changeText(input, 'Email Five');
     };
 
-    const navigation = {addListener} as unknown as PlatformStackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
     return waitForBatchedUpdates()
         .then(() =>

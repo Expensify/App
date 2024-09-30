@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -19,7 +20,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy/Policy';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -33,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
+type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo, bank} = route.params;

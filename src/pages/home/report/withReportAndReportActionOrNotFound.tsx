@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry, WithOnyxState} from 'react-native-onyx';
@@ -6,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -43,7 +43,7 @@ type OnyxProps = {
 };
 
 type WithReportAndReportActionOrNotFoundProps = OnyxProps &
-    PlatformStackScreenProps<FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT>;
+    StackScreenProps<FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,

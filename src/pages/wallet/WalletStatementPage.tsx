@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -14,7 +15,6 @@ import DateUtils from '@libs/DateUtils';
 import fileDownload from '@libs/fileDownload';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -27,7 +27,7 @@ type WalletStatementOnyxProps = {
     walletStatement: OnyxEntry<WalletStatement>;
 };
 
-type WalletStatementPageProps = WalletStatementOnyxProps & PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
+type WalletStatementPageProps = WalletStatementOnyxProps & StackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({walletStatement, route}: WalletStatementPageProps) {
     const themePreference = useThemePreference();

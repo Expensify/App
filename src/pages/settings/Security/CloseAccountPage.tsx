@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -14,7 +15,6 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -31,7 +31,7 @@ type CloseAccountPageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type CloseAccountPageProps = CloseAccountPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
+type CloseAccountPageProps = CloseAccountPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
 
 function CloseAccountPage({session}: CloseAccountPageProps) {
     const styles = useThemeStyles();

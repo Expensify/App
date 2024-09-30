@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -9,13 +10,12 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
 import {DETAILS_CONSTANT_OPTIONS} from './const';
 
-type DebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
+type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
 function DebugDetailsConstantPickerPage({
     route: {

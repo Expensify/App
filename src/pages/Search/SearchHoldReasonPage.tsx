@@ -1,9 +1,9 @@
+import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import * as FormActions from '@userActions/FormActions';
@@ -19,7 +19,7 @@ type SearchHoldReasonPageRouteParams = {
 
 type SearchHoldReasonPageProps = {
     /** Navigation route context info provided by react navigation */
-    route: PlatformStackRouteProp<{params?: SearchHoldReasonPageRouteParams}>;
+    route: RouteProp<{params?: SearchHoldReasonPageRouteParams}>;
 };
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {

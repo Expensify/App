@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -21,7 +22,6 @@ import {
 } from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -31,7 +31,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
 import DimensionTypeSelector from './DimensionTypeSelector';
 
-type SageIntacctEditUserDimensionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
+type SageIntacctEditUserDimensionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
 
 function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimensionsPageProps) {
     const styles = useThemeStyles();

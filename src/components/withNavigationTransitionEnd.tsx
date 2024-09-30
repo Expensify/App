@@ -1,8 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
+import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 
 type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
@@ -10,7 +10,7 @@ type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
 export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): React.ComponentType<TProps & RefAttributes<TRef>> {
     function WithNavigationTransitionEnd(props: TProps, ref: ForwardedRef<TRef>) {
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-        const navigation = useNavigation<PlatformStackNavigationProp<RootStackParamList>>();
+        const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
         useEffect(() => {
             const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {

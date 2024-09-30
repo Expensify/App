@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -18,7 +18,7 @@ import type SCREENS from '@src/SCREENS';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 
-type WorkspaceUpgradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
+type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const navigation = useNavigation();

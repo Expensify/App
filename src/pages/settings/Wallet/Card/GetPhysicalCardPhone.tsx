@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -5,7 +6,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import * as LoginUtils from '@libs/LoginUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ type GetPhysicalCardPhoneOnyxProps = {
     draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
-type GetPhysicalCardPhoneProps = GetPhysicalCardPhoneOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
+type GetPhysicalCardPhoneProps = GetPhysicalCardPhoneOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
 
 function GetPhysicalCardPhone({
     route: {

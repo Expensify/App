@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -6,7 +7,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -112,7 +112,7 @@ const mockedCards = {
     },
 } as unknown as WorkspaceCardsList;
 
-type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();

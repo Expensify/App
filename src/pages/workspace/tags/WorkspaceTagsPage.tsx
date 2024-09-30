@@ -1,4 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -34,7 +35,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -48,7 +48,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
-type WorkspaceTagsPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();

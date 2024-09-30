@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,14 +13,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
-type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
 function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();

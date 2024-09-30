@@ -1,10 +1,9 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -20,7 +19,7 @@ type ProfileAvatarOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type ProfileAvatarProps = ProfileAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
+type ProfileAvatarProps = ProfileAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
 
 function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadingApp = true}: ProfileAvatarProps) {
     const personalDetail = personalDetails?.[route.params.accountID];
@@ -42,9 +41,7 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack();
-                });
+                Navigation.goBack();
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}

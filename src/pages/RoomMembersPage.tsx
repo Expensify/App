@@ -1,4 +1,6 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
@@ -28,7 +30,6 @@ import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhr
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -52,10 +53,10 @@ type RoomMembersPageOnyxProps = {
 type RoomMembersPageProps = WithReportOrNotFoundProps &
     WithCurrentUserPersonalDetailsProps &
     RoomMembersPageOnyxProps &
-    PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
-    const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
+    const route = useRoute<RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);

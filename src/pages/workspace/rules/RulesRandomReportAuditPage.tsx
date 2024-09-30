@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRandomReportAuditModalForm';
 
-type RulesRandomReportAuditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
+type RulesRandomReportAuditPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
 
 function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const policyID = route?.params?.policyID ?? '-1';

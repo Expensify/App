@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -19,7 +20,6 @@ import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhr
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -44,7 +44,7 @@ type InviteReportParticipantsPageProps = InviteReportParticipantsPageOnyxProps &
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
 function InviteReportParticipantsPage({betas, personalDetails, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
-    const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
+    const route = useRoute<RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });

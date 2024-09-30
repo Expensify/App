@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +14,6 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -35,7 +35,7 @@ type ChatFinderPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type ChatFinderPageProps = ChatFinderPageOnyxProps & PlatformStackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];

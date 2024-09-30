@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -11,12 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import type SCREENS from '@src/SCREENS';
 
-type DebugDetailsDateTimePickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE>;
+type DebugDetailsDateTimePickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE>;
 
 function DebugDetailsDateTimePickerPage({
     route: {

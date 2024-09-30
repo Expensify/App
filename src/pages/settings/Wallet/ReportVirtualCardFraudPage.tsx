@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,7 +12,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
@@ -30,7 +30,7 @@ type ReportVirtualCardFraudPageOnyxProps = {
     cardList: OnyxEntry<Record<string, OnyxCard>>;
 };
 
-type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
+type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
 
 function ReportVirtualCardFraudPage({
     route: {

@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -14,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -58,7 +58,7 @@ type SplitBillDetailsPageOnyxProps = SplitBillDetailsPageTransactionOnyxProps & 
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
     SplitBillDetailsPageOnyxProps &
-    PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
+    StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();

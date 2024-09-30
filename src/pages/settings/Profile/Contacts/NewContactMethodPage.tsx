@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -18,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ type NewContactMethodPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
 };
 
-type NewContactMethodPageProps = NewContactMethodPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

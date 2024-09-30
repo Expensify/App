@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -15,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -33,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescriptionPageProps) {
-    const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
+    const route = useRoute<RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

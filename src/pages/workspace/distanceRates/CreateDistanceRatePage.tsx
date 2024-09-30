@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
@@ -11,7 +12,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -24,7 +24,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
 
-type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+type CreateDistanceRatePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
 function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();

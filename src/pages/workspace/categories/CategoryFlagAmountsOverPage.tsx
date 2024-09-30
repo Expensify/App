@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,7 +14,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
@@ -25,7 +25,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import ExpenseLimitTypeSelector from './ExpenseLimitTypeSelector/ExpenseLimitTypeSelector';
 
-type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER>;
+type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER>;
 
 function CategoryFlagAmountsOverPage({
     route: {

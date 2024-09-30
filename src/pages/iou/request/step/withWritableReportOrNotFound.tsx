@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/core';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -5,7 +6,6 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
@@ -42,7 +42,9 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
 
-type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
+type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
+
+type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & {route: Route<T>};
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
