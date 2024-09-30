@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy/Policy';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -37,10 +38,10 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`)
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
+    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const feedName = cardFeeds?.companyCardNicknames?.[selectedFeed] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
@@ -57,7 +58,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     );
 
     const submit = ({name}: WorkspaceCompanyCardFeedName) => {
-        Policy.setWorkspaceCompanyCardFeedName(policyID, workspaceAccountID, lastSelectedFeed, name);
+        Policy.setWorkspaceCompanyCardFeedName(policyID, workspaceAccountID, selectedFeed, name);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
     };
 

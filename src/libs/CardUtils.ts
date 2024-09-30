@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -227,6 +227,11 @@ function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<
     return cards;
 }
 
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<string>, cardFeeds: OnyxEntry<CardFeeds>): string {
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
+    return lastSelectedFeed ?? defaultFeed ?? '';
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -245,4 +250,5 @@ export {
     getCardFeedIcon,
     getCardDetailsImage,
     getMemberCards,
+    getSelectedFeed,
 };

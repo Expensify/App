@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -21,48 +22,27 @@ import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
     value: string;
 };
 
-const mockedData: CardFeeds = {
-    companyCards: {
-        cdfbmo: {
-            pending: false,
-            asrEnabled: true,
-            forceReimbursable: 'force_no',
-            liabilityType: 'corporate',
-            preferredPolicy: '',
-            reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
-            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-        },
-    },
-    companyCardNicknames: {
-        cdfbmo: 'BMO MasterCard',
-        vcf: 'Visa Corporate Card',
-        gl1025: 'Corporate Amex',
-    },
-};
-
 type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const cardFeeds = mockedData;
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
 
