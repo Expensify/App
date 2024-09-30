@@ -215,11 +215,10 @@ function isActionOfType<T extends ReportActionName[]>(
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
-        // eslint-disable-next-line
+        // eslint-disable-next-line deprecation/deprecation
         return reportAction?.message ?? reportAction?.originalMessage;
     }
-
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     return reportAction.originalMessage;
 }
 
@@ -596,7 +595,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 
     // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
     // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     if (String(reportAction.sequenceNumber) === key) {
         Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
         return true;
@@ -1736,7 +1735,7 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
     const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? -1).map(
         ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
     );
-    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames});
+    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
 
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -1801,7 +1800,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,
