@@ -42,14 +42,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
         let newIndex = newAttachments.findIndex(compareImage);
         const index = attachments.findIndex(compareImage);
-
+        let shouldRemountPager = false;
         // If no matching attachment with the same index, dismiss the modal
         if (!newAttachments[newIndex] && newAttachments[index]) {
             newIndex = index;
-            // Re-mount the pager to reset the carousel.
-            // The newIndex from onPageSelected is inaccurate when attachments change dynamically.
-            // Related issue: https://github.com/callstack/react-native-pager-view/issues/597
-            setCarouselPagerKey((prevKey) => prevKey + 1);
+            // Set shouldRemountPager to true to avoid unnecessary remounting of the pager.
+            // We can't directly setCarouselPagerKey here since the attachment can briefly change if the modal should be dismissed.
+            shouldRemountPager = true;
         }
 
         if (!newAttachments[newIndex] && attachments[index]) {
@@ -57,6 +56,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         } else {
             setPage(newIndex);
             setAttachments(newAttachments);
+
+            // Re-mount the pager to reset the carousel.
+            // The newIndex from onPageSelected is inaccurate when attachments change dynamically.
+            // Related issue: https://github.com/callstack/react-native-pager-view/issues/597
+            if (shouldRemountPager) {
+                setCarouselPagerKey((prevKey) => prevKey + 1);
+            }
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
