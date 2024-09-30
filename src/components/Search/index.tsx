@@ -1,16 +1,14 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
-import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -33,12 +31,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
-import SearchPageHeader from './SearchPageHeader';
-import SearchStatusBar from './SearchStatusBar';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
+    onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 const transactionItemMobileHeight = 100;
@@ -78,21 +76,17 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON}: SearchProps) {
+function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
-    const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
-    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -126,25 +120,6 @@ function Search({queryJSON}: SearchProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
 
-    const handleOnCancelConfirmModal = () => {
-        setDeleteExpensesConfirmModalVisible(false);
-    };
-
-    const handleDeleteExpenses = () => {
-        if (selectedTransactionsToDelete.length === 0) {
-            return;
-        }
-
-        clearSelectedTransactions();
-        setDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsToDelete);
-    };
-
-    const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
-        setSelectedTransactionsToDelete(itemsToDelete);
-        setDeleteExpensesConfirmModalVisible(true);
-    };
-
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
             if (SearchUtils.isTransactionListItemType(item) || SearchUtils.isReportActionListItemType(item)) {
@@ -164,8 +139,6 @@ function Search({queryJSON}: SearchProps) {
         },
         [isLargeScreenWidth],
     );
-
-    const resetOffset = () => setOffset(0);
 
     const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
@@ -192,6 +165,11 @@ function Search({queryJSON}: SearchProps) {
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
+        /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
+        setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type !== type);
+    }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+
+    useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
             return;
         }
@@ -200,24 +178,10 @@ function Search({queryJSON}: SearchProps) {
 
     if (shouldShowLoadingState) {
         return (
-            <>
-                <SearchPageHeader
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-
-                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
-                {searchResults?.search?.type === type ? (
-                    <SearchStatusBar
-                        type={type}
-                        status={status}
-                        resetOffset={resetOffset}
-                    />
-                ) : (
-                    <SearchStatusSkeleton shouldAnimate />
-                )}
-                <SearchRowSkeleton shouldAnimate />
-            </>
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+            />
         );
     }
 
@@ -235,18 +199,9 @@ function Search({queryJSON}: SearchProps) {
 
     if (shouldShowEmptyState) {
         return (
-            <>
-                <SearchPageHeader
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <SearchStatusBar
-                    type={type}
-                    status={status}
-                    resetOffset={resetOffset}
-                />
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView type={type} />
-            </>
+            </View>
         );
     }
 
@@ -259,7 +214,7 @@ function Search({queryJSON}: SearchProps) {
                 return;
             }
 
-            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions));
+            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
             return;
         }
 
@@ -270,14 +225,17 @@ function Search({queryJSON}: SearchProps) {
                 delete reducedSelectedTransactions[transaction.keyForList];
             });
 
-            setSelectedTransactions(reducedSelectedTransactions);
+            setSelectedTransactions(reducedSelectedTransactions, data);
             return;
         }
 
-        setSelectedTransactions({
-            ...selectedTransactions,
-            ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
-        });
+        setSelectedTransactions(
+            {
+                ...selectedTransactions,
+                ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
+            },
+            data,
+        );
     };
 
     const openReport = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
@@ -323,12 +281,12 @@ function Search({queryJSON}: SearchProps) {
         }
 
         if (areItemsOfReportType) {
-            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))));
+            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))), data);
 
             return;
         }
 
-        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)));
+        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)), data);
     };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
@@ -340,102 +298,61 @@ function Search({queryJSON}: SearchProps) {
     const shouldShowSorting = sortableSearchStatuses.includes(status);
 
     return (
-        <>
-            <SearchPageHeader
-                queryJSON={queryJSON}
-                hash={hash}
-                onSelectDeleteOption={handleOnSelectDeleteOption}
-                data={data}
-                setOfflineModalOpen={() => setOfflineModalVisible(true)}
-                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
-            />
-            <SearchStatusBar
-                type={type}
-                status={status}
-                resetOffset={resetOffset}
-            />
-            <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
-                sections={[{data: sortedSelectedData, isDisabled: false}]}
-                turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
-                onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
-                onCheckboxPress={toggleTransaction}
-                onSelectAll={toggleAllTransactions}
-                customListHeader={
-                    !isLargeScreenWidth ? null : (
-                        <SearchTableHeader
-                            data={searchResults?.data}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            shouldShowSorting={shouldShowSorting}
-                        />
-                    )
-                }
-                canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-                customListHeaderHeight={searchHeaderHeight}
-                // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-                // we have configured a larger windowSize and a longer delay between batch renders.
-                // The windowSize determines the number of items rendered before and after the currently visible items.
-                // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-                // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-                // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-                // For more information, refer to the React Native documentation:
-                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-                windowSize={111}
-                updateCellsBatchingPeriod={200}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                getItemHeight={getItemHeightMemoized}
-                shouldSingleExecuteRowSelect
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                shouldPreventDefault={false}
-                listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
-                containerStyle={[styles.pv0]}
-                showScrollIndicator={false}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                listFooterContent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-            />
-            <ConfirmModal
-                isVisible={deleteExpensesConfirmModalVisible}
-                onConfirm={handleDeleteExpenses}
-                onCancel={handleOnCancelConfirmModal}
-                onModalHide={() => setSelectedTransactionsToDelete([])}
-                title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
-            />
-        </>
+        <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
+            sections={[{data: sortedSelectedData, isDisabled: false}]}
+            turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
+            onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
+            onCheckboxPress={toggleTransaction}
+            onSelectAll={toggleAllTransactions}
+            customListHeader={
+                !isLargeScreenWidth ? null : (
+                    <SearchTableHeader
+                        data={searchResults?.data}
+                        metadata={searchResults?.search}
+                        onSortPress={onSortPress}
+                        sortOrder={sortOrder}
+                        sortBy={sortBy}
+                        shouldShowYear={shouldShowYear}
+                        shouldShowSorting={shouldShowSorting}
+                    />
+                )
+            }
+            onScroll={onSearchListScroll}
+            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+            customListHeaderHeight={searchHeaderHeight}
+            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+            // we have configured a larger windowSize and a longer delay between batch renders.
+            // The windowSize determines the number of items rendered before and after the currently visible items.
+            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+            // For more information, refer to the React Native documentation:
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+            windowSize={111}
+            updateCellsBatchingPeriod={200}
+            ListItem={ListItem}
+            onSelectRow={openReport}
+            getItemHeight={getItemHeightMemoized}
+            shouldSingleExecuteRowSelect
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefault={false}
+            listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
+            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+            showScrollIndicator={false}
+            onEndReachedThreshold={0.75}
+            onEndReached={fetchMoreResults}
+            listFooterContent={
+                shouldShowLoadingMoreItems ? (
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        fixedNumItems={5}
+                    />
+                ) : undefined
+            }
+            contentContainerStyle={contentContainerStyle}
+            scrollEventThrottle={1}
+        />
     );
 }
 
