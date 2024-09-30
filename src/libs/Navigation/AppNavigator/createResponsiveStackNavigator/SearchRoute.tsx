@@ -1,3 +1,4 @@
+import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
