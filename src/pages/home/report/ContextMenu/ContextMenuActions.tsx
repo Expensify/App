@@ -440,7 +440,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isRenamedAction(reportAction)) {
                     setClipboardMessage(ReportActionsUtils.getRenamedAction(reportAction));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
-                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
+                    const {harvesting} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    let displayMessage = '';
+                    if (harvesting) {
+                        displayMessage = ReportUtils.getReportAutomaticallySubmittedMessage(reportAction);
+                    } else {
+                        displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
+                    }
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};

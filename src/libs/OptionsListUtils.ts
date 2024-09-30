@@ -661,7 +661,12 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
-        lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
+        const {harvesting} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
+        if (harvesting) {
+            lastMessageTextFromReport = ReportUtils.getReportAutomaticallySubmittedMessage(lastReportAction);
+        } else {
+            lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
+        }
     } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {

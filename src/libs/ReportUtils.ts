@@ -3782,6 +3782,10 @@ function getReportName(
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
     if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
+        const {harvesting} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (harvesting) {
+            return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
+        }
         return getIOUSubmittedMessage(parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
