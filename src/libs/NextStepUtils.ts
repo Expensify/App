@@ -136,7 +136,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 ],
             };
 
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+            if (!PolicyUtils.arePaymentsEnabled(policy)) {
                 optimisticNextStep = noActionRequired;
 
                 break;
