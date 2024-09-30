@@ -6523,7 +6523,10 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
-            value: optimisticExpenseReport,
+            value: {
+                ...optimisticExpenseReport,
+                unheldTotal: 0,
+            },
         },
         // add preview report action to main chat
         {
