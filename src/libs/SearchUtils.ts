@@ -311,21 +311,30 @@ function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return TransactionListItem;
+    }
+    return ReportListItem;
 }
 
 function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
+    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return getTransactionsSections(data, metadata);
+    }
+    return getReportSections(data, metadata);
 }
 
 function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
+    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    }
+    return getSortedReportData(data as ReportListItemType[]);
 }
 
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
@@ -802,7 +811,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
                 }
-                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery}));
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
             },
             icon: Expensicons.Pencil,
             shouldShowRightIcon: false,

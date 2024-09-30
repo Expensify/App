@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -14,9 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
+import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Report} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
@@ -30,26 +34,12 @@ type EditReportFieldPageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
-    /** Route from navigation */
-    route: {
-        /** Params from the route */
-        params: {
-            /** Which field we are editing */
-            fieldID: string;
-
-            /** reportID for the expense report */
-            reportID: string;
-
-            /** policyID for the expense report */
-            policyID: string;
-        };
-    };
-};
+type EditReportFieldPageProps = EditReportFieldPageOnyxProps & StackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
 function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) {
     const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const backTo = route.params.backTo;
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
@@ -71,11 +61,19 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         );
     }
 
+    const goBack = () => {
+        if (isReportFieldTitle) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+            return;
+        }
+        Navigation.goBack(backTo);
+    };
+
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
-            Navigation.goBack();
+            goBack();
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
             Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
@@ -111,6 +109,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 threeDotsMenuItems={menuItems}
                 shouldShowThreeDotsButton={!!menuItems?.length}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                onBackButtonPress={goBack}
             />
 
             <ConfirmModal

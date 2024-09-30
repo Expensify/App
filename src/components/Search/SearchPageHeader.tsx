@@ -59,7 +59,7 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
                 }
                 subtitle={
                     <Text
-                        numberOfLines={2}
+                        numberOfLines={1}
                         style={[styles.textLarge, subtitleStyles]}
                     >
                         {subtitle}
@@ -318,7 +318,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
                         options={headerButtonsOptions}
                         isSplitButton={false}
                         shouldUseStyleUtilityForAnchorPosition

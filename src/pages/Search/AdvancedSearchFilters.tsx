@@ -144,13 +144,13 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
         if (dateBefore) {
-            dateValue = translate('search.filters.date.before', dateBefore);
+            dateValue = translate('search.filters.date.before', {date: dateBefore});
         }
         if (dateBefore && dateAfter) {
             dateValue += ', ';
         }
         if (dateAfter) {
-            dateValue += translate('search.filters.date.after', dateAfter);
+            dateValue += translate('search.filters.date.after', {date: dateAfter});
         }
 
         return dateValue;
@@ -159,13 +159,16 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.between', {
+                lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
+                greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
+            });
         }
         if (lessThan) {
-            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
         }
         if (greaterThan) {
-            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
+            return translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
         }
         // Will never happen
         return;
