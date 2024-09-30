@@ -1727,8 +1727,8 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const connectionName = originalMessage?.connectionName ?? '';
-    return Localize.translateLocal('report.actions.type.removedConnection', {connectionName});
+    const connectionName = originalMessage?.connectionName;
+    return connectionName ? Localize.translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {

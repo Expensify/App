@@ -6,7 +6,6 @@ import type {
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
-    AllConnectionNameParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
@@ -4317,7 +4316,7 @@ const translations = {
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
-                removedConnection: ({connectionName}: AllConnectionNameParams) => `Conexión eliminada a ${connectionName}.`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `Conexión eliminada a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}.`,
             },
         },
     },

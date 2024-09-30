@@ -1232,8 +1232,16 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
+type AllConnections = Connections & {
+    /** Quickbooks Desktop integration connection*/
+    quickbooksDesktop: any;
+};
+
 /** Names of integration connections */
 type ConnectionName = keyof Connections;
+
+/** Names of all integration connections */
+type AllConnectionName = keyof AllConnections;
 
 /** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
 type MccGroup = {
@@ -1728,6 +1736,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    AllConnectionName,
     Tenant,
     Account,
     QBONonReimbursableExportAccountType,
