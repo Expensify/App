@@ -1,31 +1,29 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
-import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
-import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
-import leftModalNavigatorOptions from './leftModalNavigatorOptions';
+import getModalPresentationStyle from './getModalPresentationStyle';
 
-type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => PlatformStackNavigationOptions;
+type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => StackNavigationOptions;
 
 type ScreenOptions = {
-    rightModalNavigator: PlatformStackNavigationOptions;
+    rightModalNavigator: StackNavigationOptions;
     onboardingModalNavigator: GetOnboardingModalNavigatorOptions;
-    leftModalNavigator: PlatformStackNavigationOptions;
-    homeScreen: PlatformStackNavigationOptions;
-    fullScreen: PlatformStackNavigationOptions;
-    centralPaneNavigator: PlatformStackNavigationOptions;
-    bottomTab: PlatformStackNavigationOptions;
+    leftModalNavigator: StackNavigationOptions;
+    homeScreen: StackNavigationOptions;
+    fullScreen: StackNavigationOptions;
+    centralPaneNavigator: StackNavigationOptions;
+    bottomTab: StackNavigationOptions;
 };
 
-const commonScreenOptions: PlatformStackNavigationOptions = {
+const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,
-    web: {
-        cardOverlayEnabled: true,
-    },
+    gestureDirection: 'horizontal',
+    animationEnabled: true,
+    cardOverlayEnabled: true,
+    animationTypeForReplace: 'push',
 };
 
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
@@ -36,10 +34,18 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
     return {
         rightModalNavigator: {
             ...commonScreenOptions,
-            ...getRightModalNavigatorOptions(isSmallScreenWidth),
-            ...hideKeyboardOnSwipe,
-            web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            presentation: getModalPresentationStyle(),
+
+            // We want pop in RHP since there are some flows that would work weird otherwise
+            animationTypeForReplace: 'pop',
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+
+                // This is necessary to cover translated sidebar with overlay.
+                width: isSmallScreenWidth ? '100%' : '200%',
+                // Excess space should be on the left so we need to position from right.
+                right: 0,
             },
         },
         onboardingModalNavigator: (shouldUseNarrowLayout: boolean) => ({
@@ -48,96 +54,88 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             animationEnabled: true,
             cardOverlayEnabled: false,
             presentation: 'transparentModal',
-            web: {
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    backgroundColor: 'transparent',
-                    width: '100%',
-                    top: 0,
-                    left: 0,
-                    position: 'fixed',
-                },
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+                backgroundColor: 'transparent',
+                width: '100%',
+                top: 0,
+                left: 0,
+                position: 'fixed',
             },
         }),
         leftModalNavigator: {
             ...commonScreenOptions,
-            ...leftModalNavigatorOptions,
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            presentation: getModalPresentationStyle(),
+            gestureDirection: 'horizontal-inverted',
+
+            // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
-            web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-                // We want pop in LHP since there are some flows that would work weird otherwise
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
 
-                    // This is necessary to cover translated sidebar with overlay.
-                    width: isSmallScreenWidth ? '100%' : '200%',
+                // This is necessary to cover translated sidebar with overlay.
+                width: isSmallScreenWidth ? '100%' : '200%',
 
-                    // LHP should be displayed in place of the sidebar
-                    left: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
-                },
+                // LHP should be displayed in place of the sidebar
+                left: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
         },
         homeScreen: {
-            ...commonScreenOptions,
             title: CONFIG.SITE_TITLE,
-            web: {
-                // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+            ...commonScreenOptions,
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
 
-                    // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
-                    marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
-                    ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
-                },
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+
+                // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
+                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+                ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },
 
         fullScreen: {
             ...commonScreenOptions,
-            // We need to turn off animation for the full screen to avoid delay when closing screens.
-            animation: isSmallScreenWidth ? 'slide_from_right' : 'none',
-            web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
 
-                    // This is necessary to cover whole screen. Including translated sidebar.
-                    marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
-                },
+                // This is necessary to cover whole screen. Including translated sidebar.
+                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
+
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animationEnabled: isSmallScreenWidth,
         },
 
         centralPaneNavigator: {
-            ...commonScreenOptions,
-            ...hideKeyboardOnSwipe,
             title: CONFIG.SITE_TITLE,
-            animation: isSmallScreenWidth ? undefined : 'none',
-            web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
-                },
+            ...commonScreenOptions,
+            animationEnabled: isSmallScreenWidth,
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
+
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+                paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
             },
         },
 
         bottomTab: {
             ...commonScreenOptions,
-            web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
 
-                    // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
-                    marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
-                    ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
-                },
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+
+                // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
+                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+                ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },
-    } satisfies ScreenOptions;
+    };
 };
 
 export default getRootNavigatorScreenOptions;

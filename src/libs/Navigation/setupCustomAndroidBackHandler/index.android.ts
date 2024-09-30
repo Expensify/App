@@ -1,13 +1,13 @@
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import {BackHandler, NativeModules} from 'react-native';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import getTopmostCentralPaneRoute from '@navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@navigation/navigationRef';
 import type {BottomTabNavigatorParamList, RootStackParamList, State} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-type SearchPageProps = PlatformStackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.SEARCH.BOTTOM_TAB>;
+type SearchPageProps = StackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.SEARCH.BOTTOM_TAB>;
 
 // We need to do some custom handling for the back button on Android for actions related to the search page.
 function setupCustomAndroidBackHandler() {
