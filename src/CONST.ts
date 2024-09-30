@@ -171,7 +171,7 @@ const CONST = {
     },
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
-    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -189,8 +189,9 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
-    ANIMATION_PAY_BUTTON_DURATION: 200,
-    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_DURATION: 200,
+    ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -715,12 +716,12 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    SAGE_INTACCT_HELP_LINK:
-        "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
+    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
@@ -1010,6 +1011,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
@@ -1055,7 +1057,6 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
-            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -1152,9 +1153,9 @@ const CONST = {
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        INCORRECT_MAGIC_CODE: 451,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -1264,6 +1265,7 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        PRESENCE_ACTIVE_GUIDES: 'presence-activeGuides',
     },
 
     EMOJI_SPACER: 'SPACER',
@@ -2098,6 +2100,9 @@ const CONST = {
         ACCESS_VARIANTS: {
             CREATE: 'create',
         },
+        PAGE_INDEX: {
+            CONFIRM: 'confirm',
+        },
         PAYMENT_SELECTED: {
             BBA: 'BBA',
             PBA: 'PBA',
@@ -2155,7 +2160,6 @@ const CONST = {
 
     POLICY: {
         TYPE: {
-            FREE: 'free',
             PERSONAL: 'personal',
 
             // Often referred to as "control" workspaces
@@ -2164,7 +2168,15 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
-        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        RULE_CONDITIONS: {
+            MATCHES: 'matches',
+        },
+        FIELDS: {
+            TAG: 'tag',
+            CATEGORY: 'category',
+            FIELD_LIST_TITLE: 'text_title',
+            TAX: 'tax',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
@@ -2174,7 +2186,7 @@ const CONST = {
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
         AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
         AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
-        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 5,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.05,
 
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
@@ -2295,6 +2307,12 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+            },
+            AUTH_HELP_LINKS: {
+                intacct:
+                    "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
+                netsuite:
+                    'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2440,6 +2458,7 @@ const CONST = {
         },
     },
     EXPENSIFY_CARD: {
+        NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
@@ -2686,11 +2705,7 @@ const CONST = {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
         WORKSPACE_PROFILE: 'WorkspaceProfile',
-        WORKSPACE_CARD: 'WorkspaceCorporateCards',
-        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
-        WORKSPACE_BILLS: 'WorkspacePayBills',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
-        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
@@ -2806,6 +2821,7 @@ const CONST = {
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
+        DEBUG: 'debug',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4002,7 +4018,6 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
-    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
@@ -4141,6 +4156,7 @@ const CONST = {
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -4534,19 +4550,19 @@ const CONST = {
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Enable and disable default categories.\n' +
-                        '6. Click *Add categories* to make your own.\n' +
-                        '7. For more controls like requiring a category for every expense, click *Settings*.\n' +
+                        '5. Add or import your own categories.\n' +
+                        "6. Disable any default categories you don't need.\n" +
+                        '7. Require a category for every expense in *Settings*.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
                 {
                     type: 'setupTags',
                     autoCompleted: false,
-                    title: 'Set up tags (optional)',
+                    title: 'Set up tags',
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
                         '\n' +
@@ -5517,6 +5533,7 @@ const CONST = {
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
+                PINNED: 'pinned',
             },
         },
         TABLE_COLUMNS: {
@@ -5753,6 +5770,15 @@ const CONST = {
         ICON_HEIGHT: 160,
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
+        MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
+        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    },
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
     },
 } as const;
 

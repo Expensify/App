@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,7 +9,6 @@ import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, 
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
-import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -234,7 +234,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: LocaleContextProps['translate'],
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
@@ -271,14 +271,14 @@ function getOwnershipChecksDisplayText(
         case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
             title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
             text = translate('workspace.changeOwner.duplicateSubscriptionText', {
-                email: changeOwner?.duplicateSubscription,
-                workspaceName: policy?.name,
+                email: changeOwner?.duplicateSubscription ?? '',
+                workspaceName: policy?.name ?? '',
             });
             buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
             title = translate('workspace.changeOwner.hasFailedSettlementsTitle');
-            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin});
+            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin ?? ''});
             buttonText = translate('workspace.changeOwner.hasFailedSettlementsButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:

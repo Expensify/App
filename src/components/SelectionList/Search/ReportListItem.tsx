@@ -84,7 +84,9 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(transactionItem.transactionThreadReportID));
+        const backTo = Navigation.getActiveRoute();
+
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionItem.transactionThreadReportID, backTo}));
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
@@ -110,7 +112,7 @@ function ReportListItem<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
-                onSelectRow={() => openReportInRHP(transactionItem)}
+                onSelectRow={onSelectRow}
                 onDismissError={onDismissError}
                 onFocus={onFocus}
                 onLongPressRow={onLongPressRow}
