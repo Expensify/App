@@ -4,7 +4,6 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -34,7 +33,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
-type SavedSearchMenuItem = MenuItemBaseProps & {
+type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
     hash: string;
     query: string;
@@ -118,8 +117,15 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 SearchActions.clearAllFilters();
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
             },
-            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(title, Number(key), item.query)} />,
+            rightComponent: (
+                <SavedSearchItemThreeDotMenu
+                    menuItems={getOverflowMenu(title, Number(key), item.query)}
+                    isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                />
+            ),
             styles: [styles.alignItemsCenter],
+            pendingAction: item.pendingAction,
+            disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         };
 
         if (!isNarrow) {
@@ -179,7 +185,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout, index));
+        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout, index));
     };
 
     const renderSavedSearchesSection = useCallback(
