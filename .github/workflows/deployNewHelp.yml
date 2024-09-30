@@ -1,0 +1,74 @@
+name: Deploy New Help Site
+
+on:
+  # Run on any push to main that has changes to the help directory
+# TEST: Verify Cloudflare picks this up even if not run when merged to main
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - 'help/**'
+
+  # Run on any pull request (except PRs against staging or production) that has changes to the help directory
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - 'help/**'
+
+  # Run on any manual trigger
+  workflow_dispatch:
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "newhelp"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    env:
+      IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Ruby and run bundle install inside the /help directory
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: ./help
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --source ./ --destination ./_site
+        working-directory: ./help  # Ensure Jekyll is building the site in /help
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        id: deploy
+        if: env.IS_PR_FROM_FORK != 'true'
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: newhelp
+          directory: ./help/_site  # Deploy the built site
+
+      - name: Setup Cloudflare CLI
+        if: env.IS_PR_FROM_FORK != 'true'
+        run: pip3 install cloudflare==2.19.0
+
+      - name: Purge Cloudflare cache
+        if: env.IS_PR_FROM_FORK != 'true'
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["newhelp.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        env:
+          CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+
+      - name: Leave a comment on the PR
+        uses: actions-cool/maintain-one-comment@v3.2.0
+        if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
+        with:
+          token: ${{ github.token }}
+          body: ${{ format('A preview of your New Help changes have been deployed to {0} :zap:️', steps.deploy.outputs.alias) }}
+
