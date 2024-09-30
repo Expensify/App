@@ -414,12 +414,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             />
 
             <ConfirmModal
-                title={translate('iou.deleteExpense')}
+                title={translate('iou.deleteExpense', {count: 1})}
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
                 onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
-                prompt={translate('iou.deleteConfirmation')}
+                prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
