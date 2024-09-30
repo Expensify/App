@@ -3,7 +3,7 @@ import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -31,12 +31,7 @@ import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
 import HighResolutionInfo from './HighResolutionInfo';
 
-type AttachmentViewOnyxProps = {
-    transaction: OnyxEntry<Transaction>;
-};
-
-type AttachmentViewProps = AttachmentViewOnyxProps &
-    Attachment & {
+type AttachmentViewProps = Attachment & {
         /** Whether this view is the active screen  */
         isFocused?: boolean;
 
@@ -99,7 +94,7 @@ function AttachmentView({
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
-    transaction,
+    transactionID = '-1',
     reportActionID,
     isHovered,
     duration,
@@ -110,6 +105,9 @@ function AttachmentView({
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -302,12 +300,6 @@ function AttachmentView({
 
 AttachmentView.displayName = 'AttachmentView';
 
-export default memo(
-    withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        },
-    })(AttachmentView),
-);
+export default memo(AttachmentView);
 
 export type {AttachmentViewProps};
