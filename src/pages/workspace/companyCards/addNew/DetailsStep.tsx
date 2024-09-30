@@ -32,9 +32,11 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const feedProvider = addNewCard?.data.cardType;
 
     const submit = () => {
-        if (addNewCard?.data) {
-            Policy.addNewCompanyCardsFeed(policyID, addNewCard.data);
+        if (!addNewCard?.data) {
+            return;
         }
+
+        Policy.addNewCompanyCardsFeed(policyID, addNewCard.data);
     };
 
     const handleBackButtonPress = () => {
