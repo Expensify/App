@@ -3889,7 +3889,7 @@ function resolveActionableReportMentionWhisper(
             },
         },
     };
-    
+
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
@@ -3943,8 +3943,8 @@ function resolveActionableReportMentionWhisper(
     const reportIDList = [];
 
     if (resolution === CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE) {
-        const originalMessage = reportAction.originalMessage as OriginalMessage<'ACTIONABLEREPORTMENTIONWHISPER'>;
-        originalMessage.reportNames?.map((roomName: string) => {
+        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>);
+        originalMessage?.reportNames?.forEach((roomName: string) => {
             const optimisticRoom = ReportUtils.buildOptimisticChatReport(
                 report?.participantAccountIDs ?? [],
                 roomName,
@@ -3968,6 +3968,12 @@ function resolveActionableReportMentionWhisper(
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticRoom.reportID}`,
                 value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticRoom.reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: null},
             });
 
             optimisticData.push({

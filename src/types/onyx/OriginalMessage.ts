@@ -146,6 +146,7 @@ type OriginalMessageActionableReportMentionWhisper = {
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
 
+    /** List name of the room */
     reportNames?: string[];
 };
 
