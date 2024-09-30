@@ -1,6 +1,6 @@
 import {useNavigationState} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -9,15 +9,18 @@ import Modal from '@components/Modal';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,7 +40,7 @@ function SearchRouter() {
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const listRef = useRef<SelectionListHandle>(null);
 
-    const [textInputValue, setTextInputValue] = useState('');
+    const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
     const [userSearchQuery, setUserSearchQuery] = useState<SearchQueryJSON | undefined>(undefined);
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state?.routes.at(-1)?.params?.reportID;
@@ -55,6 +58,37 @@ function SearchRouter() {
         }
         return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
     }, [areOptionsInitialized, betas, options]);
+
+    const filteredOptions = useMemo(() => {
+        if (debouncedInputValue.trim() === '') {
+            return {
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+            };
+        }
+
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+
+        return {
+            recentReports: newOptions.recentReports,
+            personalDetails: newOptions.personalDetails,
+            userToInvite: newOptions.userToInvite,
+        };
+    }, [debouncedInputValue, searchOptions]);
+
+    const recentReports: OptionData[] = useMemo(() => {
+        const currentSearchOptions = debouncedInputValue === '' ? searchOptions : filteredOptions;
+        const reports: OptionData[] = [...currentSearchOptions.recentReports, ...currentSearchOptions.personalDetails];
+        if (currentSearchOptions.userToInvite) {
+            reports.push(currentSearchOptions.userToInvite);
+        }
+        return reports.slice(0, 10);
+    }, [debouncedInputValue, filteredOptions, searchOptions]);
+
+    useEffect(() => {
+        Report.searchInServer(debouncedInputValue.trim());
+    }, [debouncedInputValue]);
 
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
@@ -92,6 +126,8 @@ function SearchRouter() {
     const closeAndClearRouter = useCallback(() => {
         closeSearchRouter();
         clearUserQuery();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [closeSearchRouter]);
 
     const onSearchSubmit = useCallback(
@@ -104,6 +140,8 @@ function SearchRouter() {
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [closeSearchRouter],
     );
 
@@ -144,7 +182,7 @@ function SearchRouter() {
                         currentQuery={userSearchQuery}
                         reportForContextualSearch={contextualReportData}
                         recentSearches={sortedRecentSearches?.slice(0, 5)}
-                        recentReports={searchOptions?.recentReports?.slice(0, 10)}
+                        recentReports={recentReports}
                         onSearchSubmit={onSearchSubmit}
                         updateUserSearchQuery={updateUserSearchQuery}
                         closeAndClearRouter={closeAndClearRouter}
