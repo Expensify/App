@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Permissions from '@libs/Permissions';
@@ -10,6 +11,7 @@ import {useSearchRouterContext} from './SearchRouterContext';
 function SearchButton() {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
 
     if (!Permissions.canUseNewSearchRouter()) {
@@ -18,8 +20,8 @@ function SearchButton() {
 
     return (
         <PressableWithoutFeedback
-            accessibilityLabel=""
-            style={[styles.flexRow, styles.mr2, styles.touchableButtonImage]}
+            accessibilityLabel={translate('common.search')}
+            style={[styles.flexRow, styles.touchableButtonImage]}
             onPress={() => {
                 openSearchRouter();
             }}
