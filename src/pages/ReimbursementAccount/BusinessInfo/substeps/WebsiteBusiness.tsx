@@ -55,13 +55,12 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     );
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        onNext,
+        onNext: (values) => {
+            BankAccounts.addBusinessWebsiteForDraft((values as {website: string})?.website);
+            onNext();
+        },
         shouldSaveDraft: isEditing,
     });
-
-    useEffect(() => {
-        BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
-    }, [defaultCompanyWebsite]);
 
     return (
         <FormProvider
