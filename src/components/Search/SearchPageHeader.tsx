@@ -68,7 +68,7 @@ function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
-                        disabled={false}
+                        disabled
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                         wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
