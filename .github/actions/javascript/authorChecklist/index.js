@@ -16771,8 +16771,8 @@ function partitionWithChecklist(body) {
 async function getNumberOfItemsFromAuthorChecklist() {
     const response = await fetch(pathToAuthorChecklist);
     const fileContents = await response.text();
-    const checklist = partitionWithChecklist(fileContents).at(1) ?? '';
-    const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
+    const checklist = partitionWithChecklist(fileContents).at(1);
+    const numberOfChecklistItems = (checklist?.match(/\[ \]/g) ?? []).length ?? 0;
     return numberOfChecklistItems;
 }
 function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist) {
