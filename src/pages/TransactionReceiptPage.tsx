@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -13,19 +12,14 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report, ReportMetadata, Transaction} from '@src/types/onyx';
 
-type TransactionReceiptOnyxProps = {
-    report: OnyxEntry<Report>;
-    transaction: OnyxEntry<Transaction>;
-    reportMetadata: OnyxEntry<ReportMetadata>;
-};
+type TransactionReceiptProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
-type TransactionReceiptProps = TransactionReceiptOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
-
-function TransactionReceipt({transaction, report, reportMetadata = {isLoadingInitialReportActions: true}, route}: TransactionReceiptProps) {
+function TransactionReceipt({route}: TransactionReceiptProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`);
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '-1'}`);
     const receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
 
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
@@ -65,7 +59,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             originalFileName={receiptURIs?.filename}
             defaultOpen
             onModalClose={() => {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'));
+                Navigation.dismissModal(report?.reportID ?? '-1');
             }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
@@ -75,14 +69,4 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
 
 TransactionReceipt.displayName = 'TransactionReceipt';
 
-export default withOnyx<TransactionReceiptProps, TransactionReceiptOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`,
-    },
-    reportMetadata: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '-1'}`,
-    },
-})(TransactionReceipt);
+export default TransactionReceipt;

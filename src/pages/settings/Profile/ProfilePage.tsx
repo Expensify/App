@@ -113,6 +113,7 @@ function ProfilePage() {
                 title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
