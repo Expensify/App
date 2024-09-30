@@ -58,7 +58,7 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
                     autoCapitalize="none"
                     disabled={disabled}
                     shouldUseDisabledStyles={false}
-                    textInputContainerStyles={[{borderBottomWidth: 0}]}
+                    textInputContainerStyles={styles.borderNone}
                     inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}

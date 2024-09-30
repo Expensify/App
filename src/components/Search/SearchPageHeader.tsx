@@ -309,7 +309,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 <Button
                     innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
                     text={translate('search.filtersHeader')}
-                    textStyles={styles.textSupporting}
+                    textStyles={!isCannedQuery && styles.textSupporting}
                     icon={Expensicons.Filters}
                     onPress={onPress}
                 />
