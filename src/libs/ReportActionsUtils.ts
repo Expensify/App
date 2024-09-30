@@ -1777,7 +1777,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            return Localize.translateLocal('workspace.companyCards.assignedYouCard', companyCardLink);
+            return Localize.translateLocal('workspace.companyCards.assignedYouCard', {link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsButton ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
         default:

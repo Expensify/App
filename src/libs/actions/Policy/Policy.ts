@@ -4335,6 +4335,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function addNewCompanyCardsFeed(policyID: string, data: AddNewCardFeedData) {
     const parameters: RequestFeedSetupParams = {};
     API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters);
