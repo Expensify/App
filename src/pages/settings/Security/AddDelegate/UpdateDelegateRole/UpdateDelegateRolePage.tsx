@@ -67,6 +67,11 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     </Text>
                 }
                 onSelectRow={(option) => {
+                    if (option.isSelected) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+
                     requestValidationCode();
                     setCurrentRole(option.value);
                     Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
