@@ -442,6 +442,7 @@ const translations = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -1370,7 +1371,6 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
         walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
-        bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Agregar una cuenta bancaria te permite recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
@@ -3690,6 +3690,7 @@ const translations = {
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
+            bankAccountsSubtitle: 'Agrega una cuenta bancaria para recibir pagos de facturas.',
         },
         invite: {
             member: 'Invitar miembros',
