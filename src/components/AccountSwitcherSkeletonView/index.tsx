@@ -22,7 +22,7 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
     const StyleUtils = useStyleUtils();
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
-    const startPositionX = 30;
+    const startPositionX = avatarPlaceholderRadius;
 
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
