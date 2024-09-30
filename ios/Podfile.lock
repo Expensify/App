@@ -1946,7 +1946,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-view-shot (3.8.0):
+  - react-native-view-shot (4.0.0-alpha.3):
     - React-Core
   - react-native-webview (13.8.6):
     - DoubleConversion
@@ -2537,7 +2537,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.34.0):
+  - RNScreens (4.0.0-beta.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2558,9 +2558,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.34.0)
+    - RNScreens/common (= 4.0.0-beta.0)
     - Yoga
-  - RNScreens/common (3.34.0):
+  - RNScreens/common (4.0.0-beta.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3188,7 +3188,7 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
   react-native-safe-area-context: 38fdd9b3c5561de7cabae64bd0cd2ce05d2768a1
-  react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
+  react-native-view-shot: ee44129a7c470310d3c7e67085834fc8cc077655
   react-native-webview: ad29375839c9aa0409ce8e8693291b42bdc067a4
   React-nativeconfig: 57781b79e11d5af7573e6f77cbf1143b71802a6d
   React-NativeModulesApple: 7ff2e2cfb2e5fa5bdedcecf28ce37e696c6ef1e1
@@ -3235,7 +3235,7 @@ SPEC CHECKSUMS:
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
-  RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
+  RNScreens: cecfc1861f155b68584a6aa7bd284ac5ca38eb3a
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 1079f96b39a35753d481a20e30603fd6fc4f6fa9
