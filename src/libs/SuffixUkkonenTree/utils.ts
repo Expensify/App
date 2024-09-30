@@ -38,7 +38,7 @@ function convertToBase26(num: number): number[] {
 
 /**
  * Converts a string to an array of numbers representing the characters of the string.
- * Every number in the array is in the range 0-ALPHABET_SIZE (0-28).
+ * Every number in the array is in the range [0, ALPHABET_SIZE-1] (0-28).
  *
  * The numbers are offset by the character code of 'a' (97).
  * - This is so that the numbers from a-z are in the range 0-28.
