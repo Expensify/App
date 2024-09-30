@@ -4547,6 +4547,8 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         return;
     }
     const {bankName = '', email = '', encryptedCardNumber = '', startDate = ''} = data;
+    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? -1);
 
     const parameters: AssignCompanyCardParams = {
         policyID,
@@ -4554,7 +4556,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         encryptedCardNumber,
         email,
         startDate,
-        // reportActionID,
+        reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters);

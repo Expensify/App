@@ -4,7 +4,7 @@ type AssignCompanyCardParams = {
     encryptedCardNumber: string;
     email: string;
     startDate: string;
-    // reportActionID: string;
+    reportActionID: string;
 };
 
 export default AssignCompanyCardParams;
