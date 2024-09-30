@@ -238,6 +238,7 @@ export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
 export type {default as TransactionMergeParams} from './TransactionMergeParams';
+export type {default as ResolveDuplicatesParams} from './ResolveDuplicatesParams';
 export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscriptionTypeParams';
 export type {default as SignUpUserParams} from './SignUpUserParams';
 export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscriptionAutoRenewParams';
@@ -328,3 +329,4 @@ export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNa
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetMissingPersonalDetailsAndShipExpensifyCardParams} from './SetMissingPersonalDetailsAndShipExpensifyCardParams';
+export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
