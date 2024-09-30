@@ -2070,6 +2070,16 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        chatDelegateMessage: {
+            color: theme.textSupporting,
+            fontSize: 11,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
         renderHTMLTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -3220,6 +3230,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
+        moneyRequestLoadingHeight: {
+            height: 27,
+        },
+
         defaultCheckmarkWrapper: {
             marginLeft: 8,
             alignSelf: 'center',
@@ -3593,29 +3607,17 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchPressable: {
-            height: variables.componentSizeNormal,
-        },
-
-        searchContainer: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingHorizontal: 24,
-            backgroundColor: theme.hoverComponentBG,
-            borderRadius: variables.componentBorderRadiusRounded,
-            justifyContent: 'center',
-        },
-
-        searchContainerHovered: {
-            backgroundColor: theme.border,
-        },
-
         searchInputStyle: {
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
+        },
+
+        searchRouterInputStyle: {
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderWidth: 2,
+            borderColor: theme.borderFocus,
+            paddingHorizontal: 8,
         },
 
         searchTableHeaderActive: {
@@ -4739,8 +4741,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletIllustration: {
-            width: 262,
-            height: 152,
+            height: 180,
         },
 
         walletCardLimit: {
@@ -5088,11 +5089,18 @@ const styles = (theme: ThemeColors) =>
 
         emptyStateCardIllustrationContainer: {
             height: 220,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
+        },
+
+        pendingStateCardIllustration: {
+            width: 233,
+            height: 162,
         },
 
         computerIllustrationContainer: {
@@ -5120,11 +5128,6 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
-        tripIllustrationSize: {
-            width: 190,
-            height: 172,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -5139,16 +5142,11 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        emptyStateScrollView: {
-            height: '100%',
-            flex: 1,
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            flexGrow: 1,
         },
 
         emptyStateContent: {
@@ -5170,14 +5168,27 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.emptyFolderBG,
         },
 
+        emptyFolderDarkBG: {
+            backgroundColor: '#782c04',
+            height: 220,
+        },
+
         emptyStateVideo: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        emptyStateFolderIconSize: {
-            width: 184,
-            height: 112,
+        emptyStateFolderWithPaperIconSize: {
+            width: 160,
+            height: 100,
+        },
+
+        emptyStateFolderWebStyles: {
+            ...sizing.w100,
+            minWidth: 400,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
         },
 
         workflowApprovalVerticalLine: {

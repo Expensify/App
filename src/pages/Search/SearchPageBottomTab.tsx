@@ -28,6 +28,7 @@ function SearchPageBottomTab() {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
+    const searchName = searchParams?.name;
     const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
@@ -52,9 +53,13 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
+                            shouldDisplaySearchRouter={shouldUseNarrowLayout}
                             isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
                         />
-                        <SearchTypeMenu queryJSON={queryJSON} />
+                        <SearchTypeMenu
+                            queryJSON={queryJSON}
+                            searchName={searchName}
+                        />
                     </>
                 ) : (
                     <HeaderWithBackButton
