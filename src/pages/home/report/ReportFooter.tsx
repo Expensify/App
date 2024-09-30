@@ -154,7 +154,7 @@ function ReportFooter({
                     assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                 }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, false);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
