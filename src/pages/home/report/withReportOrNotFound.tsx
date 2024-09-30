@@ -3,6 +3,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -21,7 +22,21 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WithReportOrNotFoundProps = {
+type WithReportOrNotFoundOnyxProps = {
+    /** Metadata of the report currently being looked at */
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** The policies which the user has access to */
+    policies: OnyxCollection<OnyxTypes.Policy>;
+
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: OnyxEntry<boolean>;
+};
+
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route:
         | RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
         | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
