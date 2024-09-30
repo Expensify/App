@@ -100,9 +100,9 @@ function getAuthToken(): string | null | undefined {
 function isSupportRequest(command: string): boolean {
     return [
         WRITE_COMMANDS.OPEN_APP,
+        WRITE_COMMANDS.SEARCH,
         SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
         SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT,
-        READ_COMMANDS.SEARCH,
         READ_COMMANDS.OPEN_CARD_DETAILS_PAGE,
         READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE,
         READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,

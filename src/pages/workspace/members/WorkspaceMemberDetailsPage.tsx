@@ -275,7 +275,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={translate(`workspace.common.roleName`, member?.role)}
+                                        title={translate(`workspace.common.roleName`, {role: member?.role})}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}

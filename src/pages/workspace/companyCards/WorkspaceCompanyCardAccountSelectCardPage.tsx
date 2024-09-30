@@ -45,7 +45,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.moreFeatures.companyCards.noAccountsFound')}
-                subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', currentConnectionName) : undefined}
+                subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', {connection: currentConnectionName}) : undefined}
                 containerStyle={styles.pb10}
             />
         ),
@@ -71,7 +71,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 <View style={[styles.mh5, styles.mb3]}>
                     {exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
-                            {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', exportMenuItem.description)}{' '}
+                            {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
                             {exportMenuItem && (
                                 <TextLink
                                     style={styles.link}
