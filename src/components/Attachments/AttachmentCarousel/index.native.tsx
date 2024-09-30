@@ -28,7 +28,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
-
+    const [carouselPagerKey, setCarouselPagerKey] = useState(0);
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
@@ -46,6 +46,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         // If no matching attachment with the same index, dismiss the modal
         if (!targetAttachments[attachmentIndex] && targetAttachments[prevAttachmentIndex]) {
             attachmentIndex = prevAttachmentIndex;
+            // we need to re-mount the pager to reset the carousel, 
+            // the newIndex on onPageSelected is not accurate
+            setCarouselPagerKey((prevKey) => prevKey + 1);
         }
 
         if (!targetAttachments[attachmentIndex] && attachments[prevAttachmentIndex]) {
@@ -135,6 +138,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     />
 
                     <AttachmentCarouselPager
+                        key={carouselPagerKey}
                         items={attachments}
                         initialPage={page}
                         activeSource={activeSource}
