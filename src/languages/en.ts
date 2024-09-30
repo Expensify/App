@@ -451,6 +451,7 @@ const translations = {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
@@ -1375,7 +1376,6 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
-        bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
@@ -3651,6 +3651,7 @@ const translations = {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
+            bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
         },
         invite: {
             member: 'Invite member',
