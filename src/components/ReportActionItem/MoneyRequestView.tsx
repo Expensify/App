@@ -309,7 +309,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
             // Return violations if there are any
             if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
-                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue) as OnyxTypes.TransactionViolation[];
+                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
                 const firstViolation = violations.at(0);
 
                 if (firstViolation) {
@@ -745,7 +745,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
-                                    violations={getViolationsForField('billable') as OnyxTypes.TransactionViolation[]}
+                                    violations={getViolationsForField('billable')}
                                     containerStyle={[styles.mt1]}
                                     textStyle={[styles.ph0]}
                                     isLast

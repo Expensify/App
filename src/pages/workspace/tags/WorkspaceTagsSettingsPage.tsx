@@ -80,65 +80,11 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
-                        title={policyTagLists.at(0)?.name}
+                        title={policyTagLists.at(0)?.name ?? ''}
                         description={translate(`workspace.tags.customTagName`)}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0))}
                         shouldShowRightIcon
                     />
-                </OfflineWithFeedback>
-            )}
-            <OfflineWithFeedback
-                errors={policy?.errorFields?.requiresTag}
-                pendingAction={policy?.pendingFields?.requiresTag}
-                errorRowStyles={styles.mh5}
-            >
-                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
-                    <Switch
-                        isOn={policy?.requiresTag ?? false}
-                        accessibilityLabel={translate('workspace.tags.requiresTag')}
-                        onToggle={updateWorkspaceRequiresTag}
-                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                    />
-                </View>
-            </OfflineWithFeedback>
-            {canUseWorkspaceRules && policy?.areRulesEnabled && (
-                <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                    <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
-                        <Switch
-                            isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                            accessibilityLabel={translate('workspace.tags.trackBillable')}
-                            onToggle={() => toggleBillableExpenses(policy)}
-                        />
-                    </View>
-                </OfflineWithFeedback>
-            )}
-            <OfflineWithFeedback
-                errors={policy?.errorFields?.requiresTag}
-                pendingAction={policy?.pendingFields?.requiresTag}
-                errorRowStyles={styles.mh5}
-            >
-                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
-                    <Switch
-                        isOn={policy?.requiresTag ?? false}
-                        accessibilityLabel={translate('workspace.tags.requiresTag')}
-                        onToggle={updateWorkspaceRequiresTag}
-                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                    />
-                </View>
-            </OfflineWithFeedback>
-            {canUseWorkspaceRules && policy?.areRulesEnabled && (
-                <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                    <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
-                        <Switch
-                            isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                            accessibilityLabel={translate('workspace.tags.trackBillable')}
-                            onToggle={() => toggleBillableExpenses(policy)}
-                        />
-                    </View>
                 </OfflineWithFeedback>
             )}
             <OfflineWithFeedback
