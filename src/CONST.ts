@@ -3,13 +3,13 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
-import type {ValueOf} from 'type-fest';
-import type {Video} from './libs/actions/Report';
+import type { ValueOf } from 'type-fest';
+import type { Video } from './libs/actions/Report';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
-import type {Unit} from './types/onyx/Policy';
+import type { Unit } from './types/onyx/Policy';
 
 type RateAndUnit = {
     unit: Unit;
@@ -32,8 +32,8 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
-const MAX_DATE = dateAdd(new Date(), {years: 1});
-const MIN_DATE = dateSubtract(new Date(), {years: 20});
+const MAX_DATE = dateAdd(new Date(), { years: 1 });
+const MIN_DATE = dateSubtract(new Date(), { years: 20 });
 const EXPENSIFY_POLICY_DOMAIN = 'expensify-policy';
 const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
@@ -142,7 +142,7 @@ type OnboardingTaskType = {
     type: string;
     autoCompleted: boolean;
     title: string;
-    description: string | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string}>) => string);
+    description: string | ((params: Partial<{ adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string }>) => string);
 };
 
 type OnboardingMessageType = {
@@ -523,9 +523,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'k', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'k', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'k', modifierFlags: keyModifierCommand },
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
@@ -534,9 +534,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                DEFAULT: { input: 'k', modifierFlags: keyModifierShiftControl },
+                [PLATFORM_OS_MACOS]: { input: 'k', modifierFlags: keyModifierShiftCommand },
+                [PLATFORM_IOS]: { input: 'k', modifierFlags: keyModifierShiftCommand },
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
@@ -545,9 +545,9 @@ const CONST = {
             shortcutKey: 'J',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'j', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'j', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'j', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'j', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'j', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'j', modifierFlags: keyModifierCommand },
             },
         },
         ESCAPE: {
@@ -555,9 +555,9 @@ const CONST = {
             shortcutKey: 'Escape',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputEscape},
-                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
-                [PLATFORM_IOS]: {input: keyInputEscape},
+                DEFAULT: { input: keyInputEscape },
+                [PLATFORM_OS_MACOS]: { input: keyInputEscape },
+                [PLATFORM_IOS]: { input: keyInputEscape },
             },
         },
         ENTER: {
@@ -565,9 +565,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputEnter},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
-                [PLATFORM_IOS]: {input: keyInputEnter},
+                DEFAULT: { input: keyInputEnter },
+                [PLATFORM_OS_MACOS]: { input: keyInputEnter },
+                [PLATFORM_IOS]: { input: keyInputEnter },
             },
         },
         CTRL_ENTER: {
@@ -575,9 +575,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                DEFAULT: { input: keyInputEnter, modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: keyInputEnter, modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: keyInputEnter, modifierFlags: keyModifierCommand },
             },
         },
         COPY: {
@@ -585,9 +585,9 @@ const CONST = {
             shortcutKey: 'C',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'c', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'c', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'c', modifierFlags: keyModifierCommand },
             },
         },
         ARROW_UP: {
@@ -595,9 +595,9 @@ const CONST = {
             shortcutKey: 'ArrowUp',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputUpArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
-                [PLATFORM_IOS]: {input: keyInputUpArrow},
+                DEFAULT: { input: keyInputUpArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputUpArrow },
+                [PLATFORM_IOS]: { input: keyInputUpArrow },
             },
         },
         ARROW_DOWN: {
@@ -605,9 +605,9 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputDownArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
-                [PLATFORM_IOS]: {input: keyInputDownArrow},
+                DEFAULT: { input: keyInputDownArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputDownArrow },
+                [PLATFORM_IOS]: { input: keyInputDownArrow },
             },
         },
         ARROW_LEFT: {
@@ -615,9 +615,9 @@ const CONST = {
             shortcutKey: 'ArrowLeft',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputLeftArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputLeftArrow},
-                [PLATFORM_IOS]: {input: keyInputLeftArrow},
+                DEFAULT: { input: keyInputLeftArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputLeftArrow },
+                [PLATFORM_IOS]: { input: keyInputLeftArrow },
             },
         },
         ARROW_RIGHT: {
@@ -625,9 +625,9 @@ const CONST = {
             shortcutKey: 'ArrowRight',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputRightArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputRightArrow},
-                [PLATFORM_IOS]: {input: keyInputRightArrow},
+                DEFAULT: { input: keyInputRightArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputRightArrow },
+                [PLATFORM_IOS]: { input: keyInputRightArrow },
             },
         },
         TAB: {
@@ -640,9 +640,9 @@ const CONST = {
             shortcutKey: 'D',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'd', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'd', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'd', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'd', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'd', modifierFlags: keyModifierCommand },
             },
         },
     },
@@ -1215,10 +1215,10 @@ const CONST = {
         },
     },
     WEEK_STARTS_ON: 1, // Monday
-    DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_NETWORK_DATA: {isOffline: false},
+    DEFAULT_TIME_ZONE: { automatic: true, selected: 'America/Los_Angeles' },
+    DEFAULT_ACCOUNT_DATA: { errors: null, success: '', isLoading: false },
+    DEFAULT_CLOSE_ACCOUNT_DATA: { errors: null, success: '', isLoading: false },
+    DEFAULT_NETWORK_DATA: { isOffline: false },
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -4432,7 +4432,7 @@ const CONST = {
             NATIVE: 32,
             NORMAL: 8,
         },
-        DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+        DEFAULT_VIDEO_DIMENSIONS: { width: 1900, height: 1400 },
     },
 
     INTRO_CHOICES: {
@@ -4460,9 +4460,9 @@ const CONST = {
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
-    ONBOARDING_CHOICES: {...onboardingChoices},
-    SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
-    ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
+    ONBOARDING_CHOICES: { ...onboardingChoices },
+    SELECTABLE_ONBOARDING_CHOICES: { ...selectableOnboardingChoices },
+    ONBOARDING_INVITE_TYPES: { ...onboardingInviteTypes },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
@@ -4535,7 +4535,7 @@ const CONST = {
                     type: 'meetGuide',
                     autoCompleted: false,
                     title: 'Meet your setup specialist',
-                    description: ({adminsRoomLink}) =>
+                    description: ({ adminsRoomLink }) =>
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
@@ -4544,7 +4544,7 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description: ({workspaceCategoriesLink}) =>
+                    description: ({ workspaceCategoriesLink }) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
@@ -4563,7 +4563,7 @@ const CONST = {
                     type: 'setupTags',
                     autoCompleted: false,
                     title: 'Set up tags',
-                    description: ({workspaceMoreFeaturesLink}) =>
+                    description: ({ workspaceMoreFeaturesLink }) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
@@ -4582,7 +4582,7 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description: ({workspaceMoreFeaturesLink}) =>
+                    description: ({ workspaceMoreFeaturesLink }) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
@@ -4601,7 +4601,7 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description: ({workspaceMembersLink}) =>
+                    description: ({ workspaceMembersLink }) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
@@ -5774,6 +5774,21 @@ const CONST = {
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     },
 
+    SETTINGS_STATUS: {
+        HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
+        HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
+        HAS_POLICY_ERRORS: 'hasPolicyError',
+        HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_SYNC_ERRORS: 'hasSyncError',
+        HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
+        HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
+        HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
+        HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
+        HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
+    },
+
     DEBUG: {
         DETAILS: 'details',
         JSON: 'json',
@@ -5792,6 +5807,6 @@ type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
+export type { Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType };
 
 export default CONST;

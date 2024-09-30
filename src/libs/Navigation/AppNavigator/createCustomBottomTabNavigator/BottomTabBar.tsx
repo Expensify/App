@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchQueryString} from '@components/Search/types';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import DebugTabView from './DebugTabView';
 
 type BottomTabBarProps = {
     selectedTab: string | undefined;
@@ -64,12 +66,14 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const reports = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const reportActions = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
-    }, [activeWorkspaceID, transactionViolations]);
+    }, [activeWorkspaceID, transactionViolations, reports, reportActions]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
@@ -108,51 +112,58 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     }, [activeWorkspaceID, selectedTab]);
 
     return (
-        <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.inbox')}>
-                <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.inbox')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.Inbox}
-                            fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {chatTabBrickRoad && (
-                            <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
-                        )}
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
-            <Tooltip text={translate('common.search')}>
-                <PressableWithFeedback
-                    onPress={navigateToSearch}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.MoneySearch}
-                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
-            <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
-            <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                <BottomTabBarFloatingActionButton />
+        <>
+            <DebugTabView
+                selectedTab={selectedTab}
+                chatTabBrickRoad={chatTabBrickRoad}
+                activeWorkspaceID={activeWorkspaceID}
+            />
+            <View style={styles.bottomTabBarContainer}>
+                <Tooltip text={translate('common.inbox')}>
+                    <PressableWithFeedback
+                        onPress={navigateToChats}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.inbox')}
+                        wrapperStyle={styles.flex1}
+                        style={styles.bottomTabBarItem}
+                    >
+                        <View>
+                            <Icon
+                                src={Expensicons.Inbox}
+                                fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                                width={variables.iconBottomBar}
+                                height={variables.iconBottomBar}
+                            />
+                            {chatTabBrickRoad && (
+                                <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                            )}
+                        </View>
+                    </PressableWithFeedback>
+                </Tooltip>
+                <Tooltip text={translate('common.search')}>
+                    <PressableWithFeedback
+                        onPress={navigateToSearch}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.search')}
+                        wrapperStyle={styles.flex1}
+                        style={styles.bottomTabBarItem}
+                    >
+                        <View>
+                            <Icon
+                                src={Expensicons.MoneySearch}
+                                fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                                width={variables.iconBottomBar}
+                                height={variables.iconBottomBar}
+                            />
+                        </View>
+                    </PressableWithFeedback>
+                </Tooltip>
+                <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
+                <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                    <BottomTabBarFloatingActionButton />
+                </View>
             </View>
-        </View>
+        </>
     );
 }
 
