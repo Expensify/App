@@ -4,6 +4,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,13 +16,14 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {useSearchContext} from './SearchContext';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchStatus, TripSearchStatus} from './types';
 
 type SearchStatusBarProps = {
     type: SearchDataTypes;
     status: SearchStatus;
     policyID: string | undefined;
-    resetOffset: () => void;
+    onStatusChange?: () => void;
 };
 
 const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes; icon: IconAsset; text: TranslationPaths}> = [
@@ -152,7 +154,7 @@ function getOptions(type: SearchDataTypes) {
     }
 }
 
-function SearchStatusBar({type, status, policyID, resetOffset}: SearchStatusBarProps) {
+function SearchStatusBar({type, status, policyID, onStatusChange}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -161,17 +163,22 @@ function SearchStatusBar({type, status, policyID, resetOffset}: SearchStatusBarP
     const options = getOptions(type);
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
+    const {shouldShowStatusBarLoading} = useSearchContext();
+
+    if (shouldShowStatusBarLoading) {
+        return <SearchStatusSkeleton shouldAnimate />;
+    }
 
     return (
         <ScrollView
+            style={[styles.flexRow, styles.mb2, styles.overflowScroll, styles.flexGrow0]}
             ref={scrollRef}
-            style={[styles.flexRow, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
             horizontal
             showsHorizontalScrollIndicator={false}
         >
             {options.map((item, index) => {
                 const onPress = singleExecution(() => {
-                    resetOffset();
+                    onStatusChange?.();
                     const query = SearchUtils.buildCannedSearchQuery({type: item.type, status: item.status, policyID});
                     Navigation.setParams({q: query});
                 });
