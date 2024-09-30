@@ -87,7 +87,13 @@ jobs:
 
       - name: Leave a comment on the PR after it's merged
         if: ${{ github.event_name == 'push' }}
-        run: gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body '🚀Deployed to [NewHelp production](https://newhelp.expensify.com)! 🚀'
+        run: |
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body "$(cat <<'EOF'
+          🚀Deployed to [NewHelp production](https://newhelp.expensify.com)! 🚀
+
+          ([_View deploy workflow run_](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
+          'EOF'
+          )"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
