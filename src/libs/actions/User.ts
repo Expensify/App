@@ -775,7 +775,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
-        .map((value) => value.key.split('_').at(1))
+        .map((value) => value.key.split('_')[1])
         .find((reportKey) => reportKey === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
     if (!reportID) {
