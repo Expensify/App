@@ -906,6 +906,7 @@ const translations = {
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
         automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) => `... update me ... aprobó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
+        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) => `... update me ... aprobó ${amount}`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,

@@ -914,6 +914,8 @@ const translations = {
         automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
             `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
+        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
+            `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,

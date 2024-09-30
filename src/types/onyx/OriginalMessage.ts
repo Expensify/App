@@ -446,6 +446,9 @@ type OriginalMessageForwarded = {
     /** Forwarded expense amount */
     amount: number;
 
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
+
     /** Currency of the forwarded expense amount */
     currency: string;
 
