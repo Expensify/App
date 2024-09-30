@@ -57,7 +57,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             return;
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
     };
 
     const welcomeHeroText = useMemo(() => {
@@ -113,11 +113,12 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
+                                const activeRoute = Navigation.getReportRHPActiveRoute();
                                 if (ReportUtils.canEditReportDescription(report, policy)) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1'));
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1', activeRoute));
                             }}
                             style={styles.renderHTML}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -161,7 +162,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()))}
                                             suppressHighlighting
                                         >
                                             {displayName}
