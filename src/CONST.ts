@@ -1042,6 +1042,7 @@ const CONST = {
         },
     },
     COMPOSER: {
+        NATIVE_ID: 'composer',
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
@@ -4274,6 +4275,7 @@ const CONST = {
     },
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
+    EMOJI_PICKER_BUTTON_NATIVE_ID: 'emojiPickerButton',
 
     /**
      * The maximum count of items per page for SelectionList.

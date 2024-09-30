@@ -74,10 +74,6 @@ type ReportActionItemMessageEditProps = {
     isGroupPolicyReport: boolean;
 };
 
-// native ids
-const emojiButtonID = 'emojiButton';
-const messageEditInput = 'messageEditInput';
-
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 // video source -> video attributes
@@ -508,7 +504,6 @@ function ReportActionItemMessageEdit(
                                     forwardedRef.current = el;
                                 }
                             }}
-                            id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -536,8 +531,7 @@ function ReportActionItemMessageEdit(
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
+                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -570,7 +564,6 @@ function ReportActionItemMessageEdit(
                                 ReportActionComposeFocusManager.focus();
                             }}
                             onEmojiSelected={addEmojiToTextBox}
-                            id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
                             onPress={setUpComposeFocusManager}
                         />
