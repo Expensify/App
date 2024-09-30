@@ -32,6 +32,8 @@ To pay an invoice,
 
 You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
+![Click Pay Button on the Invoice]({{site.url}}/assets/images/ExpensifyHelp-Invoice-1.png){:width="100%"}
+
 {% include faq-begin.md %}
 
 **Can someone else pay an invoice besides the person who received it?**
