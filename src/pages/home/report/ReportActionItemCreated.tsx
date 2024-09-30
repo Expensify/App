@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +38,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         return null;
     }
 
-    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
+    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
     if (ReportUtils.isInvoiceRoom(report) && ReportUtils.isCurrentUserInvoiceReceiver(report)) {
@@ -89,4 +90,4 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
 
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default ReportActionItemCreated;
+export default memo(ReportActionItemCreated);
