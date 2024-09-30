@@ -31,9 +31,9 @@ jobs:
       IS_PR_MERGED: ${{ steps.getPullRequestDetails.outputs.IS_MERGED }}
     steps:
       - uses: actions/checkout@v4
-        with:
+        # with:
           # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
-          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+          # token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Get most recent release version
         id: getMostRecentRelease
