@@ -319,8 +319,9 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     }
 
     const onPress = () => {
-        const values = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
-        SearchActions.updateAdvancedFilters(values);
+        const filterFormValues = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
+        SearchActions.updateAdvancedFilters(filterFormValues);
+
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
