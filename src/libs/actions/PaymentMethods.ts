@@ -10,6 +10,7 @@ import type {
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
     PaymentCardParams,
+    SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
@@ -531,6 +532,50 @@ function setPaymentCardForm(values: AccountData) {
     });
 }
 
+/**
+ *  Sets the default bank account to use for receiving payouts from
+ *
+ */
+function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string, previousBankAccountID: number) {
+    const parameters: SetInvoicingTransferBankAccountParams = {
+        bankAccountID,
+        policyID,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    bankAccount: {
+                        transferBankAccountID: bankAccountID,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    bankAccount: {
+                        transferBankAccountID: previousBankAccountID,
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 export {
     deletePaymentCard,
     addPaymentCard,
@@ -555,4 +600,5 @@ export {
     clearWalletTermsError,
     setPaymentCardForm,
     verifySetupIntent,
+    setInvoicingTransferBankAccount,
 };
