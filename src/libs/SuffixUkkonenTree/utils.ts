@@ -54,7 +54,7 @@ function stringToNumeric(
     options?: {
         // A set of characters that should be skipped and not included in the numeric representation
         charSetToSkip?: Set<string>;
-        // When out is provided the function will write the result to the provided arrays instead of creating new ones (performance)
+        // When out is provided, the function will write the result to the provided arrays instead of creating new ones (performance)
         out?: {
             outArray: Int8Array;
             // As outArray is a ArrayBuffer we need to keep track of the current offset
