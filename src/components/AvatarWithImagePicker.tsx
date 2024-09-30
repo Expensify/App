@@ -346,6 +346,7 @@ function AvatarWithImagePicker({
                     {({show}) => (
                         <AttachmentPicker
                             type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                            // We need to skip the validation in AttachmentPicker because it is handled in this component itself
                             shouldValidateImage={false}
                         >
                             {({openPicker}) => {
