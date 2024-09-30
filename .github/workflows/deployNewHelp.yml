@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - 'help/**'
+      - './.github/workflows/deployNewHelp.yml'
 
   # Run on any pull request (except PRs against staging or production) that has
   # changes to the help directory.  This will cause it to deploy this unmerged branch to
@@ -17,6 +18,7 @@ on:
     branches-ignore: [staging, production]
     paths:
       - 'help/**'
+      - './.github/workflows/deployNewHelp.yml'
   # Run on any manual trigger
   workflow_dispatch:
 
