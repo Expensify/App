@@ -276,7 +276,7 @@ function ReportActionItemSingle({
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${0}`}
                             accountID={actorAccountID ?? -1}
-                            fragment={{...personArray[0], type: 'TEXT', text: displayName ?? ''}}
+                            fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
                             actorIcon={icon}
@@ -292,7 +292,7 @@ function ReportActionItemSingle({
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${1}`}
                             accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
-                            fragment={{...personArray[1], type: 'TEXT', text: secondaryAvatar.name ?? ''}}
+                            fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
                             actorIcon={secondaryAvatar}

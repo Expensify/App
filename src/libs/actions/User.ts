@@ -775,7 +775,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
-        .map((value) => value.key.split('_')[1])
+        .map((value) => value.key.split('_').at(1))
         .find((reportKey) => reportKey === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
     if (!reportID) {
@@ -1330,7 +1330,7 @@ function requestRefund() {
 
 function subscribeToActiveGuides() {
     const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
-    Pusher.subscribe(pusherChannelName).catch(() => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.MULTIPLE_EVENTS).catch(() => {
         Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
     });
 }

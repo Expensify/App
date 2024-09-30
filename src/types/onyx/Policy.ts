@@ -1352,6 +1352,7 @@ type PendingJoinRequestPolicy = {
     policyDetailsForNonMembers: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>;
 };
 
+/** Details of public policy */
 type PolicyDetailsForNonMembers = {
     /** Name of the policy */
     name: string;
