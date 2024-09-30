@@ -33,39 +33,39 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        let targetAttachments: Attachment[] = [];
+        let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
         } else {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions});
         }
 
-        let attachmentIndex = targetAttachments.findIndex(compareImage);
-        const prevAttachmentIndex = attachments.findIndex(compareImage);
+        let newIndex = newAttachments.findIndex(compareImage);
+        const index = attachments.findIndex(compareImage);
 
         // If no matching attachment with the same index, dismiss the modal
-        if (!targetAttachments[attachmentIndex] && targetAttachments[prevAttachmentIndex]) {
-            attachmentIndex = prevAttachmentIndex;
+        if (!newAttachments[newIndex] && newAttachments[index]) {
+            newIndex = index;
             // Re-mount the pager to reset the carousel.
             // The newIndex from onPageSelected is inaccurate when attachments change dynamically.
             // Related issue: https://github.com/callstack/react-native-pager-view/issues/597
             setCarouselPagerKey((prevKey) => prevKey + 1);
         }
 
-        if (!targetAttachments[attachmentIndex] && attachments[prevAttachmentIndex]) {
+        if (!newAttachments[newIndex] && attachments[index]) {
             Navigation.dismissModal();
         } else {
-            setPage(attachmentIndex);
-            setAttachments(targetAttachments);
+            setPage(newIndex);
+            setAttachments(newAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(attachmentIndex !== -1);
+                setDownloadButtonVisibility(newIndex !== -1);
             }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments[attachmentIndex] !== undefined && onNavigate) {
-                onNavigate(targetAttachments[attachmentIndex]);
+            if (newAttachments[newIndex] !== undefined && onNavigate) {
+                onNavigate(newAttachments[newIndex]);
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
