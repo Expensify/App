@@ -1335,7 +1335,7 @@ index 0000000..46c2c2c
 +#endif /* RCT_NEW_ARCH_ENABLED */
 diff --git a/node_modules/react-native-vision-camera/ios/RNCameraView.mm b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
 new file mode 100644
-index 0000000..019be20
+index 0000000..b90427e
 --- /dev/null
 +++ b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
 @@ -0,0 +1,377 @@
@@ -1384,7 +1384,7 @@ index 0000000..019be20
 +
 +    //The remaining part of the initializer is standard Objective-C code to create views and layout them with AutoLayout. Here we can change whatever we want to.
 +    _view = [[CameraView alloc] init];
-+    _view.delegate = self;    
++    _view.delegate = self;
 +
 +    self.contentView = _view;
 +}
@@ -1397,9 +1397,9 @@ index 0000000..019be20
 +{
 +    const auto &newViewProps = *std::static_pointer_cast<CameraViewProps const>(props);
 +    const auto &oldViewProps = *std::static_pointer_cast<CameraViewProps const>(_props);
-+    
++
 +    NSMutableArray* changedProps = [[NSMutableArray alloc] init];
-+    
++
 +    if(oldViewProps.isActive != newViewProps.isActive){
 +        _view.isActive = newViewProps.isActive;
 +        [changedProps addObject:@"isActive"];
@@ -1496,12 +1496,12 @@ index 0000000..019be20
 +        _view.enableFpsGraph = newViewProps.enableFpsGraph;
 +        [changedProps addObject:@"enableFpsGraph"];
 +    }
-+    
-+        
++
++
 +    if(_view.format == nil){
 +        _view.format =[ [NSMutableDictionary alloc] init];
 +    }
-+    
++
 +
 +    //Checking format props, TODO: find cleaner way to do it
 +    if(oldViewProps.format.supportsDepthCapture != newViewProps.format.supportsDepthCapture){
@@ -1521,7 +1521,7 @@ index 0000000..019be20
 +        [_view.format setValue:newPixelFormats forKey:@"pixelFormats"];
 +        [changedProps addObject:@"format"];
 +    }
-+    
++
 +    if(oldViewProps.format.videoStabilizationModes.size() != newViewProps.format.videoStabilizationModes.size()){
 +        NSMutableArray* newVideoStabilizationModes = [[NSMutableArray alloc] init];
 +        for(int i = 0; i < newViewProps.format.videoStabilizationModes.size(); i++){
@@ -1530,7 +1530,7 @@ index 0000000..019be20
 +        [_view.format setValue:newVideoStabilizationModes forKey:@"videoStabilizationModes"];
 +        [changedProps addObject:@"format"];
 +    }
-+    
++
 +    if(oldViewProps.format.photoHeight != newViewProps.format.photoHeight){
 +        [_view.format setValue:[NSNumber numberWithDouble:newViewProps.format.photoHeight] forKey:@"photoHeight"];
 +        [changedProps addObject:@"format"];
@@ -1578,11 +1578,11 @@ index 0000000..019be20
 +        [_view.format setValue:supportsPhotoHDR forKey:@"supportsPhotoHDR"];
 +        [changedProps addObject:@"format"];
 +    }
-+    
++
 +    if (_view.format.count == 0) {
 +        _view.format = nil;
 +    }
-+    
++
 +    if(_view.codeScannerOptions == nil){
 +        _view.codeScannerOptions =[[NSMutableDictionary alloc] init];
 +    }
@@ -1595,12 +1595,12 @@ index 0000000..019be20
 +        [_view.codeScannerOptions setValue:newCodeTypes forKey:@"codeTypes"];
 +        [changedProps addObject:@"codeScannerOptions"];
 +    }
-+    
++
 +    if(oldViewProps.codeScannerOptions.interval != newViewProps.codeScannerOptions.interval){
 +        [_view.codeScannerOptions setValue:[NSNumber numberWithDouble:newViewProps.codeScannerOptions.interval] forKey:@"interval"];
 +        [changedProps addObject:@"codeScannerOptions"];
 +    }
-+    
++
 +    if(
 +       oldViewProps.codeScannerOptions.regionOfInterest.x != newViewProps.codeScannerOptions.regionOfInterest.x ||
 +       oldViewProps.codeScannerOptions.regionOfInterest.y != newViewProps.codeScannerOptions.regionOfInterest.y ||
@@ -1616,7 +1616,7 @@ index 0000000..019be20
 +        [_view.codeScannerOptions setValue:newRegionOfInterest forKey:@"regionOfInterest"];
 +        [changedProps addObject:@"codeScannerOptions"];
 +    }
-+    
++
 +    if (_view.codeScannerOptions.count == 0) {
 +        _view.codeScannerOptions = nil;
 +    }
@@ -2005,25 +2005,6 @@ index 0000000..e47e42f
 @@ -0,0 +1 @@
 +{"version":3,"file":"CameraViewNativeComponent.d.ts","sourceRoot":"","sources":["../../../src/specs/CameraViewNativeComponent.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
-diff --git a/node_modules/react-native-vision-camera/package.json b/node_modules/react-native-vision-camera/package.json
-index 86352fa..7af9577 100644
---- a/node_modules/react-native-vision-camera/package.json
-+++ b/node_modules/react-native-vision-camera/package.json
-@@ -166,5 +166,13 @@
-       ]
-     ]
-   },
--  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
-+  "codegenConfig": {
-+    "name": "RNVisioncameraSpec",
-+    "type": "all",
-+    "jsSrcsDir": "./src/specs",
-+    "android": {
-+      "javaPackageName": "com.mrousavy.camera"
-+    }
-+  },
-+  "packageManager": "yarn@1.22.19"
- }
 diff --git a/node_modules/react-native-vision-camera/src/Camera.tsx b/node_modules/react-native-vision-camera/src/Camera.tsx
 index 18733ba..1668322 100644
 --- a/node_modules/react-native-vision-camera/src/Camera.tsx
