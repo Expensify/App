@@ -10,7 +10,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +20,6 @@ const plaidDesktopMessage = getPlaidDesktopMessage();
 function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
 
     return (
@@ -43,10 +41,6 @@ function SetupMethod() {
                     icon={Expensicons.Bank}
                     text={translate('bankAccount.addBankAccount')}
                     onPress={() => {
-                        if (!isUserValidated) {
-                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ENABLE_PAYMENTS));
-                            return;
-                        }
                         BankAccounts.openPersonalBankAccountSetupWithPlaid();
                     }}
                     isDisabled={!!isPlaidDisabled}

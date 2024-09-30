@@ -65,6 +65,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -526,7 +527,13 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     return (
                                                         <MenuItem
                                                             ref={buttonRef as ForwardedRef<View>}
-                                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS)}
+                                                            onPress={() => {
+                                                                if (!isUserValidated) {
+                                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ENABLE_PAYMENTS));
+                                                                    return;
+                                                                }
+                                                                Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                                            }}
                                                             disabled={network.isOffline}
                                                             title={translate('walletPage.enableWallet')}
                                                             icon={Expensicons.Wallet}
