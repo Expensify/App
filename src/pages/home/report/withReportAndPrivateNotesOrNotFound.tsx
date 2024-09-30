@@ -28,7 +28,7 @@ export default function (pageTitle: TranslationPaths) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
         WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-    ): React.ComponentType<Omit<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & RefAttributes<TRef>, keyof WithReportOrNotFoundProps>> => {
+    ): React.ComponentType<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & RefAttributes<TRef>> => {
         // eslint-disable-next-line rulesdir/no-negated-variables
         function WithReportAndPrivateNotesOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const {translate} = useLocalize();
