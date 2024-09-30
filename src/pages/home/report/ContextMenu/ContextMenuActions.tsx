@@ -439,7 +439,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (ReportActionsUtils.isRenamedAction(reportAction)) {
                     setClipboardMessage(ReportActionsUtils.getRenamedAction(reportAction));
-                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
                     const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
