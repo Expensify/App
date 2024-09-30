@@ -1,9 +1,9 @@
-import {findFocusedRoute} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
-import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import {removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -17,17 +17,17 @@ import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
 import getPolicyIDFromState from './getPolicyIDFromState';
-import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
+import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
-import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import linkTo from './linkTo';
+import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
-import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute} from './types';
+import type {NavigationStateRoute, RootStackParamList, StackNavigationAction, State, StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -111,8 +111,8 @@ function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
  * @param path - Path that you are looking for.
  * @return - Returns distance to path or -1 if the path is not found in root navigator.
  */
-function getDistanceFromPathInRootNavigator(path?: string): number {
-    let currentState = navigationRef.getRootState();
+function getDistanceFromPathInRootNavigator(state: State, path?: string): number {
+    let currentState = {...state};
 
     for (let index = 0; index < 5; index++) {
         if (!currentState.routes.length) {
@@ -188,7 +188,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
     linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
-function newGoBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goUp(fallbackRoute: Route) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -197,17 +197,57 @@ function newGoBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldP
         Log.hmmm('[Navigation] Unable to go back');
         return;
     }
-    navigationRef.current.goBack();
 
-    if (fallbackRoute) {
-        /**
-         * Cases to handle:
-         * 1. RHP
-         * 2. fallbackRoute is in the current navigator
-         * 3. fallbackRoute is in the different navigator
-         * 4. fallbackRoute isn't present in the current state
-         */
+    const rootState = navigationRef.current?.getRootState();
+    const lastRoute = rootState?.routes.at(-1);
+
+    const route = findFocusedRoute(getStateFromPath(fallbackRoute));
+    const routeName = route?.name;
+
+    if (!routeName) {
+        return;
     }
+
+    if (rootState?.routeNames?.includes(route?.name)) {
+        if (rootState?.routes.at(-2)?.name === routeName) {
+            navigationRef.current.dispatch(StackActions.pop());
+            return;
+        }
+        navigate(fallbackRoute, 'REPLACE');
+        return;
+    }
+
+    if (lastRoute?.state?.routeNames?.includes(route?.name)) {
+        const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(lastRoute?.state, fallbackRoute ?? '');
+        if (distanceFromPathInRootNavigator > 0) {
+            navigationRef.current.dispatch({...StackActions.pop(distanceFromPathInRootNavigator), target: lastRoute?.key});
+            return;
+        }
+        navigate(fallbackRoute, 'REPLACE');
+        return;
+    }
+
+    const secondToLastRoute = rootState?.routes.at(-2);
+
+    if (secondToLastRoute?.state?.routeNames?.includes(route?.name)) {
+        navigationRef.current.dispatch(StackActions.pop());
+        const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(secondToLastRoute?.state, fallbackRoute ?? '');
+        if (distanceFromPathInRootNavigator > 0) {
+            navigationRef.current.dispatch({...StackActions.pop(distanceFromPathInRootNavigator), target: secondToLastRoute?.key});
+            return;
+        }
+        const routes = navigationRef.current.getRootState().routes;
+        const stateFromPath = getStateFromPath(fallbackRoute);
+        const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+        if (!action) {
+            return;
+        }
+        const minimalAction = getMinimalAction(action, {...rootState, routes: routes.slice(0, -1), index: rootState.index - 1});
+        navigationRef.dispatch(minimalAction);
+        return;
+    }
+
+    navigate(fallbackRoute, 'REPLACE');
 }
 
 /**
@@ -228,65 +268,70 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
         }
     }
 
+    if (fallbackRoute) {
+        goUp(fallbackRoute);
+        return;
+    }
+
     if (!navigationRef.current?.canGoBack()) {
         Log.hmmm('[Navigation] Unable to go back');
         return;
     }
 
-    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
-    if (isFirstRouteInNavigator) {
-        const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes.at(-1);
-        // If the user comes from a different flow (there is more than one route in ModalNavigator) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
-        if ((lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute?.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR) && (lastRoute.state?.index ?? 0) > 0) {
-            navigationRef.current.goBack();
-            return;
-        }
-    }
+    // const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+    // if (isFirstRouteInNavigator) {
+    //     const rootState = navigationRef.getRootState();
+    //     const lastRoute = rootState.routes.at(-1);
+    //     // If the user comes from a different flow (there is more than one route in ModalNavigator) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+    //     if ((lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute?.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR) && (lastRoute.state?.index ?? 0) > 0) {
+    //         navigationRef.current.goBack();
+    //         return;
+    //     }
+    // }
 
-    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
-        navigate(fallbackRoute, 'REPLACE');
-        return;
-    }
+    // if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
+    //     navigate(fallbackRoute, 'REPLACE');
+    //     return;
+    // }
 
-    const isCentralPaneFocused = isCentralPaneName(findFocusedRoute(navigationRef.current.getState())?.name);
-    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
+    // const isCentralPaneFocused = isCentralPaneName(findFocusedRoute(navigationRef.current.getState())?.name);
+    // const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(navigationRef.getRootState(), fallbackRoute ?? '');
 
-    if (isCentralPaneFocused && fallbackRoute) {
-        // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
-        if (distanceFromPathInRootNavigator === -1) {
-            navigate(fallbackRoute, 'REPLACE');
-            return;
-        }
+    // if (isCentralPaneFocused && fallbackRoute) {
+    //     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
+    //     if (distanceFromPathInRootNavigator === -1) {
+    //         navigate(fallbackRoute, 'REPLACE');
+    //         return;
+    //     }
 
-        // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
-        if (distanceFromPathInRootNavigator > 0) {
-            navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
-            return;
-        }
-    }
+    //     // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
+    //     if (distanceFromPathInRootNavigator > 0) {
+    //         navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
+    //         return;
+    //     }
+    // }
 
-    // If the central pane is focused, it's possible that we navigated from other central pane with different matching bottom tab.
-    if (isCentralPaneFocused) {
-        const rootState = navigationRef.getRootState();
-        const stateAfterPop = {routes: rootState.routes.slice(0, -1)} as State<RootStackParamList>;
-        const topmostCentralPaneRouteAfterPop = getTopmostCentralPaneRoute(stateAfterPop);
+    // // If the central pane is focused, it's possible that we navigated from other central pane with different matching bottom tab.
+    // if (isCentralPaneFocused) {
+    //     const rootState = navigationRef.getRootState();
+    //     const stateAfterPop = {routes: rootState.routes.slice(0, -1)} as State<RootStackParamList>;
+    //     const topmostCentralPaneRouteAfterPop = getTopmostCentralPaneRoute(stateAfterPop);
 
-        const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState as State<RootStackParamList>);
-        const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateAfterPop);
+    //     const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState as State<RootStackParamList>);
+    //     const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateAfterPop);
 
-        // If the central pane is defined after the pop action, we need to check if it's synced with the bottom tab screen.
-        // If not, we need to pop to the bottom tab screen/screens to sync it with the new central pane.
-        if (topmostCentralPaneRouteAfterPop && topmostBottomTabRoute?.name !== matchingBottomTabRoute.name) {
-            const bottomTabNavigator = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state;
+    //     // If the central pane is defined after the pop action, we need to check if it's synced with the bottom tab screen.
+    //     // If not, we need to pop to the bottom tab screen/screens to sync it with the new central pane.
+    //     if (topmostCentralPaneRouteAfterPop && topmostBottomTabRoute?.name !== matchingBottomTabRoute.name) {
+    //         const bottomTabNavigator = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state;
 
-            if (bottomTabNavigator && bottomTabNavigator.index) {
-                const matchingIndex = bottomTabNavigator.routes.findLastIndex((item) => item.name === matchingBottomTabRoute.name);
-                const indexToPop = matchingIndex !== -1 ? bottomTabNavigator.index - matchingIndex : undefined;
-                navigationRef.current.dispatch({...StackActions.pop(indexToPop), target: bottomTabNavigator?.key});
-            }
-        }
-    }
+    //         if (bottomTabNavigator && bottomTabNavigator.index) {
+    //             const matchingIndex = bottomTabNavigator.routes.findLastIndex((item) => item.name === matchingBottomTabRoute.name);
+    //             const indexToPop = matchingIndex !== -1 ? bottomTabNavigator.index - matchingIndex : undefined;
+    //             navigationRef.current.dispatch({...StackActions.pop(indexToPop), target: bottomTabNavigator?.key});
+    //         }
+    //     }
+    // }
 
     navigationRef.current.goBack();
 }
@@ -502,6 +547,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
     navigateToReportWithPolicyCheck,
+    goUp,
 };
 
 export {navigationRef};
