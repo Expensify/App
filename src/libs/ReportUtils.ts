@@ -4510,7 +4510,7 @@ function buildOptimisticExpenseReport(
 }
 
 function getFormattedAmount(reportAction: ReportAction) {
-    if (!ReportActionsUtils.isSubmittedAction(reportAction) && !ReportActionsUtils.isForwardedAction(reportAction) && !ReportActionsUtils.isApprovedAction(reportAction)) {
+    if (!ReportActionsUtils.isSubmittedAction(reportAction) && !ReportActionsUtils.isForwardedAction(reportAction) && !ReportActionsUtils.isApprovedAction(reportAction) && !ReportActionsUtils.isSubmittedAndClosedAction(reportAction)) {
         return '';
     }
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
