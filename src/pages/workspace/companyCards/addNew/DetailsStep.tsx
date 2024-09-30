@@ -11,20 +11,31 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Policy from '@libs/actions/Policy/Policy';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-function DetailsStep() {
+type DetailsStepProps = {
+    /** ID of the current policy */
+    policyID: string;
+};
+
+function DetailsStep({policyID}: DetailsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const feedProvider = addNewCard?.data.cardType;
-    const submit = () => {};
+
+    const submit = () => {
+        if (addNewCard?.data) {
+            Policy.addNewCompanyCardsFeed(policyID, addNewCard.data);
+        }
+    };
 
     const handleBackButtonPress = () => {
         if (feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {

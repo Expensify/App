@@ -36,6 +36,7 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     RequestExpensifyCardLimitIncreaseParams,
+    RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
@@ -90,6 +91,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
+import {AddNewCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -4462,6 +4464,11 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     });
 }
 
+function addNewCompanyCardsFeed(policyID: string, data: AddNewCardFeedData) {
+    const parameters: RequestFeedSetupParams = {};
+    API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters);
+}
+
 function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: number, bankName: string, userDefinedName: string) {
     const authToken = NetworkStore.getAuthToken();
     const onyxData: OnyxData = {
@@ -4901,6 +4908,7 @@ export {
     deleteWorkspaceCompanyCardFeed,
     setWorkspaceCompanyCardTransactionLiability,
     openPolicyCompanyCardsPage,
+    addNewCompanyCardsFeed,
     assignWorkspaceCompanyCard,
     unassignWorkspaceCompanyCard,
     updateWorkspaceCompanyCard,
