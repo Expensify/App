@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useRoute} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -18,17 +20,21 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingWorkProps} from './types';
 
-function BaseOnboardingWork({shouldUseNativeStyles, route}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const route = useRoute<RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>>();
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
