@@ -341,7 +341,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                             shouldAlwaysShowDropdownMenu
                             pressOnEnter
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                            customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
                             options={headerButtonsOptions}
                             isSplitButton={false}
                             shouldUseStyleUtilityForAnchorPosition

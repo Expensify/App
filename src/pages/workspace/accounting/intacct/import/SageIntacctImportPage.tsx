@@ -127,7 +127,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 <MenuItemWithTopDescription
                     title={
                         sageIntacctConfig?.mappings?.dimensions && sageIntacctConfig?.mappings?.dimensions?.length > 0
-                            ? translate('workspace.intacct.userDimensionsAdded', {dimensionsCount: sageIntacctConfig?.mappings?.dimensions?.length})
+                            ? translate('workspace.intacct.userDimensionsAdded', {count: sageIntacctConfig?.mappings?.dimensions?.length})
                             : undefined
                     }
                     description={translate('workspace.intacct.userDefinedDimensions')}
