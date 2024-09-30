@@ -1,5 +1,4 @@
 import React, {useMemo, useState} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
