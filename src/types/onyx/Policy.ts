@@ -1232,8 +1232,10 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
+/** All integration connections, including unsupported ones */
 type AllConnections = Connections & {
-    /** Quickbooks Desktop integration connection*/
+    /** Quickbooks Desktop integration connection */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     quickbooksDesktop: any;
 };
 

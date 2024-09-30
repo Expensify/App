@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
-import {AllConnectionName} from './Policy';
+import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
 
 /** Types of join workspace resolutions */
