@@ -2,11 +2,10 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import BaseTextInput from '@components/TextInput/BaseTextInput';
+import TextInput from '@components/TextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import TextInput from '@components/TextInput';
 
 type SearchRouterInputProps = {
     /** Callback triggered when the input text changes */
