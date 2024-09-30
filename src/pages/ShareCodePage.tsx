@@ -8,8 +8,8 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import QRShare from '@components/QRShare';
-import type {QRShareHandle} from '@components/QRShare/types';
+import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
+import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,7 +18,9 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
+import type {BackToParams} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
@@ -34,7 +36,7 @@ type ShareCodePageOnyxProps = {
     policy?: OnyxEntry<Policy>;
 };
 
-type ShareCodePageProps = ShareCodePageOnyxProps;
+type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
 
 /**
  * When sharing a policy (workspace) only return user avatar that is user defined. Default ws avatars have separate logic.
@@ -53,12 +55,13 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
     return policy.avatarURL as ImageSourcePropType;
 }
 
-function ShareCodePage({report, policy}: ShareCodePageProps) {
+function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const qrCodeRef = useRef<QRShareHandle>(null);
+    const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
@@ -82,6 +85,11 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
     }, [report, currentUserPersonalDetails, isReport]);
 
     const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
+    // We should remove this logic once https://github.com/Expensify/App/issues/19834 is done
+    // We shouldn't introduce platform specific code in our codebase
+    // This is a temporary solution while Web is not supported for the QR code download feature
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
@@ -106,29 +114,22 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
         <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
-                    {/* 
-                    Right now QR code download button is not shown anymore
-                    This is a temporary measure because right now it's broken because of the Fabric update.
-                    We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
-                    
-                    Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
-                */}
-                    <QRShare
+                    <QRShareWithDownload
                         ref={qrCodeRef}
                         url={url}
                         title={title}
                         subtitle={subtitle}
-                        logo={logo}
+                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         svgLogo={svgLogo}
-                        logoBackgroundColor={logoBackgroundColor}
                         svgLogoFillColor={svgLogoFillColor}
-                        logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        logoBackgroundColor={logoBackgroundColor}
                     />
                 </View>
 
@@ -142,11 +143,23 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
+                    We shouldn't introduce platform specific code in our codebase. 
+                    This is a temporary solution while Web is not supported for the QR code download feature */}
+                    {isNative && (
+                        <MenuItem
+                            isAnonymousAction
+                            title={translate('common.download')}
+                            icon={Expensicons.Download}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onPress={() => qrCodeRef.current?.download?.()}
+                        />
+                    )}
 
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
                         icon={Expensicons.Cash}
-                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRouteWithoutParams()))}
+                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon
                     />
                 </View>

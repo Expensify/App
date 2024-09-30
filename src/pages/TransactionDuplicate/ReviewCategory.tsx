@@ -21,7 +21,12 @@ function ReviewCategory() {
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '');
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'category',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const options = useMemo(
         () =>
             compareResult.change.category?.map((category) =>
@@ -44,7 +49,10 @@ function ReviewCategory() {
 
     return (
         <ScreenWrapper testID={ReviewCategory.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
             <ReviewFields<'category'>
                 stepNames={stepNames}
                 label={translate('violations.categoryToKeep')}

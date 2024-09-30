@@ -26,7 +26,12 @@ function ReviewTaxRate() {
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '');
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'taxCode',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const transaction = TransactionUtils.getTransaction(transactionID);
     const options = useMemo(
         () =>
@@ -60,7 +65,10 @@ function ReviewTaxRate() {
 
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
             <ReviewFields<'taxCode'>
                 stepNames={stepNames}
                 label={translate('violations.taxCodeToKeep')}
