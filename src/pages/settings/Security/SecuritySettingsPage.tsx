@@ -164,6 +164,7 @@ function SecuritySettingsPage() {
                 iconRight: Expensicons.ThreeDots,
                 shouldShowRightIcon: true,
                 pendingAction,
+                success: selectedDelegate?.email === email,
                 shouldForceOpacity: !!pendingAction,
                 onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
                 error,
@@ -271,7 +272,10 @@ function SecuritySettingsPage() {
                                     top: anchorPosition.anchorPositionTop,
                                     right: anchorPosition.anchorPositionRight,
                                 }}
-                                onClose={() => setShouldShowDelegatePopoverMenu(false)}
+                                onClose={() => {
+                                    setShouldShowDelegatePopoverMenu(false);
+                                    setSelectedDelegate(undefined);
+                                }}
                             >
                                 <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
                                     <MenuItem
@@ -280,6 +284,7 @@ function SecuritySettingsPage() {
                                         onPress={() => {
                                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                                             setShouldShowDelegatePopoverMenu(false);
+                                            setSelectedDelegate(undefined);
                                         }}
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                     />
@@ -302,8 +307,12 @@ function SecuritySettingsPage() {
                                 onConfirm={() => {
                                     removeDelegate(selectedDelegate?.email ?? '');
                                     setShouldShowRemoveDelegateModal(false);
+                                    setSelectedDelegate(undefined);
                                 }}
-                                onCancel={() => setShouldShowRemoveDelegateModal(false)}
+                                onCancel={() => {
+                                    setShouldShowRemoveDelegateModal(false);
+                                    setSelectedDelegate(undefined);
+                                }}
                                 confirmText={translate('delegate.removeCopilot')}
                                 cancelText={translate('common.cancel')}
                                 shouldShowCancelButton
