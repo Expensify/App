@@ -97,6 +97,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
+            if (navigateBackToPreviousScreenTask.current) {
+                return;
+            }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
@@ -118,6 +121,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     );
 
     const clearStatus = () => {
+        if (navigateBackToPreviousScreenTask.current) {
+            return;
+        }
         User.clearCustomStatus();
         User.updateDraftCustomStatus({
             text: '',
