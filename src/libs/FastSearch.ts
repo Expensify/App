@@ -37,7 +37,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     const listOffsets: number[] = [];
 
     for (const {data, toSearchableString} of dataSets) {
-        // Performance critical: the array parameters are out parameters, so we don't have to create new arrays every time:
+        // Performance critical: the array parameters are passed by reference, so we don't have to create new arrays every time:
         dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, offset, {data, toSearchableString});
         listOffsets.push(offset.value);
     }
