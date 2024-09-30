@@ -4,7 +4,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -62,16 +62,7 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeOnyxProps = {
-    /** The NVP describing a user's block status */
-    blockedFromConcierge: OnyxEntry<OnyxTypes.BlockedFromConcierge>;
-
-    /** Whether the composer input should be shown */
-    shouldShowComposeInput: OnyxEntry<boolean>;
-};
-
-type ReportActionComposeProps = ReportActionComposeOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
+type ReportActionComposeProps = WithCurrentUserPersonalDetailsProps &
     Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string) => void;
@@ -104,7 +95,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 let onSubmitAction = noop;
 
 function ReportActionCompose({
-    blockedFromConcierge,
     currentUserPersonalDetails,
     disabled = false,
     isComposerFullSize = false,
@@ -112,7 +102,6 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     lastReportAction,
     shouldShowEducationalTooltip,
@@ -127,7 +116,8 @@ function ReportActionCompose({
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const navigation = useNavigation();
-
+    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     /**
      * Updates the Highlight state of the composer
      */
@@ -211,13 +201,6 @@ function ReportActionCompose({
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const isNextModalWillOpenRef = useRef(false);
-    const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current || isNextModalWillOpenRef.current) {
-            return;
-        }
-        focus();
-        isKeyboardVisibleWhenShowingModalRef.current = false;
-    }, []);
 
     const containerRef = useRef<View>(null);
     const measureContainer = useCallback(
@@ -267,8 +250,7 @@ function ReportActionCompose({
     const onAttachmentPreviewClose = useCallback(() => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
-        restoreKeyboardState();
-    }, [updateShouldShowSuggestionMenuToFalse, restoreKeyboardState]);
+    }, [updateShouldShowSuggestionMenuToFalse]);
 
     /**
      * Add a new comment to this chat
@@ -419,7 +401,7 @@ function ReportActionCompose({
                         shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         shouldUseOverlay
-                        onPressOverlay={() => User.dismissWorkspaceTooltip()}
+                        onHideTooltip={() => User.dismissWorkspaceTooltip()}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -459,11 +441,6 @@ function ReportActionCompose({
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                                            onCanceledAttachmentPicker={() => {
-                                                isNextModalWillOpenRef.current = false;
-                                                restoreKeyboardState();
-                                            }}
-                                            onMenuClosed={restoreKeyboardState}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
@@ -562,15 +539,6 @@ function ReportActionCompose({
 
 ReportActionCompose.displayName = 'ReportActionCompose';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<ReportActionComposeProps, ReportActionComposeOnyxProps>({
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        shouldShowComposeInput: {
-            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-    })(memo(ReportActionCompose)),
-);
+export default withCurrentUserPersonalDetails(memo(ReportActionCompose));
 export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};
