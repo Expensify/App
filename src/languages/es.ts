@@ -1010,6 +1010,7 @@ const translations = {
         bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
+        paymentComplete: 'Pago Completo',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

@@ -1016,6 +1016,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        paymentComplete: 'Payment Complete',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
