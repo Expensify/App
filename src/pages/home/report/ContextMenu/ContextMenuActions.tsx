@@ -457,8 +457,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                         displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
                     }
                     Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+                    const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    let displayMessage = '';
+                    if (automaticAction) {
+                        displayMessage = ReportUtils.getReportAutomaticallyForwardedMessage(reportAction, reportID);
+                    } else {
+                        displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
+                    }
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
                     const displayMessage = ReportUtils.getRejectedReportMessage();
