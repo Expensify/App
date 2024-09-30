@@ -138,3 +138,9 @@ platforms:
         title: Settings
         icon: /assets/images/gears.svg
         description: Manage profile settings and notifications.
+        
+      - href: billing-and-subscriptions
+        title: Expensify Billing & Subscriptions
+        icon: /assets/images/subscription-annual.svg
+        description: Review Expensify's subscription options, plan types, and payment methods.
+        
