@@ -540,7 +540,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
-                customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
+                customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
