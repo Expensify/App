@@ -1330,7 +1330,7 @@ function requestRefund() {
 
 function subscribeToActiveGuides() {
     const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.MULTIPLE_EVENTS).catch(() => {
+    Pusher.subscribe(pusherChannelName).catch(() => {
         Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
     });
 }
