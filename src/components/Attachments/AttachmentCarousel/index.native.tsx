@@ -46,8 +46,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         // If no matching attachment with the same index, dismiss the modal
         if (!targetAttachments[attachmentIndex] && targetAttachments[prevAttachmentIndex]) {
             attachmentIndex = prevAttachmentIndex;
-            // we need to re-mount the pager to reset the carousel, 
-            // the newIndex on onPageSelected is not accurate
+            // Re-mount the pager to reset the carousel.
+            // The newIndex from onPageSelected is inaccurate when attachments change dynamically.
+            // Related issue: https://github.com/callstack/react-native-pager-view/issues/597
             setCarouselPagerKey((prevKey) => prevKey + 1);
         }
 
