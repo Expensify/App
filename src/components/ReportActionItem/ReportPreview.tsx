@@ -391,9 +391,9 @@ function ReportPreview({
         }
         return {
             supportText: translate('iou.expenseCount', {
-                count: numberOfRequests,
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
+                count: numberOfRequests,
             }),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);

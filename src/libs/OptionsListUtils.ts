@@ -222,6 +222,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'> & {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
+    preferRecentExpenseReports?: boolean;
 };
 
 /**
@@ -672,7 +673,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
         lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
@@ -1586,7 +1587,11 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false} = {}) {
+function orderOptions(
+    options: ReportUtils.OptionData[],
+    searchValue: string | undefined,
+    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false} = {},
+) {
     return lodashOrderBy(
         options,
         [
@@ -1597,6 +1602,12 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
 
                 if (option.isSelfDM) {
                     return 0;
+                }
+                if (preferRecentExpenseReports && !!option?.lastIOUCreationDate) {
+                    return 1;
+                }
+                if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
+                    return 1;
                 }
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
@@ -1614,8 +1625,11 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
+            // For Submit Expense flow, prioritize the most recent expense reports and then policy expense chats (without expense requests)
+            preferRecentExpenseReports ? (option) => option?.lastIOUCreationDate ?? '' : '',
+            preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
-        ['asc'],
+        ['asc', 'desc', 'desc'],
     );
 }
 
@@ -1936,6 +1950,8 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
 
+    const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
+
     if (includeRecentReports) {
         for (const reportOption of allReportOptions) {
             /**
@@ -1958,9 +1974,11 @@ function getOptions(
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.private_isArchived;
 
             const shouldShowInvoiceRoom =
-                includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.private_isArchived;
-            // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-            // && PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
+                includeInvoiceRooms &&
+                ReportUtils.isInvoiceRoom(reportOption.item) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
+                !reportOption.private_isArchived &&
+                PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 
             /**
                 Exclude the report option if it doesn't meet any of the following conditions:
@@ -1992,6 +2010,22 @@ function getOptions(
                 }
             } else {
                 recentReportOptions.push(reportOption);
+            }
+
+            // Add a field to sort the recent reports by the time of last IOU request for create actions
+            if (preferRecentExpenseReports) {
+                const reportPreviewAction = allSortedReportActions[reportOption.reportID]?.find((reportAction) =>
+                    ReportActionUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
+                );
+
+                if (reportPreviewAction) {
+                    const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(reportPreviewAction);
+                    const iouReportActions = allSortedReportActions[iouReportID] ?? [];
+                    const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                    if (lastIOUAction) {
+                        reportOption.lastIOUCreationDate = lastIOUAction.lastModified;
+                    }
+                }
             }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
@@ -2042,7 +2076,11 @@ function getOptions(
             recentReportOptions.push(...personalDetailsOptions);
             personalDetailsOptions = [];
         }
-        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action});
+        recentReportOptions = orderOptions(recentReportOptions, searchValue, {
+            preferChatroomsOverThreads: true,
+            preferPolicyExpenseChat: !!action,
+            preferRecentExpenseReports,
+        });
     }
 
     return {
@@ -2406,6 +2444,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         excludeLogins = [],
         preferChatroomsOverThreads = false,
         preferPolicyExpenseChat = false,
+        preferRecentExpenseReports = false,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
@@ -2487,7 +2526,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     return {
         personalDetails,
-        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat}),
+        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],

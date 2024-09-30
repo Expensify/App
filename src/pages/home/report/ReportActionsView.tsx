@@ -4,7 +4,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
@@ -34,18 +34,7 @@ import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
 
-type ReportActionsViewOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** Array of report actions for the transaction thread report associated with the current report */
-    transactionThreadReportActions: OnyxTypes.ReportAction[];
-
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-};
-
-type ReportActionsViewProps = ReportActionsViewOnyxProps & {
+type ReportActionsViewProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
@@ -79,11 +68,8 @@ let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
     report,
-    transactionThreadReport,
-    session,
     parentReportAction,
     reportActions: allReportActions = [],
-    transactionThreadReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
     hasLoadingOlderReportActionsError = false,
@@ -94,6 +80,11 @@ function ReportActionsView({
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? -1}`, {
+        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
@@ -211,7 +202,7 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(
-        () => ReportActionsUtils.getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions),
+        () => ReportActionsUtils.getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []),
         [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
     );
 
@@ -505,23 +496,11 @@ ReportActionsView.displayName = 'ReportActionsView';
 ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
-    if (!lodashIsEqual(oldProps.transactionThreadReport, newProps.transactionThreadReport)) {
-        return false;
-    }
-
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }
 
-    if (!lodashIsEqual(oldProps.transactionThreadReportActions, newProps.transactionThreadReportActions)) {
-        return false;
-    }
-
     if (!lodashIsEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
-        return false;
-    }
-
-    if (oldProps.session?.authTokenType !== newProps.session?.authTokenType) {
         return false;
     }
 
@@ -550,19 +529,4 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(
-    withOnyx<ReportActionsViewProps, ReportActionsViewOnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        transactionThreadReportActions: {
-            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? -1}`,
-            canEvict: false,
-            selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-        },
-        transactionThreadReport: {
-            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`,
-            initialValue: {} as OnyxTypes.Report,
-        },
-    })(MemoizedReportActionsView),
-);
+export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(MemoizedReportActionsView);

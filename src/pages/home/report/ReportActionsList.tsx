@@ -269,7 +269,7 @@ function ReportActionsList({
         }
 
         const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
-        if (mostRecentReportActionCreated === unreadMarkerTime) {
+        if (mostRecentReportActionCreated <= unreadMarkerTime) {
             return;
         }
 

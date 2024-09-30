@@ -1,11 +1,10 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {Phrase, PhraseParameters} from '@libs/Localize';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
@@ -237,10 +236,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
-    ): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate']): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -250,7 +246,7 @@ const ViolationsUtils = {
             category,
             rejectedBy = '',
             rejectReason = '',
-            formattedLimit,
+            formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,

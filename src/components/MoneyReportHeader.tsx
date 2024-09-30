@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -53,14 +54,12 @@ type MoneyReportHeaderProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 
-    /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
-
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, onBackButtonPress}: MoneyReportHeaderProps) {
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? '-1'}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -255,14 +254,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
 
-        if (shouldUseNarrowLayout) {
-            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+        if (isSmallScreenWidth) {
+            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD.route) {
                 Navigation.goBack();
             }
         } else {
-            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
         }
-    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.dismissHoldUseExplanation();
@@ -415,18 +414,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             />
 
             <ConfirmModal
-                title={translate('iou.deleteExpense')}
+                title={translate('iou.deleteExpense', {count: 1})}
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
                 onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
-                prompt={translate('iou.deleteConfirmation')}
+                prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
             />
-            {shouldUseNarrowLayout && shouldShowHoldMenu && (
+            {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}

@@ -216,7 +216,7 @@ function ExpensifyCardPage({
                                 {limitNameKey && limitTitleKey && (
                                     <MenuItemWithTopDescription
                                         description={translate(limitNameKey)}
-                                        title={translate(limitTitleKey, formattedAvailableSpendAmount)}
+                                        title={translate(limitTitleKey, {formattedLimit: formattedAvailableSpendAmount})}
                                         interactive={false}
                                         titleStyle={styles.walletCardLimit}
                                         numberOfLinesTitle={3}
