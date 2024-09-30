@@ -3879,6 +3879,10 @@ function getReportName(
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
+    if (isUserCreatedPolicyRoom(report) || isDefaultRoom(report)) {
+        formattedName = report?.policyName + ' • ' + report?.reportName;
+    }
+
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true, personalDetails);
     }

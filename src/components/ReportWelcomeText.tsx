@@ -66,7 +66,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         if (isChatRoom) {
-            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+            return translate('reportActionsView.welcomeToRoom', {roomName: report?.reportName ?? ''});
         }
 
         if (isSelfDM) {
