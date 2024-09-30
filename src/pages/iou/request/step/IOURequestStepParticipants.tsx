@@ -75,6 +75,9 @@ function IOURequestStepParticipants({
         return translate('iou.submitExpense');
     }, [iouType, translate, isSplitRequest, action]);
 
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
+    const shouldDisplayTrackExpenseButton = !!selfDMReportID;
+
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
@@ -154,7 +157,10 @@ function IOURequestStepParticipants({
     const trackExpense = () => {
         // If coming from the combined submit/track flow and the user proceeds to just track the expense,
         // we will use the track IOU type in the confirmation flow.
-        const selfDMReportID = ReportUtils.findSelfDMReportID() ?? '-1';
+        if (!selfDMReportID) {
+            return;
+        }
+
         IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
@@ -189,10 +195,11 @@ function IOURequestStepParticipants({
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
+                onTrackExpensePress={trackExpense}
                 iouType={iouType}
                 iouRequestType={iouRequestType}
                 action={action}
-                onTrackExpensePress={trackExpense}
+                shouldDisplayTrackExpenseButton={shouldDisplayTrackExpenseButton}
             />
         </StepScreenWrapper>
     );

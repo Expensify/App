@@ -57,6 +57,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether we should display the Track Expense button at the top of the participants list */
+    shouldDisplayTrackExpenseButton?: boolean;
 };
 
 function MoneyRequestParticipantsSelector({
@@ -67,6 +70,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     iouRequestType,
     action,
+    shouldDisplayTrackExpenseButton,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -378,11 +382,11 @@ function MoneyRequestParticipantsSelector({
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
     const headerContent = useMemo(() => {
-        if (iouType !== CONST.IOU.TYPE.GLOBAL_CREATE) {
+        if (!shouldDisplayTrackExpenseButton) {
             return;
         }
 
-        // We only render the track expense button if the user is coming from the combined submit/track flow.
+        // We only display the track expense button if the user is coming from the combined submit/track flow.
         return (
             <MenuItem
                 title={translate('iou.justTrackIt')}
@@ -391,7 +395,7 @@ function MoneyRequestParticipantsSelector({
                 onPress={onTrackExpensePress}
             />
         );
-    }, [iouType, translate, onTrackExpensePress]);
+    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
