@@ -85,6 +85,7 @@ function stringToNumeric(
         }
 
         if (char >= 'a' && char <= 'z') {
+            // char is an alphabet character
             occurrenceToIndex[offset.value] = index;
             outArray[offset.value++] = char.charCodeAt(0) - CHAR_CODE_A;
         } else {
