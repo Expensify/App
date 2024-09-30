@@ -658,7 +658,13 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getRemovedFromApprovalChainMessage(action)} />;
         } else if (
-            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
+            ReportActionsUtils.isActionOfType(
+                action,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+            )
         ) {
             children = (
                 <IssueCardMessage
