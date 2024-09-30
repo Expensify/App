@@ -50,6 +50,7 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchStatusBar
                             type={queryJSON.type}
                             status={queryJSON.status}
+                            policyID={queryJSON.policyID}
                         />
                         <Search queryJSON={queryJSON} />
                     </>
