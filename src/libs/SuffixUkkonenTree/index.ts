@@ -11,7 +11,7 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
 
 /**
  * Creates a new tree instance that can be used to build a suffix tree and search in it.
- * The input is a numeric representation of the search string, which can be create using {@link stringToNumeric}.
+ * The input is a numeric representation of the search string, which can be created using {@link stringToNumeric}.
  * Separate search values must be separated by the {@link DELIMITER_CHAR_CODE}. The search string must end with the {@link END_CHAR_CODE}.
  *
  * The tree will be built using the Ukkonen's algorithm: https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
