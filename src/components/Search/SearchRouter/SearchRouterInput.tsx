@@ -6,6 +6,7 @@ import BaseTextInput from '@components/TextInput/BaseTextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import TextInput from '@components/TextInput';
 
 type SearchRouterInputProps = {
     /** Callback triggered when the input text changes */
@@ -49,17 +50,17 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterInput, isFocused && wrapperFocusedStyle]}>
             <View style={styles.flex1}>
-                <BaseTextInput
-                    disabled={disabled}
-                    shouldUseDisabledStyles={false}
+                <TextInput
+                    autoFocus
                     value={value}
                     onChangeText={onChangeText}
                     onSubmitEditing={onSubmit}
-                    autoFocus
-                    textInputContainerStyles={[{borderBottomWidth: 0}]}
-                    inputStyle={[styles.searchInputStyle, styles.ph3, inputWidth]}
                     role={CONST.ROLE.PRESENTATION}
                     autoCapitalize="none"
+                    disabled={disabled}
+                    shouldUseDisabledStyles={false}
+                    textInputContainerStyles={[{borderBottomWidth: 0}]}
+                    inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                 />

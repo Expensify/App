@@ -68,7 +68,7 @@ function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
-                        disabled
+                        disabled={false}
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                         wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
@@ -300,7 +300,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                    customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
                     shouldUseStyleUtilityForAnchorPosition
