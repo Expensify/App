@@ -4,6 +4,7 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
 /**
  * This implements a suffix tree using Ukkonen's algorithm.
  * A good visualization to learn about the algorithm can be found here: https://brenden.github.io/ukkonen-animation/
+ * A good video explaining Ukkonen's algorithm can be found here: https://www.youtube.com/watch?v=ALEV0Hc5dDk
  * Note: This implementation is optimized for performance, not necessarily for readability.
  *
  * You probably don't want to use this directly, but rather use @libs/FastSearch.ts as a easy to use wrapper around this.
