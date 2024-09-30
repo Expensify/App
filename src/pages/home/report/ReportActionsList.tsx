@@ -36,6 +36,8 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import {OnyxInputOrEntry} from "@src/types/onyx";
+import ReportAction from "../../../types/onyx/ReportAction";
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
 
@@ -279,7 +281,7 @@ function ReportActionsList({
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions[0]?.created >= report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -289,11 +291,14 @@ function ReportActionsList({
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
 
     useEffect(() => {
+        const isWhisperForUser = isWhisperVisibleOnlyToUser(sortedVisibleReportActions[0])
+        const shouldScrollForWhisper = isWhisperForUser && hasNewestReportAction;
+
         if (
-            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            (scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
             reportActionSize.current > sortedVisibleReportActions.length &&
-            hasNewestReportAction
+            hasNewestReportAction) || shouldScrollForWhisper
         ) {
             reportScrollManager.scrollToBottom();
         }
@@ -337,6 +342,19 @@ function ReportActionsList({
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    const isWhisperVisibleOnlyToUser =
+        (reportAction: OnyxInputOrEntry<ReportAction>) => {
+            const whisperedTo = ReportActionsUtils.getWhisperedTo(reportAction);
+
+            const iouReportID =
+                ReportActionsUtils.isMoneyRequestAction(reportAction) && ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID
+                    ? (ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID ?? '').toString()
+                    : '-1';
+            const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+            const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
+            return isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
+        }
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
