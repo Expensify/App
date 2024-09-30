@@ -15,20 +15,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorForAttachmentsOnlyProps from './types';
 
-
 type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
-        /** Press in handler for the link */
-        onPressIn?: () => void;
+    /** Press in handler for the link */
+    onPressIn?: () => void;
 
-        /** Press out handler for the link */
-        onPressOut?: () => void;
-    };
+    /** Press out handler for the link */
+    onPressOut?: () => void;
+};
 
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`)
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();

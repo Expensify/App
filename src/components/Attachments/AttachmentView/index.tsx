@@ -32,51 +32,50 @@ import DefaultAttachmentView from './DefaultAttachmentView';
 import HighResolutionInfo from './HighResolutionInfo';
 
 type AttachmentViewProps = Attachment & {
-        /** Whether this view is the active screen  */
-        isFocused?: boolean;
+    /** Whether this view is the active screen  */
+    isFocused?: boolean;
 
-        /** Function for handle on press */
-        onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+    /** Function for handle on press */
+    onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
-        isUsedInAttachmentModal?: boolean;
+    isUsedInAttachmentModal?: boolean;
 
-        /** Flag to show/hide download icon */
-        shouldShowDownloadIcon?: boolean;
+    /** Flag to show/hide download icon */
+    shouldShowDownloadIcon?: boolean;
 
-        /** Flag to show the loading indicator */
-        shouldShowLoadingSpinnerIcon?: boolean;
+    /** Flag to show the loading indicator */
+    shouldShowLoadingSpinnerIcon?: boolean;
 
-        /** Notify parent that the UI should be modified to accommodate keyboard */
-        onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+    /** Notify parent that the UI should be modified to accommodate keyboard */
+    onToggleKeyboard?: (shouldFadeOut: boolean) => void;
 
-        /** A callback when the PDF fails to load */
-        onPDFLoadError?: () => void;
+    /** A callback when the PDF fails to load */
+    onPDFLoadError?: () => void;
 
-        /** Extra styles to pass to View wrapper */
-        containerStyles?: StyleProp<ViewStyle>;
+    /** Extra styles to pass to View wrapper */
+    containerStyles?: StyleProp<ViewStyle>;
 
-        /** Denotes whether it is a workspace avatar or not */
-        isWorkspaceAvatar?: boolean;
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar?: boolean;
 
-        /** Denotes whether it is an icon (ex: SVG) */
-        maybeIcon?: boolean;
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon?: boolean;
 
-        /** Fallback source to use in case of error */
-        fallbackSource?: AttachmentSource;
+    /** Fallback source to use in case of error */
+    fallbackSource?: AttachmentSource;
 
-        /* Whether it is hovered or not */
-        isHovered?: boolean;
+    /* Whether it is hovered or not */
+    isHovered?: boolean;
 
-        /** Whether the attachment is used as a chat attachment */
-        isUsedAsChatAttachment?: boolean;
+    /** Whether the attachment is used as a chat attachment */
+    isUsedAsChatAttachment?: boolean;
 
-        /* Flag indicating whether the attachment has been uploaded. */
-        isUploaded?: boolean;
+    /* Flag indicating whether the attachment has been uploaded. */
+    isUploaded?: boolean;
 
-        /** Flag indicating if the attachment is being uploaded. */
-        isUploading?: boolean;
-
-    };
+    /** Flag indicating if the attachment is being uploaded. */
+    isUploading?: boolean;
+};
 
 function AttachmentView({
     source,
@@ -107,7 +106,7 @@ function AttachmentView({
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
