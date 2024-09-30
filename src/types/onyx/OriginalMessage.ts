@@ -272,7 +272,7 @@ type OriginalMessageChangeLog = {
     /** Old role of user */
     oldValue?: string;
 
-    /** Name of removed connection */
+    /** Name of connection */
     connectionName?: string;
 };
 

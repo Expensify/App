@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type en from './en';
 import type {
@@ -7,7 +6,6 @@ import type {
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
-    AgeParams,
     AllConnectionNameParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -42,7 +40,6 @@ import type {
     CharacterLengthLimitParams,
     CharacterLimitParams,
     CompanyCardFeedNameParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
@@ -57,10 +54,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
-    DimensionsCountParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
@@ -133,7 +127,6 @@ import type {
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
     SecondaryLoginParams,
-    SelectedNumberParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
@@ -838,7 +831,10 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
-        receiptIssuesFound: ({count}: DistanceRateOperationsParams) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
+        receiptIssuesFound: () => ({
+            one: 'Problema encontrado',
+            other: 'Problemas encontrados',
+        }),
         fieldPending: 'Pendiente...',
         receiptScanning: 'Escaneando recibo...',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
@@ -858,19 +854,27 @@ const translations = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const expenseText = `${count} ${Str.pluralize('gasto', 'gastos', count)}`;
-            const statusText = [];
+        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} escaneando`);
             }
             if (pendingReceipts > 0) {
                 statusText.push(`${pendingReceipts} pendiente`);
             }
-            return statusText.length > 0 ? `${expenseText} (${statusText.join(', ')})` : expenseText;
+            return {
+                one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
+                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
+            };
         },
-        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
-        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
+        deleteExpense: () => ({
+            one: 'Eliminar gasto',
+            other: 'Eliminar gastos',
+        }),
+        deleteConfirmation: () => ({
+            one: '¿Estás seguro de que quieres eliminar esta solicitud?',
+            other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
+        }),
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
@@ -970,20 +974,16 @@ const translations = {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'aprobar',
-                'aprobarlos',
-                transactionCount,
-            )} de todos modos?`,
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?',
+            other: 'Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?',
+        }),
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'pagar',
-                'pagarlo',
-                transactionCount,
-            )} de todos modos?`,
+        confirmPayAllHoldAmount: () => ({
+            one: 'Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?',
+            other: 'Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?',
+        }),
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloquear',
@@ -2303,7 +2303,10 @@ const translations = {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}: SelectedNumberParams) => `${selectedNumber} seleccionados`,
+            selected: () => ({
+                one: '1 seleccionado',
+                other: (count: number) => `${count} seleccionados`,
+            }),
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2919,7 +2922,10 @@ const translations = {
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
-            userDimensionsAdded: ({dimensionsCount}: DimensionsCountParams) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} añadido`,
+            userDimensionsAdded: () => ({
+                one: '1 UDD añadido',
+                other: (count: number) => `${count} UDDs añadido`,
+            }),
             mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
@@ -3719,8 +3725,14 @@ const translations = {
                 one: 'Eliminar tasa',
                 other: 'Eliminar tasas',
             }),
-            enableRates: ({count}: DistanceRateOperationsParams) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
+            enableRates: () => ({
+                one: 'Activar tasa',
+                other: 'Activar tasas',
+            }),
+            disableRates: () => ({
+                one: 'Desactivar tasa',
+                other: 'Desactivar tasas',
+            }),
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
@@ -3728,7 +3740,10 @@ const translations = {
             changePromptMessage: ' para hacer ese cambio.',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta tasa', 'estas tasas', count)}?`,
+            areYouSureDelete: () => ({
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: '¿Estás seguro de que quieres eliminar estas tasas?',
+            }),
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -3908,7 +3923,10 @@ const translations = {
                 maxAge: 'Antigüedad máxima',
                 maxExpenseAge: 'Antigüedad máxima de los gastos',
                 maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
-                maxExpenseAgeDays: ({age}: AgeParams) => `${age} ${Str.pluralize('día', 'días', age)}`,
+                maxExpenseAgeDays: () => ({
+                    one: '1 día',
+                    other: (count: number) => `${count} días`,
+                }),
                 billableDefault: 'Valor predeterminado facturable',
                 billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
                 billable: 'Facturable',
@@ -4048,9 +4066,10 @@ const translations = {
             } else if (submittersNames.length > 2) {
                 joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
             }
-            const workflowWord = Str.pluralize('del flujo', 'de los flujos', submittersNames.length);
-            const chatWord = Str.pluralize('del chat', 'de los chats', submittersNames.length);
-            return `te eliminó ${workflowWord} de trabajo de aprobaciones y ${chatWord} del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`;
+            return {
+                one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+                other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+            };
         },
     },
     roomMembersPage: {
