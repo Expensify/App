@@ -40,6 +40,8 @@ function BaseOnboardingWork({shouldUseNativeStyles}: BaseOnboardingWorkProps) {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
 
+    const vsbOnboarding = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB
+
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
             if (!onboardingPurposeSelected) {
@@ -83,7 +85,7 @@ function BaseOnboardingWork({shouldUseNativeStyles}: BaseOnboardingWorkProps) {
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton={onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier !== CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB}
+                shouldShowBackButton={!vsbOnboarding}
                 progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
                 onBackButtonPress={OnboardingFlow.goBack}
             />

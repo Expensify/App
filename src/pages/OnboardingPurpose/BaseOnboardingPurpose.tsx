@@ -54,7 +54,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const showBusinessModal = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     if (showBusinessModal) {
-        Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute());
+        Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
     }
 
     const onboardingChoices =
