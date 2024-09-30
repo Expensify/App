@@ -431,6 +431,9 @@ type OriginalMessageApproved = {
     /** Approved expense amount */
     amount: number;
 
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
+
     /** Currency of the approved expense amount */
     currency: string;
 
