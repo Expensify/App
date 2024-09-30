@@ -252,6 +252,10 @@ export default {
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
 
+    minimalTopBarOffset: -26,
+    searchHeaderHeight: 80,
+    searchListContentMarginTop: 116,
+
     h20: 20,
     h28: 28,
     h36: 36,
