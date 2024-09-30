@@ -1,7 +1,9 @@
+import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import * as Localize from '@libs/Localize';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
@@ -13,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockFetch = jest.MockedFn<typeof fetch> & {
     pause: () => void;
@@ -305,6 +308,34 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
+async function navigateToSidebarOption(index: number): Promise<void> {
+    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+    const optionRows = screen.queryAllByAccessibilityHint(hintText);
+    fireEvent(optionRows[index], 'press');
+    await waitForBatchedUpdatesWithAct();
+}
+
+function beforeAllSetupUITests(shouldConnectToPusher = false) {
+    // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
+    // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
+    // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
+    // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
+    // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
+    global.fetch = getGlobalFetchMock();
+
+    Linking.setInitialURL('https://new.expensify.com/');
+    appSetup();
+
+    if (shouldConnectToPusher) {
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+        });
+    }
+}
+
 export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
@@ -318,4 +349,6 @@ export {
     expectAPICommandToHaveBeenCalled,
     expectAPICommandToHaveBeenCalledWith,
     setupGlobalFetchMock,
+    navigateToSidebarOption,
+    beforeAllSetupUITests,
 };
