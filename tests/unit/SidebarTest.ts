@@ -141,7 +141,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames[0]).toHaveTextContent('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Vikings Policy • Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);

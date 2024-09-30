@@ -3877,7 +3877,8 @@ function getReportName(
     }
 
     if (shouldIncludePolicyName && (isUserCreatedPolicyRoom(report) || isDefaultRoom(report))) {
-        formattedName = getPolicyName(report, true) + ' • ' + report?.reportName;
+        const policyName = getPolicyName(report, true);
+        formattedName = policyName ? `${policyName} • ${report?.reportName}` : report?.reportName;
     }
 
     if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
