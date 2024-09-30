@@ -3791,6 +3791,10 @@ function getReportName(
         return getRejectedReportMessage();
     }
     if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (automaticAction) {
+            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+        }
         return getIOUApprovedMessage(parentReportAction);
     }
 
