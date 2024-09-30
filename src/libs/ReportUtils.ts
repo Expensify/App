@@ -3876,12 +3876,12 @@ function getReportName(
         formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
     }
 
-    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-        formattedName += ` (${Localize.translateLocal('common.archived')})`;
-    }
-
     if (shouldIncludePolicyName && (isUserCreatedPolicyRoom(report) || isDefaultRoom(report))) {
         formattedName = getPolicyName(report, true) + ' • ' + report?.reportName;
+    }
+
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
+        formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
     if (isSelfDM(report)) {
