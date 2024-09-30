@@ -3580,6 +3580,11 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {hasCompletedGuidedSetupFlow: true},
+        },
     );
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
@@ -3634,6 +3639,11 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {hasCompletedGuidedSetupFlow: false},
         },
     );
 
