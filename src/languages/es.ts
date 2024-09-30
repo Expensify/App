@@ -67,6 +67,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -2804,7 +2805,7 @@ const translations = {
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
-                    label: (importedTypes: string[]) => `Importados como ${importedTypes.join(' y ')}`,
+                    label: ({importedTypes}: ImportedTypesParams) => `Importados como ${importedTypes.join(' y ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Por favor, introduzca el ${fieldName}`,
                     customSegments: {
                         title: 'Segmentos/registros personalizados',

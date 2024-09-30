@@ -533,6 +533,10 @@ type AuthenticationErrorParams = {
     connectionName: string;
 };
 
+type ImportedTypesParams = {
+    importedTypes: string[];
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -730,4 +734,5 @@ export type {
     CharacterLengthLimitParams,
     OptionalParam,
     AssignCardParams,
+    ImportedTypesParams,
 };
