@@ -67,11 +67,11 @@ function ProgressBar({shouldShow}: {shouldShow: boolean}) {
         };
     });
 
-    return isVisible.value ? (
+    return (
         <Animated.View style={[styles.progressBarWrapper, animatedContainerStyle]}>
-            <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} />
+            {isVisible.value ? <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} /> : null}
         </Animated.View>
-    ) : null;
+    );
 }
 
 ProgressBar.displayName = 'ProgressBar';
