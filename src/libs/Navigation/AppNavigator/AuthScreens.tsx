@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
@@ -399,7 +400,7 @@ function AuthScreens() {
         cardStyle: styles.cardStyleNavigator,
     };
     if (isLoadingOnyxValue(sessionStatus, lastOpenedPublicRoomIDStatus, initialLastUpdateIDAppliedToClientStatus)) {
-        return;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
