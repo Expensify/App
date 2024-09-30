@@ -92,7 +92,7 @@ jobs:
           🚀Deployed to [NewHelp production](https://newhelp.expensify.com)! 🚀
 
           ([_View deploy workflow run_](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
-          'EOF'
+          EOF
           )"
         env:
           GITHUB_TOKEN: ${{ github.token }}
