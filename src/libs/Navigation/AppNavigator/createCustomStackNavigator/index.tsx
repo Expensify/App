@@ -20,15 +20,6 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
-    // const stateToRender = useMemo(() => {
-    //     const routes = state.routes.slice(-3);
-    //     return {
-    //         ...state,
-    //         routes,
-    //         index: routes.length - 1,
-    //     };
-    // }, [state]);
-
     return (
         <NavigationContent>
             <StackView
