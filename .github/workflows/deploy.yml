@@ -177,6 +177,7 @@ jobs:
 
       - name: Change directories to Mobile-Expensify
         run: |
+          git submodule update --init
           cd ./Mobile-Expensify/react-native
           git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
 
@@ -457,7 +458,8 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Change directories to Mobile-Expensify
-        run: | 
+        run: |
+            git submodule update --init
             cd ./Mobile-Expensify/react-native
             git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
 
