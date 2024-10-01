@@ -459,8 +459,8 @@ jobs:
 
       - name: Change directories to Mobile-Expensify
         run: |
-            git submodule update --init
-            cd ./Mobile-Expensify/react-native
+            pwd
+            ls -la
             git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
 
       - name: Configure MapBox SDK
