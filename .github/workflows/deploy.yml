@@ -165,6 +165,9 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
+    defaults:
+      run:
+        working-directory: react-native
     env:
       RUBYOPT: '-rostruct'
     steps:
@@ -178,7 +181,6 @@ jobs:
 
       - name: Change directories to Mobile-Expensify
         run: |
-          cd react-native
           git submodule update --init
           git checkout andrew-mobile-deploy
 
@@ -447,9 +449,12 @@ jobs:
   iOS_hybrid:
     name: Build and deploy iOS HybridApp
     needs: prep
+    runs-on: macos-13-xlarge
+    defaults:
+      run:
+        working-directory: react-native
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    runs-on: macos-13-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -461,14 +466,11 @@ jobs:
 
       - name: Change directories to Mobile-Expensify
         run: |
-          cd react-native
           git submodule update --init
           git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: | 
-          ls -la
-          pwd
           ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
