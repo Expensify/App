@@ -49,7 +49,7 @@ Onyx.connect({
             (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
-        const reportAction = reportActionsForDisplay.at(reportActionsForDisplay.length - 1);
+        const reportAction = reportActionsForDisplay.at(-1);
         if (!reportAction) {
             return;
         }

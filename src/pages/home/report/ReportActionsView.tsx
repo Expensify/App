@@ -150,7 +150,7 @@ function ReportActionsView({
         }
 
         const actions = [...allReportActions];
-        const lastAction = allReportActions.at(allReportActions.length - 1);
+        const lastAction = allReportActions.at(-1);
 
         if (lastAction && !ReportActionsUtils.isCreatedAction(lastAction)) {
             const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
@@ -183,7 +183,7 @@ function ReportActionsView({
                 false,
                 false,
                 false,
-                DateUtils.subtractMillisecondsFromDateTime(actions.at(actions.length - 1)?.created ?? '', 1),
+                DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
             ) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);

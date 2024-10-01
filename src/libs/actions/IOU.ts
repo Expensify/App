@@ -6998,7 +6998,7 @@ function isLastApprover(approvalChain: string[]): boolean {
     if (approvalChain.length === 0) {
         return true;
     }
-    return approvalChain.at(approvalChain.length - 1) === currentUserEmail;
+    return approvalChain.at(-1) === currentUserEmail;
 }
 
 function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>) {

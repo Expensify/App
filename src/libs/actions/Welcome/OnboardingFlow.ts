@@ -47,7 +47,7 @@ function adaptOnboardingRouteState() {
     const adaptedState = rootState;
     const lastRouteIndex = (adaptedState?.routes?.length ?? 0) - 1;
     const onBoardingModalNavigatorState = adaptedState?.routes.at(lastRouteIndex)?.state;
-    if (!onBoardingModalNavigatorState || onBoardingModalNavigatorState?.routes?.length > 1) {
+    if (!onBoardingModalNavigatorState || onBoardingModalNavigatorState?.routes?.length > 1 || lastRouteIndex === -1) {
         return;
     }
 

@@ -64,7 +64,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         if (shouldUseNarrowLayout) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
-            const lastRoute = routes.at(routes.length - 1);
+            const lastRoute = routes.at(-1);
             const lastSearchCentralPane = lastRoute && isSearchCentralPane(lastRoute) ? lastRoute : undefined;
             const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
 

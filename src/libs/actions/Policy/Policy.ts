@@ -1260,7 +1260,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     );
 
     const createWorkspaceRequest = persistedRequests.at(createWorkspaceRequestChangedIndex);
-    if (createWorkspaceRequest) {
+    if (createWorkspaceRequest && createWorkspaceRequestChangedIndex !== -1) {
         const workspaceRequest: Request = {
             ...createWorkspaceRequest,
             data: {

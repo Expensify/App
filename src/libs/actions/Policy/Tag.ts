@@ -240,7 +240,7 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
 function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
 
-    if (!policyTag) {
+    if (!policyTag || tagListIndex === -1) {
         return;
     }
 

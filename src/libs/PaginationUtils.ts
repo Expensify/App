@@ -124,7 +124,7 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
     const result = [sortedPages.at(0)];
     for (let i = 1; i < sortedPages.length; i++) {
         const page = sortedPages.at(i);
-        const prevPage = result.at(result.length - 1);
+        const prevPage = result.at(-1);
 
         if (!page || !prevPage) {
             // eslint-disable-next-line no-continue

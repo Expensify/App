@@ -101,23 +101,20 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         return items;
     }, [typeMenuItems, title, activeItemIndex, singleExecution, theme, policyID, closeMenu, currentSavedSearch]);
 
-    const menuIconAndTitle = useMemo(() => {
+    const {menuIcon, menuTitle} = useMemo(() => {
         if (title) {
             return {
-                icon: Expensicons.Filters,
-                title,
+                menuIcon: Expensicons.Filters,
+                menuTitle: title,
             };
         }
 
         const item = activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex) : undefined;
         return {
-            icon: item?.icon ?? Expensicons.Receipt,
-            title: item?.text,
+            menuIcon: item?.icon ?? Expensicons.Receipt,
+            menuTitle: item?.text,
         };
     }, [activeItemIndex, popoverMenuItems, title]);
-
-    const menuIcon = menuIconAndTitle.icon;
-    const menuTitle = menuIconAndTitle.title;
 
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 

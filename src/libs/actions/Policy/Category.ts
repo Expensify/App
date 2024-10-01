@@ -1279,7 +1279,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
         const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
         const expenseRule = updatedExpenseRules.at(indexToUpdate);
 
-        if (expenseRule) {
+        if (expenseRule && indexToUpdate !== -1) {
             expenseRule.tax.field_id_TAX.externalID = taxID;
         }
     }

@@ -13,7 +13,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
 
     useEffect(() => {
         if (currentScreenName === 'confirmation') {
-            setPrevScreen(intersection.length > 0 ? intersection.at(intersection.length - 1) : undefined);
+            setPrevScreen(intersection.length > 0 ? intersection.at(-1) : undefined);
             return;
         }
         const currentIndex = intersection.indexOf(currentScreenName);

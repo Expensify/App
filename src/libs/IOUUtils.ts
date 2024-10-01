@@ -141,7 +141,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
-    while (tagArray.length > 0 && !tagArray.at(tagArray.length - 1)) {
+    while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
     }
 

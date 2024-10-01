@@ -93,7 +93,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitRe
     if (gapExists) {
         // If there is a gap and we didn't detect two chained updates, "firstUpdateToBeAppliedAfterGap" will always be the the last deferred update.
         // We will fetch all missing updates up to the previous update and can always apply the last deferred update.
-        const firstUpdateToBeAppliedAfterGap = firstUpdateIDAfterGaps ?? Number(updateValues.at(updateValues.length - 1)?.lastUpdateID);
+        const firstUpdateToBeAppliedAfterGap = firstUpdateIDAfterGaps ?? Number(updateValues.at(-1)?.lastUpdateID);
 
         // Add all deferred updates after the gap(s) to "updatesAfterGaps".
         // If "firstUpdateToBeAppliedAfterGap" is set to the last deferred update, the array will be empty.

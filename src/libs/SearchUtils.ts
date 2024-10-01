@@ -743,7 +743,10 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[], deli
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq')) {
+        if (
+            index !== 0 &&
+            ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
+        ) {
             filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
@@ -774,7 +777,7 @@ function getSearchHeaderTitle(
                 .filter(([, taxRateKeys]) => taxRateKeys.some((taxID) => taxRateIDs.includes(taxID)))
                 .map(([taxRate]) => taxRate);
             displayQueryFilters = taxRateNames.map((taxRate) => ({
-                operator: queryFilter.at(0)?.operator ?? 'and',
+                operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 value: taxRate,
             }));
         } else {

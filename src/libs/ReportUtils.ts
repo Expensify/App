@@ -2022,7 +2022,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
  */
-function getPersonalDetailsForAccountID(accountID?: number, personalDetailsData?: Partial<PersonalDetailsList>): Partial<PersonalDetails> {
+function getPersonalDetailsForAccountID(accountID: number | undefined, personalDetailsData?: Partial<PersonalDetailsList>): Partial<PersonalDetails> {
     if (!accountID) {
         return {};
     }
@@ -6441,7 +6441,9 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
 
     const newMarkerIndex = lodashFindLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created ?? '') > (report?.lastReadTime ?? ''));
 
-    return 'reportActionID' in (sortedAndFilteredReportActions?.at(newMarkerIndex) ?? {}) ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID ?? '' : '';
+    return newMarkerIndex !== -1 && 'reportActionID' in (sortedAndFilteredReportActions?.at(newMarkerIndex) ?? {})
+        ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID ?? ''
+        : '';
 }
 
 /**

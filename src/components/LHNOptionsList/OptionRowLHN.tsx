@@ -162,6 +162,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const firstIcon = optionItem.icons?.at(0);
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -234,12 +236,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length &&
+                                            firstIcon &&
                                             (optionItem.shouldShowSubscript ? (
                                                 <SubscriptAvatar
                                                     backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    // because of the check above we know that there is an icon on index 0
-                                                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                                                    mainAvatar={optionItem.icons.at(0)!}
+                                                    mainAvatar={firstIcon}
                                                     secondaryAvatar={optionItem.icons.at(1)}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                 />

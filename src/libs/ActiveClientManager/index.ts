@@ -62,7 +62,7 @@ const isClientTheLeader: IsClientTheLeader = () => {
         return true;
     }
 
-    const lastActiveClient = activeClients.length && activeClients.at(activeClients.length - 1);
+    const lastActiveClient = activeClients.length && activeClients.at(-1);
 
     return lastActiveClient === clientID;
 };

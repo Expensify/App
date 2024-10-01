@@ -180,7 +180,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 return;
             }
             if ('types' in item || 'name' in item) {
-                const emoji = typeof preferredSkinTone === 'number' && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
+                const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
                 onEmojiSelected(emoji ?? '', item);
             }
         },

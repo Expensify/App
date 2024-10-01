@@ -194,7 +194,7 @@ function SuggestionMention(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions.at(highlightedMentionIndexInner);
-            if (!mentionObject) {
+            if (!mentionObject || highlightedMentionIndexInner === -1) {
                 return;
             }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);

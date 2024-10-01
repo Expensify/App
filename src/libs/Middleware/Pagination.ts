@@ -111,7 +111,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         if ((type === 'initial' && !cursorID) || (type === 'next' && newPage.length === 1 && newPage.at(0) === cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
-        const pageItem = sortedPageItems.at(sortedPageItems.length - 1);
+        const pageItem = sortedPageItems.at(-1);
         if (pageItem && isLastItem(pageItem)) {
             newPage.push(CONST.PAGINATION_END_ID);
         }

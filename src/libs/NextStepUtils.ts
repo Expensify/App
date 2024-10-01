@@ -43,7 +43,7 @@ function parseMessage(messages: Message[] | undefined) {
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        const previousPart = messages.at(index - 1);
+        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
         const nextPart = messages.at(index + 1);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {

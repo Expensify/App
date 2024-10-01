@@ -110,7 +110,7 @@ function ButtonWithDropdownMenu<IValueType>({
             if (!isSplitButton) {
                 setIsMenuVisible(!isMenuVisible);
             } else if (selectedItem?.value) {
-                onPress(event, selectedItem?.value);
+                onPress(event, selectedItem.value);
             }
         },
         [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
