@@ -118,7 +118,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
-    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, true), []);
+    const onlyShowPayElsewhere = useMemo(
+        () => !canIOUBePaid && IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, true),
+        [canIOUBePaid, chatReport, moneyRequestReport, policy, transaction],
+    );
 
     const shouldShowPayButton = useMemo(() => canIOUBePaid || onlyShowPayElsewhere, [canIOUBePaid, onlyShowPayElsewhere]);
 

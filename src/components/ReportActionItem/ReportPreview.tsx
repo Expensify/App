@@ -323,7 +323,7 @@ function ReportPreview({
     const canIOUBePaid = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
     const onlyShowPayElsewhere = useMemo(
         () => !canIOUBePaid && IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, true),
-        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions, canIOUBePaid],
+        [iouReport, chatReport, policy, allTransactions, canIOUBePaid],
     );
     const shouldShowPayButton = useMemo(() => isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere, [isPaidAnimationRunning, canIOUBePaid, onlyShowPayElsewhere]);
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
