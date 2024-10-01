@@ -131,7 +131,8 @@ function getChatTabBrickRoadReport(policyID?: string) {
 
     return policyReports.find((report) => {
         const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
-        return [CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR].includes(brickRoad as NonNullable<BrickRoad>)
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return [CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR].includes(brickRoad as NonNullable<BrickRoad>);
     });
 }
 

@@ -1,19 +1,22 @@
 import React, {useCallback, useMemo} from 'react';
-import {Text, View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSettingsStatus from '@hooks/useSettingsStatus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {BrickRoad, getChatTabBrickRoadReport} from '@libs/WorkspacesSettingsUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoadReport} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type DebugTabViewProps = {
@@ -84,7 +87,7 @@ function getSettingsRoute(status: ValueOf<typeof CONST.SETTINGS_STATUS> | undefi
     }
 }
 
-const DebugTabView = ({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) => {
+function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -103,7 +106,7 @@ const DebugTabView = ({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
         if (selectedTab === SCREENS.SETTINGS.ROOT) {
             return getSettingsMessage(status);
         }
-    }, [selectedTab, chatTabBrickRoad]);
+    }, [selectedTab, chatTabBrickRoad, status]);
 
     const indicator = useMemo(() => {
         if (selectedTab === SCREENS.HOME) {
@@ -119,7 +122,7 @@ const DebugTabView = ({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                 return indicatorColor;
             }
         }
-    }, [selectedTab, chatTabBrickRoad]);
+    }, [selectedTab, chatTabBrickRoad, theme.success, theme.danger, status, indicatorColor]);
 
     const navigateTo = useCallback(() => {
         if (selectedTab === SCREENS.HOME && !!chatTabBrickRoad) {
@@ -136,7 +139,7 @@ const DebugTabView = ({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, status, idOfPolicyWithErrors]);
 
     if (!([SCREENS.HOME, SCREENS.SETTINGS.ROOT] as string[]).includes(selectedTab) || !indicator) {
         return null;
@@ -157,6 +160,8 @@ const DebugTabView = ({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
             />
         </View>
     );
-};
+}
+
+DebugTabView.displayName = 'DebugTabView';
 
 export default DebugTabView;

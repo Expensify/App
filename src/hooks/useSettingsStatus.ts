@@ -1,5 +1,5 @@
 import {useOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -61,14 +61,14 @@ function useSettingsStatus(): SettingsStatus {
         [CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_INFO]: SubscriptionUtils.hasSubscriptionGreenDotInfo(),
     };
 
-    const [error] = Object.entries(errorChecking).find(([, value]) => value) || [];
-    const [info] = Object.entries(infoChecking).find(([, value]) => value) || [];
+    const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];
+    const [info] = Object.entries(infoChecking).find(([, value]) => value) ?? [];
 
-    const status = (error || info) as ValueOf<typeof CONST.SETTINGS_STATUS> | undefined;
+    const status = (error ?? info) as ValueOf<typeof CONST.SETTINGS_STATUS> | undefined;
     const idOfPolicyWithErrors = Object.values(policyErrors).find(Boolean)?.id;
     const indicatorColor = error ? theme.danger : theme.success;
 
-    return {indicatorColor, status: CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_INFO, idOfPolicyWithErrors};
+    return {indicatorColor, status, idOfPolicyWithErrors};
 }
 
 export default useSettingsStatus;
