@@ -71,7 +71,10 @@ function IOURequestStepDistanceRate({
     };
 
     const sections = Object.values(rates).map((rate) => {
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+        // If the rate is currently used by the transaction, display the rate with the transaction's distance unit. Otherwise, display the rate's unit.
+        // Using the transaction's distance unit prevents the case where changing the policy distance unit, and therefore all rate units, effects the units of existing transactions.
+        const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, rate.currency, translate, toLocaleDigit);
 
         return {
             text: rate.name ?? rateForDisplay,
