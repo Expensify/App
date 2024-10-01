@@ -267,7 +267,7 @@ const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntr
     const {code, types} = item;
 
     if (typeof preferredSkinToneIndex === 'number' && types?.[preferredSkinToneIndex]) {
-        return types[preferredSkinToneIndex];
+        return types.at(preferredSkinToneIndex) ?? '';
     }
 
     return code;
@@ -462,7 +462,7 @@ const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number =>
  */
 const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
     if (emoji.types && typeof preferredSkinTone === 'number') {
-        const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
+        const emojiCodeWithSkinTone = emoji.types.at(preferredSkinTone);
 
         // Note: it can happen that preferredSkinTone has a outdated format,
         // so it makes sense to check if we actually got a valid emoji code back
@@ -504,7 +504,16 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
     const usersWithTimestamps: UsersReactions = {};
     Object.entries(emoji.users ?? {}).forEach(([id, user]) => {
         const userTimestamps = Object.values(user?.skinTones ?? {});
-        const oldestUserTimestamp = userTimestamps.reduce((min, curr) => (curr < min ? curr : min), userTimestamps[0]);
+        const oldestUserTimestamp = userTimestamps.reduce((min, curr) => {
+            if (min) {
+                return curr < min ? curr : min;
+            }
+            return curr;
+        }, userTimestamps.at(0));
+
+        if (!oldestUserTimestamp) {
+            return;
+        }
 
         if (!oldestEmojiTimestamp || oldestUserTimestamp < oldestEmojiTimestamp) {
             oldestEmojiTimestamp = oldestUserTimestamp;

@@ -49,7 +49,11 @@ Onyx.connect({
             (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        const reportAction = reportActionsForDisplay.at(-1);
+        if (!reportAction) {
+            return;
+        }
+        visibleReportActionItems[reportID] = reportAction;
     },
 });
 
@@ -300,7 +304,7 @@ function getOptionData({
     const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
-    const personalDetail = participantPersonalDetailList[0] ?? {};
+    const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
@@ -478,9 +482,9 @@ function getOptionData({
     }
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail?.accountID;
-        result.login = personalDetail?.login;
-        result.phoneNumber = personalDetail?.phoneNumber;
+        result.accountID = personalDetail?.accountID ?? -1;
+        result.login = personalDetail?.login ?? '';
+        result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
     const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
@@ -489,7 +493,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy, invoiceReceiverPolicy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID ?? -1, policy, invoiceReceiverPolicy);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {

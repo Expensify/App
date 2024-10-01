@@ -4205,7 +4205,7 @@ const CONST = {
         PADDING: 32,
         DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
-        DEFAULT_COORDINATE: [-122.4021, 37.7911],
+        DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,

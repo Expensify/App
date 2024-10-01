@@ -4064,11 +4064,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
             }
             return {
                 one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,

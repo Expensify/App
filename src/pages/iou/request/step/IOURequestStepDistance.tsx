@@ -278,7 +278,8 @@ function IOURequestStepDistance({
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
-                if (iouType === CONST.IOU.TYPE.TRACK) {
+                const participant = participants.at(0);
+                if (iouType === CONST.IOU.TYPE.TRACK && participant) {
                     IOU.trackExpense(
                         report,
                         0,
@@ -287,7 +288,7 @@ function IOURequestStepDistance({
                         translate('iou.fieldPending'),
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participant,
                         '',
                         {},
                         '',

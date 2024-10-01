@@ -4020,11 +4020,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' and ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
             }
             return {
                 one: `removed you from ${joinedNames}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
