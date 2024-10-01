@@ -428,8 +428,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        hasUnsupportedNDIntegration,
-        hasSyncError,
     ]);
 
     return (
@@ -501,7 +499,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                                 Link.openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
                                             }}
                                         >
-                                            {'Go to Expensify Classic to manage your settings'}
+                                            {translate('workspace.accounting.goToODToSettings')}
                                         </TextLink>
                                     </Text>
                                 </FormHelpMessage>
