@@ -63,9 +63,9 @@ function makeTree(numericSearchValues: Uint8Array) {
 
     function initializeTree() {
         rangeEnd.fill(numericSearchValues.length);
-        suffixLink[1] = 2;
         rangeEnd[1] = 0;
         rangeEnd[2] = 0;
+        suffixLink[1] = 2;
         for (let i = 0; i < ALPHABET_SIZE; ++i) {
             transitionNodes[ALPHABET_SIZE * 2 + i] = 1;
         }
