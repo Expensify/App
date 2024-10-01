@@ -208,6 +208,9 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Install New Expensify Gems
+        run: bundle install
+
       - name: Load Android upload keystore credentials from 1Password
         uses: 1password/load-secrets-action@v2
         with:
@@ -218,15 +221,15 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEY_PASSWORD
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+#      - name: Install 1Password CLI
+#        uses: 1password/install-cli-action@v1
 
-      - name: Load files 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op document get upload-key.keystore --out-file upload-key.keystore
-          op document get android-fastlane-json-key.json --out-file android-fastlane-json-key.json
+#      - name: Load files 1Password
+#        env:
+#          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+#        run: |
+#          op document get upload-key.keystore --out-file upload-key.keystore
+#          op document get android-fastlane-json-key.json --out-file android-fastlane-json-key.json
 
       - name: Get Android native version
         id: getAndroidVersion
@@ -497,6 +500,9 @@ jobs:
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
 
       - name: Cache Pod dependencies
         uses: actions/cache@v4
