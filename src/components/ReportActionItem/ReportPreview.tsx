@@ -320,15 +320,12 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const shouldShowPayButton = useMemo(
-        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
-        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
-    );
-
+    const canIOUBePaid = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
     const onlyShowPayElsewhere = useMemo(
-        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, true),
-        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
+        () => !canIOUBePaid && IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, true),
+        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions, canIOUBePaid],
     );
+    const shouldShowPayButton = useMemo(() => isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere, [isPaidAnimationRunning, canIOUBePaid, onlyShowPayElsewhere]);
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
@@ -520,9 +517,9 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {(shouldShowSettlementButton || onlyShowPayElsewhere) && (
+                                {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
-                                        onlyShowPayElsewhere={!shouldShowSettlementButton && onlyShowPayElsewhere}
+                                        onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
