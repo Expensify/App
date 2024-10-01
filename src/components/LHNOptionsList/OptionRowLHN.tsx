@@ -21,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
+import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -47,7 +47,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
     const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
@@ -171,12 +171,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         >
             <EducationalTooltip
                 shouldRender={
-                    isFirstTimeNewExpensifyUser &&
-                    !shouldHideGBRTooltip &&
-                    hasCompletedGuidedSetupFlow &&
-                    isScreenFocused &&
-                    shouldUseNarrowLayout &&
-                    ReportUtils.isConciergeChatReport(report)
+                    isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)
                 }
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{

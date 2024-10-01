@@ -585,7 +585,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, ...otherFilters} = filterValues;
+    const {type, status, policyID, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     if (type) {
@@ -596,6 +596,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (status) {
         const sanitizedStatus = sanitizeString(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    if (policyID) {
+        const sanitizedPolicyID = sanitizeString(policyID);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -694,6 +699,9 @@ function buildFilterFormValuesFromQuery(queryJSON: SearchQueryJSON) {
 
     filtersForm[FILTER_KEYS.TYPE] = queryJSON.type;
     filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
+    if (queryJSON.policyID) {
+        filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
+    }
 
     return filtersForm;
 }
@@ -781,8 +789,18 @@ function getSearchHeaderTitle(
     return title;
 }
 
-function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
-    return normalizeQuery(`type:${type} status:${status}`);
+function buildCannedSearchQuery({
+    type = CONST.SEARCH.DATA_TYPES.EXPENSE,
+    status = CONST.SEARCH.STATUS.EXPENSE.ALL,
+    policyID,
+}: {
+    type?: SearchDataTypes;
+    status?: SearchStatus;
+    policyID?: string;
+} = {}): SearchQueryString {
+    const queryString = policyID ? `type:${type} status:${status} policyID:${policyID}` : `type:${type} status:${status}`;
+
+    return normalizeQuery(queryString);
 }
 
 function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {

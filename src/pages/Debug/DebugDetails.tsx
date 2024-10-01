@@ -158,6 +158,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                                 multiline={numberOfLines > 1}
                                 defaultValue={value}
                                 disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                                shouldInterceptSwipe
                             />
                         );
                     })}
@@ -175,6 +176,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             label={key}
                             defaultValue={String(value)}
                             disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                            shouldInterceptSwipe
                         />
                     ))}
                     {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}

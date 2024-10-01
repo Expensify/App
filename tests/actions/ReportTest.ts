@@ -30,6 +30,12 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {

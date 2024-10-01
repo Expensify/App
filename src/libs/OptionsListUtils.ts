@@ -545,9 +545,15 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     const report = ReportUtils.getReportOrDraftReport(option.reportID);
     const isAdminRoom = ReportUtils.isAdminRoom(report);
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+    const isGroupChat = ReportUtils.isGroupChat(report);
+    const isExpenseThread = ReportUtils.isMoneyRequest(report);
 
-    if (!!option.isThread || !!option.isMoneyRequestReport) {
-        return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+    if (isExpenseThread || option.isMoneyRequestReport) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'iou.expense');
+    }
+
+    if (option.isThread) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
@@ -559,7 +565,11 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'task.task');
+    }
+
+    if (isGroupChat) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'common.group');
     }
 
     return showChatPreviewLine && option.lastMessageText
@@ -2097,7 +2107,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
+function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = [], isUsedInChatFinder = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
@@ -2107,7 +2117,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         sortByReportTypeInSearch: true,
-        showChatPreviewLine: true,
+        showChatPreviewLine: isUsedInChatFinder,
         includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
@@ -2115,7 +2125,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeMoneyRequests: true,
         includeTasks: true,
         includeSelfDM: true,
-        shouldBoldTitleByDefault: false,
+        shouldBoldTitleByDefault: !isUsedInChatFinder,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);

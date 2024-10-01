@@ -3,8 +3,7 @@ import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -18,6 +17,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -30,29 +30,14 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccountList, CardList} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
-type PaymentMethodListOnyxProps = {
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** List of assigned cards */
-    cardList: OnyxEntry<CardList>;
-
-    /** List of user's cards */
-    // fundList: OnyxEntry<FundList>;
-
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: OnyxEntry<boolean>;
-};
-
-type PaymentMethodListProps = PaymentMethodListOnyxProps & {
+type PaymentMethodListProps = {
     /** Type of active/highlighted payment method */
     actionPaymentMethodType?: string;
 
@@ -92,6 +77,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton?: boolean;
 
+    /** Whether the add Bank account button be shown on the list */
+    shouldShowAddBankAccountButton?: boolean;
+
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
@@ -110,6 +98,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
         isDefault?: boolean,
         methodID?: number,
     ) => void;
+
+    /** The policy invoice's transfer bank accountID */
+    invoiceTransferBankAccountID?: number;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -173,17 +164,13 @@ function keyExtractor(item: PaymentMethod) {
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
-    bankAccountList = {},
     buttonRef = () => {},
-    cardList = {},
-    // Temporarily disabled because P2P debit cards are disabled.
-    // fundList = {},
     filterType = '',
     listHeaderComponent,
-    isLoadingPaymentMethods = true,
     onPress,
     shouldShowSelectedState = false,
     shouldShowAddPaymentMethodButton = true,
+    shouldShowAddBankAccountButton = false,
     shouldShowAddBankAccount = true,
     shouldShowEmptyListMessage = true,
     shouldShowAssignedCards = false,
@@ -193,12 +180,18 @@ function PaymentMethodList({
     style = {},
     listItemStyle = {},
     shouldShowRightIcon = true,
+    invoiceTransferBankAccountID,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    // Temporarily disabled because P2P debit cards are disabled.
+    // const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
 
     const getDescriptionForPolicyDomainCard = (domainName: string): string => {
         // A domain name containing a policyID indicates that this is a workspace feed
@@ -327,18 +320,29 @@ function PaymentMethodList({
     const renderListEmptyComponent = () => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
 
     const renderListFooterComponent = useCallback(
-        () => (
-            <MenuItem
-                onPress={onPress}
-                title={translate('walletPage.addBankAccount')}
-                icon={Expensicons.Plus}
-                wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                ref={buttonRef}
-                disabled={!isUserValidated}
-            />
-        ),
+        () =>
+            shouldShowAddBankAccountButton ? (
+                <Button
+                    ref={buttonRef}
+                    key="addBankAccountButton"
+                    text={translate('walletPage.addBankAccount')}
+                    large
+                    success
+                    isDisabled={!isUserValidated}
+                    onPress={onPress}
+                />
+            ) : (
+                <MenuItem
+                    onPress={onPress}
+                    title={translate('walletPage.addBankAccount')}
+                    icon={Expensicons.Plus}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    ref={buttonRef}
+                    disabled={!isUserValidated}
+                />
+            ),
 
-        [onPress, translate, styles.paymentMethod, listItemStyle, buttonRef, isUserValidated],
+        [shouldShowAddBankAccountButton, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
     );
 
     /**
@@ -363,7 +367,11 @@ function PaymentMethodList({
                     iconHeight={item.iconHeight ?? item.iconSize}
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
-                    badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : undefined}
+                    badgeText={
+                        shouldShowDefaultBadge(filteredPaymentMethods, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
+                            ? translate('paymentMethodList.defaultPaymentMethod')
+                            : undefined
+                    }
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}
@@ -377,7 +385,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
@@ -419,18 +427,4 @@ function PaymentMethodList({
 
 PaymentMethodList.displayName = 'PaymentMethodList';
 
-export default withOnyx<PaymentMethodListProps, PaymentMethodListOnyxProps>({
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    // Temporarily disabled - used for P2P debit cards
-    // fundList: {
-    //     key: ONYXKEYS.FUND_LIST,
-    // },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-    },
-})(PaymentMethodList);
+export default PaymentMethodList;

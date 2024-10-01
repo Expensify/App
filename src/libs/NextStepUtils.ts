@@ -94,7 +94,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
-    const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -261,10 +260,14 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: 'Waiting for ',
                     },
-                    {
-                        text: reimburserDisplayName,
-                        type: 'strong',
-                    },
+                    reimburserAccountID === -1
+                        ? {
+                              text: 'an admin',
+                          }
+                        : {
+                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
+                              type: 'strong',
+                          },
                     {
                         text: ' to ',
                     },
