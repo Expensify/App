@@ -160,7 +160,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, setInitialURL]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
 
     /**
      * Retuns a list of menu items data for workspace section
@@ -264,7 +264,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [styles.pt4, signOut, setInitialURL]);
 
     /**
      * Retuns JSX.Element with menu items
