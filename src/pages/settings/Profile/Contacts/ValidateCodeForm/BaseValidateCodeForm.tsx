@@ -35,11 +35,6 @@ type ValidateCodeFormError = {
     validateCode?: TranslationPaths;
 };
 
-type BaseValidateCodeFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-};
-
 type ValidateCodeFormProps = {
     /** The contact method being valdiated */
     contactMethod: string;
@@ -63,8 +58,6 @@ type ValidateCodeFormProps = {
     pendingContact?: PendingContactAction;
 };
 
-type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
-
 function BaseValidateCodeForm({
     contactMethod,
     hasMagicCodeBeenSent,
@@ -73,7 +66,7 @@ function BaseValidateCodeForm({
     innerRef = () => {},
     isValidatingAction = false,
     pendingContact,
-}: BaseValidateCodeFormProps) {
+}: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();

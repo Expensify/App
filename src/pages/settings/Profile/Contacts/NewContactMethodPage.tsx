@@ -29,12 +29,7 @@ import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type NewContactMethodPageOnyxProps = {
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<LoginList>;
-};
-
-type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+type NewContactMethodPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

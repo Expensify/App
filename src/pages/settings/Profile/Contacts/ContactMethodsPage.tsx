@@ -25,15 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import type {LoginList, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ContactMethodsPageOnyxProps = {
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<LoginList>;
-
-    /** Current user session */
-    session: OnyxEntry<Session>;
-};
-
-type ContactMethodsPageProps = ContactMethodsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
+type ContactMethodsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
 
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
