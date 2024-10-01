@@ -32,7 +32,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     // Here we store the index of the data item in the original data list, so we can map the found occurrences back to the original data:
     const occurrenceToIndex = new Uint32Array(maxNumericListSize * 4);
     // As we are working with ArrayBuffers, we need to keep track of the current offset:
-    const offset = {value: 0};
+    const offset = {value: 1};
     // We store the last offset for a dataSet, so we can map the found occurrences to the correct dataSet:
     const listOffsets: number[] = [];
 
