@@ -2374,6 +2374,11 @@ const CONST = {
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
+        UNSUPPORTED_CONNECTIONS: {
+            NAME: {
+                QBO: 'quickbooksDesktop',
+            },
+        },
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',
