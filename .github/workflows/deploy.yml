@@ -187,8 +187,15 @@ jobs:
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: Setup Node
-        uses: ./react-native/.github/actions/composite/setupNode
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install node modules
+        run: |
+          npm install
+          cd .. && npm install
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -473,9 +480,15 @@ jobs:
         run: | 
           ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: Setup Node
-        id: setup-node
-        uses: ./react-native/.github/actions/composite/setupNode
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install node modules
+        run: | 
+          npm install
+          cd .. && npm install
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
