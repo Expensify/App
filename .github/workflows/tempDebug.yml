@@ -16,7 +16,7 @@ jobs:
 
       - run: |
           bundle exec fastlane android test
-          source $GITHUB_ENV
+          source "$GITHUB_ENV"
           echo "hello $apkPath"
 
       - run: echo "hi $apkPath"
