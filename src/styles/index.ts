@@ -3624,6 +3624,22 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        zIndex10: {
+            zIndex: 10,
+        },
+
+        searchListContentContainerStyles: {
+            marginTop: variables.searchListContentMarginTop,
+        },
+
+        searchTopBarStyle: {
+            left: 0,
+            right: 0,
+            position: 'absolute',
+            zIndex: 9,
+            backgroundColor: theme.appBG,
+        },
+
         threeDotsPopoverOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),

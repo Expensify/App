@@ -67,10 +67,10 @@ type AttachmentPickerWithMenuItemsProps = {
     onTriggerAttachmentPicker: () => void;
 
     /** Called when cancelling the attachment picker */
-    onCanceledAttachmentPicker: () => void;
+    onCanceledAttachmentPicker?: () => void;
 
     /** Called when the menu with the items is closed after it was open */
-    onMenuClosed: () => void;
+    onMenuClosed?: () => void;
 
     /** Called when the add action button is pressed */
     onAddActionPressed: () => void;
@@ -192,7 +192,7 @@ function AttachmentPickerWithMenuItems({
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
-        onMenuClosed();
+        onMenuClosed?.();
     };
 
     const prevIsFocused = usePrevious(isFocused);

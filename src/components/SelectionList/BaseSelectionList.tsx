@@ -101,6 +101,8 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
+        scrollEventThrottle,
+        contentContainerStyle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -626,7 +628,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex}), [
         scrollAndHighlightItem,
         clearInputAfterSelect,
         updateAndScrollToFocusedIndex,
@@ -750,6 +752,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
+                                scrollEventThrottle={scrollEventThrottle}
+                                contentContainerStyle={contentContainerStyle}
                             />
                             {children}
                         </>
