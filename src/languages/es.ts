@@ -3435,6 +3435,7 @@ const translations = {
             },
             errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
             goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
+            goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
