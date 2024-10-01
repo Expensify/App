@@ -14,6 +14,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
@@ -49,19 +50,26 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
-    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType | ReportActionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+function mapToItemWithSelectionInfo(
+    item: TransactionListItemType | ReportListItemType | ReportActionListItemType,
+    selectedTransactions: SelectedTransactions,
+    canSelectMultiple: boolean,
+    shouldAnimateInHighlight: boolean,
+) {
     if (SearchUtils.isReportActionListItemType(item)) {
         return item;
     }
+
     return SearchUtils.isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
         : {
               ...item,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple)),
+              shouldAnimateInHighlight,
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
               isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
@@ -90,6 +98,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const previousTransactions = usePrevious(transactions);
 
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -117,7 +127,6 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         }
 
         SearchActions.search({queryJSON, offset});
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
 
     const getItemHeight = useCallback(
@@ -156,6 +165,14 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
+    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+        searchResults,
+        transactions,
+        previousTransactions,
+        queryJSON,
+        offset,
+    });
+
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
@@ -193,7 +210,20 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const ListItem = SearchUtils.getListItem(type, status);
     const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
     const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
-    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
+    const sortedSelectedData = sortedData.map((item) => {
+        const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+        // Check if the base key matches the newSearchResultKey (TransactionListItemType)
+        const isBaseKeyMatch = baseKey === newSearchResultKey;
+        // Check if any transaction within the transactions array (ReportListItemType) matches the newSearchResultKey
+        const isAnyTransactionMatch = (item as ReportListItemType)?.transactions?.some((transaction) => {
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            return transactionKey === newSearchResultKey;
+        });
+        // Determine if either the base key or any transaction key matches
+        const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+
+        return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+    });
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
@@ -299,6 +329,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
+            ref={handleSelectionListScroll(sortedSelectedData)}
             sections={[{data: sortedSelectedData, isDisabled: false}]}
             turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
             onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}

@@ -550,11 +550,11 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
 }
 
 /**
- * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-    return getAccountIDsByLogins([reimburserEmail])[0];
+    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail])[0] : -1;
 }
 
 function getPersonalPolicy() {
