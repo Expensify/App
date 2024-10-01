@@ -2070,6 +2070,16 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        chatDelegateMessage: {
+            color: theme.textSupporting,
+            fontSize: 11,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
         renderHTMLTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -3612,6 +3622,22 @@ const styles = (theme: ThemeColors) =>
 
         searchTableHeaderActive: {
             fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        zIndex10: {
+            zIndex: 10,
+        },
+
+        searchListContentContainerStyles: {
+            marginTop: variables.searchListContentMarginTop,
+        },
+
+        searchTopBarStyle: {
+            left: 0,
+            right: 0,
+            position: 'absolute',
+            zIndex: 9,
+            backgroundColor: theme.appBG,
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>

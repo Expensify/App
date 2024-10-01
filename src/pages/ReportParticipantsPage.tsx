@@ -309,7 +309,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedMembers.length})}
+                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         isSplitButton={false}

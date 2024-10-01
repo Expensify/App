@@ -215,11 +215,10 @@ function isActionOfType<T extends ReportActionName[]>(
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
-        // eslint-disable-next-line
+        // eslint-disable-next-line deprecation/deprecation
         return reportAction?.message ?? reportAction?.originalMessage;
     }
-
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     return reportAction.originalMessage;
 }
 
@@ -596,7 +595,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 
     // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
     // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     if (String(reportAction.sequenceNumber) === key) {
         Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
         return true;
@@ -1010,20 +1009,20 @@ const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
     CONST.IOU.REPORT_ACTION_TYPE.TRACK,
 ]);
 
-function getMoneyRequestActions(
-    reportID: string,
-    reportActions: OnyxEntry<ReportActions> | ReportAction[],
-    isOffline: boolean | undefined = undefined,
-): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't have money request actions.
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
+    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-        return [];
+        return;
     }
 
     const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
-        return [];
+        return;
     }
 
     const iouRequestActions = [];
@@ -1051,15 +1050,6 @@ function getMoneyRequestActions(
             iouRequestActions.push(action);
         }
     }
-    return iouRequestActions;
-}
-
-/**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
-    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
@@ -1077,27 +1067,6 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // Ensure we have a childReportID associated with the IOU report action
     return singleAction.childReportID;
-}
-
-/**
- * Returns true if all transactions on the report have the same ownerID
- */
-function hasSameActorForAllTransactions(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
-    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
-    if (!iouRequestActions.length) {
-        return true;
-    }
-
-    let actorID: number | undefined;
-
-    for (const action of iouRequestActions) {
-        if (actorID !== undefined && actorID !== action?.actorAccountID) {
-            return false;
-        }
-        actorID = action?.actorAccountID;
-    }
-
-    return true;
 }
 
 /**
@@ -1736,7 +1705,7 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
     const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? -1).map(
         ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
     );
-    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames});
+    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
 
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -1801,7 +1770,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    // eslint-disable-next-line
+    // eslint-disable-next-line deprecation/deprecation
     getParentReportAction,
     getRemovedFromApprovalChainMessage,
     getReportAction,
@@ -1882,7 +1851,6 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
-    hasSameActorForAllTransactions,
 };
 
 export type {LastVisibleMessage};
