@@ -20,17 +20,9 @@ KEY_GRADLE_AAB_PATH = "gradleAABOutputPath"
 KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
 
-# Export environment variables in the parent shell.
-# In a GitHub Actions environment, it will save the environment variables in the GITHUB_ENV file.
-# In any other environment, it will save them to the current shell environment using the `export` command.
+# Export environment variables in the GitHub Actions environment. Is a no-op if there's no GITHUB_ENV file.
 def exportEnvVars(env_vars)
   github_env_path = ENV['GITHUB_ENV']
-  puts "Saving environment variables in parent shell..."
-  env_vars.each do |key, value|
-    puts "#{key}=#{value}"
-    command = "export #{key}=#{value}"
-    system(command)
-  end
   if github_env_path && File.exist?(github_env_path)
     puts "Saving environment variables in GITHUB_ENV..."
     File.open(github_env_path, "a") do |file|
