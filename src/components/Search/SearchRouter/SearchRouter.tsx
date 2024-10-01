@@ -115,6 +115,8 @@ function SearchRouter() {
                     Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, userQuery, false);
                 }
             }, SEARCH_DEBOUNCE_DELAY),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 

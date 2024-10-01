@@ -633,6 +633,7 @@ function BaseSelectionList<TItem extends ListItem>(
         clearInputAfterSelect,
         updateAndScrollToFocusedIndex,
         updateExternalTextInputFocus,
+        scrollToIndex,
     ]);
 
     /** Selects row when pressing Enter */
