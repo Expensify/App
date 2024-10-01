@@ -15,7 +15,7 @@ type SearchableData<T> = {
 };
 
 // There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
-const charSetToSkip = new Set(['@', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!']);
+const charSetToSkip = new Set(['@', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ' ']);
 
 /**
  * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for (sub-)strings in a list of strings.
