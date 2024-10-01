@@ -21,7 +21,31 @@ function makeTree(numericSearchValues: Uint8Array) {
     // Every leaf represents a suffix. There can't be more than n suffixes.
     // Every internal node has to have at least 2 children. So the total size of ukkonen tree is not bigger than 2n - 1.
     const maxNodes = 2 * numericSearchValues.length;
-    // Allocate an ArrayBuffer to store all transitions (flat buffer), 4 bytes per transition (Uint32)
+    /* 
+       This array represents all internal nodes in the suffix tree.
+       When building this tree, we'll be given a character in the string, and we need to be able to lookup in constant time
+       if there's any edge connected to a node starting with that character. For example, given a tree like this:
+
+               root
+              / | \
+             a  b  c
+ 
+       and the next character in our string is 'd', we need to be able do check if any of the edges from the root node
+       start with the letter 'd', without looping through all the edges.
+
+       To accomplish this, each node gets an array matching the alphabet size (x4 because it's 4 bytes per character).
+       So you can imagine if our alphabet was just [a,b,c,d], then each node would get an array like [0,0,0,0].
+       If we add an edge starting with 'a', then the root node would be [1,0,0,0]
+       So given an arbitrary letter such as 'd', then we can take the position of that letter in its alphabet (position 3 in our example)
+       and check whether that index in the array is 0 or 1. If it's a 1, then there's an edge starting with the letter 'd'.
+
+       Note that for efficiency, all nodes are stored in a single flag array. That's how we end up with (maxNodes * alphabet_size * 4).
+       In the example of a 4-character alphabet, we'd have an array like this:
+
+          root       root.left     root.right              last possible node
+        /     \       /     \       /     \                      /     \
+       [0,0,0,0,      0,0,0,0,      0,0,0,0,  .................  0,0,0,0]
+     */
     const transitionNodes = new Int32Array(maxNodes * ALPHABET_SIZE * 4);
     transitionNodes.fill(-1); // Initialize all transitions to -1 (no transition)
 
