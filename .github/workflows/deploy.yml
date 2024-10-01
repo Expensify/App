@@ -193,9 +193,7 @@ jobs:
           cache: npm
 
       - name: Install node modules
-        run: |
-          npm install
-          cd .. && npm install
+        run: cd .. && npm install
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -212,8 +210,8 @@ jobs:
         uses: 1password/load-secrets-action@v2
         with:
           export-env: false
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEYSTORE_PASSWORD
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEY_PASSWORD
@@ -486,9 +484,7 @@ jobs:
           cache: npm
 
       - name: Install node modules
-        run: | 
-          npm install
-          cd .. && npm install
+        run: cd .. && npm install
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
@@ -512,7 +508,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: scripts/pod-install.sh
+          command: cd iOS && pod install && ./react-native/scripts/pod-install.sh
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
