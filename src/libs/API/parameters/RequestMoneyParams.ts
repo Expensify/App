@@ -27,6 +27,7 @@ type RequestMoneyParams = {
     receiptGpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
+    reimbursible?: boolean;
 };
 
 export default RequestMoneyParams;

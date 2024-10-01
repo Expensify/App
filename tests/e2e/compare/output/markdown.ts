@@ -30,21 +30,19 @@ const buildDurationDetailsEntry = (entry: Entry) =>
         .join('<br/><br/>');
 
 const formatEntryDuration = (entry: Entry): string => {
-    let formattedDuration = '';
-
     if ('baseline' in entry && 'current' in entry) {
-        formattedDuration = format.formatMetricDiffChange(entry);
+        return format.formatMetricDiffChange(entry);
     }
 
     if ('baseline' in entry) {
-        formattedDuration = format.formatMetric(entry.baseline.mean, entry.unit);
+        return format.formatMetric((entry as Entry).baseline.mean, (entry as Entry).unit);
     }
 
     if ('current' in entry) {
-        formattedDuration = format.formatMetric(entry.current.mean, entry.unit);
+        return format.formatMetric((entry as Entry).current.mean, (entry as Entry).unit);
     }
 
-    return formattedDuration;
+    return '';
 };
 
 const buildDetailsTable = (entries: Entry[]) => {
@@ -120,3 +118,4 @@ const writeToMarkdown = (filePath: string, data: Data) => {
 };
 
 export default writeToMarkdown;
+export {buildMarkdown};

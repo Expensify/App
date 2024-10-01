@@ -22,6 +22,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -55,6 +56,7 @@ function TaskView({report, ...props}: TaskViewProps) {
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -79,7 +81,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     (e.currentTarget as HTMLElement).blur();
                                 }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
@@ -96,6 +98,10 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
+                                                // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                                                    return;
+                                                }
                                                 if (isCompleted) {
                                                     Task.reopenTask(report);
                                                 } else {
@@ -108,7 +114,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || translate('task.task')}
-                                            disabled={!canModifyTask}
+                                            disabled={!canModifyTask || !canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
@@ -138,7 +144,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                         shouldRenderAsHTML
                         description={translate('task.description')}
                         title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -156,7 +162,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -168,7 +174,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                     ) : (
                         <MenuItemWithTopDescription
                             description={translate('task.assignee')}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}

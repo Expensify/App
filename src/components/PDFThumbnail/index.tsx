@@ -1,4 +1,6 @@
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
+import 'core-js/proposals/promise-with-resolvers';
+// eslint-disable-next-line import/extensions
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
@@ -12,7 +14,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
 
@@ -30,6 +32,12 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 onLoad={() => {
                     setFailedToLoad(false);
                 }}
+                onLoadSuccess={() => {
+                    if (!onLoadSuccess) {
+                        return;
+                    }
+                    onLoadSuccess();
+                }}
                 onLoadError={() => {
                     if (onLoadError) {
                         onLoadError();
@@ -43,7 +51,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError],
+        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
     );
 
     return (

@@ -23,6 +23,7 @@ function TableListItem<TItem extends ListItem>({
     onDismissError,
     rightHandSideComponent,
     onFocus,
+    onLongPressRow,
     shouldSyncFocus,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -50,6 +51,7 @@ function TableListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
+            onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}

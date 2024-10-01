@@ -10,12 +10,84 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
+require 'ostruct'
+
 skip_docs
 opt_out_usage
 
-platform :android do
-  desc "Generate a new local APK for e2e testing"
+KEY_GRADLE_APK_PATH = "gradleAPKOutputPath"
+KEY_GRADLE_AAB_PATH = "gradleAABOutputPath"
+KEY_IPA_PATH = "ipaPath"
+KEY_DSYM_PATH = "dsymPath"
 
+# Export environment variables in the parent shell.
+# In a GitHub Actions environment, it will save the environment variables in the GITHUB_ENV file.
+# In any other environment, it will save them to the current shell environment using the `export` command.
+def exportEnvVars(env_vars)
+  github_env_path = ENV['GITHUB_ENV']
+  if github_env_path && File.exist?(github_env_path)
+    puts "Saving environment variables in GITHUB_ENV..."
+    File.open(github_env_path, "a") do |file|
+      env_vars.each do |key, value|
+        puts "#{key}=#{value}"
+        file.puts "#{key}=#{value}"
+      end
+    end
+  else
+    puts "Saving environment variables in parent shell..."
+    env_vars.each do |key, value|
+      puts "#{key}=#{value}"
+      command = "export #{key}=#{value}"
+      system(command)
+    end
+  end
+end
+
+def setGradleOutputsInEnv()
+  puts "Saving Android build outputs in env..."
+  env_vars = {
+    KEY_GRADLE_APK_PATH => lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+  }
+  if lane_context.key?(SharedValues::GRADLE_AAB_OUTPUT_PATH)
+    env_vars[KEY_GRADLE_AAB_PATH] = lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]
+  end
+  exportEnvVars(env_vars)
+end
+
+def setIOSBuildOutputsInEnv()
+  puts "Saving iOS build outputs in env..."
+  exportEnvVars({
+    KEY_IPA_PATH => lane_context[SharedValues::IPA_OUTPUT_PATH],
+    KEY_DSYM_PATH => lane_context[SharedValues::DSYM_OUTPUT_PATH],
+  })
+end
+
+platform :android do
+  desc "Generate a production AAB"
+  lane :build do
+    ENV["ENVFILE"]=".env.production"
+    gradle(
+      project_dir: './android',
+      task: 'bundle',
+      flavor: 'Production',
+      build_type: 'Release',
+    )
+    setGradleOutputsInEnv()
+  end
+
+  desc "Generate a new local APK"
+  lane :build_local do
+    ENV["ENVFILE"]=".env.production"
+    gradle(
+      project_dir: './android',
+      task: 'assemble',
+      flavor: 'Production',
+      build_type: 'Release',
+    )
+    setGradleOutputsInEnv()
+  end
+
+  desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
@@ -27,6 +99,7 @@ platform :android do
       flavor: 'e2e',
       build_type: 'Release',
     )
+    setGradleOutputsInEnv()
   end
 
   lane :build_e2edelta do
@@ -40,68 +113,50 @@ platform :android do
       flavor: 'e2edelta',
       build_type: 'Release',
     )
+    setGradleOutputsInEnv()
   end
 
-  desc "Generate a new local APK"
-  lane :build do
-    ENV["ENVFILE"]=".env.production"
-
+  desc "Build AdHoc testing build"
+  lane :build_adhoc do
+    ENV["ENVFILE"]=".env.adhoc"
     gradle(
       project_dir: './android',
       task: 'assemble',
-      flavor: 'Production',
+      flavor: 'Adhoc',
       build_type: 'Release',
     )
+    setGradleOutputsInEnv()
   end
 
-  desc "Build app for testing"
-  lane :build_internal do
-    ENV["ENVFILE"]=".env.adhoc"
-
-    gradle(
-        project_dir: './android',
-        task: 'assemble',
-        flavor: 'Adhoc',
-        build_type: 'Release',
-    )
-
+  desc "Upload build to S3"
+  lane :upload_s3 do
+    puts "APK path: #{ENV[KEY_GRADLE_APK_PATH]}"
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-
-      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      apk: ENV[KEY_GRADLE_APK_PATH],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
-
     sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
   end
 
-  desc "Build and upload app to Google Play"
-  lane :beta do
-    ENV["ENVFILE"]=".env.production"
+  desc "Upload app to Google Play for internal testing"
+  lane :upload_google_play_internal do
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-
-    gradle(
-        project_dir: './android',
-        task: 'bundle',
-        flavor: 'Production',
-        build_type: 'Release',
-    )
-
     upload_to_play_store(
-        package_name: "com.expensify.chat",
-        json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
-        track: 'internal',
-        rollout: '1.0'
+      package_name: "com.expensify.chat",
+      json_key: './android/app/android-fastlane-json-key.json',
+      aab: ENV[KEY_GRADLE_AAB_PATH],
+      track: 'internal',
+      rollout: '1.0'
     )
   end
 
   desc "Deploy app to Google Play production"
-  lane :production do
+  lane :upload_google_play_production do
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
     google_play_track_version_codes(
@@ -109,7 +164,6 @@ platform :android do
       json_key: './android/app/android-fastlane-json-key.json',
       track: 'internal'
     )
-
     upload_to_play_store(
       package_name: "com.expensify.chat",
       json_key: './android/app/android-fastlane-json-key.json',
@@ -127,118 +181,114 @@ platform :android do
   end
 end
 
+def setupIOSSigningCertificate()
+  require 'securerandom'
+  keychain_password = SecureRandom.uuid
+
+  create_keychain(
+    name: "ios-build.keychain",
+    password: keychain_password,
+    default_keychain: "true",
+    unlock: "true",
+    timeout: "3600",
+    add_to_search_list: "true"
+  )
+
+  import_certificate(
+    certificate_path: "./ios/Certificates.p12",
+    keychain_name: "ios-build.keychain",
+    keychain_password: keychain_password
+  )
+end
+
 platform :ios do
-  desc "Generate a local iOS production build"
+  desc "Build an iOS production build"
   lane :build do
     ENV["ENVFILE"]=".env.production"
 
+    setupIOSSigningCertificate()
+
+    install_provisioning_profile(
+      path: "./ios/NewApp_AppStore.mobileprovision"
+    )
+
+    install_provisioning_profile(
+      path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
+    )
+
+    build_app(
+      workspace: "./ios/NewExpensify.xcworkspace",
+      scheme: "New Expensify",
+      output_name: "New Expensify.ipa",
+      export_options: {
+        provisioningProfiles: {
+          "com.chat.expensify.chat" => "(NewApp) AppStore",
+          "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
+        },
+        manageAppVersionAndBuildNumber: false
+      }
+    )
+
+    setIOSBuildOutputsInEnv()
+  end
+
+  desc "Build an unsigned iOS production build"
+  lane :build_unsigned do
+    ENV["ENVFILE"]=".env.production"
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         scheme: "New Expensify"
     )
+    setIOSBuildOutputsInEnv()
   end
 
-  desc "Build app for testing"
-  lane :build_internal do
-    require 'securerandom'
+  desc "Build AdHoc app for testing"
+  lane :build_adhoc do
     ENV["ENVFILE"]=".env.adhoc"
 
-    keychain_password = SecureRandom.uuid
+    setupIOSSigningCertificate()
 
-    create_keychain(
-        name: "ios-build.keychain",
-        password: keychain_password,
-        default_keychain: "true",
-        unlock: "true",
-        timeout: "3600",
-        add_to_search_list: "true"
-    )
-
-    import_certificate(
-        certificate_path: "./ios/Certificates.p12",
-        keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
+    install_provisioning_profile(
+      path: "./ios/NewApp_AdHoc.mobileprovision"
     )
 
     install_provisioning_profile(
-        path: "./ios/NewApp_AdHoc.mobileprovision"
-    )
-
-    install_provisioning_profile(
-        path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
+      path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
     build_app(
-        workspace: "./ios/NewExpensify.xcworkspace",
-        skip_profile_detection: true,
-        scheme: "New Expensify AdHoc",
-        export_method: "ad-hoc",
-        export_options: {
-            method: "ad-hoc",
-            provisioningProfiles: {
-              "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
-              "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
-            },
-            manageAppVersionAndBuildNumber: false
-        }
+      workspace: "./ios/NewExpensify.xcworkspace",
+      skip_profile_detection: true,
+      scheme: "New Expensify AdHoc",
+      export_method: "ad-hoc",
+      export_options: {
+        method: "ad-hoc",
+        provisioningProfiles: {
+          "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
+          "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
+        },
+        manageAppVersionAndBuildNumber: false
+      }
     )
+    setIOSBuildOutputsInEnv()
+  end
 
+  desc "Upload app to S3"
+  lane :upload_s3 do
+    puts "IPA path: #{ENV[KEY_IPA_PATH]}"
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-
-      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      ipa: ENV[KEY_IPA_PATH],
       app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
     )
-
     sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
   end
 
-  desc "Build and upload app to TestFlight"
-  lane :beta do
-    require 'securerandom'
-    ENV["ENVFILE"]=".env.production"
-
-    keychain_password = SecureRandom.uuid
-
-    create_keychain(
-        name: "ios-build.keychain",
-        password: keychain_password,
-        default_keychain: "true",
-        unlock: "true",
-        timeout: "3600",
-        add_to_search_list: "true"
-    )
-
-    import_certificate(
-        certificate_path: "./ios/Certificates.p12",
-        keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
-    )
-
-    install_provisioning_profile(
-        path: "./ios/NewApp_AppStore.mobileprovision"
-    )
-
-    install_provisioning_profile(
-        path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
-    )
-
-    build_app(
-        workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "New Expensify",
-        output_name: "New Expensify.ipa",
-        export_options: {
-            provisioningProfiles: {
-              "com.chat.expensify.chat" => "(NewApp) AppStore",
-              "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
-            },
-            manageAppVersionAndBuildNumber: false
-        }
-    )
-
+  desc "Upload app to TestFlight"
+  lane :upload_testflight do
     upload_to_testflight(
       api_key_path: "./ios/ios-fastlane-json-key.json",
       distribute_external: true,
@@ -247,30 +297,31 @@ platform :ios do
       groups: ["Beta"],
       demo_account_required: true,
       beta_app_review_info: {
-          contact_email: ENV["APPLE_CONTACT_EMAIL"],
-          contact_first_name: "Andrew",
-          contact_last_name: "Gable",
-          contact_phone: ENV["APPLE_CONTACT_PHONE"],
-          demo_account_name: ENV["APPLE_DEMO_EMAIL"],
-          demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-          notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'
-                  2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
-                  3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
-                  4. Open the email and copy the 6-digit sign-in code provided within
-                  5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
+        contact_email: ENV["APPLE_CONTACT_EMAIL"],
+        contact_first_name: "Andrew",
+        contact_last_name: "Gable",
+        contact_phone: ENV["APPLE_CONTACT_PHONE"],
+        demo_account_name: ENV["APPLE_DEMO_EMAIL"],
+        demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
+        notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'
+                2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
+                3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
+                4. Open the email and copy the 6-digit sign-in code provided within
+                5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
       }
     )
 
+    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
     upload_symbols_to_crashlytics(
       app_id: "1:921154746561:ios:216bd10ccc947659027c40",
-      dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
+      dsym_path: ENV[KEY_DSYM_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
     )
   end
 
-  desc "Move app to App Store Review"
-  lane :production do
+  desc "Submit app to App Store Review"
+  lane :submit_for_review do
     deliver(
       api_key_path: "./ios/ios-fastlane-json-key.json",
 
@@ -307,7 +358,6 @@ platform :ios do
       # Precheck cannot check for in app purchases with the API key we use
       precheck_include_in_app_purchases: false,
       submission_information: {
-
         # We currently do not use idfa: https://developer.apple.com/app-store/user-privacy-and-data-use/
         add_id_info_uses_idfa: false,
 
@@ -332,6 +382,5 @@ platform :ios do
         'en-US' => "Improvements and bug fixes"
       }
     )
-
   end
 end

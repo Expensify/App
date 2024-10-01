@@ -2,22 +2,25 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 
 type UserInfoCellProps = {
-    participant: SearchAccountDetails;
+    participant: SearchPersonalDetails;
     displayName: string;
 };
 
 function UserInfoCell({participant, displayName}: UserInfoCellProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
-    const avatarURL = participant?.avatarURL ?? participant?.avatar;
-    const isWorkspace = participant?.avatarURL !== undefined;
-    const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const avatarURL = participant?.avatar;
+
+    if (!SearchUtils.isCorrectSearchUserName(displayName)) {
+        return null;
+    }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -26,8 +29,8 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
                 size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 source={avatarURL}
                 name={displayName}
-                type={iconType}
-                avatarID={isWorkspace ? participant?.id : participant?.accountID}
+                type={CONST.ICON_TYPE_AVATAR}
+                avatarID={participant?.accountID}
                 containerStyles={[styles.pr2]}
             />
             <Text

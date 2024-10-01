@@ -129,10 +129,13 @@ export default {
     borderTopWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
+    emptySelectionListIconWidth: 120,
+    emptySelectionListIconHeight: 125,
     emptyListIconWidth: 136,
     emptyListIconHeight: 144,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
+    modalTopMediumIconHeight: 203,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 37,
@@ -210,14 +213,13 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 1000,
-    explanationModalDelay: 2000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
     hoverDimValue: 1,
     pressDimValue: 0.8,
+    dimAnimationDuration: 50,
     qrShareHorizontalPadding: 32,
     menuIconSize: 48,
 
@@ -227,6 +229,10 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardIconWidth: 40,
+    cardIconHeight: 25.29,
+    cardBorderRadius: 2.35,
+
     cardNameWidth: 156,
     holdMenuIconSize: 64,
     updateAnimationW: 390,
@@ -242,9 +248,22 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
+
+    composerTooltipShiftHorizontal: 10,
+    composerTooltipShiftVertical: -10,
+    gbrTooltipShiftHorizontal: -20,
+
+    minimalTopBarOffset: -26,
+    searchHeaderHeight: 80,
+    searchListContentMarginTop: 116,
+
     h20: 20,
     h28: 28,
     h36: 36,
+    h112: 112,
+    h172: 172,
     w20: 20,
     w28: 28,
     w36: 36,
@@ -254,4 +273,6 @@ export default {
     w80: 80,
     w92: 92,
     w96: 96,
+    w184: 184,
+    w191: 191,
 } as const;

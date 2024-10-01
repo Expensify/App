@@ -1,8 +1,9 @@
 import {useFocusEffect} from '@react-navigation/core';
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
@@ -13,9 +14,11 @@ import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -23,6 +26,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,11 +63,16 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
@@ -76,8 +85,10 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+        return (
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+        );
+    }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     const {translate} = useLocalize();
 
@@ -173,7 +184,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
             return false;
         }
@@ -371,7 +382,7 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            Navigation.dismissModal();
+            navigateBack();
             IOU.replaceReceipt(transactionID, file as File, source);
         },
         [transactionID],
@@ -380,22 +391,36 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
-        if (!validateReceipt(file)) {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        if (!validateReceipt(originalFile)) {
             return;
         }
 
-        // Store the receipt on the transaction object in Onyx
-        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-        // So, let us also save the file type in receipt for later use during blob fetch
-        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
-
-        if (action === CONST.IOU.ACTION.EDIT) {
-            updateScanAndNavigate(file, file?.uri ?? '');
+        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+            setPdfFile(originalFile);
             return;
         }
 
-        navigateToConfirmationStep(file, file.uri ?? '');
+        // With the image size > 24MB, we use manipulateAsync to resize the image.
+        // It takes a long time so we should display a loading indicator while the resize image progresses.
+        if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setIsLoadingReceipt(true);
+        }
+        FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+            setIsLoadingReceipt(false);
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+
+            if (isEditing) {
+                updateScanAndNavigate(file, file?.uri ?? '');
+                return;
+            }
+
+            navigateToConfirmationStep(file, file.uri ?? '');
+        });
     };
 
     const capturePhoto = useCallback(() => {
@@ -423,11 +448,11 @@ function IOURequestStepScan({
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
-                const source = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
+                const source = getPhotoSource(photo.path);
+                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
                 FileUtils.readFileAsync(source, photo.path, (file) => {
-                    if (action === CONST.IOU.ACTION.EDIT) {
+                    if (isEditing) {
                         updateScanAndNavigate(file, source);
                         return;
                     }
@@ -440,7 +465,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user?.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
+    }, [isEditing, cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user?.isMutedAllSounds, translate, transactionID, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -452,9 +477,30 @@ function IOURequestStepScan({
             includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo}
+            shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
+            {isLoadingReceipt && <FullScreenLoadingIndicator />}
+            {pdfFile && (
+                <PDFThumbnail
+                    style={styles.invisiblePDF}
+                    previewSourceURL={pdfFile?.uri ?? ''}
+                    onLoadSuccess={() => {
+                        setPdfFile(null);
+                        if (pdfFile) {
+                            setReceiptAndNavigate(pdfFile, true);
+                        }
+                    }}
+                    onPassword={() => {
+                        setPdfFile(null);
+                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                    }}
+                    onLoadError={() => {
+                        setPdfFile(null);
+                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                    }}
+                />
+            )}
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <ImageSVG
@@ -465,10 +511,9 @@ function IOURequestStepScan({
                         style={styles.pb5}
                     />
 
-                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                     <Button
-                        medium
                         success
                         text={translate('common.continue')}
                         accessibilityLabel={translate('common.continue')}
@@ -508,7 +553,7 @@ function IOURequestStepScan({
                 <AttachmentPicker>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.gallery')}
                             style={[styles.alignItemsStart]}
                             onPress={() => {
@@ -527,7 +572,7 @@ function IOURequestStepScan({
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -541,7 +586,7 @@ function IOURequestStepScan({
                 </PressableWithFeedback>
                 {hasFlash && (
                     <PressableWithFeedback
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
                         style={[styles.alignItemsEnd]}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED}

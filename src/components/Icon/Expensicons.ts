@@ -24,14 +24,17 @@ import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Bolt from '@assets/images/bolt.svg';
+import Bookmark from '@assets/images/bookmark.svg';
+import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
+import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
-import CardsAndDomains from '@assets/images/cards-and-domains.svg';
+import CaretUpDown from '@assets/images/caret-up-down.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
@@ -81,6 +84,9 @@ import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
+import Feed from '@assets/images/feed.svg';
+import Filter from '@assets/images/filter.svg';
+import Filters from '@assets/images/filters.svg';
 import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
@@ -100,8 +106,10 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
+import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -155,15 +163,19 @@ import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
+import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
+import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
+import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
@@ -174,6 +186,9 @@ import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
+import UserCheck from '@assets/images/user-check.svg';
+import UserEye from '@assets/images/user-eye.svg';
+import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
@@ -207,13 +222,13 @@ export {
     Bell,
     BellSlash,
     Bolt,
+    Box,
     Briefcase,
     Bug,
     Building,
     Calendar,
     Camera,
     Car,
-    CardsAndDomains,
     Cash,
     ChatBubble,
     ChatBubbles,
@@ -345,6 +360,7 @@ export {
     Upload,
     UploadAlt,
     User,
+    UserCheck,
     Users,
     VolumeHigh,
     VolumeLow,
@@ -353,6 +369,7 @@ export {
     Workspace,
     XeroSquare,
     SageIntacctSquare as IntacctSquare,
+    AdvancedApprovalsSquare,
     Zoom,
     Twitter,
     Youtube,
@@ -372,4 +389,17 @@ export {
     CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
+    XeroCircle,
+    QBOCircle,
+    Filters,
+    CalendarSolid,
+    Filter,
+    UserEye,
+    CaretUpDown,
+    UserPlus,
+    Feed,
+    Table,
+    SpreadsheetComputer,
+    Bookmark,
+    Star,
 };

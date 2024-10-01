@@ -6,6 +6,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Timing from '@libs/actions/Timing';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -45,6 +46,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
             <PressableWithSecondaryInteraction
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(childReportID);
+                    Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

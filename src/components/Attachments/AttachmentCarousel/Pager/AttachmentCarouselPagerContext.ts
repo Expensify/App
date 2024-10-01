@@ -10,6 +10,9 @@ type AttachmentCarouselPagerItems = {
     /** The source of the image is used to identify each attachment/page in the pager */
     source: AttachmentSource;
 
+    /** URL to preview-sized attachment that is also used for the thumbnail */
+    previewSource?: AttachmentSource;
+
     /** The index of the pager item determines the order of the images in the pager */
     index: number;
 

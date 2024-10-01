@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -53,11 +54,14 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    threeDotsMenuIcon,
+    threeDotsMenuIconFill,
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
+    shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
 }: HeaderWithBackButtonProps) {
@@ -234,6 +238,8 @@ function HeaderWithBackButton({
                     {shouldShowPinButton && !!report && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
+                            icon={threeDotsMenuIcon}
+                            iconFill={threeDotsMenuIconFill}
                             disabled={shouldDisableThreeDotsButton}
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
@@ -257,6 +263,7 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
+                    {shouldDisplaySearchRouter && <SearchButton />}
                 </View>
             </View>
         </View>

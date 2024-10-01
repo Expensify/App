@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/core';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -17,9 +17,6 @@ import type {Report} from '@src/types/onyx';
 type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
     report: OnyxEntry<Report>;
-
-    /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoadingApp: OnyxEntry<boolean>;
 
     /** The draft report corresponding to the reportID in the route params */
     reportDraft: OnyxEntry<Report>;
@@ -42,7 +39,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM;
+    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
+    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
@@ -53,21 +51,24 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report = {reportID: ''}, route, isLoadingApp = true, reportDraft} = props;
+    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+        const {route} = props;
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`);
+        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`);
+
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
-        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+
+        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report ?? {reportID: ''});
 
         useEffect(() => {
-            if (!!report?.reportID || !route.params.reportID || !!reportDraft) {
+            if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-
             ReportActions.openReport(route.params.reportID);
-
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
 
@@ -82,7 +83,9 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
+                report={report}
+                reportDraft={reportDraft}
                 ref={ref}
             />
         );
@@ -90,17 +93,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        reportDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`,
-        },
-    })(forwardRef(WithWritableReportOrNotFound));
+    return forwardRef(WithWritableReportOrNotFound);
 }
 
 export type {WithWritableReportOrNotFoundProps};

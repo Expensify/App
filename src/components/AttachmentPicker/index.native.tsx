@@ -1,11 +1,12 @@
 import {Str} from 'expensify-common';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
+import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -41,11 +42,12 @@ type Item = {
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
  */
-const imagePickerOptions = {
+const imagePickerOptions: Partial<CameraOptions | ImageLibraryOptions> = {
     includeBase64: false,
     saveToPhotos: false,
     selectionLimit: 1,
     includeExtra: false,
+    assetRepresentationMode: 'current',
 };
 
 /**
@@ -66,7 +68,7 @@ const getImagePickerOptions = (type: string): CameraOptions => {
  * @returns {Object}
  */
 
-const getDocumentPickerOptions = (type: string): DocumentPickerOptions<'ios' | 'android'> => {
+const getDocumentPickerOptions = (type: string): DocumentPickerOptions => {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return {
             type: [RNDocumentPicker.types.images],
@@ -158,12 +160,44 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    return resolve(response.assets);
+                    const targetAsset = response.assets?.[0];
+                    const targetAssetUri = targetAsset?.uri;
+
+                    if (!targetAssetUri) {
+                        return resolve();
+                    }
+
+                    if (targetAsset?.type?.startsWith('image')) {
+                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
+                            .then((isHEIC) => {
+                                // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                                if (isHEIC && targetAssetUri) {
+                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
+                                        .then((manipResult) => {
+                                            const uri = manipResult.uri;
+                                            const convertedAsset = {
+                                                uri,
+                                                name: uri.substring(uri.lastIndexOf('/') + 1).split('?')[0],
+                                                type: 'image/jpeg',
+                                                width: manipResult.width,
+                                                height: manipResult.height,
+                                            };
+
+                                            return resolve([convertedAsset]);
+                                        })
+                                        .catch((err) => reject(err));
+                                } else {
+                                    return resolve(response.assets);
+                                }
+                            })
+                            .catch((err) => reject(err));
+                    } else {
+                        return resolve(response.assets);
+                    }
                 });
             }),
         [showGeneralAlert, type],
     );
-
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      *

@@ -18,12 +18,17 @@ function ReviewMerchant() {
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'merchant', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'merchant',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const options = useMemo(
         () =>
             compareResult.change.merchant?.map((merchant) =>
                 !merchant
-                    ? {text: translate('violations.none'), value: undefined}
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: merchant,
                           value: merchant,
@@ -32,22 +37,25 @@ function ReviewMerchant() {
         [compareResult.change.merchant, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const setMerchant = (data: FieldItemType<'merchant'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({merchant: data.value as string});
+            setReviewDuplicatesKey({merchant: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
         <ScreenWrapper testID={ReviewMerchant.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
+            <ReviewFields<'merchant'>
                 stepNames={stepNames}
                 label={translate('violations.merchantToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setMerchant}
             />
         </ScreenWrapper>
     );

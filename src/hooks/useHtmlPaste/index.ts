@@ -20,8 +20,6 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         range.setEnd(node, node.length);
         selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
 
-        // Dispatch paste event to simulate real browser behavior
-        target.dispatchEvent(new Event('paste', {bubbles: true}));
         // Dispatch input event to trigger Markdown Input to parse the new text
         target.dispatchEvent(new Event('input', {bubbles: true}));
     } else {
@@ -43,11 +41,6 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 insertAtCaret(textInputHTMLElement, text);
             } else {
                 insertByCommand(text);
-            }
-
-            if (!textInputRef.current?.isFocused()) {
-                textInputRef.current?.focus();
-                return;
             }
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
@@ -142,18 +135,18 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
         let unsubscribeFocus: () => void;
         let unsubscribeBlur: () => void;
         if (removeListenerOnScreenBlur) {
-            unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
-            unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+            unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste, true));
+            unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste, true));
         }
 
-        document.addEventListener('paste', handlePaste);
+        document.addEventListener('paste', handlePaste, true);
 
         return () => {
             if (removeListenerOnScreenBlur) {
                 unsubscribeFocus();
                 unsubscribeBlur();
             }
-            document.removeEventListener('paste', handlePaste);
+            document.removeEventListener('paste', handlePaste, true);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);

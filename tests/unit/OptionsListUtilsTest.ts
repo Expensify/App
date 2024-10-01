@@ -2,6 +2,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SelectedTagOption} from '@components/TagPicker';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -21,9 +22,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '1',
             participants: {
-                2: {},
-                1: {},
-                5: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
@@ -34,8 +35,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '2',
             participants: {
-                2: {},
-                3: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
@@ -48,8 +49,8 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: '3',
             participants: {
-                2: {},
-                1: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
@@ -60,8 +61,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '4',
             participants: {
-                2: {},
-                4: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
@@ -72,8 +73,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '5',
             participants: {
-                2: {},
-                5: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
@@ -84,8 +85,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '6',
             participants: {
-                2: {},
-                6: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                6: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Thor',
             type: CONST.REPORT.TYPE.CHAT,
@@ -98,8 +99,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '7',
             participants: {
-                2: {},
-                7: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Captain America',
             type: CONST.REPORT.TYPE.CHAT,
@@ -112,8 +113,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '8',
             participants: {
-                2: {},
-                12: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                12: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Silver Surfer',
             type: CONST.REPORT.TYPE.CHAT,
@@ -126,8 +127,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '9',
             participants: {
-                2: {},
-                8: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                8: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Mister Sinister',
             iouReportID: '100',
@@ -141,8 +142,8 @@ describe('OptionsListUtils', () => {
             reportID: '10',
             isPinned: false,
             participants: {
-                2: {},
-                7: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
@@ -153,6 +154,8 @@ describe('OptionsListUtils', () => {
             // This indicates that the report is archived
             stateNum: 2,
             statusNum: 2,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            private_isArchived: DateUtils.getDBTime(),
         },
     };
 
@@ -233,8 +236,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '11',
             participants: {
-                2: {},
-                999: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
@@ -249,8 +252,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '12',
             participants: {
-                2: {},
-                1000: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1000: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Chronos',
             type: CONST.REPORT.TYPE.CHAT,
@@ -265,8 +268,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '13',
             participants: {
-                2: {},
-                1001: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1001: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Receipts',
             type: CONST.REPORT.TYPE.CHAT,
@@ -281,34 +284,16 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '14',
             participants: {
-                2: {},
-                1: {},
-                10: {},
-                3: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: 'Avengers Room',
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
-        },
-    };
-
-    const REPORTS_WITH_WORKSPACE: OnyxCollection<Report> = {
-        ...REPORTS,
-        '15': {
-            lastReadTime: '2021-01-14 11:25:39.295',
-            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
-            isPinned: false,
-            isChatRoom: false,
-            reportID: '15',
-            participants: {
-                1: {},
-                2: {},
-            },
-            reportName: 'Test Workspace',
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         },
     };
 
@@ -320,9 +305,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '15',
             participants: {
-                2: {},
-                3: {},
-                4: {},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man, Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
@@ -379,7 +364,7 @@ describe('OptionsListUtils', () => {
         id: policyID,
         name: 'Hero Policy',
         role: 'user',
-        type: 'free',
+        type: CONST.POLICY.TYPE.TEAM,
         owner: '',
         outputCurrency: '',
         isPolicyExpenseChatEnabled: false,
@@ -408,7 +393,6 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
-    let OPTIONS_WITH_WORKSPACE: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
@@ -416,43 +400,16 @@ describe('OptionsListUtils', () => {
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_WORKSPACE = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE);
     });
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+        const results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
 
         // Then all of the reports should be shown including the archived rooms.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
-
-        // When we filter again but provide a searchValue
-        results = OptionsListUtils.getSearchOptions(OPTIONS, 'spider');
-
-        // Then only one option should be returned and it's the one matching the search value
-        expect(results.recentReports.length).toBe(1);
-        expect(results.recentReports[0].login).toBe('peterparker@expensify.com');
-
-        // When we filter again but provide a searchValue that should match multiple times
-        results = OptionsListUtils.getSearchOptions(OPTIONS, 'fantastic');
-
-        // Value with latest lastVisibleActionCreated should be at the top.
-        expect(results.recentReports.length).toBe(2);
-        expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
-
-        return waitForBatchedUpdates()
-            .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
-            .then(() => {
-                const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
-                // When we filter again but provide a searchValue that should match with periods
-                results = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, 'barry.allen@expensify.com');
-                // Then we expect to have the personal detail with period filtered
-                expect(results.recentReports.length).toBe(1);
-                expect(results.recentReports[0].text).toBe('The Flash');
-            });
     });
 
     it('getFilteredOptions()', () => {
@@ -519,34 +476,6 @@ describe('OptionsListUtils', () => {
         // Then no personal detail options will be returned
         expect(results.personalDetails.length).toBe(0);
 
-        // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'magneto');
-
-        // Then no options will be returned
-        expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that matches an email
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'peterparker@expensify.com');
-
-        // Then one recentReports will be returned and it will be the correct option
-        // personalDetails should be empty array
-        expect(results.recentReports.length).toBe(1);
-        expect(results.recentReports[0].text).toBe('Spider-Man');
-        expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that matches a partial display name or email
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '.com');
-
-        // Then several options will be returned and they will be each have the search string in their email or name
-        // even though the currently logged in user matches they should not show.
-        // Should be ordered by lastVisibleActionCreated values.
-        expect(results.personalDetails.length).toBe(4);
-        expect(results.recentReports.length).toBe(5);
-        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-        expect(results.recentReports[0].text).toBe('Captain America');
-        expect(results.recentReports[1].text).toBe('Mr Sinister');
-        expect(results.recentReports[2].text).toBe('Black Panther');
-
         // Test for Concierge's existence in chat options
 
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
@@ -600,27 +529,6 @@ describe('OptionsListUtils', () => {
         const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
         expect(personalDetailsOverlapWithReports).toBe(false);
 
-        // When we search for an option that is only in a personalDetail with no existing report
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'hulk');
-
-        // Then reports should return no results
-        expect(results.recentReports.length).toBe(0);
-
-        // And personalDetails should show just one option and it will be the one we expect
-        expect(results.personalDetails.length).toBe(1);
-        expect(results.personalDetails[0].login).toBe('brucebanner@expensify.com');
-
-        // When we search for an option that matches things in both personalDetails and reports
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '.com');
-
-        // Then all single participant reports that match will show up in the recentReports array, Recently used contact should be at the top
-        expect(results.recentReports.length).toBe(5);
-        expect(results.recentReports[0].text).toBe('Captain America');
-
-        // And logins with no single participant reports will show up in personalDetails
-        expect(results.personalDetails.length).toBe(4);
-        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-
         // When we provide no selected options to getFilteredOptions()
         results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '', []);
 
@@ -635,72 +543,6 @@ describe('OptionsListUtils', () => {
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
         expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is not a potential email or phone
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'marc@expensify');
-
-        // Then we should have no options or personal details at all and also that there is no userToInvite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).toBe(null);
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential email
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'marc@expensify.com');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-
-        // When we add a search term with a period, with options for it that don't contain the period
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'peter.parker@expensify.com');
-
-        // Then we should have no options at all but there should be a userToInvite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential phone number without country code added
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '5005550006');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite and the login
-        // should have the country code included
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+15005550006');
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential phone number with country code added
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '+15005550006');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite and the login
-        // should have the country code included
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+15005550006');
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential phone number with special characters added
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '+1 (800)324-3233');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite and the login
-        // should have the country code included
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+18003243233');
-
-        // When we use a search term for contact number that contains alphabet characters
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '998243aaaa');
-
-        // Then we shouldn't have any results or user to invite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).toBe(null);
 
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
@@ -754,18 +596,6 @@ describe('OptionsListUtils', () => {
         // Then we should expect all the recent reports to show but exclude the archived rooms
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
 
-        // When we pass a search value that doesn't match the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], 'mutants');
-
-        // Then we should expect no recent reports to show
-        expect(results.recentReports.length).toBe(0);
-
-        // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], 'Iron Man, Fantastic');
-
-        // Then we should expect the group chat to show along with the contacts matching the search
-        expect(results.recentReports.length).toBe(1);
-
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
             const report = option.item;
@@ -781,42 +611,17 @@ describe('OptionsListUtils', () => {
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
         expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
-
-        // When we search for a workspace room
-        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], 'Avengers Room');
-
-        // Then we should expect only the workspace room to show
-        expect(results.recentReports.length).toBe(1);
-
-        // When we search for a workspace room that doesn't exist
-        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], 'Mutants Lair');
-
-        // Then we should expect no results to show
-        expect(results.recentReports.length).toBe(0);
     });
 
     it('getMemberInviteOptions()', () => {
         // When we only pass personal details
-        let results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
+        const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
 
         // We should expect personal details to be sorted alphabetically
         expect(results.personalDetails[0].text).toBe('Black Panther');
         expect(results.personalDetails[1].text).toBe('Black Widow');
         expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
-
-        // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], 'magneto');
-
-        // Then no options will be returned
-        expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that matches an email
-        results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], 'peterparker@expensify.com');
-
-        // Then one personal should be in personalDetails list
-        expect(results.personalDetails.length).toBe(1);
-        expect(results.personalDetails[0].text).toBe('Spider-Man');
     });
 
     it('getFilteredOptions() for categories', () => {
@@ -2813,12 +2618,11 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
-            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.recentReports.length).toBe(4);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
             expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
         it('should filter users by email', () => {
@@ -2837,7 +2641,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].isArchivedRoom).toBe(true);
+            expect(!!filteredOptions.recentReports[0].private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
@@ -2867,7 +2671,7 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports[0].login).toBe(searchText);
         });
 
@@ -2919,17 +2723,6 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
 
-        it('should return the workspaces that match the participant login', () => {
-            const searchText = 'reedrichards@expensify.com';
-
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE, '');
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-
-            const recentReportsNames = filteredOptions.recentReports.map((option) => option.text);
-
-            expect(recentReportsNames).toContain('Test Workspace');
-        });
-
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
 
@@ -2946,6 +2739,208 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
             expect(filteredOptions.personalDetails.length).toBe(1);
             expect(filteredOptions.userToInvite).toBe(null);
+        });
+
+        it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
+            const options = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'magneto');
+            expect(filteredOptions.personalDetails.length).toBe(0);
+        });
+
+        it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
+            const options = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com');
+
+            expect(filteredOptions.personalDetails.length).toBe(1);
+            expect(filteredOptions.personalDetails[0].text).toBe('Spider-Man');
+        });
+
+        it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {
+            // Filter current REPORTS as we do in the component, before getting share destination options
+            const filteredReports = Object.values(OPTIONS.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+                const report = option.item;
+                if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+                    filtered.push(option);
+                }
+                return filtered;
+            }, []);
+            const options = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'mutants');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+        });
+
+        it('should return a workspace room when we search for a workspace room(getShareDestinationsOptions)', () => {
+            const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+                const report = option.item;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+                    filtered.push(option);
+                }
+                return filtered;
+            }, []);
+
+            const options = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'Avengers Room');
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+        });
+
+        it('should not show any results if searching for a non-existing workspace room(getShareDestinationOptions)', () => {
+            const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+                const report = option.item;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+                    filtered.push(option);
+                }
+                return filtered;
+            }, []);
+
+            const options = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'Mutants Lair');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+        });
+
+        it('should show the option from personal details when searching for personal detail with no existing report (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'hulk');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+
+            expect(filteredOptions.personalDetails.length).toBe(1);
+            expect(filteredOptions.personalDetails[0].login).toBe('brucebanner@expensify.com');
+        });
+
+        it('should return all matching reports and personal details (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
+
+            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+
+            expect(filteredOptions.personalDetails.length).toBe(4);
+            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+        });
+
+        it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).toBe(null);
+        });
+
+        it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify.com');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+        });
+
+        it('should return user to invite when search term has a period with options for it that do not contain the period (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'peter.parker@expensify.com');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+        });
+
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '5005550006');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+            expect(filteredOptions.userToInvite?.login).toBe('+15005550006');
+        });
+
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '+15005550006');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+            expect(filteredOptions.userToInvite?.login).toBe('+15005550006');
+        });
+
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '+1 (800)324-3233');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+            expect(filteredOptions.userToInvite?.login).toBe('+18003243233');
+        });
+
+        it('should not return any options or user to invite if contact number contains alphabet characters (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '998243aaaa');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).toBe(null);
+        });
+
+        it('should not return any options if search value does not match any personal details (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'magneto');
+
+            expect(filteredOptions.personalDetails.length).toBe(0);
+        });
+
+        it('should return one recent report and no personal details if a search value provides an email (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.personalDetails.length).toBe(0);
+        });
+
+        it('should return all matching reports and personal details (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
+
+            expect(filteredOptions.personalDetails.length).toBe(4);
+            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+            expect(filteredOptions.recentReports[1].text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports[2].text).toBe('Black Panther');
+        });
+
+        it('should return matching option when searching (getSearchOptions)', () => {
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'spider');
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+        });
+
+        it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'fantastic');
+
+            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
+                .then(() => {
+                    const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+                    const results = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, '');
+                    const filteredResults = OptionsListUtils.filterOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
+
+                    expect(filteredResults.recentReports.length).toBe(1);
+                    expect(filteredResults.recentReports[0].text).toBe('The Flash');
+                });
         });
     });
 

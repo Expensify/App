@@ -8,10 +8,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -21,7 +21,7 @@ function SaveTheWorldPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
 
     const menuItems = useMemo(() => {
@@ -55,12 +55,13 @@ function SaveTheWorldPage() {
         >
             <HeaderWithBackButton
                 title={translate('sidebarScreen.saveTheWorld')}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={Illustrations.TeachersUnite}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('teachersUnitePage.teachersUnite')}
                         subtitle={translate('teachersUnitePage.joinExpensifyOrg')}

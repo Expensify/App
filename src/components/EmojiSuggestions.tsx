@@ -34,6 +34,9 @@ type EmojiSuggestionsProps = {
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
+
+    /** Reset the emoji suggestions */
+    resetSuggestions: () => void;
 };
 
 /**
@@ -49,6 +52,7 @@ function EmojiSuggestions({
     preferredSkinToneIndex,
     highlightedEmojiIndex = 0,
     measureParentContainerAndReportCursor = () => {},
+    resetSuggestions,
 }: EmojiSuggestionsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -93,6 +97,7 @@ function EmojiSuggestions({
             isSuggestionPickerLarge={isEmojiPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }

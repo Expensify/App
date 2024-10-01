@@ -52,13 +52,13 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 paddingRight: 1,
             },
             code: {
-                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+                ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
                 backgroundColor: 'transparent',
             },
             pre: {
-                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+                ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13,
                 color: theme.text,
                 backgroundColor: 'transparent',
@@ -75,6 +75,19 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
+            inlineImage: {
+                minWidth: variables.inlineImagePreviewMinSize,
+                minHeight: variables.inlineImagePreviewMinSize,
+                maxWidth: variables.inlineImagePreviewMaxSize,
+                maxHeight: variables.inlineImagePreviewMaxSize,
+                borderRadius: variables.componentBorderRadius,
+                marginTop: 4,
+            },
+            loadingIndicator: {
+                primaryColor: theme.spinner,
+                secondaryColor: `${theme.spinner}33`,
+            },
+            loadingIndicatorContainer: {},
         };
 
         if (excludeStyles.length) {

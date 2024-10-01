@@ -15,12 +15,12 @@ type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFT
  */
 export default function () {
     return new Promise<void | void[]>((resolve) => {
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
             waitForCollectionCallback: true,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             callback: (allReportActionsDrafts) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
 
                 if (!allReportActionsDrafts) {
                     Log.info('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there were no reportActionsDrafts');

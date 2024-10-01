@@ -1,5 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
-import {isBoolean} from 'lodash';
+import isBoolean from 'lodash/isBoolean';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,7 +11,6 @@ import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
 
 let isOffline = false;
-let hasPendingNetworkCheck = false;
 type NetworkStatus = ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>;
 
 type ResponseJSON = {
@@ -22,15 +21,26 @@ type ResponseJSON = {
 let callbackID = 0;
 const reconnectionCallbacks: Record<string, () => void> = {};
 
+let isServerUp = true;
+let wasServerDown = false;
+
 /**
  * Loop over all reconnection callbacks and fire each one
  */
 const triggerReconnectionCallbacks = throttle(
     (reason) => {
-        Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-        Object.values(reconnectionCallbacks).forEach((callback) => {
-            callback();
-        });
+        let delay = 0;
+
+        if (wasServerDown && isServerUp) {
+            delay = Math.floor(Math.random() * 61000);
+            wasServerDown = false;
+        }
+        setTimeout(() => {
+            Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
+            Object.values(reconnectionCallbacks).forEach((callback) => {
+                callback();
+            });
+        }, delay);
     },
     5000,
     {trailing: false},
@@ -71,12 +81,12 @@ Onyx.connect({
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
-                const isInternetReachable = (state.isInternetReachable ?? false) === false;
-                setOfflineStatus(isInternetReachable, 'NetInfo checked if the internet is reachable');
+                const isInternetUnreachable = (state.isInternetReachable ?? false) === false;
+                setOfflineStatus(isInternetUnreachable || !isServerUp, 'NetInfo checked if the internet is reachable');
                 Log.info(
                     `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(
                         state,
-                    )}. Setting the offline status to: ${isInternetReachable}.`,
+                    )}. Setting the offline status to: ${isInternetUnreachable}.`,
                 );
             });
         }
@@ -117,8 +127,22 @@ function subscribeToNetInfo(): () => void {
                 }
                 return response
                     .json()
-                    .then((json: ResponseJSON) => Promise.resolve(json.jsonCode === 200))
-                    .catch(() => Promise.resolve(false));
+                    .then((json: ResponseJSON) => {
+                        if (json.jsonCode !== 200 && isServerUp) {
+                            Log.info('[NetworkConnection] Received non-200 response from reachability test. Setting isServerUp status to false.');
+                            isServerUp = false;
+                            wasServerDown = true;
+                        } else if (json.jsonCode === 200 && !isServerUp) {
+                            Log.info('[NetworkConnection] Received 200 response from reachability test. Setting isServerUp status to true.');
+                            isServerUp = true;
+                        }
+                        return Promise.resolve(json.jsonCode === 200);
+                    })
+                    .catch(() => {
+                        isServerUp = false;
+                        wasServerDown = true;
+                        return Promise.resolve(false);
+                    });
             },
 
             // If a check is taking longer than this time we're considered offline
@@ -134,7 +158,7 @@ function subscribeToNetInfo(): () => void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
-        setOfflineStatus(state.isInternetReachable === false, 'NetInfo received a state change event');
+        setOfflineStatus(state.isInternetReachable === false || !isServerUp, 'NetInfo received a state change event');
         Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${!!state.isInternetReachable} with network state: ${JSON.stringify(state)}`);
         let networkStatus;
         if (!isBoolean(state.isInternetReachable)) {
@@ -191,13 +215,8 @@ function clearReconnectionCallbacks() {
  * Refresh NetInfo state.
  */
 function recheckNetworkConnection() {
-    if (hasPendingNetworkCheck) {
-        return;
-    }
-
     Log.info('[NetworkConnection] recheck NetInfo');
-    hasPendingNetworkCheck = true;
-    NetInfo.refresh().finally(() => (hasPendingNetworkCheck = false));
+    NetInfo.refresh();
 }
 
 export default {

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -13,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import TaxExemptActions from '@pages/settings/Subscription/TaxExemptActions';
 import variables from '@styles/variables';
 import * as Subscription from '@userActions/Subscription';
 import type {SubscriptionType} from '@src/CONST';
@@ -39,6 +41,7 @@ function SubscriptionDetails() {
     const illustrations = useThemeIllustrations();
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const onOptionSelected = (option: SubscriptionType) => {
@@ -80,10 +83,21 @@ function SubscriptionDetails() {
 
     return (
         <Section
-            title={translate('subscription.details.title')}
             isCentralPane
             titleStyles={styles.textStrong}
         >
+            <View style={[styles.flexShrink1, styles.w100, styles.justifyContentBetween]}>
+                <View style={styles.flexRow}>
+                    <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.details.title')}</Text>
+                    {privateTaxExempt && (
+                        <Badge
+                            badgeStyles={styles.mtn1}
+                            text={translate('subscription.details.taxExemptEnabled')}
+                        />
+                    )}
+                </View>
+                {!privateTaxExempt && <TaxExemptActions />}
+            </View>
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon

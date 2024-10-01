@@ -34,7 +34,7 @@ jobs:
           #    - git diff is used to see the files that were added on this branch
           #    - gh pr view is used to list files touched by this PR. Git diff may give false positives if the branch isn't up-to-date with main
           #  - wc counts the words in the result of the intersection
-          count_new_js=$(comm -1 -2 <(git diff --name-only --diff-filter=A origin/main HEAD -- 'src/*.js' '__mocks__/*.js' '.storybook/*.js' 'assets/*.js' 'config/*.js' 'desktop/*.js' 'jest/*.js' 'scripts/*.js' 'tests/*.js' 'workflow_tests/*.js' '.github/libs/*.js' '.github/scripts/*.js') <(gh pr view ${{ github.event.pull_request.number }} --json files | jq -r '.files | map(.path) | .[]') | wc -l)
+          count_new_js=$(comm -1 -2 <(git diff --name-only --diff-filter=A origin/main HEAD -- 'src/*.js' '__mocks__/*.js' '.storybook/*.js' 'assets/*.js' 'config/*.js' 'desktop/*.js' 'jest/*.js' 'scripts/*.js' 'tests/*.js' '.github/libs/*.js' '.github/scripts/*.js' ':!src/libs/SearchParser/*.js') <(gh pr view ${{ github.event.pull_request.number }} --json files | jq -r '.files | map(.path) | .[]') | wc -l)
           if [ "$count_new_js" -gt "0" ]; then
             echo "ERROR: Found new JavaScript files in the project; use TypeScript instead."
             exit 1

@@ -10,17 +10,18 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const initUrl = useContext(InitialURLContext);
+    const {initialURL, setInitialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl) {
+        if (!NativeModules.HybridAppModule || !initialURL) {
             return;
         }
 
         Navigation.isNavigationReady().then(() => {
-            Navigation.navigate(initUrl);
+            Navigation.navigate(Navigation.parseHybridAppUrl(initialURL));
+            setInitialURL(undefined);
         });
-    }, [initUrl]);
+    }, [initialURL, setInitialURL]);
 
     if (authenticated) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;

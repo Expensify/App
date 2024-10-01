@@ -463,13 +463,6 @@ class GithubUtils {
     }
 
     /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests: number[]): string {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
-    }
-
-    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number): string {
@@ -559,7 +552,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-
 export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};

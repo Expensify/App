@@ -8,7 +8,7 @@ import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
-import {addLog} from './actions/Console';
+import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
@@ -66,16 +66,17 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
 const Log = new Logger({
     serverLoggingCallback,
-    clientLoggingCallback: (message) => {
+    clientLoggingCallback: (message, extraData) => {
         if (!shouldAttachLog(message)) {
             return;
         }
 
-        console.debug(message);
-
-        if (shouldCollectLogs) {
-            addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message});
-        }
+        flushAllLogsOnAppLaunch().then(() => {
+            console.debug(message, extraData);
+            if (shouldCollectLogs) {
+                addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
+            }
+        });
     },
     isDebug: true,
 });

@@ -1,9 +1,12 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Animated, View} from 'react-native';
+import {Portal} from '@gorhom/portal';
+import React, {useMemo, useRef, useState} from 'react';
+import {Animated, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, View as RNView} from 'react-native';
+import type {View as RNView} from 'react-native';
+import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
+import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
@@ -25,8 +28,13 @@ function BaseGenericTooltip({
     maxWidth = 0,
     renderTooltipContent,
     shouldForceRenderingBelow = false,
-    shouldForceRenderingLeft = false,
+    anchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     wrapperStyle = {},
+    shouldUseOverlay = false,
+    onHideTooltip = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -35,20 +43,9 @@ function BaseGenericTooltip({
 
     // The height of tooltip's wrapper.
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
-    const textContentRef = useRef<RNText>(null);
-    const viewContentRef = useRef<RNView>(null);
     const rootWrapper = useRef<RNView>(null);
 
     const StyleUtils = useStyleUtils();
-
-    // Measure content width
-    useEffect(() => {
-        if (!textContentRef.current && !viewContentRef.current) {
-            return;
-        }
-        const contentRef = viewContentRef.current ?? textContentRef.current;
-        contentRef?.measure((x, y, width) => setContentMeasuredWidth(width));
-    }, []);
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
@@ -66,8 +63,9 @@ function BaseGenericTooltip({
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
                 shouldForceRenderingBelow,
-                shouldForceRenderingLeft,
+                anchorAlignment,
                 wrapperStyle,
+                shouldAddHorizontalPadding: false,
             }),
         [
             StyleUtils,
@@ -83,47 +81,54 @@ function BaseGenericTooltip({
             shiftHorizontal,
             shiftVertical,
             shouldForceRenderingBelow,
-            shouldForceRenderingLeft,
+            anchorAlignment,
             wrapperStyle,
         ],
     );
 
     let content;
     if (renderTooltipContent) {
-        content = <View ref={viewContentRef}>{renderTooltipContent()}</View>;
+        content = <View>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
             >
-                <Text
-                    style={textStyle}
-                    ref={textContentRef}
-                >
-                    {text}
-                </Text>
+                <Text style={textStyle}>{text}</Text>
             </Text>
         );
     }
 
     return (
-        <Animated.View
-            ref={rootWrapper}
-            style={[rootWrapperStyle, animationStyle]}
-            onLayout={(e) => {
-                const {height} = e.nativeEvent.layout;
-                if (height === wrapperMeasuredHeight) {
-                    return;
-                }
-                setWrapperMeasuredHeight(height);
-            }}
-        >
-            {content}
-            <View style={pointerWrapperStyle}>
-                <View style={pointerStyle} />
-            </View>
-        </Animated.View>
+        <Portal hostName={!shouldUseOverlay ? 'modal' : undefined}>
+            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            <Animated.View
+                ref={rootWrapper}
+                style={[rootWrapperStyle, animationStyle]}
+                onLayout={(e) => {
+                    const {height} = e.nativeEvent.layout;
+                    if (height === wrapperMeasuredHeight) {
+                        return;
+                    }
+                    setWrapperMeasuredHeight(height);
+                    // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
+                    const target = e.target;
+                    setTimeout(() => {
+                        InteractionManager.runAfterInteractions(() => {
+                            target.measure((x, y, width) => {
+                                setContentMeasuredWidth(width);
+                            });
+                        });
+                    }, CONST.ANIMATED_TRANSITION);
+                }}
+            >
+                {content}
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>
+        </Portal>
     );
 }
 

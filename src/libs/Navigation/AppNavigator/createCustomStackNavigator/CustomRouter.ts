@@ -1,20 +1,27 @@
-import type {RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
-import {getPathFromState, StackRouter} from '@react-navigation/native';
+import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, getPathFromState, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import * as Localize from '@libs/Localize';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
-import {isCentralPaneName} from '@libs/NavigationUtils';
+import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
+import * as Welcome from '@userActions/Welcome';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
-    const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
-    const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
+    const nonModalRoutes = state.routes.filter(
+        (route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    );
+    const modalRoutes = state.routes.filter(
+        (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    );
 
     // It's safe to modify this state before returning in getRehydratedState.
 
@@ -97,6 +104,23 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
     }
 }
 
+function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
+    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
+        return false;
+    }
+    const currentFocusedRoute = findFocusedRoute(state);
+    const targetFocusedRoute = findFocusedRoute(action?.payload);
+
+    // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
+    if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
+        Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+        // We reset the URL as the browser sets it in a way that doesn't match the navigation state
+        // eslint-disable-next-line no-restricted-globals
+        history.replaceState({}, '', getPathFromState(state, linkingConfig.config));
+        return true;
+    }
+}
+
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
@@ -106,6 +130,12 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             compareAndAdaptState(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;
+        },
+        getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
+            if (shouldPreventReset(state, action)) {
+                return state;
+            }
+            return stackRouter.getStateForAction(state, action, configOptions);
         },
     };
 }

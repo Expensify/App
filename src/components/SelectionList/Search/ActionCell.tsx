@@ -9,38 +9,49 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
-type ActionCellProps = {
-    onButtonPress: () => void;
-    action?: string;
-    isLargeScreenWidth?: boolean;
-    isSelected?: boolean;
+const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
+    view: 'common.view',
+    review: 'common.review',
+    done: 'common.done',
+    paid: 'iou.settledExpensify',
 };
 
-function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false}: ActionCellProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
-    if (!isLargeScreenWidth) {
-        return null;
-    }
+type ActionCellProps = {
+    action?: SearchTransactionAction;
+    isLargeScreenWidth?: boolean;
+    isSelected?: boolean;
+    goToItem: () => void;
+    isChildListItem?: boolean;
+    parentAction?: string;
+};
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE) {
-        const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
+function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, goToItem, isChildListItem = false, parentAction = ''}: ActionCellProps) {
+    const {translate} = useLocalize();
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
+    const text = translate(actionTranslationsMap[action]);
+
+    const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
+
+    if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
-                    text={translate(buttonTextKey)}
+                    text={text}
                     icon={Expensicons.Checkmark}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
                         styles.gap1,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                        StyleUtils.getBorderColorStyle(theme.border),
                         StyleUtils.getHeight(variables.h20),
                         StyleUtils.getMinimumHeight(variables.h20),
+                        isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
                     textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     iconStyles={styles.mr0}
@@ -50,16 +61,33 @@ function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isL
         );
     }
 
-    return (
-        <Button
-            text={translate('common.view')}
-            onPress={onButtonPress}
-            small
-            pressOnEnter
-            style={[styles.w100]}
-            innerStyles={isSelected ? styles.buttonDefaultHovered : {}}
-        />
-    );
+    const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
+
+    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
+        return isLargeScreenWidth ? (
+            <Button
+                text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
+                onPress={goToItem}
+                small
+                style={[styles.w100]}
+                innerStyles={buttonInnerStyles}
+                link={isChildListItem}
+                shouldUseDefaultHover={!isChildListItem}
+            />
+        ) : null;
+    }
+
+    if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
+        return (
+            <Button
+                text={text}
+                onPress={goToItem}
+                small
+                style={[styles.w100]}
+                innerStyles={buttonInnerStyles}
+            />
+        );
+    }
 }
 
 ActionCell.displayName = 'ActionCell';

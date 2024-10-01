@@ -16,7 +16,6 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.ts"
     "$ACTIONS_DIR/getPreviousVersion/getPreviousVersion.ts"
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.ts"
-    "$ACTIONS_DIR/getReleaseBody/getReleaseBody.ts"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.ts"
@@ -27,6 +26,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.ts"
     "$ACTIONS_DIR/getGraphiteString/getGraphiteString.ts"
     "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.ts"
+    "$ACTIONS_DIR/proposalPoliceComment/proposalPoliceComment.ts"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

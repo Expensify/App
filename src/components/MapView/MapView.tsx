@@ -157,7 +157,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
         };
         const centerMap = useCallback(() => {
-            if (directionCoordinates && directionCoordinates.length > 1) {
+            const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
+            if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
                 const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
                 return;
@@ -214,6 +215,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
+                    // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
+                    scaleBarPosition={{...styles.tn8, left: 0}}
+                    compassEnabled
+                    compassPosition={{...styles.l2, ...styles.t5}}
                     logoPosition={{...styles.l2, ...styles.b2}}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...responder.panHandlers}
@@ -277,8 +282,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         <Button
                             onPress={centerMap}
                             iconFill={theme.icon}
-                            iconStyles={styles.ml1}
-                            medium
                             icon={Expensicons.Crosshair}
                             accessibilityLabel={translate('common.center')}
                         />

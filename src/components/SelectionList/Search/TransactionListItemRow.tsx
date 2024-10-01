@@ -1,19 +1,24 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithFeedback} from '@components/Pressable';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
+import Parser from '@libs/Parser';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -52,6 +57,8 @@ type TransactionListItemRowProps = {
     isDisabled: boolean;
     canSelectMultiple: boolean;
     isButtonSelected?: boolean;
+    parentAction?: string;
+    shouldShowTransactionCheckbox?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -72,24 +79,35 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
+
+    let source = transactionItem?.receipt?.source ?? '';
+    if (source) {
+        const filename = getFileName(source);
+        const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+        const isReceiptPDF = Str.isPDF(filename);
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+    }
+
     return (
         <View
             style={[
                 StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
-                StyleUtils.getBackgroundColorStyle(theme.border),
                 styles.overflowHidden,
+                backgroundStyles,
             ]}
         >
             <ReceiptImage
-                source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
+                source={source}
                 isEReceipt={transactionItem.hasEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={Expensicons.ReceiptPlus}
+                fallbackIcon={Expensicons.Receipt}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
+                fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
             />
         </View>
@@ -117,9 +135,9 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const description = TransactionUtils.getDescription(transactionItem);
     let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
     if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
-        merchantOrDescriptionToDisplay = description;
+        merchantOrDescriptionToDisplay = Parser.htmlToText(Parser.replace(description));
     }
-    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : description;
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
 
     if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -155,7 +173,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.type);
+    const typeIcon = getTypeIcon(transactionItem.transactionType);
 
     return (
         <Icon
@@ -237,26 +255,55 @@ function TransactionListItemRow({
     containerStyle,
     isChildListItem = false,
     isButtonSelected = false,
+    parentAction = '',
+    shouldShowTransactionCheckbox,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
                 {showItemHeaderOnNarrowLayout && (
                     <ExpenseItemHeaderNarrow
+                        text={item.text}
                         participantFrom={item.from}
                         participantFromDisplayName={item.formattedFrom}
                         participantTo={item.to}
                         participantToDisplayName={item.formattedTo}
                         onButtonPress={onButtonPress}
+                        canSelectMultiple={canSelectMultiple}
                         action={item.action}
+                        isSelected={item.isSelected}
+                        isDisabled={item.isDisabled}
+                        isDisabledCheckbox={item.isDisabledCheckbox}
+                        handleCheckboxPress={onCheckboxPress}
                     />
                 )}
 
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                    {canSelectMultiple && shouldShowTransactionCheckbox && (
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text ?? ''}
+                            role={CONST.ROLE.BUTTON}
+                            disabled={isDisabled}
+                            onPress={onCheckboxPress}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        >
+                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
+                                {item.isSelected && (
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.textLight}
+                                        height={14}
+                                        width={14}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    )}
                     <ReceiptCell
                         transactionItem={item}
                         isLargeScreenWidth={false}
@@ -268,7 +315,7 @@ function TransactionListItemRow({
                             showTooltip={showTooltip}
                             isLargeScreenWidth={false}
                         />
-                        {item.category && (
+                        {!!item.category && (
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
                                 <CategoryCell
                                     isLargeScreenWidth={false}
@@ -314,11 +361,18 @@ function TransactionListItemRow({
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                 />
             )}
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.pl4]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
                         isLargeScreenWidth
+                        showTooltip={false}
+                    />
+                </View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                    <TypeCell
+                        transactionItem={item}
+                        isLargeScreenWidth={isLargeScreenWidth}
                         showTooltip={false}
                     />
                 </View>
@@ -384,18 +438,13 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
-                    <TypeCell
-                        transactionItem={item}
-                        isLargeScreenWidth
-                        showTooltip={false}
-                    />
-                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
-                        onButtonPress={onButtonPress}
                         action={item.action}
                         isSelected={isButtonSelected}
+                        isChildListItem={isChildListItem}
+                        parentAction={parentAction}
+                        goToItem={onButtonPress}
                     />
                 </View>
             </View>

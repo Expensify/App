@@ -78,7 +78,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             };
         }
 
-        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri);
+        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri || item.previewSource === uri);
         return {
             ...attachmentCarouselPagerContext,
             isUsedInCarousel: !!attachmentCarouselPagerContext.pagerRef,

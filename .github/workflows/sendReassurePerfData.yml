@@ -3,7 +3,7 @@ name: Send Reassure Performance Tests to Graphite
 on:
   push:
     branches: [main]
-    paths-ignore: [docs/**, contributingGuides/**, jest/**, workflow_tests/**]
+    paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**]
 
 jobs:
   perf-tests:
@@ -25,7 +25,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          npx reassure --baseline
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
       - name: Get merged pull request
         id: getMergedPullRequest
@@ -36,7 +36,7 @@ jobs:
       - name: Get and save graphite string
         id: saveGraphiteString
         uses: ./.github/actions/javascript/getGraphiteString
-        with: 
+        with:
           PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
 
       - name: Send graphite data

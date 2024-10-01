@@ -1,15 +1,25 @@
-import React, {memo, useEffect, useRef} from 'react';
-import type {LayoutEvent} from 'react-native';
+import React, {memo, useEffect, useRef, useState} from 'react';
+import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
-import type TooltipProps from '@components/Tooltip/types';
-import getBounds from './getBounds';
+import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import measureTooltipCoordinate from './measureTooltipCoordinate';
+
+type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
 /**
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, ...props}: TooltipProps) {
+function BaseEducationalTooltip({children, onHideTooltip, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
+
+    const [shouldMeasure, setShouldMeasure] = useState(false);
+    const show = useRef<() => void>();
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
+    const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible;
 
     useEffect(
         () => () => {
@@ -24,29 +34,54 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
 
     // Automatically hide tooltip after 5 seconds
     useEffect(() => {
-        if (!hideTooltipRef.current) {
+        if (!hideTooltipRef.current || !shouldAutoDismiss) {
             return;
         }
 
-        const intervalID = setInterval(hideTooltipRef.current, 5000);
+        // If the modal is open, hide the tooltip immediately and clear the timeout
+        if (!shouldShow) {
+            hideTooltipRef.current();
+            return;
+        }
+
+        // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
+        const timerID = setTimeout(() => {
+            hideTooltipRef.current?.();
+            onHideTooltip?.();
+        }, 5000);
         return () => {
-            clearInterval(intervalID);
+            clearTimeout(timerID);
         };
-    }, []);
+    }, [shouldAutoDismiss, shouldShow, onHideTooltip]);
+
+    useEffect(() => {
+        if (!shouldMeasure || !shouldShow) {
+            return;
+        }
+        // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
+        setTimeout(() => {
+            show.current?.();
+        }, 500);
+    }, [shouldMeasure, shouldShow]);
 
     return (
         <GenericTooltip
             shouldForceAnimate
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            onHideTooltip={onHideTooltip}
         >
             {({showTooltip, hideTooltip, updateTargetBounds}) => {
                 // eslint-disable-next-line react-compiler/react-compiler
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {
-                    onLayout: (e: LayoutEvent) => {
-                        updateTargetBounds(getBounds(e));
-                        showTooltip();
+                    onLayout: (e: LayoutChangeEventWithTarget) => {
+                        if (!shouldMeasure) {
+                            setShouldMeasure(true);
+                        }
+                        // e.target is specific to native, use e.nativeEvent.target on web instead
+                        const target = e.target || e.nativeEvent.target;
+                        show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
                     },
                 });
             }}

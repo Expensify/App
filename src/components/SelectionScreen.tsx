@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +11,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
@@ -20,16 +21,18 @@ import type TableListItem from './SelectionList/TableListItem';
 import type {ListItem, SectionListDataType} from './SelectionList/types';
 import type UserListItem from './SelectionList/UserListItem';
 
-type SelectorType = ListItem & {
-    value: string;
+type SelectorType<T = string> = ListItem & {
+    value: T;
+
+    onPress?: () => void;
 };
 
-type SelectionScreenProps = {
+type SelectionScreenProps<T = string> = {
     /** Used to set the testID for tests */
     displayName: string;
 
     /** Title of the selection component */
-    title: TranslationPaths;
+    title?: TranslationPaths;
 
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
@@ -41,7 +44,7 @@ type SelectionScreenProps = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType>>;
+    sections: Array<SectionListDataType<SelectorType<T>>>;
 
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -50,7 +53,7 @@ type SelectionScreenProps = {
     initiallyFocusedOptionKey?: string | null | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType) => void;
+    onSelectRow: (selection: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress: () => void;
@@ -81,9 +84,18 @@ type SelectionScreenProps = {
 
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
+
+    /** Whether to single execute `onRowSelect` - this prevents bugs related to double interactions */
+    shouldSingleExecuteRowSelect?: boolean;
+
+    /** Used for dynamic header title translation with parameters */
+    headerTitleAlreadyTranslated?: string;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
 };
 
-function SelectionScreen({
+function SelectionScreen<T = string>({
     displayName,
     title,
     headerContent,
@@ -103,7 +115,10 @@ function SelectionScreen({
     errors,
     errorRowStyles,
     onClose,
-}: SelectionScreenProps) {
+    shouldSingleExecuteRowSelect,
+    headerTitleAlreadyTranslated,
+    shouldUpdateFocusedIndex = false,
+}: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -122,17 +137,15 @@ function SelectionScreen({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    title={translate(title)}
+                    title={headerTitleAlreadyTranslated ?? (title ? translate(title) : '')}
                     onBackButtonPress={onBackButtonPress}
                 />
                 {headerContent}
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
-                    errors={errors}
-                    errorRowStyles={[errorRowStyles]}
-                    onClose={onClose}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
+                    shouldDisableOpacity={!sections.length}
                 >
                     <SelectionList
                         onSelectRow={onSelectRow}
@@ -143,7 +156,16 @@ function SelectionScreen({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                    />
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                    >
+                        <ErrorMessageRow
+                            errors={errors}
+                            errorRowStyles={errorRowStyles}
+                            onClose={onClose}
+                        />
+                    </SelectionList>
                 </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

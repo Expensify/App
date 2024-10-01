@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-web/dist/exports/Image/index.js b/node_modules/react-native-web/dist/exports/Image/index.js
-index 9649d27..3281cc8 100644
+index 9649d27..66ef95c 100644
 --- a/node_modules/react-native-web/dist/exports/Image/index.js
 +++ b/node_modules/react-native-web/dist/exports/Image/index.js
 @@ -135,7 +135,22 @@ function resolveAssetUri(source) {
@@ -47,7 +47,7 @@ index 9649d27..3281cc8 100644
        });
      }
      function abortPendingRequest() {
-@@ -279,10 +288,78 @@ var Image = /*#__PURE__*/React.forwardRef((props, ref) => {
+@@ -279,10 +288,79 @@ var Image = /*#__PURE__*/React.forwardRef((props, ref) => {
      suppressHydrationWarning: true
    }), hiddenImage, createTintColorSVG(tintColor, filterRef.current));
  });
@@ -64,24 +64,20 @@ index 9649d27..3281cc8 100644
 +  var _React$useState3 = React.useState(''),
 +    blobUri = _React$useState3[0],
 +    setBlobUri = _React$useState3[1];
-+  var request = React.useRef({
-+    cancel: () => {},
-+    source: {
-+      uri: '',
-+      headers: {}
-+    },
-+    promise: Promise.resolve('')
-+  });
++  var request = React.useRef(null);
 +  var onError = props.onError,
 +    onLoadStart = props.onLoadStart,
 +    onLoadEnd = props.onLoadEnd;
 +  React.useEffect(() => {
-+    if (!hasSourceDiff(nextSource, request.current.source)) {
++    if (request.current !== null && !hasSourceDiff(nextSource, request.current.source)) {
 +      return;
 +    }
 +
 +    // When source changes we want to clean up any old/running requests
-+    request.current.cancel();
++    if (request.current !== null) {
++      request.current.cancel();
++    }
++
 +    if (onLoadStart) {
 +      onLoadStart();
 +    }
@@ -96,7 +92,12 @@ index 9649d27..3281cc8 100644
 +  }, [nextSource, onLoadStart, onError, onLoadEnd]);
 +
 +  // Cancel any request on unmount
-+  React.useEffect(() => request.current.cancel, []);
++  React.useEffect(() => () => {
++    if (request.current !== null) {
++      request.current.cancel();
++      request.current = null;
++    }
++  }, []);
 +  var propsToPass = _objectSpread(_objectSpread({}, props), {}, {
 +    // `onLoadStart` is called from the current component
 +    // We skip passing it down to prevent BaseImage raising it a 2nd time

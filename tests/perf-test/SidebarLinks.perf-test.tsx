@@ -10,7 +10,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -19,6 +18,11 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+}));
+jest.mock('../../src/libs/Navigation/navigationRef', () => ({
+    getState: () => ({
+        routes: [],
+    }),
 }));
 jest.mock('@components/Icon/Expensicons');
 
@@ -55,7 +59,11 @@ describe('SidebarLinks', () => {
 
         // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-        Onyx.clear().then(waitForBatchedUpdates);
+        TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
+    });
+
+    afterEach(() => {
+        Onyx.clear();
     });
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
@@ -83,7 +91,7 @@ describe('SidebarLinks', () => {
              * Query for display names of participants [1, 2].
              * This will ensure that the sidebar renders a list of items.
              */
-            await screen.findAllByText('One, Two');
+            await screen.findAllByText('Email Two');
         };
 
         await waitForBatchedUpdates();

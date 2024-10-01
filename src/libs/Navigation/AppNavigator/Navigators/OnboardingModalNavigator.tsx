@@ -1,22 +1,18 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
-import Navigation from '@libs/Navigation/Navigation';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWork from '@pages/OnboardingWork';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -24,29 +20,7 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: (onboarding) => {
-            // onboarding is an array for old accounts and accounts created from olddot
-            if (Array.isArray(onboarding)) {
-                return true;
-            }
-            return onboarding?.hasCompletedGuidedSetupFlow;
-        },
-    });
-
-    useEffect(() => {
-        if (!hasCompletedGuidedSetupFlow) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => {
-            // Need to go back to previous route and then redirect to Concierge,
-            // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
-        });
-    }, [hasCompletedGuidedSetupFlow]);
-
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
 
     const handleOuterClick = useCallback(() => {
@@ -55,9 +29,6 @@ function OnboardingModalNavigator() {
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
-    if (hasCompletedGuidedSetupFlow) {
-        return null;
-    }
     return (
         <NoDropZone>
             <Overlay />
@@ -69,7 +40,7 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}
+                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                             <Stack.Screen

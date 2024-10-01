@@ -30,13 +30,14 @@ function PreTrialBillingBanner() {
             title={translate('subscription.billingBanner.preTrial.title')}
             subtitle={
                 <Text>
-                    {translate('subscription.billingBanner.preTrial.subtitle')}
+                    {translate('subscription.billingBanner.preTrial.subtitleStart')}
                     <TextLink
                         style={styles.link}
                         onPress={navigateToChat}
                     >
                         {translate('subscription.billingBanner.preTrial.subtitleLink')}
                     </TextLink>
+                    {translate('subscription.billingBanner.preTrial.subtitleEnd')}
                 </Text>
             }
             icon={Illustrations.TreasureChest}

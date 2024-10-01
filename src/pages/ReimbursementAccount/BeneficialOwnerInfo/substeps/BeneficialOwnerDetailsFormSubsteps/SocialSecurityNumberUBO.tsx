@@ -54,7 +54,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheLast4')}</Text>

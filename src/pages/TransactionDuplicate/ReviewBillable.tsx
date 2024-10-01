@@ -18,32 +18,40 @@ function ReviewBillable() {
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'billable', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'billable',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const options = useMemo(
         () =>
             compareResult.change.billable?.map((billable) => ({
                 text: billable ? translate('common.yes') : translate('common.no'),
-                value: billable,
+                value: billable ?? false,
             })),
         [compareResult.change.billable, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const setBillable = (data: FieldItemType<'billable'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({billable: data.value as boolean});
+            setReviewDuplicatesKey({billable: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
         <ScreenWrapper testID={ReviewBillable.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
+            <ReviewFields<'billable'>
                 stepNames={stepNames}
                 label={translate('violations.isTransactionBillable')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setBillable}
             />
         </ScreenWrapper>
     );

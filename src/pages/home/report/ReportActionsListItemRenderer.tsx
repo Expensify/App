@@ -24,7 +24,7 @@ type ReportActionsListItemRendererProps = {
     index: number;
 
     /** Report for this action */
-    report: Report;
+    report: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
@@ -76,6 +76,7 @@ function ReportActionsListItemRenderer({
         ReportUtils.isChatThread(report) &&
         (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
 
+    const originalMessage = useMemo(() => ReportActionsUtils.getOriginalMessage(reportAction), [reportAction]);
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -88,7 +89,7 @@ function ReportActionsListItemRenderer({
                 pendingAction: reportAction.pendingAction,
                 actionName: reportAction.actionName,
                 errors: reportAction.errors,
-                originalMessage: reportAction?.originalMessage,
+                originalMessage,
                 childCommenterCount: reportAction.childCommenterCount,
                 linkMetadata: reportAction.linkMetadata,
                 childReportID: reportAction.childReportID,
@@ -104,7 +105,7 @@ function ReportActionsListItemRenderer({
                 isOptimisticAction: reportAction.isOptimisticAction,
                 delegateAccountID: reportAction.delegateAccountID,
                 previousMessage: reportAction.previousMessage,
-                attachmentInfo: reportAction.attachmentInfo,
+                isAttachmentWithText: reportAction.isAttachmentWithText,
                 childStateNum: reportAction.childStateNum,
                 childStatusNum: reportAction.childStatusNum,
                 childReportName: reportAction.childReportName,
@@ -118,7 +119,6 @@ function ReportActionsListItemRenderer({
             reportAction.pendingAction,
             reportAction.actionName,
             reportAction.errors,
-            reportAction?.originalMessage,
             reportAction.childCommenterCount,
             reportAction.linkMetadata,
             reportAction.childReportID,
@@ -134,13 +134,14 @@ function ReportActionsListItemRenderer({
             reportAction.isOptimisticAction,
             reportAction.delegateAccountID,
             reportAction.previousMessage,
-            reportAction.attachmentInfo,
+            reportAction.isAttachmentWithText,
             reportAction.childStateNum,
             reportAction.childStatusNum,
             reportAction.childReportName,
             reportAction.childManagerAccountID,
             reportAction.childMoneyRequestCount,
             reportAction.childOwnerAccountID,
+            originalMessage,
         ],
     );
 
@@ -171,9 +172,13 @@ function ReportActionsListItemRenderer({
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 ReportUtils.isPolicyExpenseChat(report) &&
-                [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
-                    (type) => type === reportAction.actionName,
-                )
+                [
+                    CONST.REPORT.ACTIONS.TYPE.IOU,
+                    CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                ].some((type) => type === reportAction.actionName)
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}

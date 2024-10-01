@@ -10,6 +10,7 @@ type CompleteSplitBillParams = {
     splits: string;
     taxCode?: string;
     taxAmount?: number;
+    billable?: boolean;
 };
 
 export default CompleteSplitBillParams;

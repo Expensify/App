@@ -1,9 +1,8 @@
 import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -16,24 +15,25 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -49,11 +49,7 @@ type WorkspaceMenuItem = {
     routeName?:
         | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
         | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.CARD
-        | typeof SCREENS.WORKSPACE.REIMBURSE
-        | typeof SCREENS.WORKSPACE.BILLS
         | typeof SCREENS.WORKSPACE.INVOICES
-        | typeof SCREENS.WORKSPACE.TRAVEL
         | typeof SCREENS.WORKSPACE.DISTANCE_RATES
         | typeof SCREENS.WORKSPACE.WORKFLOWS
         | typeof SCREENS.WORKSPACE.CATEGORIES
@@ -63,18 +59,12 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.PROFILE
         | typeof SCREENS.WORKSPACE.MEMBERS
         | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
-        | typeof SCREENS.WORKSPACE.REPORT_FIELDS;
+        | typeof SCREENS.WORKSPACE.COMPANY_CARDS
+        | typeof SCREENS.WORKSPACE.REPORT_FIELDS
+        | typeof SCREENS.WORKSPACE.RULES;
 };
 
-type WorkspaceInitialPageOnyxProps = {
-    /** Bank account attached to free plan */
-    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
@@ -87,16 +77,21 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
+    const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseWorkspaceRules} = usePermissions();
+    const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
@@ -106,9 +101,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
             [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -132,18 +129,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
-        const policyDraftId = policyDraft?.id;
-
-        if (!policyDraftId) {
-            return;
-        }
-
-        App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
-        // We only care when the component renders the first time
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
             return;
         }
@@ -159,59 +144,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
-    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
+    const hasGeneralSettingsError =
+        !isEmptyObject(policy?.errorFields?.name ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.address ?? {});
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
-
-    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.card',
-            icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.CARD,
-        },
-        {
-            translationKey: 'workspace.common.reimburse',
-            icon: Expensicons.Receipt,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REIMBURSE,
-        },
-        {
-            translationKey: 'workspace.common.bills',
-            icon: Expensicons.Bill,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.BILLS,
-        },
-        {
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.Invoice,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-        },
-        {
-            translationKey: 'workspace.common.travel',
-            icon: Expensicons.Luggage,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TRAVEL,
-        },
-        {
-            translationKey: 'workspace.common.bankAccount',
-            icon: Expensicons.Bank,
-            action: () =>
-                policy?.outputCurrency === CONST.CURRENCY.USD
-                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policyID, Navigation.getActiveRouteWithoutParams())))()
-                    : setIsCurrencyModalOpen(true),
-            brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-    ];
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with FeatureEnabledAccessOrNotFoundComponent.
+    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
@@ -239,9 +185,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.expensifyCard',
-            icon: Expensicons.CreditCard,
+            icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.companyCards',
+            icon: Expensicons.CreditCard,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
         });
     }
 
@@ -252,6 +207,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.WORKFLOWS,
             brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.rules',
+            icon: Expensicons.Feed,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.RULES,
         });
     }
 
@@ -284,23 +248,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.accounting',
-            icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
-            // brickRoadIndicator should be set when API will be ready
-            brickRoadIndicator: undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-        });
-    }
-
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.reportFields',
             icon: Expensicons.Pencil,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
+            brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
@@ -327,7 +290,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
-        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
@@ -346,6 +308,24 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }
         PolicyUtils.goBackFromInvalidPolicy();
     }, [policy, prevPolicy]);
+
+    // We are checking if the user can access the route.
+    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
+    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage && canAccessRoute) {
+            return;
+        }
+        if (wasRendered.current) {
+            return;
+        }
+        wasRendered.current = true;
+        // We are dismissing any modals that are open when the NotFound view is shown
+        Navigation.isNavigationReady().then(() => {
+            Navigation.closeRHPFlow();
+        });
+    }, [canAccessRoute, shouldShowNotFoundPage]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
@@ -374,7 +354,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.resetToHome();
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
+                        } else {
+                            Navigation.dismissModal();
+                        }
+                    }}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />
@@ -405,8 +392,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                                     wrapperStyle={styles.sectionMenuItem}
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    hoverAndPressStyle={styles.hoveredComponentBG}
-                                    isPaneMenu
                                 />
                             ))}
                         </View>
@@ -429,14 +414,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
-        },
-    })(WorkspaceInitialPage),
-);
+export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);

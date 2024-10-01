@@ -58,7 +58,7 @@ function PriorityModePage() {
                 sections={[{data: priorityModes}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateMode}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
             />
         </ScreenWrapper>

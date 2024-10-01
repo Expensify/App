@@ -1,12 +1,12 @@
-import type {DimensionValue} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
 type SafeAreaChildrenProps = {
-    paddingTop?: DimensionValue;
-    paddingBottom?: DimensionValue;
+    paddingTop?: ViewStyle['paddingTop'];
+    paddingBottom?: ViewStyle['paddingBottom'];
     insets?: EdgeInsets;
     safeAreaPaddingBottomStyle: {
-        paddingBottom?: DimensionValue;
+        paddingBottom?: ViewStyle['paddingBottom'];
     };
 };
 

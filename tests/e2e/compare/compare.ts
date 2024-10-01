@@ -29,6 +29,15 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  */
 const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 100;
 
+const LowerIsBetter: Record<Unit, boolean> = {
+    ms: true,
+    MB: true,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '%': true,
+    renders: true,
+    FPS: false,
+};
+
 function buildCompareEntry(name: string, compare: Stats, baseline: Stats, unit: Unit): Entry {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
@@ -44,7 +53,7 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats, unit: 
         baseline,
         current: compare,
         diff,
-        relativeDurationDiff,
+        relativeDurationDiff: LowerIsBetter[unit] ? relativeDurationDiff : -relativeDurationDiff,
         isDurationDiffOfSignificance,
     };
 }
@@ -94,3 +103,4 @@ export default (main: Metric | string, delta: Metric | string, outputFile: strin
         return writeToMarkdown(outputFile, outputData);
     }
 };
+export {compareResults};

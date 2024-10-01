@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
@@ -66,7 +67,7 @@ function IOURequestStepWaypoint({
     const {isOffline} = useNetwork();
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const allWaypoints = transaction?.comment.waypoints ?? {};
+    const allWaypoints = transaction?.comment?.waypoints ?? {};
     const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
@@ -88,6 +89,14 @@ function IOURequestStepWaypoint({
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
+    const goBack = () => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+    };
+
     const validate = (values: FormOnyxValues<'waypointForm'>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
@@ -104,13 +113,13 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, IOUUtils.shouldUseTransactionDraft(action));
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
+            Transaction.removeWaypoint(transaction, pageIndex, IOUUtils.shouldUseTransactionDraft(action));
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -127,14 +136,14 @@ function IOURequestStepWaypoint({
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
+        goBack();
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
+        Transaction.removeWaypoint(transaction, pageIndex, IOUUtils.shouldUseTransactionDraft(action));
         setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
+        goBack();
     };
 
     const selectWaypoint = (values: Waypoint) => {
@@ -146,12 +155,8 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, IOUUtils.shouldUseTransactionDraft(action));
+        goBack();
     };
 
     return (
@@ -165,9 +170,7 @@ function IOURequestStepWaypoint({
                 <HeaderWithBackButton
                     title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
-                    }}
+                    onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -179,6 +182,7 @@ function IOURequestStepWaypoint({
                                 setRestoreFocusType(undefined);
                                 setIsDeleteStopModalOpen(true);
                             },
+                            shouldCallAfterModalHide: true,
                         },
                     ]}
                 />
@@ -255,16 +259,18 @@ export default withWritableReportOrNotFound(
                 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
                 // that the google autocomplete component expects for it's "predefined places" feature.
                 selector: (waypoints) =>
-                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : []).map((waypoint) => ({
-                        name: waypoint.name,
-                        description: waypoint.address ?? '',
-                        geometry: {
-                            location: {
-                                lat: waypoint.lat ?? 0,
-                                lng: waypoint.lng ?? 0,
+                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : [])
+                        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+                        .map((waypoint) => ({
+                            name: waypoint.name,
+                            description: waypoint.address ?? '',
+                            geometry: {
+                                location: {
+                                    lat: waypoint.lat ?? 0,
+                                    lng: waypoint.lng ?? 0,
+                                },
                             },
-                        },
-                    })),
+                        })),
             },
         })(IOURequestStepWaypoint),
     ),

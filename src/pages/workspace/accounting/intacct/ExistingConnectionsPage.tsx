@@ -6,12 +6,12 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
+import {copyExistingPolicyConnection} from '@libs/actions/connections';
+import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
@@ -19,7 +19,7 @@ type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList,
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct();
+    const policiesConnectedToSageIntacct = getAdminPoliciesConnectedToSageIntacct();
     const policyID: string = route.params.policyID;
 
     const menuItems = policiesConnectedToSageIntacct.map((policy) => {
@@ -28,12 +28,18 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         return {
             title: policy.name,
             key: policy.id,
+            avatarID: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
-            description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
+            description: date
+                ? translate('workspace.common.lastSyncDate', {
+                      connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
+                      formattedDate: date,
+                  })
+                : translate('workspace.accounting.intacct'),
             onPress: () => {
-                // waiting for backend for reusing existing connections
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+                copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
+                Navigation.dismissModal();
             },
         };
     });
@@ -45,9 +51,9 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             testID={ExistingConnectionsPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.intacct.existingConnections')}
+                title={translate('workspace.common.existingConnections')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.flex1]}>
                 <MenuItemList
@@ -59,6 +65,6 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     );
 }
 
-ExistingConnectionsPage.displayName = 'PolicyExistingConnectionsPage';
+ExistingConnectionsPage.displayName = 'ExistingConnectionsPage';
 
 export default ExistingConnectionsPage;

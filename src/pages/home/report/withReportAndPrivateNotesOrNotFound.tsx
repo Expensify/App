@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo} from 'react';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -34,6 +34,7 @@ export default function (pageTitle: TranslationPaths) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const {route, report, session} = props;
+            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
             const isPrivateNotesFetchTriggered = report.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
@@ -57,7 +58,7 @@ export default function (pageTitle: TranslationPaths) {
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
                 // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
-                if (ReportUtils.isArchivedRoom(report) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
+                if (ReportUtils.isArchivedRoom(report, reportNameValuePairs) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
                     return true;
                 }
 
@@ -68,7 +69,7 @@ export default function (pageTitle: TranslationPaths) {
 
                 // As notes being empty and not loading is a valid case, show not found view only in offline mode.
                 return isOffline;
-            }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesUndefined, isReconnecting, isOffline]);
+            }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesUndefined, isReconnecting, isOffline, reportNameValuePairs]);
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <LoadingPage title={translate(pageTitle)} />;

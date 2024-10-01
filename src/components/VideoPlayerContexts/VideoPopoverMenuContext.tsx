@@ -15,7 +15,7 @@ const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
-    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const {isOffline} = useNetwork();
     const isLocalFile = currentlyPlayingURL && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => currentlyPlayingURL.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
@@ -57,7 +57,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
                 icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
-                text: speed.toString(),
+                text: speed === 1 ? translate('videoPlayer.normal') : speed.toString(),
                 onSelected: () => {
                     updatePlaybackSpeed(speed);
                 },
@@ -69,8 +69,8 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
-        () => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
-        [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed],
+        () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
+        [menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }

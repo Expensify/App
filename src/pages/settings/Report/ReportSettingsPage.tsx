@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,24 +16,28 @@ import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
+function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
+    const backTo = route.params.backTo;
     const reportID = report?.reportID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
+    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
+    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
     const notificationPreference =
-        report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
-            ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
+        notificationPreferenceValue && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+            ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
             : '';
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -40,7 +45,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
     const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPref = !isMoneyRequestReport && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -49,7 +54,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -57,7 +62,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID, backTo))}
                         />
                     )}
                     {shouldShowWriteCapability &&
@@ -66,7 +71,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID, backTo))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>
@@ -91,7 +96,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 description={translate('newRoomPage.visibility')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID, backTo))}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

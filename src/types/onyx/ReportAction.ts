@@ -1,5 +1,4 @@
 import type {Spread, ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -217,8 +216,11 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the report action is the first one */
     isFirstItem?: boolean;
 
-    /** Informations about attachments of report action */
-    attachmentInfo?: FileObject;
+    /** Whether the report action is only an attachment */
+    isAttachmentOnly?: boolean;
+
+    /** Whether the report action is an attachment with text */
+    isAttachmentWithText?: boolean;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -234,9 +236,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Error associated with the report action */
     error?: string;
-
-    /** Whether the report action is attachment */
-    isAttachment?: boolean;
 
     /** Recent receipt transaction IDs keyed by reportID */
     childRecentReceiptTransactionIDs?: Record<string, string>;
@@ -261,6 +260,20 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** These are the account IDs to whom a message was whispered. It is used to check if a specific user should be displayed a whisper message or not. */
     whisperedToAccountIDs?: number[];
+
+    /**
+     * Unix timestamp of when the report action was created
+     *
+     * Note: This is sent by the backend but we don't use it locally
+     */
+    reportActionTimestamp?: number;
+
+    /**
+     * Unix timestamp of when the report action was created, without the miliseconds (need to multiply by 1000)
+     *
+     * Note: This is sent by the backend but we don't use it locally
+     */
+    timestamp?: number;
 }>;
 
 /**

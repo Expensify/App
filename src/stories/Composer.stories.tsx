@@ -3,6 +3,7 @@ import type {Meta} from '@storybook/react';
 import {ExpensiMark} from 'expensify-common';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 import Composer from '@components/Composer';
 import type {ComposerProps} from '@components/Composer/types';
 import RenderHTML from '@components/RenderHTML';
@@ -29,7 +30,7 @@ const parser = new ExpensiMark();
 
 function Default(props: ComposerProps) {
     const StyleUtils = useStyleUtils();
-    const [pastedFile, setPastedFile] = useState<File | null>(null);
+    const [pastedFile, setPastedFile] = useState<FileObject | null>(null);
     const [comment, setComment] = useState(props.defaultValue);
     const renderedHTML = parser.replace(comment ?? '');
 
@@ -53,7 +54,7 @@ function Default(props: ComposerProps) {
                 <View style={[defaultStyles.p5, defaultStyles.borderBottom, defaultStyles.borderRight, defaultStyles.borderTop, defaultStyles.flex1]}>
                     <Text style={[defaultStyles.mb2, defaultStyles.textLabelSupporting]}>Rendered Comment</Text>
                     {!!renderedHTML && <RenderHTML html={renderedHTML} />}
-                    {!!pastedFile && (
+                    {!!pastedFile && pastedFile instanceof File && (
                         <View style={defaultStyles.mv3}>
                             <Image
                                 source={{uri: URL.createObjectURL(pastedFile)}}

@@ -8,12 +8,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuitePayableAccountOptions} from '@libs/PolicyUtils';
+import {getNetSuitePayableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -28,7 +30,8 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite.options.config;
-    const currentPayableAccountID = isReimbursable ? config?.reimbursablePayableAccount : config?.payableAcct;
+    const currentSettingName = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT : CONST.NETSUITE_CONFIG.PAYABLE_ACCT;
+    const currentPayableAccountID = config?.[currentSettingName];
     const netsuitePayableAccountOptions = useMemo<SelectorType[]>(() => getNetSuitePayableAccountOptions(policy ?? undefined, currentPayableAccountID), [currentPayableAccountID, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuitePayableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuitePayableAccountOptions]);
@@ -64,7 +67,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteExportExpensesPayableAccountSelectPage.displayName}
             sections={netsuitePayableAccountOptions.length ? [{data: netsuitePayableAccountOptions}] : []}
@@ -80,6 +83,10 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
                     ? config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY
                     : config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY
             }
+            pendingAction={settingsPendingAction([currentSettingName], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config, currentSettingName)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearNetSuiteErrorField(policyID, currentSettingName)}
         />
     );
 }

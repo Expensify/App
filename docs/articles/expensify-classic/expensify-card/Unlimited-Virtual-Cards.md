@@ -66,6 +66,8 @@ There are two different limit types that are best suited for their intended purp
 - _Fixed limit_ spend cards are ideal for one-time expenses or providing employees access to a card for a designated purchase. 
 - _Monthly_ limit spend cards are perfect for managing recurring expenses such as subscriptions and memberships.
 
+A virtual card with either of these limit types doesn't share its limit with any other cards, including the cardholder's smart limit cards. 
+
 **Where can employees see their virtual cards?**
 
 Employees can see their assigned virtual cards by navigating to **Settings** > **Account** > [**Credit Cards Import**](https://www.expensify.com/settings?param=%7B%22section%22:%22creditcards%22%7D) in their account.

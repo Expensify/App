@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
@@ -20,14 +21,11 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Full amount of expense report to pay */
     fullAmount: string;
 
-    /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: boolean;
-
     /** Whether modal is visible */
     isVisible: boolean;
 
     /** The report currently being looked at */
-    moneyRequestReport: OnyxTypes.Report;
+    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Not held amount of expense report */
     nonHeldAmount?: string;
@@ -49,7 +47,6 @@ function ProcessMoneyReportHoldMenu({
     requestType,
     nonHeldAmount,
     fullAmount,
-    isSmallScreenWidth = false,
     onClose,
     isVisible,
     paymentType,
@@ -59,12 +56,14 @@ function ProcessMoneyReportHoldMenu({
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
+    // We need to use shouldUseNarrowLayout instead of shouldUseNarrowLayout to apply the correct modal type
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport.reportID)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport.reportID));
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
         } else if (chatReport && paymentType) {
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
@@ -76,7 +75,7 @@ function ProcessMoneyReportHoldMenu({
         if (nonHeldAmount) {
             return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
         }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {transactionCount});
+        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
     }, [nonHeldAmount, transactionCount, translate, isApprove]);
 
     return (

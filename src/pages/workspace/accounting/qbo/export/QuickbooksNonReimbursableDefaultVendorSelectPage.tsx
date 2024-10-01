@@ -1,19 +1,19 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -25,7 +25,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const policyID = policy?.id ?? '-1';
     const sections = useMemo(() => {
@@ -34,19 +34,19 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
                 value: vendor.id,
                 text: vendor.name,
                 keyForList: vendor.name,
-                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
+                isSelected: vendor.id === qboConfig?.nonReimbursableBillDefaultVendor,
             })) ?? [];
         return data.length ? [{data}] : [];
-    }, [nonReimbursableBillDefaultVendor, vendors]);
+    }, [qboConfig?.nonReimbursableBillDefaultVendor, vendors]);
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
-            if (row.value !== nonReimbursableBillDefaultVendor) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, row.value);
+            if (row.value !== qboConfig?.nonReimbursableBillDefaultVendor) {
+                QuickbooksOnline.updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID, row.value, qboConfig?.nonReimbursableBillDefaultVendor);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [nonReimbursableBillDefaultVendor, policyID],
+        [qboConfig?.nonReimbursableBillDefaultVendor, policyID],
     );
 
     const listEmptyContent = useMemo(
@@ -64,23 +64,25 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <ScreenWrapper testID={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.accounting.defaultVendor')} />
-                <SelectionList
-                    sections={sections}
-                    ListItem={RadioListItem}
-                    onSelectRow={selectVendor}
-                    shouldDebounceRowSelect
-                    initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
-                    listEmptyContent={listEmptyContent}
-                />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            displayName={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}
+            title="workspace.accounting.defaultVendor"
+            sections={sections}
+            listItem={RadioListItem}
+            onSelectRow={selectVendor}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
+            listEmptyContent={listEmptyContent}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR)}
+        />
     );
 }
 

@@ -10,6 +10,9 @@ on:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
+env:
+  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+
 jobs:
   validateActor:
     runs-on: ubuntu-latest
@@ -35,7 +38,6 @@ jobs:
             echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}"
           fi
         env:
-          PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
 
   getBranchRef:
@@ -54,8 +56,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,7 +66,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest-xl
     env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,15 +83,14 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '2.7'
           bundler-cache: true
 
       - name: Decrypt keystore
@@ -113,19 +113,22 @@ jobs:
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: Run Fastlane beta test
-        id: runFastlaneBetaTest
-        run: bundle exec fastlane android build_internal
+      - name: Run AdHoc build
+        run: bundle exec fastlane android build_adhoc
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+
+      - name: Upload AdHoc build to S3
+        run: bundle exec fastlane android upload_s3
         env:
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
-          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android
           path: ./android_paths.json
@@ -135,8 +138,7 @@ jobs:
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
@@ -158,12 +160,11 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup XCode
-        run: sudo xcode-select -switch /Applications/Xcode_15.0.1.app
+        run: sudo xcode-select -switch /Applications/Xcode_15.2.0.app
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '2.7'
           bundler-cache: true
 
       - name: Cache Pod dependencies
@@ -172,19 +173,18 @@ jobs:
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-          restore-keys: ${{ runner.os }}-pods-cache-
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
         run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
-        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
         if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && bundle exec pod install
+          command: scripts/pod-install.sh
 
       - name: Decrypt AdHoc profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc.mobileprovision NewApp_AdHoc.mobileprovision.gpg
@@ -208,8 +208,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Run Fastlane
-        run: bundle exec fastlane ios build_internal
+      - name: Build AdHoc app
+        run: bundle exec fastlane ios build_adhoc
+
+      - name: Upload AdHoc build to S3
+        run: bundle exec fastlane ios upload_s3
         env:
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -217,7 +220,7 @@ jobs:
           S3_REGION: us-east-1
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios
           path: ./ios_paths.json
@@ -226,8 +229,6 @@ jobs:
     name: Build and deploy Desktop for testing
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-    env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-14-large
     steps:
       - name: Checkout
@@ -271,8 +272,6 @@ jobs:
     name: Build and deploy Web
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-    env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
@@ -299,10 +298,6 @@ jobs:
       - name: Build web for testing
         run: npm run build-adhoc
 
-      - name: Build docs
-        run: npm run storybook-build
-        continue-on-error: true
-
       - name: Deploy to S3 for internal testing
         run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
 
@@ -311,8 +306,6 @@ jobs:
     name: Post a GitHub comment with app download links for testing
     needs: [validateActor, getBranchRef, android, iOS, desktop, web]
     if: ${{ always() }}
-    env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -321,7 +314,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
 
       - name: Read JSONs with android paths

@@ -1,4 +1,5 @@
 import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 
 type TextSelection = {
     start: number;
@@ -11,7 +12,7 @@ type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeE
     positionY?: number;
 };
 
-type ComposerProps = TextInputProps & {
+type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     /** identify id in the text input */
     id?: string;
 
@@ -27,21 +28,21 @@ type ComposerProps = TextInputProps & {
     /** The value of the comment box */
     value?: string;
 
+    /**
+     * Callback when the input was cleared using the .clear ref method.
+     * The text parameter will be the value of the text that was cleared.
+     */
+    onClear?: (text: string) => void;
+
     /** Callback method handle when the input is changed  */
     onChangeText?: (numberOfLines: string) => void;
 
     /** Callback method to handle pasting a file */
-    onPasteFile?: (file: File) => void;
+    onPasteFile?: (file: FileObject) => void;
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     style?: StyleProp<TextStyle>;
-
-    /** If the input should clear, it actually gets intercepted instead of .clear() */
-    shouldClear?: boolean;
-
-    /** When the input has cleared whoever owns this input should know about it */
-    onClear?: () => void;
 
     /** Whether or not this TextInput is disabled. */
     isDisabled?: boolean;
@@ -68,9 +69,6 @@ type ComposerProps = TextInputProps & {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility?: () => boolean;
 
-    /** Whether this is the report action compose */
-    isReportActionCompose?: boolean;
-
     /** Whether the sull composer is open */
     isComposerFullSize?: boolean;
 
@@ -79,6 +77,8 @@ type ComposerProps = TextInputProps & {
 
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
+
+    showSoftInputOnFocus?: boolean;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

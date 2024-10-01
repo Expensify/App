@@ -1,14 +1,26 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {
+    GestureResponderEvent,
+    InputModeOptions,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    SectionListData,
+    StyleProp,
+    TextInput,
+    TextStyle,
+    ViewStyle,
+} from 'react-native';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
@@ -18,7 +30,7 @@ import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -58,8 +70,17 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
+
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -93,6 +114,9 @@ type ListItem = {
     /** User login */
     login?: string | null;
 
+    /** Element to show on the left side of the item */
+    leftElement?: ReactNode;
+
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
 
@@ -116,11 +140,23 @@ type ListItem = {
     /** ID of the report */
     reportID?: string;
 
+    /** ID of the policy */
+    policyID?: string;
+
+    /** ID of the group */
+    groupID?: string;
+
+    /** ID of the category */
+    categoryID?: string;
+
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean | null;
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** The search value from the selection list */
     searchText?: string | null;
@@ -139,15 +175,18 @@ type ListItem = {
 
     /** The style to override the cursor appearance */
     cursorStyle?: CursorStyles[keyof CursorStyles];
+
+    /** Determines whether the newly added item should animate in / highlight */
+    shouldAnimateInHighlight?: boolean;
 };
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -185,14 +224,30 @@ type TransactionListItemType = ListItem &
         keyForList: string;
     };
 
+type ReportActionListItemType = ListItem &
+    SearchReportAction & {
+        /** The personal details of the user posting comment */
+        from: SearchPersonalDetails;
+
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final "date" value used for sorting */
+        date: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
+        /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
     };
 
@@ -220,6 +275,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
      * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
      */
     shouldSyncFocus?: boolean;
+
+    /** Whether to show RBR */
+    shouldDisplayRBR?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -233,6 +291,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
+    hasAnimateInHighlightStyle?: boolean;
+    /** Errors that this user may contain */
+    shouldDisplayRBR?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -256,7 +317,16 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem =
+    | typeof RadioListItem
+    | typeof UserListItem
+    | typeof TableListItem
+    | typeof InviteMemberListItem
+    | typeof TransactionListItem
+    | typeof ReportListItem
+    | typeof ChatListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -296,8 +366,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
-    /** Whether to debounce `onRowSelect` */
-    shouldDebounceRowSelect?: boolean;
+    /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
+    shouldSingleExecuteRowSelect?: boolean;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
 
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
@@ -313,6 +386,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
+
+    /** Whether to show the text input */
+    shouldShowTextInput?: boolean;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -348,7 +424,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     initiallyFocusedOptionKey?: string | null;
 
     /** Callback to fire when the list is scrolled */
-    onScroll?: () => void;
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Callback to fire when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
@@ -377,8 +453,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
-    /** Whether to stop automatic form submission on pressing enter key or not */
+    /** Whether to stop automatic propagation on pressing enter key or not */
     shouldStopPropagation?: boolean;
+
+    /** Whether to call preventDefault() on pressing enter key or not */
+    shouldPreventDefault?: boolean;
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
@@ -395,7 +474,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
-    /** Content to display if the list is empty */
+    /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
@@ -406,6 +485,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles to apply to SectionList component */
+    sectionListStyle?: StyleProp<ViewStyle>;
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
@@ -427,6 +509,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
@@ -465,11 +553,24 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether to show the empty list content */
+    shouldShowListEmptyContent?: boolean;
+
+    /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
+    scrollEventThrottle?: number;
+
+    /** Additional styles to apply to scrollable content */
+    contentContainerStyle?: StyleProp<ViewStyle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
+    scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
 type ItemLayout = {
@@ -517,4 +618,6 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    ReportActionListItemType,
+    ChatListItemProps,
 };

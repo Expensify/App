@@ -184,11 +184,11 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connectionID = Onyx.connect({
+            const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
-                    Onyx.disconnect(connectionID);
+                    Onyx.disconnect(connection);
                     resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
                 },
             });
@@ -243,10 +243,9 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
+    return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-
-        API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true));
+        return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
@@ -350,8 +349,9 @@ function endSignOnTransition() {
  * @param [policyName] Optional, custom policy name we will use for created workspace
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
     const policyID = Policy.generatePolicyID();
     Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
@@ -361,7 +361,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
         })
         .then(endSignOnTransition);
 }
@@ -424,8 +425,6 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     if (!isLoggingInAsNewUser && exitTo) {
         Navigation.waitForProtectedRoutes()
             .then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
@@ -450,7 +449,7 @@ function redirectThirdPartyDesktopSignIn() {
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
@@ -476,7 +475,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
     });
 }
 
@@ -497,6 +496,10 @@ function updateLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
+function updateLastRoute(screen: string) {
+    Onyx.set(ONYXKEYS.LAST_ROUTE, screen);
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -514,5 +517,6 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    updateLastRoute,
     KEYS_TO_PRESERVE,
 };

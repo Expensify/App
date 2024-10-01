@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,10 +11,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type ListItemType = {
-    value: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    value: ValueOf<typeof CONST.POLICY.ROLE>;
     text: string;
+    alternateText: string;
     isSelected: boolean;
-    keyForList: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    keyForList: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
 type WorkspaceMemberDetailsPageProps = {
@@ -56,7 +58,8 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                         sections={[{data: items}]}
                         ListItem={RadioListItem}
                         onSelectRow={onRoleChange}
-                        shouldDebounceRowSelect
+                        isAlternateTextMultilineSupported
+                        shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
                     />
                 </View>

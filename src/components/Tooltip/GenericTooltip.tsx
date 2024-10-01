@@ -29,8 +29,13 @@ function GenericTooltip({
     shiftVertical = 0,
     shouldForceRenderingBelow = false,
     wrapperStyle = {},
-    shouldForceRenderingLeft = false,
+    anchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     shouldForceAnimate = false,
+    shouldUseOverlay: shouldUseOverlayProp = false,
+    onHideTooltip = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -50,6 +55,9 @@ function GenericTooltip({
     // The width and height of the wrapper view
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
+
+    // Transparent overlay should disappear once user taps it
+    const [shouldUseOverlay, setShouldUseOverlay] = useState(shouldUseOverlayProp);
 
     // Whether the tooltip is first tooltip to activate the TooltipSense
     const isTooltipSenseInitiator = useRef(false);
@@ -136,6 +144,15 @@ function GenericTooltip({
         setIsVisible(false);
     }, []);
 
+    const onPressOverlay = useCallback(() => {
+        if (!shouldUseOverlay) {
+            return;
+        }
+        setShouldUseOverlay(false);
+        hideTooltip();
+        onHideTooltip();
+    }, [shouldUseOverlay, onHideTooltip, hideTooltip]);
+
     useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
@@ -164,7 +181,9 @@ function GenericTooltip({
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
                     wrapperStyle={wrapperStyle}
-                    shouldForceRenderingLeft={shouldForceRenderingLeft}
+                    anchorAlignment={anchorAlignment}
+                    shouldUseOverlay={shouldUseOverlay}
+                    onHideTooltip={onPressOverlay}
                 />
             )}
 

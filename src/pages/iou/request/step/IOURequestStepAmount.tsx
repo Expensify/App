@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -62,7 +62,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency = ''},
+        params: {iouType, reportID, transactionID, backTo, pageIndex, action, currency: selectedCurrency = ''},
     },
     transaction,
     policy,
@@ -78,6 +78,7 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -94,8 +95,8 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation]);
+        return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
+    }, [report, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -132,9 +133,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, pageIndex, currency, Navigation.getActiveRoute()));
     };
 
     const navigateToParticipantPage = () => {
@@ -182,7 +181,7 @@ function IOURequestStepAmount({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
@@ -226,7 +225,7 @@ function IOURequestStepAmount({
                         backendAmount,
                         currency,
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         participants[0],
@@ -241,7 +240,7 @@ function IOURequestStepAmount({
                         backendAmount,
                         currency ?? 'USD',
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         participants[0],
@@ -280,12 +279,7 @@ function IOURequestStepAmount({
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
         if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
-            if (isSplitBill) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.dismissModal();
-            }
-
+            navigateBack();
             return;
         }
 
@@ -298,12 +292,12 @@ function IOURequestStepAmount({
 
         if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
-            Navigation.goBack(backTo);
+            navigateBack();
             return;
         }
 
         IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
-        Navigation.dismissModal();
+        navigateBack();
     };
 
     return (

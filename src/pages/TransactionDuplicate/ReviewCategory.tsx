@@ -18,12 +18,17 @@ function ReviewCategory() {
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'category',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const options = useMemo(
         () =>
             compareResult.change.category?.map((category) =>
                 !category
-                    ? {text: translate('violations.none'), value: undefined}
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: category,
                           value: category,
@@ -32,22 +37,25 @@ function ReviewCategory() {
         [compareResult.change.category, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const setCategory = (data: FieldItemType<'category'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({category: data.value as string});
+            setReviewDuplicatesKey({category: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
         <ScreenWrapper testID={ReviewCategory.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
+            <ReviewFields<'category'>
                 stepNames={stepNames}
                 label={translate('violations.categoryToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setCategory}
             />
         </ScreenWrapper>
     );

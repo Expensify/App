@@ -30,11 +30,11 @@ function WorkspacesSectionHeader() {
             </View>
             <Tooltip text={translate('workspace.new.newWorkspace')}>
                 <PressableWithFeedback
-                    accessible={false}
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
                     role={CONST.ROLE.BUTTON}
                     onPress={() => {
-                        Navigation.goBack();
-                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
+                        const activeRoute = Navigation.getActiveRouteWithoutParams();
+                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt('', '', false, false, activeRoute));
                     }}
                 >
                     {({hovered}) => (

@@ -10,25 +10,26 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {RoomInviteNavigatorParamList} from '@navigation/types';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,9 +39,8 @@ import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import SearchInputManager from './workspace/SearchInputManager';
 
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 function RoomInvitePage({
@@ -48,36 +48,34 @@ function RoomInvitePage({
     report,
     policies,
     route: {
-        params: {role},
+        params: {role, backTo},
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
-    const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
-    const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {options, areOptionsInitialized} = useOptionsList();
 
-    useEffect(() => {
-        setSearchTerm(SearchInputManager.searchInput);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    const {options, areOptionsInitialized} = useOptionsList();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && !participant.hidden)
+            .filter(([, participant]) => participant && participant.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
             .map(([accountID]) => Number(accountID));
         return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
             PhoneNumber.addSMSDomainIfPhoneNumber(participant),
         );
     }, [report.participants]);
 
-    useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], debouncedSearchTerm, excludedUsers);
+    const defaultOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        }
 
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -91,15 +89,31 @@ function RoomInvitePage({
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
         });
 
-        setUserToInvite(inviteOptions.userToInvite);
-        setInvitePersonalDetails(inviteOptions.personalDetails);
-        setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [betas, debouncedSearchTerm, excludedUsers, options.personalDetails]);
+        return {
+            userToInvite: inviteOptions.userToInvite,
+            personalDetails: inviteOptions.personalDetails,
+            selectedOptions: newSelectedOptions,
+            recentReports: [],
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+        };
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
+
+    const inviteOptions = useMemo(() => {
+        if (debouncedSearchTerm.trim() === '') {
+            return defaultOptions;
+        }
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
+
+        return filteredOptions;
+    }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
 
+        const {personalDetails, userToInvite} = inviteOptions;
         if (!areOptionsInitialized) {
             return [];
         }
@@ -109,7 +123,7 @@ function RoomInvitePage({
         if (debouncedSearchTerm !== '') {
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
-                const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
+                const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
                 const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
                 const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
@@ -125,7 +139,7 @@ function RoomInvitePage({
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = invitePersonalDetails.filter(({login}) => !selectedLogins.includes(login));
+        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.includes(login)) : [];
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
@@ -142,7 +156,7 @@ function RoomInvitePage({
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, invitePersonalDetails, userToInvite, translate]);
+    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -169,8 +183,8 @@ function RoomInvitePage({
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
             return ROUTES.REPORT_WITH_ID.getRoute(reportID);
         }
-        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
-    }, [isPolicyEmployee, reportID, role]);
+        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
+    }, [isPolicyEmployee, reportID, role, backTo]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -190,7 +204,7 @@ function RoomInvitePage({
         if (reportID) {
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
-        SearchInputManager.searchInput = '';
+        UserSearchPhraseActions.clearUserSearchPhrase();
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
@@ -205,11 +219,11 @@ function RoomInvitePage({
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
-        if (!userToInvite && expensifyEmails.includes(searchValue)) {
+        if (!inviteOptions.userToInvite && expensifyEmails.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
-            !userToInvite &&
+            !inviteOptions.userToInvite &&
             excludedUsers.includes(
                 PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
                     ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
@@ -218,10 +232,11 @@ function RoomInvitePage({
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
-        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, !!userToInvite, searchValue);
-    }, [debouncedSearchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
+        return OptionsListUtils.getHeaderMessage((inviteOptions.personalDetails ?? []).length !== 0, !!inviteOptions.userToInvite, debouncedSearchTerm);
+    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, translate, reportName]);
 
     useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
         ReportActions.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
@@ -244,11 +259,10 @@ function RoomInvitePage({
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    ListItem={UserListItem}
+                    ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
-                        SearchInputManager.searchInput = value;
                         setSearchTerm(value);
                     }}
                     headerMessage={headerMessage}

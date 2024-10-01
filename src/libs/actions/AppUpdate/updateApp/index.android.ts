@@ -1,6 +1,6 @@
-import {Linking} from 'react-native';
+import {Linking, NativeModules} from 'react-native';
 import CONST from '@src/CONST';
 
 export default function updateApp() {
-    Linking.openURL(CONST.APP_DOWNLOAD_LINKS.ANDROID);
+    Linking.openURL(NativeModules.HybridAppModule ? CONST.APP_DOWNLOAD_LINKS.OLD_DOT_ANDROID : CONST.APP_DOWNLOAD_LINKS.ANDROID);
 }

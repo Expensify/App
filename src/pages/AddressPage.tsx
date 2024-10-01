@@ -7,9 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {BackToParams} from '@libs/Navigation/types';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressPageProps = {
@@ -21,14 +23,15 @@ type AddressPageProps = {
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
     /** Title of address page */
     title: string;
-};
+} & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Check if country is valid
-    const {street, street2} = address ?? {};
+    const {street} = address ?? {};
+    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     const [currentCountry, setCurrentCountry] = useState(address?.country);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -49,23 +52,23 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
         const addressPart = value as string;
         const addressPartKey = key as keyof Address;
 
-        if (addressPartKey !== 'country' && addressPartKey !== 'state' && addressPartKey !== 'city' && addressPartKey !== 'zipPostCode') {
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
             return;
         }
-        if (addressPartKey === 'country') {
+        if (addressPartKey === INPUT_IDS.COUNTRY) {
             setCurrentCountry(addressPart as Country | '');
             setState('');
             setCity('');
             setZipcode('');
             return;
         }
-        if (addressPartKey === 'state') {
+        if (addressPartKey === INPUT_IDS.STATE) {
             setState(addressPart);
             setCity('');
             setZipcode('');
             return;
         }
-        if (addressPartKey === 'city') {
+        if (addressPartKey === INPUT_IDS.CITY) {
             setCity(addressPart);
             setZipcode('');
             return;
@@ -81,7 +84,8 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
             <HeaderWithBackButton
                 title={title}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
+                shouldDisplaySearchRouter
             />
             {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -94,7 +98,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
                     country={currentCountry}
                     onAddressChanged={handleAddressChange}
                     state={state}
-                    street1={street}
+                    street1={street1}
                     street2={street2}
                     zip={zipcode}
                 />

@@ -61,11 +61,16 @@ function BaseTextInput(
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
+        suffixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
+        suffixContainerStyle = [],
+        suffixStyle = [],
+        contentWidth,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -74,7 +79,7 @@ function BaseTextInput(
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -82,7 +87,7 @@ function BaseTextInput(
     // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
-    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
@@ -141,13 +146,13 @@ function BaseTextInput(
     const deactivateLabel = useCallback(() => {
         const newValue = value ?? '';
 
-        if (!!forceActiveLabel || newValue.length !== 0 || prefixCharacter) {
+        if (!!forceActiveLabel || newValue.length !== 0 || prefixCharacter || suffixCharacter) {
             return;
         }
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, forceActiveLabel, prefixCharacter, value]);
+    }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
     const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         inputProps.onFocus?.(event);
@@ -244,11 +249,11 @@ function BaseTextInput(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
-    const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
+    const newPlaceholder = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        autoGrow && StyleUtils.getWidthStyle(textInputWidth),
+        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -273,6 +278,9 @@ function BaseTextInput(
 
         return undefined;
     }, [inputStyle]);
+
+    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
+    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
     return (
         <>
@@ -362,7 +370,8 @@ function BaseTextInput(
                                     styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
+                                    inputPaddingLeft,
+                                    inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
@@ -399,6 +408,17 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
+                            {!!suffixCharacter && (
+                                <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
+                                    <Text
+                                        tabIndex={-1}
+                                        style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    >
+                                        {suffixCharacter}
+                                    </Text>
+                                </View>
+                            )}
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
@@ -440,6 +460,29 @@ function BaseTextInput(
                     />
                 )}
             </View>
+            {contentWidth && (
+                <View
+                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
+                    onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                            return;
+                        }
+                        setTextInputWidth(e.nativeEvent.layout.width);
+                        setTextInputHeight(e.nativeEvent.layout.height);
+                    }}
+                >
+                    <Text
+                        style={[
+                            inputStyle,
+                            autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
+                            {width: contentWidth},
+                        ]}
+                    >
+                        {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
+                        {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
+                    </Text>
+                </View>
+            )}
             {/*
                  Text input component doesn't support auto grow by default.
                  We're using a hidden text input to achieve that.

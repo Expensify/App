@@ -20,6 +20,9 @@ type ReviewDuplicates = {
     /** Tax code  which user want to keep */
     taxCode: string;
 
+    /** Calculated tax amount */
+    taxAmount: number;
+
     /** Description  which user want to keep */
     description: string;
 

@@ -1,7 +1,7 @@
 import {getUnixTime} from 'date-fns';
-import {isEqual} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
+import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -9,7 +9,7 @@ import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@li
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
+import {buildOptimisticDismissedViolationReportAction, buildOptimisticUnHoldReportAction, isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -164,6 +164,10 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         comment: {
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                quantity: null,
+            },
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
@@ -292,9 +296,14 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
-    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() =>
-        buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}),
-    );
+    const isSubmitter = currentTransactions.every((transaction) => isCurrentUserSubmitter(transaction.reportID ?? ''));
+    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
+        if (isSubmitter) {
+            return buildOptimisticUnHoldReportAction();
+        }
+        return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
+    });
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -371,6 +380,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
+        reportActionIDList: optimisticDissmidedViolationReportActions.map((action) => action.reportActionID).join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
@@ -384,6 +394,10 @@ function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>) {
     Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
         ...values,
     });
+}
+
+function abandonReviewDuplicateTransactions() {
+    Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
 function clearError(transactionID: string) {
@@ -438,4 +452,32 @@ function markAsCash(transactionID: string, transactionThreadReportID: string) {
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey};
+function openDraftDistanceExpense() {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+                // By optimistically setting the recent waypoints to an empty array, no further loading attempts will be made
+                value: [],
+            },
+        ],
+    };
+    API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
+}
+
+export {
+    addStop,
+    createInitialWaypoints,
+    saveWaypoint,
+    removeWaypoint,
+    getRoute,
+    updateWaypoints,
+    clearError,
+    markAsCash,
+    dismissDuplicateTransactionViolation,
+    setReviewDuplicatesKey,
+    abandonReviewDuplicateTransactions,
+    openDraftDistanceExpense,
+};

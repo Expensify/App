@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, RadioListItemProps} from './types';
@@ -16,6 +17,8 @@ function RadioListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     isMultilineSupported = false,
+    isAlternateTextMultilineSupported = false,
+    alternateTextNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
 }: RadioListItemProps<TItem>) {
@@ -23,6 +26,7 @@ function RadioListItem<TItem extends ListItem>({
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
+    const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
 
     return (
         <BaseListItem
@@ -41,6 +45,7 @@ function RadioListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
         >
             <>
+                {!!item.leftElement && item.leftElement}
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
@@ -61,7 +66,13 @@ function RadioListItem<TItem extends ListItem>({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            style={[
+                                styles.textLabelSupporting,
+                                styles.lh16,
+                                isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
+                                isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
+                            ]}
+                            numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />
                     )}
                 </View>

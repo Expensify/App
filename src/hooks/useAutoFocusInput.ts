@@ -1,25 +1,27 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
-import * as Expensify from '@src/Expensify';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
+    inputRef: RefObject<TextInput | null>;
 };
 
 export default function useAutoFocusInput(): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
-    const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
+    const {splashScreenState} = useSplashScreenStateContext();
 
     const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
@@ -30,7 +32,7 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
+    }, [isScreenTransitionEnded, isInputInitialized, splashScreenState]);
 
     useFocusEffect(
         useCallback(() => {
@@ -55,5 +57,5 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         setIsInputInitialized(true);
     };
 
-    return {inputCallbackRef};
+    return {inputCallbackRef, inputRef};
 }

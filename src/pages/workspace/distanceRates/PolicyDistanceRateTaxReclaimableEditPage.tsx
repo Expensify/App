@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,9 +34,8 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit.rates[rateID];
     const currency = rate.currency ?? CONST.CURRENCY.USD;
-    const extraDecimals = 1;
-    const decimals = CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
-    const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(decimals) : '';
+    const currentTaxReclaimableOnValue =
+        rate.attributes?.taxClaimablePercentage && rate.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) : '';
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
         if (values.taxClaimableValue === currentTaxReclaimableOnValue) {
@@ -84,12 +82,11 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
                     shouldHideFixErrorsAlert
                     submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
-                    disablePressOnEnter={false}
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
-                        extraDecimals={extraDecimals}
+                        fixedDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentTaxReclaimableOnValue?.toString() ?? ''}
                         isCurrencyPressable={false}
                         currency={currency}

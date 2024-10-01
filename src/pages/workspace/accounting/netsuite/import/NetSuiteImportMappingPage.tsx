@@ -9,10 +9,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -22,6 +25,7 @@ type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>
 type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
+            /** Whether the record is custom segment or custom list */
             importField: ImportFieldsKeys;
         };
     };
@@ -49,7 +53,7 @@ function NetSuiteImportMappingPage({
     const listFooterContent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt3, styles.mb4]}>
-                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
+                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, {importField})}</Text>
             </View>
         ),
         [importField, importValue, styles.mb4, styles.mt3, styles.ph5, translate],
@@ -84,7 +88,7 @@ function NetSuiteImportMappingPage({
                 updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
             }
 
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
         },
         [importField, importValue, policyID],
     );
@@ -92,7 +96,7 @@ function NetSuiteImportMappingPage({
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteImportMappingPage.displayName}
             sections={[{data: inputSectionData}]}
@@ -104,6 +108,10 @@ function NetSuiteImportMappingPage({
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
             title={titleKey}
             listFooterContent={listFooterContent}
+            pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
         />
     );
 }

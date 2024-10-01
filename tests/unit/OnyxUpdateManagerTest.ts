@@ -13,11 +13,18 @@ jest.mock('@libs/actions/App');
 jest.mock('@libs/actions/OnyxUpdateManager/utils');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
 const mockUpdate3 = createOnyxMockUpdate(3);
+const offsetedMockUpdate3 = createOnyxMockUpdate(3, undefined, 2);
 const mockUpdate4 = createOnyxMockUpdate(4);
 const mockUpdate5 = createOnyxMockUpdate(5);
 const mockUpdate6 = createOnyxMockUpdate(6);
@@ -193,7 +200,7 @@ describe('OnyxUpdateManager', () => {
             // Even though there are multiple gaps in the deferred updates, we only want to fetch missing updates once per batch.
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
 
-            // validateAndApplyDeferredUpdates should be called twice, once for the initial deferred updates and once for the remaining deferred updates with gaps.
+            // validateAndApplyDeferredUpdates should be called once for the initial deferred updates
             // Unfortunately, we cannot easily count the calls of this function with Jest, since it recursively calls itself.
             // The intended assertion would look like this:
             // expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(1);
@@ -252,6 +259,30 @@ describe('OnyxUpdateManager', () => {
             // Since the lastUpdateIDAppliedToClient has changed to 4 in the meantime and we're fetching updates 5-6 we only need to apply the remaining deferred updates (7).
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {7: mockUpdate7});
+        });
+    });
+
+    it('should only fetch missing updates that are not outdated (older than already locally applied update)', () => {
+        OnyxUpdateManager.handleOnyxUpdateGap(offsetedMockUpdate3);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate4);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 4.
+            expect(lastUpdateIDAppliedToClient).toBe(4);
+
+            // validateAndApplyDeferredUpdates should be called once for the initial deferred updates
+            // Unfortunately, we cannot easily count the calls of this function with Jest, since it recursively calls itself.
+            // The intended assertion would look like this:
+            // expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(1);
+
+            // There should be only one call to applyUpdates. The call should contain all the deferred update,
+            // since the locally applied updates have changed in the meantime.
+            expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(ApplyUpdates.applyUpdates).toHaveBeenCalledWith({3: offsetedMockUpdate3, 4: mockUpdate4});
+
+            // There are no gaps in the deferred updates, therefore only one call to getMissingOnyxUpdates should be triggered
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
         });
     });
 });

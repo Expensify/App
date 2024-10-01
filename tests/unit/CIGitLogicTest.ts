@@ -27,6 +27,7 @@ type ExecSyncError = {stderr: Buffer};
 
 function exec(command: string) {
     try {
+        Log.info(command);
         execSync(command, {stdio: 'inherit'});
     } catch (error) {
         if ((error as ExecSyncError).stderr) {
@@ -251,11 +252,24 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
     checkoutRepo();
     const PRs = await GitUtils.getPullRequestsMergedBetween(from, to);
     expect(PRs).toStrictEqual(expected);
+    Log.success(`Verified PRs merged between ${from} and ${to} are [${expected.join(',')}]`);
 }
 
+/*
+ * These tests are different from most jest tests. They create a dummy git repo and simulate the GitHub Actions CI environment
+ * and ensure that deploy checklists, comments, and releases are created correctly and completely,
+ * including a number of real-world edge cases we have encountered and fixed.
+ *
+ * However, because they are different, there are a few additional "rules" with these tests:
+ *   - They should not be run in parallel with other tests on the same machine. They will not play nicely with other tests.
+ *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
+ */
+
+let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
+        startingDir = process.cwd();
         initGitServer();
         checkoutRepo();
         Log.success('Setup complete!');
@@ -267,15 +281,16 @@ describe('CIGitLogic', () => {
     afterAll(() => {
         fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
         fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
+        process.chdir(startingDir);
     });
 
-    test('Merge a pull request while the checklist is unlocked', () => {
+    test('Merge a pull request while the checklist is unlocked', async () => {
         createBasicPR(1);
         mergePR(1);
         deployStaging();
 
         // Verify output for checklist and deploy comment
-        assertPRsMergedBetween('1.0.0-0', '1.0.0-1', [1]);
+        await assertPRsMergedBetween('1.0.0-0', '1.0.0-1', [1]);
     });
 
     test("Merge a pull request with the checklist locked, but don't CP it", () => {
@@ -283,40 +298,40 @@ describe('CIGitLogic', () => {
         mergePR(2);
     });
 
-    test('Merge a pull request with the checklist locked and CP it to staging', () => {
+    test('Merge a pull request with the checklist locked and CP it to staging', async () => {
         createBasicPR(3);
         cherryPickPR(3);
 
         // Verify output for checklist
-        assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
+        await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
 
         // Verify output for deploy comment
-        assertPRsMergedBetween('1.0.0-1', '1.0.0-2', [3]);
+        await assertPRsMergedBetween('1.0.0-1', '1.0.0-2', [3]);
     });
 
-    test('Close the checklist', () => {
+    test('Close the checklist', async () => {
         deployProduction();
 
         // Verify output for release body and production deploy comments
-        assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
+        await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
 
         // Verify output for new checklist and staging deploy comments
-        assertPRsMergedBetween('1.0.0-2', '1.0.1-0', [2]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-0', [2]);
     });
 
-    test('Merging another pull request when the checklist is unlocked', () => {
+    test('Merging another pull request when the checklist is unlocked', async () => {
         createBasicPR(5);
         mergePR(5);
         deployStaging();
 
         // Verify output for checklist
-        assertPRsMergedBetween('1.0.0-2', '1.0.1-1', [2, 5]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-1', [2, 5]);
 
         // Verify output for deploy comment
-        assertPRsMergedBetween('1.0.1-0', '1.0.1-1', [5]);
+        await assertPRsMergedBetween('1.0.1-0', '1.0.1-1', [5]);
     });
 
-    test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', () => {
+    test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
         Log.info('Creating myFile.txt in PR #6');
         setupGitAsHuman();
         exec('git switch main');
@@ -330,10 +345,10 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist
-        assertPRsMergedBetween('1.0.0-2', '1.0.1-2', [2, 5, 6]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-2', [2, 5, 6]);
 
         // Verify output for deploy comment
-        assertPRsMergedBetween('1.0.1-1', '1.0.1-2', [6]);
+        await assertPRsMergedBetween('1.0.1-1', '1.0.1-2', [6]);
 
         Log.info('Appending and prepending content to myFile.txt in PR #7');
         setupGitAsHuman();
@@ -351,10 +366,10 @@ Appended content
         deployStaging();
 
         // Verify output for checklist
-        assertPRsMergedBetween('1.0.0-2', '1.0.1-3', [2, 5, 6, 7]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-3', [2, 5, 6, 7]);
 
         // Verify output for deploy comment
-        assertPRsMergedBetween('1.0.1-2', '1.0.1-3', [7]);
+        await assertPRsMergedBetween('1.0.1-2', '1.0.1-3', [7]);
 
         Log.info('Making an unrelated change in PR #8');
         setupGitAsHuman();
@@ -392,13 +407,13 @@ Appended content
         deployProduction();
 
         // Verify production release list
-        assertPRsMergedBetween('1.0.0-2', '1.0.1-4', [2, 5, 6, 7, 9]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-4', [2, 5, 6, 7, 9]);
 
         // Verify PR list for the new checklist
-        assertPRsMergedBetween('1.0.1-4', '1.0.2-0', [8, 10]);
+        await assertPRsMergedBetween('1.0.1-4', '1.0.2-0', [8, 10]);
     });
 
-    test('Force-pushing to a branch after rebasing older commits', () => {
+    test('Force-pushing to a branch after rebasing older commits', async () => {
         createBasicPR(11);
         exec('git push origin pr-11');
         createBasicPR(12);
@@ -406,10 +421,10 @@ Appended content
         deployStaging();
 
         // Verify PRs for checklist
-        assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
+        await assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
 
         // Verify PRs for deploy comments
-        assertPRsMergedBetween('1.0.2-0', '1.0.2-1', [12]);
+        await assertPRsMergedBetween('1.0.2-0', '1.0.2-1', [12]);
 
         checkoutRepo();
         setupGitAsHuman();
@@ -422,13 +437,13 @@ Appended content
         deployProduction();
 
         // Verify PRs for deploy comments / release
-        assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
+        await assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
 
         // Verify PRs for new checklist
-        assertPRsMergedBetween('1.0.2-1', '1.0.3-0', [11]);
+        await assertPRsMergedBetween('1.0.2-1', '1.0.3-0', [11]);
     });
 
-    test('Manual version bump', () => {
+    test('Manual version bump', async () => {
         Log.info('Creating manual version bump in PR #13');
         checkoutRepo();
         setupGitAsHuman();
@@ -449,7 +464,7 @@ Appended content
         Log.success(`Deployed v${getVersion()} to staging!`);
 
         // Verify PRs for deploy comments / release and new checklist
-        assertPRsMergedBetween('1.0.3-0', '4.0.0-0', [13]);
+        await assertPRsMergedBetween('1.0.3-0', '4.0.0-0', [13]);
 
         Log.info('Creating manual version bump in PR #14');
         checkoutRepo();
@@ -477,9 +492,9 @@ Appended content
         );
 
         // Verify PRs for deploy comments
-        assertPRsMergedBetween('4.0.0-0', '7.0.0-0', [14]);
+        await assertPRsMergedBetween('4.0.0-0', '7.0.0-0', [14]);
 
         // Verify PRs for the deploy checklist
-        assertPRsMergedBetween('1.0.3-0', '7.0.0-0', [13, 14]);
+        await assertPRsMergedBetween('1.0.3-0', '7.0.0-0', [13, 14]);
     });
 });

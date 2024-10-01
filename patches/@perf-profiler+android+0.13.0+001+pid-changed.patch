@@ -1,0 +1,45 @@
+diff --git a/node_modules/@perf-profiler/android/dist/src/commands/platforms/UnixProfiler.js b/node_modules/@perf-profiler/android/dist/src/commands/platforms/UnixProfiler.js
+index 657c3b0..c97e363 100644
+--- a/node_modules/@perf-profiler/android/dist/src/commands/platforms/UnixProfiler.js
++++ b/node_modules/@perf-profiler/android/dist/src/commands/platforms/UnixProfiler.js
+@@ -113,7 +113,7 @@ class UnixProfiler {
+     }
+     pollPerformanceMeasures(bundleId, { onMeasure, onStartMeasuring = () => {
+         // noop by default
+-    }, }) {
++    }, onPidChanged = () => {}}) {
+         let initialTime = null;
+         let previousTime = null;
+         let cpuMeasuresAggregator = new CpuMeasureAggregator_1.CpuMeasureAggregator(this.getCpuClockTick());
+@@ -170,6 +170,7 @@ class UnixProfiler {
+             previousTime = timestamp;
+         }, () => {
+             logger_1.Logger.warn("Process id has changed, ignoring measures until now");
++            onPidChanged();
+             reset();
+         });
+     }
+diff --git a/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts b/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts
+index be26fe6..0473f78 100644
+--- a/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts
++++ b/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts
+@@ -105,9 +105,11 @@ export abstract class UnixProfiler implements Profiler {
+       onStartMeasuring = () => {
+         // noop by default
+       },
++      onPidChanged = () => {},
+     }: {
+       onMeasure: (measure: Measure) => void;
+       onStartMeasuring?: () => void;
++      onPidChanged?: () => void;
+     }
+   ) {
+     let initialTime: number | null = null;
+@@ -187,6 +189,7 @@ export abstract class UnixProfiler implements Profiler {
+       },
+       () => {
+         Logger.warn("Process id has changed, ignoring measures until now");
++        onPidChanged();
+         reset();
+       }
+     );

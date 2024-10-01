@@ -91,6 +91,14 @@
                     {
                         "/": "/money2020/*",
                         "comment": "Money 2020"
+                    },
+                    {
+                        "/": "/track-expense/*",
+                        "comment": "Track Expense"
+                    },
+                    {
+                        "/": "/submit-expense/*",
+                        "comment": "Submit Expense"
                     }
                 ]
             }

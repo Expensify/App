@@ -1,33 +1,22 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
-type ReportActionItemCreatedOnyxProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<Report>;
-
-    /** The policy object for the current route */
-    policy: OnyxEntry<Policy>;
-
-    /** Personal details of all the users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
+type ReportActionItemCreatedProps = {
     /** The id of the report */
     reportID: string;
 
@@ -35,29 +24,33 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
-function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
+function ReportActionItemCreated({policyID, reportID}: ReportActionItemCreatedProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
-    if (!ReportUtils.isChatReport(props.report)) {
+    if (!ReportUtils.isChatReport(report)) {
         return null;
     }
 
-    let icons = ReportUtils.getIcons(props.report, props.personalDetails);
-    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
+    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
-    if (ReportUtils.isInvoiceRoom(props.report) && ReportUtils.isCurrentUserInvoiceReceiver(props.report)) {
+    if (ReportUtils.isInvoiceRoom(report) && ReportUtils.isCurrentUserInvoiceReceiver(report)) {
         icons = [...icons].reverse();
     }
 
     return (
         <OfflineWithFeedback
-            pendingAction={props.report?.pendingFields?.addWorkspaceRoom ?? props.report?.pendingFields?.createChat}
-            errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat}
+            pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
+            errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
+            onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID ?? reportID, undefined, true)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
@@ -65,9 +58,9 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
                 >
-                    <OfflineWithFeedback pendingAction={props.report?.pendingFields?.avatar}>
+                    <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                            onPress={() => ReportUtils.navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
@@ -77,15 +70,15 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                                 icons={icons}
                                 size={isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
                                 shouldStackHorizontally
-                                shouldDisplayAvatarsInRows={isSmallScreenWidth}
-                                maxAvatarsInRow={isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                                shouldDisplayAvatarsInRows={shouldUseNarrowLayout}
+                                maxAvatarsInRow={shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
                             />
                         </PressableWithoutFeedback>
                     </OfflineWithFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText
-                            report={props.report}
-                            policy={props.policy}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 </View>
@@ -96,32 +89,4 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
 
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOnyxProps>({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(
-    memo(
-        ReportActionItemCreated,
-        (prevProps, nextProps) =>
-            prevProps.policy?.name === nextProps.policy?.name &&
-            prevProps.policy?.avatarURL === nextProps.policy?.avatarURL &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum &&
-            prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
-            prevProps.report?.description === nextProps.report?.description &&
-            prevProps.personalDetails === nextProps.personalDetails &&
-            prevProps.policy?.description === nextProps.policy?.description &&
-            prevProps.report?.reportName === nextProps.report?.reportName &&
-            prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
-            prevProps.report?.errorFields === nextProps.report?.errorFields,
-    ),
-);
+export default memo(ReportActionItemCreated);

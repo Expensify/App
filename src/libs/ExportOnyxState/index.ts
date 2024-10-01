@@ -1,10 +1,10 @@
 import CONST from '@src/CONST';
-import common from './common';
+import ExportOnyxState from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise<Record<string, unknown>>((resolve) => {
         let db: IDBDatabase;
-        const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME, 1);
+        const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME);
         openRequest.onsuccess = () => {
             db = openRequest.result;
             const transaction = db.transaction(CONST.DEFAULT_TABLE_NAME);
@@ -44,7 +44,7 @@ const shareAsFile = (value: string) => {
 };
 
 export default {
-    maskFragileData: common.maskFragileData,
+    maskOnyxState: ExportOnyxState.maskOnyxState,
     readFromOnyxDatabase,
     shareAsFile,
 };

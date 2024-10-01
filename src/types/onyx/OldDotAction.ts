@@ -9,7 +9,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
-} from '@src/languages/types';
+} from '@src/languages/params';
 
 /**
  *
@@ -21,7 +21,6 @@ type OldDotOriginalMessageActionName =
     | 'DELEGATESUBMIT'
     | 'EXPORTCSV'
     | 'EXPORTINTEGRATION'
-    | 'FORWARDED'
     | 'INTEGRATIONSMESSAGE'
     | 'MANAGERATTACHRECEIPT'
     | 'MANAGERDETACHRECEIPT'
@@ -120,18 +119,6 @@ type OriginalMessageExportedToIntegration = {
      */
     originalMessage: ExportedToIntegrationParams & Record<string, unknown>;
 };
-
-// Currently lacking Params
-// type OriginalMessagePolicyTask = {
-//     /**
-//      *
-//      */
-//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
-//     /**
-//      *
-//      */
-//     originalMessage: ForwardedParams & Record<string, unknown>;
-// };
 
 /**
  *

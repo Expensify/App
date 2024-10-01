@@ -7,7 +7,6 @@ import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
-import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from '@src/pages/home/report/ReportActionsList';
@@ -83,7 +82,7 @@ beforeEach(() => {
 
 function ReportActionsListWrapper() {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, WindowDimensionsProvider, ReportAttachmentsProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider]}>
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList

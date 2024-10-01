@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -61,8 +61,8 @@ type ConnectionLayoutProps = {
     /** Name of the current connection */
     connectionName: ConnectionName;
 
-    /** Block the screen when the connection is not empty */
-    reverseConnectionEmptyCheck?: boolean;
+    /** Whether the screen should load for an empty connection */
+    shouldLoadForEmptyConnection?: boolean;
 
     /** Handler for back button press */
     onBackButtonPress?: () => void;
@@ -100,7 +100,7 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
-    reverseConnectionEmptyCheck = false,
+    shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
@@ -122,12 +122,14 @@ function ConnectionLayout({
         [title, titleStyle, children, titleAlreadyTranslated],
     );
 
+    const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={(reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty) || shouldBeBlocked}
+            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}

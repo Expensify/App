@@ -22,12 +22,15 @@ type TestResultListener = (testResult: TestResult) => void;
 
 type AddListener<TListener> = (listener: TListener) => () => void;
 
+type ClearAllListeners = () => void;
+
 type ServerInstance = {
     setTestConfig: (testConfig: TestConfig) => void;
     getTestConfig: () => TestConfig;
     addTestStartedListener: AddListener<TestStartedListener>;
     addTestResultListener: AddListener<TestResultListener>;
     addTestDoneListener: AddListener<TestDoneListener>;
+    clearAllTestDoneListeners: ClearAllListeners;
     forceTestCompletion: () => void;
     setReadyToAcceptTestResults: (isReady: boolean) => void;
     isReadyToAcceptTestResults: boolean;
@@ -70,7 +73,7 @@ const getPostJSONRequestData = <TRequestData extends RequestData>(req: IncomingM
     });
 };
 
-const createListenerState = <TListener>(): [TListener[], AddListener<TListener>] => {
+const createListenerState = <TListener>(): [TListener[], AddListener<TListener>, ClearAllListeners] => {
     const listeners: TListener[] = [];
     const addListener = (listener: TListener) => {
         listeners.push(listener);
@@ -81,8 +84,11 @@ const createListenerState = <TListener>(): [TListener[], AddListener<TListener>]
             }
         };
     };
+    const clearAllListeners = () => {
+        listeners.splice(0, listeners.length);
+    };
 
-    return [listeners, addListener];
+    return [listeners, addListener, clearAllListeners];
 };
 
 /**
@@ -98,7 +104,7 @@ const createListenerState = <TListener>(): [TListener[], AddListener<TListener>]
 const createServerInstance = (): ServerInstance => {
     const [testStartedListeners, addTestStartedListener] = createListenerState<TestStartedListener>();
     const [testResultListeners, addTestResultListener] = createListenerState<TestResultListener>();
-    const [testDoneListeners, addTestDoneListener] = createListenerState<TestDoneListener>();
+    const [testDoneListeners, addTestDoneListener, clearAllTestDoneListeners] = createListenerState<TestDoneListener>();
     let isReadyToAcceptTestResults = true;
 
     const setReadyToAcceptTestResults = (isReady: boolean) => {
@@ -163,8 +169,8 @@ const createServerInstance = (): ServerInstance => {
 
             case Routes.testNativeCommand: {
                 getPostJSONRequestData<NativeCommand>(req, res)
-                    ?.then((data) => {
-                        const status = nativeCommands.executeFromPayload(data?.actionName, data?.payload);
+                    ?.then((data) => nativeCommands.executeFromPayload(data?.actionName, data?.payload))
+                    .then((status) => {
                         if (status) {
                             res.end('ok');
                             return;
@@ -229,6 +235,7 @@ const createServerInstance = (): ServerInstance => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
+        clearAllTestDoneListeners,
         forceTestCompletion,
         start: () =>
             new Promise<void>((resolve) => {

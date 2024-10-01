@@ -10,10 +10,11 @@ import type {
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
     PaymentCardParams,
+    SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
@@ -253,12 +255,31 @@ function addSubscriptionPaymentCard(cardData: {
         },
     ];
 
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
+    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+        addPaymentCardGBP(parameters, {optimisticData, successData, failureData});
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+    }
+}
+
+/**
+ * Calls the API to add a new GBP card.
+ * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
+ */
+function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
+        // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
+        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
     });
-    Navigation.goBack();
 }
 
 /**
@@ -287,6 +308,14 @@ function clearPaymentCardFormErrorAndSubmit() {
  */
 function clearPaymentCard3dsVerification() {
     Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
+ * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
+ *
+ */
+function verifySetupIntent(accountID: number, isVerifying = true) {
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying});
 }
 
 /**
@@ -511,6 +540,50 @@ function setPaymentCardForm(values: AccountData) {
     });
 }
 
+/**
+ *  Sets the default bank account to use for receiving payouts from
+ *
+ */
+function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string, previousBankAccountID: number) {
+    const parameters: SetInvoicingTransferBankAccountParams = {
+        bankAccountID,
+        policyID,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    bankAccount: {
+                        transferBankAccountID: bankAccountID,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    bankAccount: {
+                        transferBankAccountID: previousBankAccountID,
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 export {
     deletePaymentCard,
     addPaymentCard,
@@ -534,4 +607,7 @@ export {
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
     setPaymentCardForm,
+    verifySetupIntent,
+    addPaymentCardGBP,
+    setInvoicingTransferBankAccount,
 };

@@ -66,6 +66,15 @@ const restrictedImportPaths = [
             "For 'ExpensiMark', please use '@libs/Parser' instead.",
         ].join('\n'),
     },
+    {
+        name: 'lodash/memoize',
+        message: "Please use '@src/libs/memoize' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['memoize'],
+        message: "Please use '@src/libs/memoize' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -97,9 +106,9 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
         'plugin:you-dont-need-lodash-underscore/all',
-        'prettier',
+        'plugin:prettier/recommended',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
     ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -168,6 +177,7 @@ module.exports = {
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
         'es/no-optional-chaining': 'off',
+        'deprecation/deprecation': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -222,6 +232,7 @@ module.exports = {
         'you-dont-need-lodash-underscore/throttle': 'off',
         // The suggested alternative (structuredClone) is not supported in Hermes:https://github.com/facebook/hermes/issues/684
         'you-dont-need-lodash-underscore/clone-deep': 'off',
+        'lodash/import-scope': ['error', 'method'],
         'prefer-regex-literals': 'off',
         'valid-jsdoc': 'off',
         'jsdoc/no-types': 'error',

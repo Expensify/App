@@ -74,8 +74,11 @@ type ReceiptImageProps = (
     /** The size of the fallback icon */
     fallbackIconSize?: number;
 
-    /** The colod of the fallback icon */
+    /** The color of the fallback icon */
     fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
 };
 
 function ReceiptImage({
@@ -93,6 +96,7 @@ function ReceiptImage({
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
     fallbackIconColor,
+    fallbackIconBackground,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -129,6 +133,7 @@ function ReceiptImage({
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}
+                fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );

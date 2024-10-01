@@ -1,18 +1,18 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,46 +23,47 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {exportDate} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
         alternateText: translate(`workspace.qbo.exportDate.values.${dateType}.description`),
         keyForList: dateType,
-        isSelected: exportDate === dateType,
+        isSelected: qboConfig?.exportDate === dateType,
     }));
+
+    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportDate) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_DATE, row.value);
+                QuickbooksOnline.updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
         },
-        [exportDate, policyID],
+        [policyID, exportDate],
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={QuickbooksExportDateSelectPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.qbo.exportDate.label')} />
-                <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
-                    sections={[{data}]}
-                    ListItem={RadioListItem}
-                    onSelectRow={selectExportDate}
-                    shouldDebounceRowSelect
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            displayName={QuickbooksExportDateSelectPage.displayName}
+            sections={[{data}]}
+            listItem={RadioListItem}
+            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
+            onSelectRow={selectExportDate}
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            title="workspace.qbo.exportDate.label"
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT_DATE], qboConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
+            shouldSingleExecuteRowSelect
+        />
     );
 }
 

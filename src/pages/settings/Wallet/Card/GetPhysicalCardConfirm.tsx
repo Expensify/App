@@ -77,13 +77,15 @@ function GetPhysicalCardConfirm({
                 onPress={() => goToGetPhysicalCardAddress(domain)}
                 shouldShowRightIcon
                 title={PersonalDetailsUtils.getFormattedAddress({
-                    address: {
-                        street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2),
-                        city,
-                        state,
-                        zip: zipPostCode,
-                        country,
-                    },
+                    addresses: [
+                        {
+                            street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2),
+                            city,
+                            state,
+                            zip: zipPostCode,
+                            country,
+                        },
+                    ],
                 })}
             />
         </BaseGetPhysicalCard>

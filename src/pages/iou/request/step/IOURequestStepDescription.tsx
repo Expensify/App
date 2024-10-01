@@ -41,7 +41,7 @@ type IOURequestStepDescriptionOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
@@ -75,7 +75,7 @@ function IOURequestStepDescription({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment.comment ?? '' : transaction?.comment.comment ?? '';
+    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -131,7 +131,7 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
+        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
         IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
 
@@ -149,6 +149,8 @@ function IOURequestStepDescription({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
+    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
@@ -178,13 +180,16 @@ function IOURequestStepDescription({
                             if (!el) {
                                 return;
                             }
+                            if (!inputRef.current) {
+                                updateMultilineInputRange(el);
+                            }
                             inputRef.current = el;
-                            updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         isMarkdownEnabled
+                        excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                     />
                 </View>
             </FormProvider>

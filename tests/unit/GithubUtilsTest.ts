@@ -621,13 +621,4 @@ describe('GithubUtils', () => {
             [54321, 'https://github.com/Expensify/App/pull/54321'],
         ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
     });
-
-    describe('getReleaseBody', () => {
-        test.each([
-            // eslint-disable-next-line max-len
-            [[1, 2, 3], '- https://github.com/Expensify/App/pull/1\r\n- https://github.com/Expensify/App/pull/2\r\n- https://github.com/Expensify/App/pull/3'],
-            [[], ''],
-            [[12345], '- https://github.com/Expensify/App/pull/12345'],
-        ])('getReleaseBody("%s")', (input, expectedOutput) => expect(GithubUtils.getReleaseBody(input)).toBe(expectedOutput));
-    });
 });

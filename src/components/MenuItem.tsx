@@ -2,8 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
+import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,6 +18,7 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -90,9 +90,6 @@ type MenuItemBaseProps = {
     /** Any additional styles to apply to the label */
     labelStyle?: StyleProp<ViewStyle>;
 
-    /** Any adjustments to style when menu item is hovered or pressed */
-    hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-
     /** Additional styles to style the description text below the title */
     descriptionTextStyle?: StyleProp<TextStyle>;
 
@@ -154,13 +151,13 @@ type MenuItemBaseProps = {
     shouldShowDescriptionOnTop?: boolean;
 
     /** Error to display at the bottom of the component */
-    errorText?: string;
+    errorText?: string | ReactNode;
 
     /** Any additional styles to pass to error text. */
     errorTextStyle?: StyleProp<ViewStyle>;
 
     /** Hint to display at the bottom of the component */
-    hintText?: string;
+    hintText?: string | ReactNode;
 
     /** Should the error text red dot indicator be shown */
     shouldShowRedDotIndicator?: boolean;
@@ -176,6 +173,9 @@ type MenuItemBaseProps = {
 
     /** Text that appears above the title */
     label?: string;
+
+    /** Character limit after which the menu item text will be truncated */
+    characterLimit?: number;
 
     isLabelHoverable?: boolean;
 
@@ -199,6 +199,9 @@ type MenuItemBaseProps = {
 
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
+
+    /** Should we truncate the title */
+    shouldTruncateTitle?: boolean;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -242,6 +245,9 @@ type MenuItemBaseProps = {
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
+    /** Should we remove the background color of the menu item */
+    shouldRemoveBackground?: boolean;
+
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
 
@@ -256,6 +262,15 @@ type MenuItemBaseProps = {
 
     /** Whether should render helper text as HTML or as Text */
     shouldParseHelperText?: boolean;
+
+    /** Whether should render hint text as HTML or as Text */
+    shouldRenderHintAsHTML?: boolean;
+
+    /** Whether should render error text as HTML or as Text */
+    shouldRenderErrorAsHTML?: boolean;
+
+    /** List of markdown rules that will be ignored */
+    excludedMarkdownRules?: string[];
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
@@ -296,18 +311,31 @@ type MenuItemBaseProps = {
     /** Whether to show the tooltip */
     shouldRenderTooltip?: boolean;
 
-    /** Whether to align the tooltip left */
-    shouldForceRenderingTooltipLeft?: boolean;
+    /** Anchor alignment of the tooltip */
+    tooltipAnchorAlignment?: TooltipAnchorAlignment;
 
     /** Additional styles for tooltip wrapper */
     tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Any additional amount to manually adjust the horizontal position of the tooltip */
+    tooltipShiftHorizontal?: number;
+
+    /** Any additional amount to manually adjust the vertical position of the tooltip */
+    tooltipShiftVertical?: number;
+
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
+
+    shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Should selected item be marked with checkmark */
+    shouldShowSelectedItemCheck?: boolean;
+
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
-
 function MenuItem(
     {
         interactive = true,
@@ -319,7 +347,6 @@ function MenuItem(
         containerStyle,
         titleStyle,
         labelStyle,
-        hoverAndPressStyle,
         descriptionTextStyle,
         badgeStyle,
         viewMode = CONST.OPTION_MODE.DEFAULT,
@@ -358,6 +385,8 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        shouldTruncateTitle = false,
+        characterLimit = 200,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -375,25 +404,34 @@ function MenuItem(
         shouldRenderAsHTML = false,
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
+        shouldRemoveBackground = false,
         shouldUseDefaultCursorWhenDisabled = false,
+        shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
         shouldBlockSelection = false,
         shouldParseTitle = false,
         shouldParseHelperText = false,
+        shouldRenderHintAsHTML = false,
+        shouldRenderErrorAsHTML = false,
+        excludedMarkdownRules = [],
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
         displayInDefaultIconColor = false,
         contentFit = 'cover',
-        isPaneMenu = false,
+        isPaneMenu = true,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
-        shouldForceRenderingTooltipLeft = false,
+        tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
+        tooltipShiftHorizontal = 0,
+        tooltipShiftVertical = 0,
         renderTooltipContent,
+        shouldShowSelectedItemCheck = false,
+        onHideTooltip,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -433,8 +471,8 @@ function MenuItem(
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText});
-    }, [title, shouldParseTitle, shouldEscapeText]);
+        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
+    }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
 
     const helperHtml = useMemo(() => {
         if (!helperText || !shouldParseHelperText) {
@@ -453,8 +491,13 @@ function MenuItem(
             titleToWrap = html;
         }
 
+        if (shouldTruncateTitle) {
+            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
+            return titleToWrap;
+        }
+
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
@@ -514,11 +557,13 @@ function MenuItem(
             )}
             <EducationalTooltip
                 shouldRender={shouldRenderTooltip}
-                shouldForceRenderingLeft={shouldForceRenderingTooltipLeft}
+                anchorAlignment={tooltipAnchorAlignment}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
-                shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}
-                shiftVertical={styles.popoverMenuItem.paddingVertical / 2}
+                shiftHorizontal={tooltipShiftHorizontal}
+                shiftVertical={tooltipShiftVertical}
+                shouldAutoDismiss
+                onHideTooltip={onHideTooltip}
             >
                 <View>
                     <Hoverable>
@@ -529,16 +574,18 @@ function MenuItem(
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
+                                activeOpacity={variables.pressDimValue}
+                                opacityAnimationDuration={0}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
-                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                        !shouldRemoveBackground &&
+                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
-                                        !focused && (isHovered || pressed) && hoverAndPressStyle,
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !pressed && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -579,26 +626,33 @@ function MenuItem(
                                                     )}
                                                     {icon && !Array.isArray(icon) && (
                                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
-                                                            {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
-                                                                <Icon
-                                                                    contentFit={contentFit}
-                                                                    hovered={isHovered}
-                                                                    pressed={pressed}
-                                                                    src={icon}
-                                                                    width={iconWidth}
-                                                                    height={iconHeight}
-                                                                    fill={
-                                                                        displayInDefaultIconColor
-                                                                            ? undefined
-                                                                            : iconFill ??
-                                                                              StyleUtils.getIconFillColor(
-                                                                                  getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                  true,
-                                                                                  isPaneMenu,
-                                                                              )
-                                                                    }
-                                                                />
-                                                            )}
+                                                            {typeof icon !== 'string' &&
+                                                                iconType === CONST.ICON_TYPE_ICON &&
+                                                                (!shouldShowLoadingSpinnerIcon ? (
+                                                                    <Icon
+                                                                        contentFit={contentFit}
+                                                                        hovered={isHovered}
+                                                                        pressed={pressed}
+                                                                        src={icon}
+                                                                        width={iconWidth}
+                                                                        height={iconHeight}
+                                                                        fill={
+                                                                            displayInDefaultIconColor
+                                                                                ? undefined
+                                                                                : iconFill ??
+                                                                                  StyleUtils.getIconFillColor(
+                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                      true,
+                                                                                      isPaneMenu,
+                                                                                  )
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    <ActivityIndicator
+                                                                        size="small"
+                                                                        color={theme.textSupporting}
+                                                                    />
+                                                                ))}
                                                             {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
                                                                     imageStyles={[styles.alignSelfCenter]}
@@ -653,7 +707,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />
@@ -769,6 +823,13 @@ function MenuItem(
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
+                                                {shouldShowSelectedItemCheck && isSelected && (
+                                                    <Icon
+                                                        src={Expensicons.Checkmark}
+                                                        fill={theme.iconSuccessFill}
+                                                        additionalStyles={styles.alignSelfCenter}
+                                                    />
+                                                )}
                                             </View>
                                         </View>
                                         {!!errorText && (
@@ -777,6 +838,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
                                                 style={[styles.menuItemError, errorTextStyle]}
+                                                shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
                                             />
                                         )}
                                         {!!hintText && (
@@ -785,6 +847,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={false}
                                                 message={hintText}
                                                 style={styles.menuItemError}
+                                                shouldRenderMessageAsHTML={shouldRenderHintAsHTML}
                                             />
                                         )}
                                     </View>

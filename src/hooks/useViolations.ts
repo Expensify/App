@@ -5,7 +5,7 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax' | 'none';
+type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax' | 'customUnitRateID' | 'none';
 
 /**
  * Map from Violation Names to the field where that violation can occur.
@@ -17,7 +17,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
     cashExpenseWithNoReceipt: 'receipt',
     categoryOutOfPolicy: 'category',
     conversionSurcharge: 'amount',
-    customUnitOutOfPolicy: 'merchant',
+    customUnitOutOfPolicy: 'customUnitRateID',
     duplicatedTransaction: 'merchant',
     fieldRequired: 'merchant',
     futureDate: 'date',
@@ -40,18 +40,34 @@ const violationFields: Record<ViolationName, ViolationField> = {
     smartscanFailed: 'receipt',
     someTagLevelsRequired: 'tag',
     tagOutOfPolicy: 'tag',
+    taxRateChanged: 'tax',
     taxAmountChanged: 'tax',
     taxOutOfPolicy: 'tax',
-    taxRateChanged: 'tax',
     taxRequired: 'tax',
     hold: 'none',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-function useViolations(violations: TransactionViolation[]) {
+// We don't want to show these violations on NewDot
+const excludedViolationsName = ['taxAmountChanged', 'taxRateChanged'];
+
+/**
+ * @param violations – List of transaction violations
+ * @param shouldShowOnlyViolations – Whether we should only show violations of type 'violation'
+ */
+function useViolations(violations: TransactionViolation[], shouldShowOnlyViolations: boolean) {
     const violationsByField = useMemo((): ViolationsMap => {
-        const filteredViolations = violations.filter((violation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION);
+        const filteredViolations = violations.filter((violation) => {
+            if (excludedViolationsName.includes(violation.name)) {
+                return false;
+            }
+            if (shouldShowOnlyViolations) {
+                return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+            }
+            return true;
+        });
+
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
         for (const violation of filteredViolations) {
             const field = violationFields[violation.name];
@@ -59,7 +75,7 @@ function useViolations(violations: TransactionViolation[]) {
             violationGroups.set(field, [...existingViolations, violation]);
         }
         return violationGroups ?? new Map();
-    }, [violations]);
+    }, [violations, shouldShowOnlyViolations]);
 
     const getViolationsForField = useCallback(
         (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {

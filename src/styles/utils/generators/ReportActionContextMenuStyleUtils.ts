@@ -20,8 +20,7 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
         borderWidth: 1,
         borderColor: theme.border,
         // In Safari, when welcome messages use a code block (triple backticks), they would overlap the context menu below when there is no scrollbar without the transform style.
-        // NOTE: asserting "transform" to a valid type, because it isn't possible to augment "transform".
-        transform: 'translateZ(0)' as unknown as ViewStyle['transform'],
+        transform: 'translateZ(0)',
     },
 ];
 

@@ -1,4 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -24,19 +26,22 @@ import variables from '@styles/variables';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescriptionPageProps) {
+    const route = useRoute<RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const taskDescriptionLength = ReportUtils.getCommentLength(values.description);
+            const parsedDescription = ReportUtils.getParsedComment(values?.description);
+            const taskDescriptionLength = ReportUtils.getCommentLength(parsedDescription);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
                 ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
@@ -94,7 +99,10 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
             testID={TaskDescriptionPage.displayName}
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                <HeaderWithBackButton title={translate('task.task')} />
+                <HeaderWithBackButton
+                    title={translate('task.task')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -116,8 +124,10 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
                                 inputRef.current = element;
-                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

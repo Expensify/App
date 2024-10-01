@@ -31,7 +31,7 @@ const selectReportHandler = (option: unknown) => {
     }
 
     Task.setShareDestinationValue(optionItem?.reportID);
-    Navigation.goBack(ROUTES.NEW_TASK);
+    Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
 const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>) =>
@@ -56,22 +56,52 @@ function TaskShareDestinationSelectorModal() {
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
-    const options = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {
-                sections: [],
-                headerMessage: '',
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+                currentUserOption: null,
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+                header: '',
             };
         }
         const filteredReports = reportFilter(optionList.reports);
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
-        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], '', [], [], true);
+        const header = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
+        return {
+            recentReports,
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+            header,
+        };
+    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);
 
-        const sections =
-            recentReports && recentReports.length > 0
+    const options = useMemo(() => {
+        if (debouncedSearchValue.trim() === '') {
+            return defaultOptions;
+        }
+        const filteredReports = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            canInviteUser: false,
+        });
+        const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
+        return {...filteredReports, header};
+    }, [debouncedSearchValue, defaultOptions]);
+
+    const sections = useMemo(
+        () =>
+            options.recentReports && options.recentReports.length > 0
                 ? [
                       {
-                          data: recentReports.map((option) => ({
+                          data: options.recentReports.map((option) => ({
                               ...option,
                               text: option.text ?? '',
                               alternateText: option.alternateText ?? undefined,
@@ -83,10 +113,9 @@ function TaskShareDestinationSelectorModal() {
                           shouldShow: true,
                       },
                   ]
-                : [];
-
-        return {sections, headerMessage};
-    }, [areOptionsInitialized, optionList.reports, optionList.personalDetails, debouncedSearchValue]);
+                : [],
+        [options.recentReports],
+    );
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
@@ -100,20 +129,20 @@ function TaskShareDestinationSelectorModal() {
         >
             <>
                 <HeaderWithBackButton
-                    title={translate('newTaskPage.shareSomewhere')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                    title={translate('common.share')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK.getRoute())}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
                         ListItem={UserListItem}
-                        sections={areOptionsInitialized ? options.sections : []}
+                        sections={areOptionsInitialized ? sections : []}
                         onSelectRow={selectReportHandler}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
-                        headerMessage={options.headerMessage}
+                        headerMessage={options.header}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
+                        showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
                     />

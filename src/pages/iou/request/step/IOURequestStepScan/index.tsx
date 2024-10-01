@@ -1,6 +1,7 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
 import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
@@ -12,20 +13,21 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import isPdfFilePasswordProtected from '@libs/isPdfFilePasswordProtected';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -63,12 +65,12 @@ function IOURequestStepScan({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
-
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
@@ -77,11 +79,14 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
 
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -93,8 +98,10 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+        return (
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+        );
+    }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -188,6 +195,7 @@ function IOURequestStepScan({
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
+        setPdfFile(null);
     };
 
     function validateReceipt(file: FileObject) {
@@ -203,7 +211,7 @@ function IOURequestStepScan({
                     return false;
                 }
 
-                if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
                     return false;
                 }
@@ -211,16 +219,6 @@ function IOURequestStepScan({
                 if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
                     return false;
-                }
-
-                if (fileExtension === 'pdf') {
-                    return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
-                        if (isProtected) {
-                            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.protectedPDFNotSupported');
-                            return false;
-                        }
-                        return true;
-                    });
                 }
                 return true;
             })
@@ -230,9 +228,9 @@ function IOURequestStepScan({
             });
     }
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     const navigateToParticipantPage = useCallback(() => {
         switch (iouType) {
@@ -417,29 +415,44 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             IOU.replaceReceipt(transactionID, file as File, source);
-            Navigation.dismissModal();
+            navigateBack();
         },
-        [transactionID],
+        [transactionID, navigateBack],
     );
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
-        validateReceipt(file).then((isFileValid) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateReceipt(originalFile).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
-            // Store the receipt on the transaction object in Onyx
-            const source = URL.createObjectURL(file as Blob);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
 
-            if (action === CONST.IOU.ACTION.EDIT) {
-                updateScanAndNavigate(file, source);
+            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+                setPdfFile(originalFile);
                 return;
             }
-            navigateToConfirmationStep(file, source);
+
+            // With the image size > 24MB, we use manipulateAsync to resize the image.
+            // It takes a long time so we should display a loading indicator while the resize image progresses.
+            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsLoadingReceipt(true);
+            }
+            FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+                setIsLoadingReceipt(false);
+                // Store the receipt on the transaction object in Onyx
+                const source = URL.createObjectURL(file as Blob);
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', !isEditing);
+
+                if (isEditing) {
+                    updateScanAndNavigate(file, source);
+                    return;
+                }
+                navigateToConfirmationStep(file, source);
+            });
         });
     };
 
@@ -466,15 +479,15 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name, !isEditing);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (isEditing) {
             updateScanAndNavigate(file, source);
             return;
         }
 
         navigateToConfirmationStep(file, source);
-    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
+    }, [isEditing, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -519,9 +532,27 @@ function IOURequestStepScan({
         [],
     );
 
+    const PDFThumbnailView = pdfFile ? (
+        <PDFThumbnail
+            style={styles.invisiblePDF}
+            previewSourceURL={pdfFile.uri ?? ''}
+            onLoadSuccess={() => {
+                setPdfFile(null);
+                setReceiptAndNavigate(pdfFile, true);
+            }}
+            onPassword={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+            }}
+            onLoadError={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            }}
+        />
+    ) : null;
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
+                {PDFThumbnailView}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -537,10 +568,9 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                             additionalStyles={[styles.pb5]}
                         />
-                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                        <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                         <Button
-                            medium
                             success
                             text={translate('common.continue')}
                             accessibilityLabel={translate('common.continue')}
@@ -569,11 +599,11 @@ function IOURequestStepScan({
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
+                <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityLabel={translate('receipt.chooseFile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityLabel={translate('common.chooseFile')}
+                            role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
                                     onPicked: setReceiptAndNavigate,
@@ -590,7 +620,7 @@ function IOURequestStepScan({
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -601,7 +631,7 @@ function IOURequestStepScan({
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                     onPress={toggleFlashlight}
@@ -620,6 +650,7 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
+            {PDFThumbnailView}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
@@ -628,12 +659,12 @@ function IOURequestStepScan({
             </View>
 
             <View
-                style={[styles.receiptViewTextContainer, styles.userSelectNone]}
+                style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                <Text style={[styles.subTextReceiptUpload]}>
+                <Text style={[styles.textFileUpload]}>{translate('receipt.upload')}</Text>
+                <Text style={[styles.subTextFileUpload]}>
                     {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
@@ -646,10 +677,9 @@ function IOURequestStepScan({
             <AttachmentPicker>
                 {({openPicker}) => (
                     <Button
-                        medium
                         success
-                        text={translate('receipt.chooseFile')}
-                        accessibilityLabel={translate('receipt.chooseFile')}
+                        text={translate('common.chooseFile')}
+                        accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
@@ -666,32 +696,35 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo}
+            shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
-                    {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
-                    <ReceiptDropUI
-                        onDrop={(e) => {
-                            const file = e?.dataTransfer?.files[0];
-                            if (file) {
-                                file.uri = URL.createObjectURL(file);
-                                setReceiptAndNavigate(file);
-                            }
-                        }}
-                        receiptImageTopPosition={receiptImageTopPosition}
-                    />
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={hideRecieptModal}
-                        onCancel={hideRecieptModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
-                </View>
+                <>
+                    {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadFileView(isSmallScreenWidth)]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptAndNavigate(file);
+                                }
+                            }}
+                            receiptImageTopPosition={receiptImageTopPosition}
+                        />
+                        <ConfirmModal
+                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                            onConfirm={hideRecieptModal}
+                            onCancel={hideRecieptModal}
+                            isVisible={isAttachmentInvalid}
+                            prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                            confirmText={translate('common.close')}
+                            shouldShowCancelButton={false}
+                        />
+                    </View>
+                </>
             )}
         </StepScreenDragAndDropWrapper>
     );

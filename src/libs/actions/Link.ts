@@ -30,9 +30,24 @@ Onyx.connect({
     },
 });
 
+let isTravelTestAccount = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+    callback: (value) => {
+        isTravelTestAccount = value?.testAccount ?? false;
+    },
+});
+
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
-    const hasHashParams = url.indexOf('#') !== -1;
+    const hashIndex = url.lastIndexOf('#');
+    const hasHashParams = hashIndex !== -1;
     const hasURLParams = url.indexOf('?') !== -1;
+    let originURL = url;
+    let hashParams = '';
+    if (hasHashParams) {
+        originURL = url.substring(0, hashIndex);
+        hashParams = url.substring(hashIndex);
+    }
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
@@ -43,7 +58,7 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
         const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
 
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+        return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
     });
 }
 
@@ -70,17 +85,18 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
-    return Promise.all([Environment.getTravelDotEnvironmentURL(), Environment.getSpotnanaEnvironmentTMCID()]).then(([environmentURL, tmcID]) => {
-        const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
-        const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
-        const tmcIDParam = `tmcId=${tmcID}`;
+function buildTravelDotURL(spotnanaToken: string, postLoginPath?: string): string {
+    const environmentURL = isTravelTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
+    const tmcID = isTravelTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
 
-        const paramsArray = [authCode, tmcIDParam, redirectURL];
-        const params = paramsArray.filter(Boolean).join('&');
-        const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
-        return `${travelDotDomain}auth/code?${params}`;
-    });
+    const authCode = `authCode=${spotnanaToken}`;
+    const tmcIDParam = `tmcId=${tmcID}`;
+    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+
+    const paramsArray = [authCode, tmcIDParam, redirectURL];
+    const params = paramsArray.filter(Boolean).join('&');
+    const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
+    return `${travelDotDomain}auth/code?${params}`;
 }
 
 /**
@@ -95,13 +111,26 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
         policyID,
     };
 
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
-            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken, postLoginPath) : buildTravelDotURL()))
-            .catch(() => buildTravelDotURL()),
-        (travelDotURL) => travelDotURL,
-    );
+    return new Promise((_, reject) => {
+        const error = new Error('Failed to generate spotnana token.');
+
+        asyncOpenURL(
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
+                .then((response) => {
+                    if (!response?.spotnanaToken) {
+                        reject(error);
+                        throw error;
+                    }
+                    return buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                })
+                .catch(() => {
+                    reject(error);
+                    throw error;
+                }),
+            (travelDotURL) => travelDotURL ?? '',
+        );
+    });
 }
 
 function getInternalNewExpensifyPath(href: string) {

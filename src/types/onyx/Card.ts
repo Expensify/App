@@ -2,8 +2,12 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Type of export card */
+type ExportCompanyCard = {
+    [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
+};
 /** Model of Expensify card */
-type Card = {
+type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
     cardID: number;
 
@@ -14,19 +18,40 @@ type Card = {
     bank: string;
 
     /** Available amount to spend */
-    availableSpend: number;
+    availableSpend?: number;
+
+    /** Spend that is unapproved on the card (comes as a negative number) */
+    unapprovedSpend?: number;
+
+    /** Total spend on the card (comes as a negative number) */
+    totalSpend?: number;
 
     /** Domain name */
     domainName: string;
 
+    /** Transaction start date */
+    startDate?: Date;
+
+    /** The last time user checked the card for transactions */
+    lastUpdated: string;
+
+    /** Is checking for card transactions */
+    isLoadingLastUpdated?: boolean;
+
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
+
+    /** Card number */
+    cardNumber?: string;
 
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Is card data loading */
     isLoading?: boolean;
@@ -35,9 +60,12 @@ type Card = {
     accountID?: number;
 
     /** Additional card data */
-    nameValuePairs?: {
+    nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
+        /** Type of export card */
+        exportAccountDetails?: ExportCompanyCard;
 
         /** User-defined nickname for the card */
         cardTitle?: string;
@@ -68,8 +96,14 @@ type Card = {
 
         /** Card expiration date */
         expirationDate?: string;
-    };
-};
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
+}>;
 
 /** Model of Expensify card details */
 type ExpensifyCardDetails = {
@@ -89,6 +123,9 @@ type CardList = Record<string, Card>;
 /** Issue new card flow steps */
 type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
 
+/** Card spending limit type */
+type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
 /** Data required to be sent to issue a new card */
 type IssueNewCardData = {
     /** The email address of the cardholder */
@@ -98,7 +135,7 @@ type IssueNewCardData = {
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
     /** Card spending limit type */
-    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+    limitType: CardLimitType;
 
     /** Card spending limit */
     limit: number;
@@ -123,4 +160,4 @@ type IssueNewCard = {
 type WorkspaceCardsList = Record<string, Card>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

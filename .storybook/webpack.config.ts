@@ -94,11 +94,21 @@ const webpackConfig = ({config}: {config: Configuration}) => {
         loader: require.resolve('@svgr/webpack'),
     });
 
+    config.module.rules?.push({
+        test: /pdf\.worker\.mjs$/,
+        type: 'asset/source',
+    });
+
     config.plugins.push(
         new DefinePlugin({
             __DEV__: process.env.NODE_ENV === 'development',
         }),
     );
+
+    config.module.rules?.push({
+        test: /\.lottie$/,
+        type: 'asset/resource',
+    });
 
     return config;
 };

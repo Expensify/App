@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type React from 'react';
 import type {LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SharedTooltipProps = {
@@ -27,14 +28,20 @@ type SharedTooltipProps = {
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey?: string[];
 
-    /** Whether to left align the tooltip relative to wrapped component */
-    shouldForceRenderingLeft?: boolean;
+    /** The anchor alignment of the tooltip */
+    anchorAlignment?: TooltipAnchorAlignment;
 
     /** Whether to display tooltip below the wrapped component */
     shouldForceRenderingBelow?: boolean;
 
     /** Additional styles for tooltip wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Should render a fullscreen transparent overlay */
+    shouldUseOverlay?: boolean;
+
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
 };
 
 type GenericTooltipState = {
@@ -64,7 +71,14 @@ type TooltipProps = ChildrenProps &
         shouldHandleScroll?: boolean;
     };
 
-type EducationalTooltipProps = ChildrenProps & TooltipProps;
+type EducationalTooltipProps = ChildrenProps &
+    SharedTooltipProps & {
+        /** Whether to automatically dismiss the tooltip after 5 seconds */
+        shouldAutoDismiss?: boolean;
+
+        /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+        shouldRender?: boolean;
+    };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
@@ -72,4 +86,4 @@ type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
 };
 
 export default TooltipProps;
-export type {EducationalTooltipProps, GenericTooltipProps, TooltipExtendedProps};
+export type {EducationalTooltipProps, GenericTooltipProps, SharedTooltipProps, TooltipExtendedProps};

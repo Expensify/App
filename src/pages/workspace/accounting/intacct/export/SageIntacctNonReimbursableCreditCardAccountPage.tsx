@@ -6,12 +6,14 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSageIntacctCreditCards} from '@libs/PolicyUtils';
+import {getSageIntacctCreditCards, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateSageIntacctNonreimbursableExpensesExportAccount} from '@userActions/connections/SageIntacct';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -20,7 +22,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
-
+    const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const creditCardSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, exportConfig?.nonReimbursableAccount), [exportConfig?.nonReimbursableAccount, policy]);
@@ -28,7 +30,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const updateCreditCardAccount = useCallback(
         ({value}: SelectorType) => {
             if (value !== exportConfig?.nonReimbursableAccount) {
-                updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value);
+                updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value, exportConfig?.nonReimbursableAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
@@ -63,6 +65,10 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
         />
     );
 }

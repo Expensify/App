@@ -26,6 +26,7 @@
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](contributingGuides/CLA.md)
+* [React StrictMode](contributingGuides/STRICT_MODE.md)
 
 ----
 
@@ -141,14 +142,14 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.
 4. Close the emulator.
 
-Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
+**Note:** If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
 
 #### Android Flow
 1. Run `npm run setupNewDotWebForEmulators android`
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
 
-Note - If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
+**Note:** If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
 
 
 Possible Scenario:
@@ -230,19 +231,20 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
     ```jsx
     npm i && npm run pod-install
     ```
-7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
-8. Upon completion, the generated source map can be found at:
+4. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+5. Upon completion, the generated source map can be found at:
   Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
   IOS: `main.jsbundle.map`
+  web: `dist/merged-source-map.js.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
 2. Launch the app in production mode.
-2. Navigate to the feature you wish to profile.
-3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
-4. Close the menu and interact with the app.
-5. After completing your interactions, tap with four fingers again and select to stop profiling.
-6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+3. Navigate to the feature you wish to profile.
+4. Initiate the profiling session by tapping with four fingers (on mobile) or `cmd+d` (on web) to open the menu and selecting **`Use Profiling`**.
+5. Close the menu and interact with the app.
+6. After completing your interactions, tap with four fingers or `cmd+d` again and select to stop profiling.
+7. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
 
 Build info:
 ```jsx
@@ -265,6 +267,7 @@ Build info:
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
 IOS: `npm run symbolicate-release:ios`
+web: `npm run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
@@ -389,7 +392,7 @@ In most cases, the code written for this repo should be platform-independent. In
 - Web => `index.website.js`
 - Desktop => `index.desktop.js`
 
-Note that `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
+**Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
 
 `index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
 
@@ -616,7 +619,30 @@ Some pointers:
   key to the translation file and use the arrow function version, like so:
   `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
   This is because the order of the phrases might vary from one language to another.
+- When working with translations that involve plural forms, it's important to handle different cases correctly.
 
+  For example:
+  - zero: Used when there are no items **(optional)**. 
+  - one: Used when there's exactly one item.
+  - two: Used when there's two items. **(optional)**
+  - few: Used for a small number of items **(optional)**.
+  - many: Used for larger quantities **(optional)**.
+  - other: A catch-all case for other counts or variations.
+
+  Here’s an example of how to implement plural translations:
+
+  messages: () => ({
+      zero: 'No messages',
+      one: 'One message',
+      two: 'Two messages',
+      few: (count) => `${count} messages`,
+      many: (count) => `You have ${count} messages`,
+      other: (count) => `You have ${count} unread messages`,
+  })
+
+  In your code, you can use the translation like this:
+
+  `translate('common.messages', {count: 1});`
 ----
 
 # Deploying

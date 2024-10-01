@@ -19,6 +19,9 @@ type ConfirmModalProps = {
     /** A callback to call when the form has been closed */
     onCancel?: () => void;
 
+    /** A callback to call when backdrop is pressed */
+    onBackdropPress?: () => void;
+
     /** Modal visibility */
     isVisible: boolean;
 
@@ -52,6 +55,24 @@ type ConfirmModalProps = {
     /** Icon to display above the title */
     iconSource?: IconAsset;
 
+    /** Fill color for the Icon */
+    iconFill?: string | false;
+
+    /** Icon width */
+    iconWidth?: number;
+
+    /** Icon height */
+    iconHeight?: number;
+
+    /** Should the icon be centered */
+    shouldCenterIcon?: boolean;
+
+    /** Whether to show the dismiss icon */
+    shouldShowDismissIcon?: boolean;
+
+    /** Styles for title container */
+    titleContainerStyles?: StyleProp<ViewStyle>;
+
     /** Styles for title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -66,6 +87,9 @@ type ConfirmModalProps = {
 
     /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
+
+    /** Whether to reverse the order of the stacked buttons */
+    shouldReverseStackedButtons?: boolean;
 
     /** Image to display with content */
     image?: IconAsset;
@@ -87,6 +111,7 @@ function ConfirmModal({
     success = true,
     danger = false,
     onCancel = () => {},
+    onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = true,
     shouldSetModalVisibility = true,
@@ -101,9 +126,17 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
+    iconWidth,
+    iconHeight,
+    iconFill,
+    shouldCenterIcon,
+    shouldShowDismissIcon,
+    titleContainerStyles,
+    shouldReverseStackedButtons,
     shouldEnableNewFocusManagement,
     restoreFocusType,
 }: ConfirmModalProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -111,6 +144,7 @@ function ConfirmModal({
         <Modal
             onSubmit={onConfirm}
             onClose={onCancel}
+            onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
@@ -134,10 +168,18 @@ function ConfirmModal({
                 shouldShowCancelButton={shouldShowCancelButton}
                 shouldCenterContent={shouldCenterContent}
                 iconSource={iconSource}
+                contentStyles={isSmallScreenWidth && shouldShowDismissIcon ? styles.mt2 : undefined}
+                iconFill={iconFill}
+                iconHeight={iconHeight}
+                iconWidth={iconWidth}
+                shouldCenterIcon={shouldCenterIcon}
+                shouldShowDismissIcon={shouldShowDismissIcon}
+                titleContainerStyles={titleContainerStyles}
                 iconAdditionalStyles={iconAdditionalStyles}
                 titleStyles={titleStyles}
                 promptStyles={promptStyles}
                 shouldStackButtons={shouldStackButtons}
+                shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
             />
         </Modal>

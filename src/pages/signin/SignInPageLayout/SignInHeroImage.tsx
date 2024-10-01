@@ -1,17 +1,14 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSplashScreen from '@hooks/useSplashScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isAnonymousUser} from '@libs/actions/Session';
 import variables from '@styles/variables';
 
 function SignInHeroImage() {
     const styles = useThemeStyles();
-    const {isMediumScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const imageSize = useMemo(() => {
         if (shouldUseNarrowLayout) {
             return {
@@ -26,19 +23,12 @@ function SignInHeroImage() {
         };
     }, [shouldUseNarrowLayout, isMediumScreenWidth]);
 
-    const {isSplashHidden} = useSplashScreen();
-    // Prevents rendering of the Lottie animation until the splash screen is hidden
-    // by returning an empty view of the same size as the animation.
-    // See issue: https://github.com/Expensify/App/issues/34696
-    if (!isSplashHidden) {
-        return <View style={[styles.alignSelfCenter, imageSize]} />;
-    }
-
     return (
         <Lottie
             source={LottieAnimations.Hands}
             loop
             autoPlay
+            shouldLoadAfterInteractions={isAnonymousUser()}
             style={[styles.alignSelfCenter, imageSize]}
             webStyle={{...styles.alignSelfCenter, ...imageSize}}
         />

@@ -47,6 +47,7 @@ type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     };
 
 function PrivateNotesEditPage({route, personalDetailsList, report, session}: PrivateNotesEditPageProps) {
+    const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -102,9 +103,9 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
 
         Keyboard.dismiss();
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
-            ReportUtils.navigateToDetailsPage(report);
+            ReportUtils.navigateToDetailsPage(report, backTo);
         } else {
-            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
         }
     };
 
@@ -116,7 +117,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, session)}
+                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, session, backTo)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -162,8 +163,10 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
                             if (!el) {
                                 return;
                             }
+                            if (!privateNotesInput.current) {
+                                updateMultilineInputRange(el);
+                            }
                             privateNotesInput.current = el;
-                            updateMultilineInputRange(privateNotesInput.current);
                         }}
                         isMarkdownEnabled
                     />

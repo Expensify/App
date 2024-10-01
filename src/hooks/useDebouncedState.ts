@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
  * A React hook that provides a state and its debounced version.
  *
  * @param initialValue - The initial value of the state.
- * @param delay - The debounce delay in milliseconds. Defaults to SEARCH_OPTION_LIST_DEBOUNCE_TIME = 300ms.
+ * @param delay - The debounce delay in milliseconds. Defaults to USE_DEBOUNCED_STATE_DELAY = 300ms.
  * @returns A tuple containing:
  *          - The current state value.
  *          - The debounced state value.
@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
  * @example
  * const [value, debouncedValue, setValue] = useDebouncedState<string>("", 300);
  */
-function useDebouncedState<T>(initialValue: T, delay: number = CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME): [T, T, (value: T) => void] {
+function useDebouncedState<T>(initialValue: T, delay: number = CONST.TIMING.USE_DEBOUNCED_STATE_DELAY): [T, T, (value: T) => void] {
     const [value, setValue] = useState(initialValue);
     const [debouncedValue, setDebouncedValue] = useState(initialValue);
     const debouncedSetDebouncedValue = useRef(debounce(setDebouncedValue, delay)).current;

@@ -18,7 +18,12 @@ function ReviewDescription() {
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'description',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const options = useMemo(
         () =>
             compareResult.change.description?.map((description) =>
@@ -31,22 +36,25 @@ function ReviewDescription() {
             ),
         [compareResult.change.description, translate],
     );
-    const onSelectRow = (data: FieldItemType) => {
+    const setDescription = (data: FieldItemType<'description'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({description: data.value as string});
+            setReviewDuplicatesKey({description: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
+            <ReviewFields<'description'>
                 stepNames={stepNames}
                 label={translate('violations.descriptionToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setDescription}
             />
         </ScreenWrapper>
     );

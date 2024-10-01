@@ -1,0 +1,12 @@
+diff --git a/node_modules/@perf-profiler/types/dist/index.d.ts b/node_modules/@perf-profiler/types/dist/index.d.ts
+index 0d0f55f..ef7f864 100644
+--- a/node_modules/@perf-profiler/types/dist/index.d.ts
++++ b/node_modules/@perf-profiler/types/dist/index.d.ts
+@@ -80,6 +80,7 @@ export interface ScreenRecorder {
+ export interface ProfilerPollingOptions {
+     onMeasure: (measure: Measure) => void;
+     onStartMeasuring?: () => void;
++    onPidChanged?: () => void;
+ }
+ export interface Profiler {
+     pollPerformanceMeasures: (bundleId: string, options: ProfilerPollingOptions) => {

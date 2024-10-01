@@ -1,18 +1,17 @@
+import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
-import type {Network} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
@@ -40,40 +39,34 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     }
 }
 
-type FormProviderOnyxProps = {
-    /** Contains the form state that must be accessed outside the component */
-    formState: OnyxEntry<Form>;
+type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TFormID> & {
+    /** Children to render. */
+    children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
-    /** Contains draft values for each input in the form */
-    draftValues: OnyxEntry<Form>;
+    /** Callback to validate the form */
+    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** Information about the network */
-    network: OnyxEntry<Network>;
+    /** Should validate function be called when input loose focus */
+    shouldValidateOnBlur?: boolean;
+
+    /** Should validate function be called when the value of the input is changed */
+    shouldValidateOnChange?: boolean;
+
+    /** Whether to remove invisible characters from strings before validation and submission */
+    shouldTrimValues?: boolean;
+
+    /** Styles that will be applied to the submit button only */
+    submitButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to apply flex to the submit button */
+    submitFlexEnabled?: boolean;
+
+    /** Whether button is disabled */
+    isSubmitDisabled?: boolean;
+
+    /** Whether HTML is allowed in form inputs */
+    allowHTML?: boolean;
 };
-
-type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProviderOnyxProps &
-    FormProps<TFormID> & {
-        /** Children to render. */
-        children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
-
-        /** Callback to validate the form */
-        validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
-
-        /** Should validate function be called when input loose focus */
-        shouldValidateOnBlur?: boolean;
-
-        /** Should validate function be called when the value of the input is changed */
-        shouldValidateOnChange?: boolean;
-
-        /** Whether to remove invisible characters from strings before validation and submission */
-        shouldTrimValues?: boolean;
-
-        /** Styles that will be applied to the submit button only */
-        submitButtonStyles?: StyleProp<ViewStyle>;
-
-        /** Whether to apply flex to the submit button */
-        submitFlexEnabled?: boolean;
-    };
 
 function FormProvider(
     {
@@ -82,16 +75,17 @@ function FormProvider(
         shouldValidateOnBlur = true,
         shouldValidateOnChange = true,
         children,
-        formState,
-        network,
         enabledWhenOffline = false,
-        draftValues,
         onSubmit,
         shouldTrimValues = true,
+        allowHTML = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
@@ -110,40 +104,42 @@ function FormProvider(
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
 
-            // Validate the input for html tags. It should supersede any other error
-            Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
-                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
-                if (!inputValue || typeof inputValue !== 'string') {
-                    return;
-                }
-                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+            if (!allowHTML) {
+                // Validate the input for html tags. It should supersede any other error
+                Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
+                    // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
+                    if (!inputValue || typeof inputValue !== 'string') {
+                        return;
+                    }
+                    const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
-                // Return early if there are no HTML characters
-                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-                    return;
-                }
+                    // Return early if there are no HTML characters
+                    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+                        return;
+                    }
 
-                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
-                // Check for any matches that the original regex (foundHtmlTagIndex) matched
-                if (matchedHtmlTags) {
-                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
-                    for (const htmlTag of matchedHtmlTags) {
-                        isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
-                        if (!isMatch) {
-                            break;
+                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
+                    // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                    if (matchedHtmlTags) {
+                        // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                        for (const htmlTag of matchedHtmlTags) {
+                            isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
+                            if (!isMatch) {
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (isMatch && leadingSpaceIndex === -1) {
-                    return;
-                }
+                    if (isMatch && leadingSpaceIndex === -1) {
+                        return;
+                    }
 
-                // Add a validation error here because it is a string value that contains HTML characters
-                validateErrors[inputID] = translate('common.error.invalidCharacter');
-            });
+                    // Add a validation error here because it is a string value that contains HTML characters
+                    validateErrors[inputID] = translate('common.error.invalidCharacter');
+                });
+            }
 
             if (typeof validateErrors !== 'object') {
                 throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
@@ -157,7 +153,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate],
+        [shouldTrimValues, formID, validate, errors, translate, allowHTML],
     );
 
     // When locales change from another session of the same account,
@@ -211,6 +207,19 @@ function FormProvider(
 
         onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
+
+    // Keep track of the focus state of the current screen.
+    // This is used to prevent validating the form on blur before it has been interacted with.
+    const isFocusedRef = useRef(true);
+
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
@@ -329,7 +338,8 @@ function FormProvider(
                                 return;
                             }
                             setTouchedInput(inputID);
-                            if (shouldValidateOnBlur) {
+                            // We don't validate the form on blur in case the current screen is not focused
+                            if (shouldValidateOnBlur && isFocusedRef.current) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);
@@ -380,19 +390,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default withOnyx<FormProviderProps, FormProviderOnyxProps>({
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-    // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we need to cast the keys to any
-    formState: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-        key: ({formID}) => formID as any,
-    },
-    draftValues: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-        key: (props) => `${props.formID}Draft` as any,
-    },
-})(forwardRef(FormProvider)) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID> & RefAttributes<FormRef>, keyof FormProviderOnyxProps>) => ReactNode;
+export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID> & RefAttributes<FormRef>) => ReactNode;
 
 export type {FormProviderProps};

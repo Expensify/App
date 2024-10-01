@@ -93,13 +93,13 @@ type TransactionCustomUnit = {
     customUnitRateID?: string;
 
     /** Custom unit amount */
-    quantity?: number;
+    quantity?: number | null;
 
     /** Name of the custom unit */
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
-    defaultP2PRate?: number;
+    defaultP2PRate?: number | null;
 };
 
 /** Types of geometry */
@@ -121,6 +121,9 @@ type ReceiptSource = string;
 type Receipt = {
     /** Name of receipt file */
     name?: string;
+
+    /** ID of receipt file */
+    receiptID?: number;
 
     /** Path of the receipt file */
     source?: ReceiptSource;
@@ -226,6 +229,9 @@ type Reservation = {
 
     /** In car reservations, this represents the details of the car */
     carInfo?: CarInfo;
+
+    /** Payment type of the reservation */
+    paymentType?: string;
 };
 
 /** Model of trip reservation time details */
@@ -313,7 +319,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         category?: string;
 
         /** The comment object on the transaction */
-        comment: Comment;
+        comment?: Comment;
 
         /** Date that the expense was created */
         created: string;
@@ -430,8 +436,20 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
+
+        /** The bank of the purchaser card, if any */
+        bank?: string;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
+
+        /** The masked PAN of the purchaser card, if any */
+        cardNumber?: string;
+
+        /** Whether the transaction is linked to a managed card */
+        managedCard?: boolean;
     },
-    keyof Comment
+    keyof Comment | keyof TransactionCustomUnit
 >;
 
 /** Keys of pending transaction fields */
@@ -444,6 +462,9 @@ type AdditionalTransactionChanges = {
 
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
+
+    /** The ID of the distance rate */
+    customUnitRateID?: string;
 
     /** Previous amount before changes */
     oldAmount?: number;

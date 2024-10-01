@@ -39,6 +39,10 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
+beforeEach(() => {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+});
+
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
@@ -136,7 +140,10 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastReadTime: reportAction3CreatedDate,
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
-                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+                participants: {
+                    [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
@@ -297,7 +304,10 @@ describe('Unread Indicators', () => {
                             lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_C_ACCOUNT_ID,
-                            participants: {[USER_C_ACCOUNT_ID]: {hidden: false}},
+                            participants: {
+                                [USER_C_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                            },
                             type: CONST.REPORT.TYPE.CHAT,
                         },
                     },
@@ -363,7 +373,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
                 expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
                 expect((displayNameTexts[1]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();

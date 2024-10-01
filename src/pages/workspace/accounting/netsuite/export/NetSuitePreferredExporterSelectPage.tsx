@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -9,10 +9,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -55,7 +57,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: config?.exporter === exporter.email,
+                isSelected: (config?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
@@ -84,7 +86,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuitePreferredExporterSelectPage.displayName}
             sections={[{data}]}
@@ -95,6 +97,10 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORTER], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORTER)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER)}
         />
     );
 }

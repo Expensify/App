@@ -41,6 +41,11 @@ function title {
   printf "\n%s%s%s\n" "$TITLE" "$1" "$RESET"
 }
 
+# Function to clear the last printed line
+clear_last_line() {
+  echo -ne "\033[1A\033[K"
+}
+
 function assert_equal {
   if [[ "$1" != "$2" ]]; then
     error "Assertion failed: $1 is not equal to $2"

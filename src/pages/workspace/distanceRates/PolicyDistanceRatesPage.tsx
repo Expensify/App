@@ -2,8 +2,6 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -11,16 +9,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,31 +30,31 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string};
 
-type PolicyDistanceRatesPageOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
+type PolicyDistanceRatesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
 
-type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
-
-function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+function PolicyDistanceRatesPage({
+    route: {
+        params: {policyID},
+    },
+}: PolicyDistanceRatesPageProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedDistanceRates, setSelectedDistanceRates] = useState<Rate[]>([]);
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const policyID = route.params.policyID;
     const isFocused = useIsFocused();
+    const policy = usePolicy(policyID);
+    const {selectionMode} = useMobileSelectionMode();
+
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
@@ -108,18 +109,20 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
                     keyForList: value.customUnitRateID ?? '',
-                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
+                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
                         value.pendingAction ??
                         value.pendingFields?.rate ??
                         value.pendingFields?.enabled ??
                         value.pendingFields?.currency ??
+                        value.pendingFields?.taxRateExternalID ??
+                        value.pendingFields?.taxClaimablePercentage ??
                         (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                     errors: value.errors ?? undefined,
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction],
+        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction, canSelectMultiple],
     );
 
     const addRate = () => {
@@ -191,7 +194,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
@@ -233,23 +236,21 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const isLoading = !isOffline && customUnit === undefined;
 
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-            {selectedDistanceRates.length === 0 ? (
+        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
-                        medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
-                        style={[isSmallScreenWidth && styles.flex1]}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
                         icon={Expensicons.Plus}
                         success
                     />
 
                     <Button
-                        medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
-                        style={[isSmallScreenWidth && styles.flex1]}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
                         icon={Expensicons.Gear}
                     />
                 </>
@@ -257,23 +258,26 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedDistanceRates.length})}
+                    customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     wrapperStyle={styles.w100}
                     isSplitButton={false}
+                    isDisabled={!selectedDistanceRates.length}
                 />
             )}
         </View>
     );
 
     const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
         </View>
     );
+
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
         <AccessOrNotFoundWrapper
@@ -288,14 +292,22 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.CarIce}
-                    title={translate('workspace.common.distanceRates')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    icon={!selectionModeHeader ? Illustrations.CarIce : undefined}
+                    title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedDistanceRates([]);
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
                 >
-                    {!isSmallScreenWidth && headerButtons}
+                    {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                {!isSmallScreenWidth && getHeaderText()}
+                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
+                {!shouldUseNarrowLayout && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -304,8 +316,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     />
                 )}
                 {Object.values(customUnitRates).length > 0 && (
-                    <SelectionList
-                        canSelectMultiple
+                    <SelectionListWithModal
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         sections={[{data: distanceRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleRate}
                         onSelectRow={openRateDetails}
@@ -315,12 +329,13 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}
                 <ConfirmModal
                     onConfirm={() => setIsWarningModalVisible(false)}
+                    onCancel={() => setIsWarningModalVisible(false)}
                     isVisible={isWarningModalVisible}
                     title={translate('workspace.distanceRates.oopsNotSoFast')}
                     prompt={translate('workspace.distanceRates.workspaceNeeds')}
@@ -344,8 +359,4 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
 PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
 
-export default withOnyx<PolicyDistanceRatesPageProps, PolicyDistanceRatesPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRatesPage);
+export default PolicyDistanceRatesPage;

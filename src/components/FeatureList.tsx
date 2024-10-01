@@ -7,6 +7,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
 import Section from './Section';
@@ -53,8 +54,14 @@ type FeatureListProps = {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
+    /** Customize the Illustration container */
+    illustrationContainerStyle?: StyleProp<ViewStyle>;
+
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
+
+    /** The error message to display for the CTA button */
+    ctaErrorMessage?: string;
 
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
@@ -65,14 +72,16 @@ function FeatureList({
     subtitle = '',
     ctaText = '',
     ctaAccessibilityLabel = '',
-    onCtaPress,
+    onCtaPress = () => {},
     secondaryButtonText = '',
     secondaryButtonAccessibilityLabel = '',
-    onSecondaryButtonPress,
+    onSecondaryButtonPress = () => {},
+    ctaErrorMessage,
     menuItems,
     illustration,
     illustrationStyle,
     illustrationBackgroundColor,
+    illustrationContainerStyle,
     titleStyles,
     contentPaddingOnLargeScreens,
 }: FeatureListProps) {
@@ -89,6 +98,7 @@ function FeatureList({
             illustrationBackgroundColor={illustrationBackgroundColor}
             illustrationStyle={illustrationStyle}
             titleStyles={titleStyles}
+            illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
         >
             <View style={styles.flex1}>
@@ -107,17 +117,25 @@ function FeatureList({
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
                                 containerStyle={[styles.m0, styles.wAuto]}
+                                numberOfLinesTitle={0}
                             />
                         </View>
                     ))}
                 </View>
-                {secondaryButtonText && (
+                {!!secondaryButtonText && (
                     <Button
                         text={secondaryButtonText}
                         onPress={onSecondaryButtonPress}
                         accessibilityLabel={secondaryButtonAccessibilityLabel}
                         style={[styles.w100, styles.mb3]}
                         large
+                    />
+                )}
+                {ctaErrorMessage && (
+                    <DotIndicatorMessage
+                        style={styles.mb1}
+                        messages={{error: ctaErrorMessage}}
+                        type="error"
                     />
                 )}
                 <Button

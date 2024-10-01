@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -26,6 +26,7 @@ type Props = WithPolicyProps;
 function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isInputInitializedRef = useRef(false);
     const [description, setDescription] = useState(() =>
         Parser.htmlToMarkdown(
             // policy?.description can be an empty string
@@ -109,7 +110,10 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                             autoGrowHeight
                             isMarkdownEnabled
                             ref={(el: BaseTextInputRef | null): void => {
-                                updateMultilineInputRange(el);
+                                if (!isInputInitializedRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
+                                isInputInitializedRef.current = true;
                             }}
                         />
                     </View>

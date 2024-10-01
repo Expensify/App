@@ -54,7 +54,7 @@ To delete a category,
 Once you have manually added your categories or automatically imported them from a connected accounting system, you can enable or disable the categories to determine whether they can be added to expenses. 
 
 {% include info.html %}
-After connecting an accounting system, Expensify automatically imports charts of accounts, GL accounts, expense accounts, and additional details into your workspace as **disabled** categories. Workspace admins can enable these categories to make them available for workspace members to add to their expenses.
+Importing GL & payroll codes from your accounting system is only available on the Control plan. After connecting an accounting system, Expensify automatically imports charts of accounts, GL accounts, expense accounts, and additional details into your workspace as **disabled** categories. Workspace admins can enable these categories to make them available for workspace members to add to their expenses.
 {% include end-info.html %}
 
 To enable or disable a category, 
@@ -88,6 +88,24 @@ You can enable, disable, or delete categories in bulk by selecting the checkbox 
 {% include end-option.html %}
 
 {% include end-selector.html %} 
+
+# Add or edit a GL code or payroll code
+
+If your workspace is on the Control plan, you can optionally add a GL code and payroll code to each category. Collect plan users will need to upgrade to Control for access to GL codes and payroll codes.
+
+GL codes and payroll codes can be exported to a CSV export. They are not displayed to users.
+
+**To edit GL codes or payroll codes for a category:**
+
+1. Click your profile image or icon in the bottom left menu
+2. Click **Workspaces** in the left menu
+3. Select a workspace
+4. Click **Categories**
+5. Click a category to open the category-settings
+6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
+7. To add or edit a payroll code, click the payroll code field, make the desired change, then click **Save**
+
+
 
 # Automatic Expensify categories
 

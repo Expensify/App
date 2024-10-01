@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
@@ -17,8 +18,8 @@ type RoomHeaderAvatarsProps = {
 
 function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
-        if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
-            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
+        if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
+            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID, icon.id.toString()));
             return;
         }
 
@@ -39,8 +40,9 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
             <PressableWithoutFocus
                 style={styles.noOutline}
                 onPress={() => navigateToAvatarPage(icons[0])}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icons[0].name ?? ''}
+                disabled={icons[0].source === Expensicons.FallbackAvatar}
             >
                 <Avatar
                     source={icons[0].source}
@@ -75,8 +77,9 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                         <PressableWithoutFocus
                             style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
+                            disabled={icon.source === Expensicons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}

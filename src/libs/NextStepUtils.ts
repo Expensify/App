@@ -8,9 +8,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -38,13 +38,20 @@ Onyx.connect({
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
 
-    messages?.forEach((part) => {
+    messages?.forEach((part, index) => {
         const isEmail = Str.isValidEmail(part.text);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        if (isEmail) {
+        const previousPart = messages[index - 1];
+        const nextPart = messages[index + 1];
+
+        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
+            tagType = 'strong';
+            content = nextPart?.text === `'s` ? 'Your' : 'You';
+        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
+            content = '';
+        } else if (isEmail) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
@@ -53,16 +60,18 @@ function parseMessage(messages: Message[] | undefined) {
     });
 
     const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'these expenses')
-        .replace(/%Expenses/g, 'These expenses')
+        .replace(/%expenses/g, 'expense(s)')
+        .replace(/%Expenses/g, 'Expense(s)')
         .replace(/%tobe/g, 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
-type BuildNextStepParameters = {
-    isPaidWithExpensify?: boolean;
-};
+function getNextApproverDisplayName(report: OnyxEntry<Report>) {
+    const approverAccountID = getNextApproverAccountID(report);
+
+    return ReportUtils.getDisplayNameForParticipant(approverAccountID) ?? ReportUtils.getPersonalDetailsForAccountID(approverAccountID).login;
+}
 
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
@@ -72,20 +81,19 @@ type BuildNextStepParameters = {
  * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithExpensify}: BuildNextStepParameters = {}): ReportNextStep | null {
+function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
 
-    const {policyID = '', ownerAccountID = -1, managerID = -1} = report ?? {};
+    const {policyID = '', ownerAccountID = -1} = report ?? {};
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
-    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
-    const isOwner = currentUserAccountID === ownerAccountID;
-    const isManager = currentUserAccountID === managerID;
-    const isSelfApproval = currentUserAccountID === submitToAccountID;
-    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
-    const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitToAccountID) ?? '';
+    const {harvesting, autoReportingOffset} = policy;
+    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
+    const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
+    const nextApproverDisplayName = getNextApproverDisplayName(report);
+
+    const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -95,24 +103,24 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Self review
             optimisticNextStep = {
                 type,
-                title: 'Next Steps:',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: `${ownerDisplayName}`,
                         type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'submit',
-                        type: 'strong',
+                        text: 'add',
                     },
                     {
-                        text: ' these expenses.',
+                        text: ' %expenses.',
                     },
                 ],
             };
@@ -121,7 +129,19 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
                     {
-                        text: 'These expenses are scheduled to ',
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${ownerDisplayName}`,
+                        type: 'strong',
+                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
+                    },
+                    {
+                        text: `'s`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses to automatically submit',
                     },
                 ];
                 let harvestingSuffix = '';
@@ -149,107 +169,48 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate ? `on the ${formattedDate} of each month` : '',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of your trip',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
                     };
 
                     if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = ` ${harvestingSuffixes[autoReportingFrequency]}`;
+                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
                     }
                 }
 
-                optimisticNextStep.message.push(
-                    {
-                        text: `automatically submit${harvestingSuffix}!`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' No further action required!',
-                    },
-                );
-            }
-
-            // Prevented self submitting
-            if (preventSelfApproval && isSelfApproval) {
-                optimisticNextStep.message = [
-                    {
-                        text: "Oops! Looks like you're submitting to ",
-                    },
-                    {
-                        text: 'yourself',
-                        type: 'strong',
-                    },
-                    {
-                        text: '. Approving your own reports is ',
-                    },
-                    {
-                        text: 'forbidden',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
-                    },
-                ];
+                optimisticNextStep.message.push({
+                    text: ` ${harvestingSuffix}`,
+                });
             }
 
             break;
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            const verb = isManager ? 'review' : 'approve';
-
             // Another owner
             optimisticNextStep = {
                 type,
-                title: 'Next Steps:',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [
-                    {
-                        text: ownerLogin,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' is waiting for ',
-                    },
-                    {
-                        text: 'you',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: verb,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' these %expenses.',
-                    },
-                ],
-            };
-
-            // Self review & another reviewer
-            if (!isSelfApproval || (isSelfApproval && isOwner)) {
-                optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: managerDisplayName,
+                        text: nextApproverDisplayName,
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: verb,
-                        type: 'strong',
+                        text: 'approve',
                     },
                     {
                         text: ' %expenses.',
                     },
-                ];
-            }
+                ],
+            };
 
             break;
         }
@@ -257,8 +218,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
         case CONST.REPORT.STATUS_NUM.CLOSED:
             optimisticNextStep = {
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                 type,
-                title: 'Finished!',
                 message: [
                     {
                         text: 'No further action required!',
@@ -282,7 +243,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             ) {
                 optimisticNextStep = {
                     type,
-                    title: 'Finished!',
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     message: [
                         {
                             text: 'No further action required!',
@@ -294,21 +255,24 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Self review
             optimisticNextStep = {
                 type,
-                title: 'Next Steps:',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [
                     {
                         text: 'Waiting for ',
                     },
-                    {
-                        text: 'you',
-                        type: 'strong',
-                    },
+                    reimburserAccountID === -1
+                        ? {
+                              text: 'an admin',
+                          }
+                        : {
+                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
+                              type: 'strong',
+                          },
                     {
                         text: ' to ',
                     },
                     {
                         text: 'pay',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -322,28 +286,13 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Paid with wallet
             optimisticNextStep = {
                 type,
-                title: 'Finished!',
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                 message: [
                     {
-                        text: 'You',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' have marked these expenses as ',
-                    },
-                    {
-                        text: 'paid',
-                        type: 'strong',
+                        text: 'No further action required!',
                     },
                 ],
             };
-
-            // Paid outside of Expensify
-            if (isPaidWithExpensify === false) {
-                optimisticNextStep.message?.push({text: ' outside of Expensify'});
-            }
-
-            optimisticNextStep.message?.push({text: '.'});
 
             break;
 

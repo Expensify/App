@@ -3,7 +3,7 @@
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
         "module": "commonjs",
-        "types": ["react-native", "jest"],
+        "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
         "strict": true,
@@ -24,6 +24,6 @@
             "@userActions/*": ["./src/libs/actions/*"]
         }
     },
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "workflow_tests", "scripts"],
+    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts"],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }

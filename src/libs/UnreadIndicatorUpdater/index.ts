@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
-import memoize from 'lodash/memoize';
 import type {OnyxCollection} from 'react-native-onyx';
+import memoize from '@libs/memoize';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
@@ -9,8 +9,9 @@ import type {Report} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
 function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string) {
-    return Object.values(reports ?? {}).filter(
-        (report) =>
+    return Object.values(reports ?? {}).filter((report) => {
+        const notificationPreference = ReportUtils.getReportNotificationPreference(report);
+        return (
             ReportUtils.isUnread(report) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
@@ -29,12 +30,13 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
              * Furthermore, muted reports may or may not appear in the LHN depending on priority mode,
              * but they should not be considered in the unread indicator count.
              */
-            report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
-            report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-    );
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
+        );
+    });
 }
 
-const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator);
+const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 1});
 
 const triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() ?? '-1' : '-1';

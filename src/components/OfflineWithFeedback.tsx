@@ -1,4 +1,3 @@
-import {mapValues} from 'lodash';
 import React, {useCallback} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -10,11 +9,11 @@ import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import type {AllStyles} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
-import MessagesRow from './MessagesRow';
+import ErrorMessageRow from './ErrorMessageRow';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -58,6 +57,12 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
     /** Whether we can dismiss the error message */
     canDismissError?: boolean;
+
+    /** Whether we should render the error message above the children */
+    shouldDisplayErrorAbove?: boolean;
+
+    /** Whether we should force opacity */
+    shouldForceOpacity?: boolean;
 };
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
@@ -75,6 +80,8 @@ function OfflineWithFeedback({
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
     style,
+    shouldDisplayErrorAbove = false,
+    shouldForceOpacity = false,
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
@@ -83,16 +90,10 @@ function OfflineWithFeedback({
 
     const hasErrors = !isEmptyObject(errors ?? {});
 
-    // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorEntries = Object.entries(errors ?? {});
-    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
-    const errorMessages = mapValues(Object.fromEntries(filteredErrorEntries), (error) => error);
-
-    const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-    const needsOpacity = !shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError);
+    const needsOpacity = (!shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError)) || shouldForceOpacity;
     const needsStrikeThrough = !shouldDisableStrikeThrough && isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = shouldHideOnDelete && !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = rest.children;
@@ -131,21 +132,28 @@ function OfflineWithFeedback({
     }
     return (
         <View style={style}>
+            {shouldShowErrorMessages && shouldDisplayErrorAbove && (
+                <ErrorMessageRow
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
+                    onClose={onClose}
+                    canDismissError={canDismissError}
+                />
+            )}
             {!hideChildren && (
                 <View
-                    style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
+                    style={[needsOpacity ? styles.offlineFeedback.pending : styles.offlineFeedback.default, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
                     <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
-            {shouldShowErrorMessages && hasErrorMessages && (
-                <MessagesRow
-                    messages={errorMessages}
-                    type="error"
+            {shouldShowErrorMessages && !shouldDisplayErrorAbove && (
+                <ErrorMessageRow
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
                     onClose={onClose}
-                    containerStyles={errorRowStyles}
-                    canDismiss={canDismissError}
+                    canDismissError={canDismissError}
                 />
             )}
         </View>

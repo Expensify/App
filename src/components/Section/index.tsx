@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
@@ -66,6 +67,9 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
+    /** Customize the Illustration container */
+    illustrationContainerStyle?: StyleProp<ViewStyle>;
+
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
 
@@ -91,14 +95,6 @@ type SectionProps = Partial<ChildrenProps> & {
     banner?: ReactNode;
 };
 
-function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
-    if (typeof illustration === 'number' || !illustration) {
-        return false;
-    }
-
-    return 'file' in illustration && 'w' in illustration && 'h' in illustration;
-}
-
 function Section({
     children,
     childrenStyles,
@@ -116,6 +112,7 @@ function Section({
     isCentralPane = false,
     illustration,
     illustrationBackgroundColor,
+    illustrationContainerStyle,
     illustrationStyle,
     contentPaddingOnLargeScreens,
     overlayContent,
@@ -132,9 +129,6 @@ function Section({
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
-
-    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG);
-
     return (
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
@@ -147,7 +141,16 @@ function Section({
                 />
             )}
             {!!illustration && (
-                <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
+                <View
+                    style={[
+                        styles.w100,
+                        styles.dFlex,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
+                        illustrationContainerStyle,
+                    ]}
+                >
                     <View style={[styles.cardSectionIllustration, illustrationStyle]}>
                         {isLottie ? (
                             <Lottie

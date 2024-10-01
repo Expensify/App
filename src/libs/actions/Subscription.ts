@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
@@ -279,6 +279,19 @@ function clearOutstandingBalance() {
     API.write(WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE, null, onyxData);
 }
 
+function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, cancellationNote: string) {
+    const parameters: CancelBillingSubscriptionParams = {
+        cancellationReason,
+        cancellationNote,
+    };
+
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
+}
+
+function requestTaxExempt() {
+    API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -287,4 +300,6 @@ export {
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
     clearOutstandingBalance,
+    cancelBillingSubscription,
+    requestTaxExempt,
 };

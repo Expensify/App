@@ -34,14 +34,15 @@ type NewTaskDescriptionPageOnyxProps = {
 
 type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
 
-function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
+function NewTaskDescriptionPage({task, route}: NewTaskDescriptionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
+    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDescriptionValue(values.taskDescription);
-        Navigation.goBack(ROUTES.NEW_TASK);
+        goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
@@ -63,8 +64,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
             <>
                 <HeaderWithBackButton
                     title={translate('task.description')}
-                    onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
@@ -83,8 +83,10 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
                                 inputCallbackRef(el);
-                                updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

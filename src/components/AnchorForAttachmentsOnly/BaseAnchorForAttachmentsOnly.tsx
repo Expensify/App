@@ -41,11 +41,11 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <PressableWithoutFeedback
                     style={[style, isOffline && styles.cursorDefault]}
                     onPress={() => {
-                        if (isDownloading || isOffline) {
+                        if (isDownloading || isOffline || !sourceID) {
                             return;
                         }
                         Download.setDownload(sourceID, true);
@@ -53,7 +53,12 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) => {
+                        if (isDisabled) {
+                            return;
+                        }
+                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                    }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
@@ -61,7 +66,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     <AttachmentView
                         source={sourceURLWithAuth}
                         file={{name: displayName}}
-                        shouldShowDownloadIcon={!isOffline}
+                        shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                     />

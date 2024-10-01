@@ -125,9 +125,11 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         style: 'currency',
         currency: currencyWithFallback,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
     });
 }
 
@@ -162,7 +164,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
-        minimumFractionDigits: getCurrencyDecimals(currency) + 1,
+        minimumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
 }
 
@@ -175,9 +177,11 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         style: 'currency',
         currency,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
     })
         .filter((x) => x.type !== 'currency')
         .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)

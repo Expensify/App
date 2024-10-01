@@ -14,6 +14,9 @@ type WorkspaceEmptyStateSectionProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
+    /** The component to show in the subtitle of the section */
+    subtitleComponent?: React.ReactNode;
+
     /** The icon to display along with the title */
     icon: IconAsset;
 
@@ -24,7 +27,7 @@ type WorkspaceEmptyStateSectionProps = {
     shouldStyleAsCard?: boolean;
 };
 
-function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shouldStyleAsCard = true}: WorkspaceEmptyStateSectionProps) {
+function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shouldStyleAsCard = true, subtitleComponent}: WorkspaceEmptyStateSectionProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -50,9 +53,9 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
                     <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{title}</Text>
                 </View>
 
-                {!!subtitle && (
+                {(!!subtitle || !!subtitleComponent) && (
                     <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mt1, styles.mh1]}>
-                        <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{subtitle}</Text>
+                        {subtitleComponent ?? <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{subtitle}</Text>}
                     </View>
                 )}
             </View>

@@ -2,16 +2,17 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagList, ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
+import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
 
-let allPolicyTags: OnyxCollection<PolicyTagList> = {};
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -23,6 +24,13 @@ Onyx.connect({
         allPolicyTags = value;
     },
 });
+
+/**
+ * Utility to get message based on boolean literal value.
+ */
+function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
+    return value === 'true' ? truthyMessage : falsyMessage;
+}
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -87,13 +95,32 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
     }, prefix);
 }
 
-function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
-    if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
+    let changedField: 'distance' | 'rate' = 'distance';
+
+    if (CONST.REGEX.DISTANCE_MERCHANT.test(newMerchant) && CONST.REGEX.DISTANCE_MERCHANT.test(oldMerchant)) {
+        const oldValues = oldMerchant.split('@');
+        const oldDistance = oldValues[0]?.trim() || '';
+        const oldRate = oldValues[1]?.trim() || '';
+        const newValues = newMerchant.split('@');
+        const newDistance = newValues[0]?.trim() || '';
+        const newRate = newValues[1]?.trim() || '';
+
+        if (oldDistance === newDistance && oldRate !== newRate) {
+            changedField = 'rate';
+        }
+    } else {
+        Log.hmmm("Distance request merchant doesn't match NewDot format. Defaulting to showing as distance changed.", {newMerchant, oldMerchant});
     }
-    return Localize.translateLocal('iou.updatedTheDistance', {
-        newDistanceToDisplay: newDistance,
-        oldDistanceToDisplay: oldDistance,
+
+    const translatedChangedField = Localize.translateLocal(`common.${changedField}`).toLowerCase();
+    if (!oldMerchant.length) {
+        return Localize.translateLocal('iou.setTheDistanceMerchant', {translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+    }
+    return Localize.translateLocal('iou.updatedTheDistanceMerchant', {
+        translatedChangedField,
+        newMerchant,
+        oldMerchant,
         newAmountToDisplay: newAmount,
         oldAmountToDisplay: oldAmount,
     });
@@ -116,14 +143,15 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     const setFragments: string[] = [];
     const changeFragments: string[] = [];
 
+    const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
     const hasModifiedAmount =
-        reportActionOriginalMessage &&
+        isReportActionOriginalMessageAnObject &&
         'oldAmount' in reportActionOriginalMessage &&
         'oldCurrency' in reportActionOriginalMessage &&
         'amount' in reportActionOriginalMessage &&
         'currency' in reportActionOriginalMessage;
 
-    const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
+    const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
@@ -142,7 +170,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         buildMessageFragmentForValue(amount, oldAmount, Localize.translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedComment = reportActionOriginalMessage && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
+    const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.newComment ?? '',
@@ -181,7 +209,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         );
     }
 
-    const hasModifiedCategory = reportActionOriginalMessage && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
+    const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.category ?? '',
@@ -194,7 +222,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         );
     }
 
-    const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
+    const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
         const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
@@ -225,7 +253,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         });
     }
 
-    const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+    const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
     if (hasModifiedTaxAmount) {
         const currency = reportActionOriginalMessage?.currency;
 
@@ -235,7 +263,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
     if (hasModifiedTaxRate) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.taxRate ?? '',
@@ -248,11 +276,24 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         );
     }
 
-    const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
+    const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
+            Localize.translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
+    if (hasModifiedReimbursable) {
+        buildMessageFragmentForValue(
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
             Localize.translateLocal('iou.expense'),
             true,
             setFragments,

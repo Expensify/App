@@ -1,8 +1,8 @@
 import React from 'react';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -15,14 +15,24 @@ function TransactionListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError,
     onFocus,
+    onLongPressRow,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
 
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv3,
+        styles.ph3,
+        item.isSelected && styles.activeComponentBG,
+        isFocused && styles.sidebarLinkActive,
+        // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
+        {backgroundColor: 'unset'},
+        styles.mh0,
+    ];
 
     const listItemWrapperStyle = [
         styles.flex1,
@@ -46,8 +56,10 @@ function TransactionListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            hasAnimateInHighlightStyle
         >
             <TransactionListItemRow
                 item={transactionItem}
@@ -59,6 +71,7 @@ function TransactionListItem<TItem extends ListItem>({
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
+                shouldShowTransactionCheckbox={false}
             />
         </BaseListItem>
     );

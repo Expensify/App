@@ -11505,35 +11505,48 @@ const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
 async function run() {
     try {
         const inputTag = core.getInput('TAG', { required: true });
-        const isProductionDeploy = (0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
+        const isProductionDeploy = !!(0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+        let priorTag;
+        let foundCurrentRelease = false;
+        await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.repos.listReleases, {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            workflow_id: 'platformDeploy.yml',
-            status: 'completed',
-            event: isProductionDeploy ? 'release' : 'push',
-        })).data.workflow_runs
-            // Note: we filter out cancelled runs instead of looking only for success runs
-            // because if a build fails on even one platform, then it will have the status 'failure'
-            .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
-        // Find the most recent deploy workflow for which at least one of the build jobs finished successfully.
-        let lastSuccessfulDeploy = completedDeploys.shift();
-        while (lastSuccessfulDeploy &&
-            !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                run_id: lastSuccessfulDeploy.id,
-                filter: 'latest',
-            })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')) {
-            lastSuccessfulDeploy = completedDeploys.shift();
+            per_page: 100,
+        }, ({ data }, done) => {
+            // For production deploys, look only at other production deploys.
+            // staging deploys can be compared with other staging deploys or production deploys.
+            // The reason is that the final staging release in each deploy cycle will BECOME a production release
+            const filteredData = isProductionDeploy ? data.filter((release) => !release.prerelease) : data;
+            // Release was in the last page, meaning the previous release is the first item in this page
+            if (foundCurrentRelease) {
+                priorTag = data.at(0)?.tag_name;
+                done();
+                return filteredData;
+            }
+            // Search for the index of input tag
+            const indexOfCurrentRelease = filteredData.findIndex((release) => release.tag_name === inputTag);
+            // If it happens to be at the end of this page, then the previous tag will be in the next page.
+            // Set a flag showing we found it so we grab the first release of the next page
+            if (indexOfCurrentRelease === filteredData.length - 1) {
+                foundCurrentRelease = true;
+                return filteredData;
+            }
+            // If it's anywhere else in this page, the the prior release is the next item in the page
+            if (indexOfCurrentRelease >= 0) {
+                priorTag = filteredData.at(indexOfCurrentRelease + 1)?.tag_name;
+                done();
+            }
+            // Release not in this page (or we're done)
+            return filteredData;
+        });
+        if (!priorTag) {
+            throw new Error('Something went wrong and the prior tag could not be found.');
         }
-        const priorTag = completedDeploys[0].head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
+        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     }
@@ -11631,7 +11644,22 @@ const CONST = {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
+    ACTIONS: {
+        CREATED: 'created',
+        EDIT: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    OPENAI_ROLES: {
+        USER: 'user',
+        ASSISTANT: 'assistant',
+    },
+    PROPOSAL_KEYWORD: 'Proposal',
+    OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -11639,6 +11667,9 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    NO_ACTION: 'NO_ACTION',
+    OPENAI_POLL_RATE: 1500,
+    OPENAI_POLL_TIMEOUT: 90000,
 };
 exports["default"] = CONST;
 
@@ -11804,6 +11835,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
+                console.log('code: ', code);
                 return reject(new Error(`${stderr}`));
             }
             resolve(stdout);
@@ -12232,12 +12264,6 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs[0]?.id);
-    }
-    /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.

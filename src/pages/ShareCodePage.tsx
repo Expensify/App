@@ -2,6 +2,7 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,25 +15,48 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
+import type {BackToParams} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
     report?: OnyxEntry<Report>;
+
+    /** The policy for the report currently being looked at */
+    policy?: OnyxEntry<Policy>;
 };
 
-type ShareCodePageProps = ShareCodePageOnyxProps;
+type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
 
-function ShareCodePage({report}: ShareCodePageProps) {
+/**
+ * When sharing a policy (workspace) only return user avatar that is user defined. Default ws avatars have separate logic.
+ * In any other case default to expensify logo
+ */
+
+function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): ImageSourcePropType | undefined {
+    if (!policy || !policy.id || report?.type !== 'chat') {
+        return expensifyLogo;
+    }
+
+    if (!policy.avatarURL) {
+        return undefined;
+    }
+
+    return policy.avatarURL as ImageSourcePropType;
+}
+
+function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareHandle>(null);
@@ -64,11 +88,26 @@ function ShareCodePage({report}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '-1')}`;
 
+    const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+
+    // Default logos (avatars) are SVG and they require some special logic to display correctly
+    let svgLogo: React.FC<SvgProps> | undefined;
+    let logoBackgroundColor: string | undefined;
+    let svgLogoFillColor: string | undefined;
+
+    if (!logo && policy && !policy.avatarURL) {
+        svgLogo = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+
+        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id ?? '');
+        logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
+        svgLogoFillColor = defaultWorkspaceAvatarColors.fill;
+    }
+
     return (
         <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
@@ -85,9 +124,12 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         url={url}
                         title={title}
                         subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        logo={logo}
+                        svgLogo={svgLogo}
+                        logoBackgroundColor={logoBackgroundColor}
+                        svgLogoFillColor={svgLogoFillColor}
+                        logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                     />
                 </View>
 
@@ -105,7 +147,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
                         icon={Expensicons.Cash}
-                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRouteWithoutParams()))}
+                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon
                     />
                 </View>

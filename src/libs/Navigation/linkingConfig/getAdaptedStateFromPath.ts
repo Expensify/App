@@ -1,23 +1,35 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import * as ReportConnection from '@libs/ReportConnection';
+import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
-import config from './config';
-import extractPolicyIDsFromState from './extractPolicyIDsFromState';
+import config, {normalizedConfigs} from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
 
-const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS] as const;
+const RHP_SCREENS_OPENED_FROM_LHN = [
+    SCREENS.SETTINGS.SHARE_CODE,
+    SCREENS.SETTINGS.PROFILE.STATUS,
+    SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE,
+    SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.SETTINGS.EXIT_SURVEY.REASON,
+    SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
+    SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
+] satisfies Screen[];
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
@@ -35,7 +47,7 @@ type GetAdaptedStateReturnType = {
     metainfo: Metainfo;
 };
 
-type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) => GetAdaptedStateReturnType;
+type GetAdaptedStateFromPath = (...args: [...Parameters<typeof getStateFromPath>, shouldReplacePathInNestedState?: boolean]) => GetAdaptedStateReturnType;
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
@@ -57,12 +69,8 @@ const addPolicyIDToRoute = (route: NavigationPartialRoute, policyID?: string) =>
 };
 
 function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
-    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME, params: {policyID}}];
-
-    if (route.name !== SCREENS.HOME) {
-        // If the generated state requires tab other than HOME, we need to insert it.
-        routesForBottomTabNavigator.push(addPolicyIDToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
-    }
+    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [];
+    routesForBottomTabNavigator.push(addPolicyIDToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
 
     return {
         name: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
@@ -92,32 +100,36 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
     };
 }
 
+function getParamsFromRoute(screenName: string): string[] {
+    const routeConfig = normalizedConfigs[screenName as Screen];
+
+    const route = routeConfig.pattern;
+
+    return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
+}
+
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
 function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
         if (stateForBackTo) {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            const rhpNavigator = stateForBackTo.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-
-            const centralPaneOrFullScreenNavigator = stateForBackTo.routes.find(
-                // eslint-disable-next-line @typescript-eslint/no-shadow
-                (route) => isCentralPaneName(route.name) || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR,
-            );
-
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
+            const rhpNavigator = stateForBackTo.routes.find((rt) => rt.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
             if (rhpNavigator && rhpNavigator.state) {
-                const isRHPinState = stateForBackTo.routes[0].name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
-                if (isRHPinState) {
-                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
-                }
+                return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
             }
 
-            // If we know that backTo targets the root route (central pane or full screen) we want to use it.
-            if (centralPaneOrFullScreenNavigator && centralPaneOrFullScreenNavigator.state) {
-                return centralPaneOrFullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+            // If we know that backTo targets the root route (full screen) we want to use it.
+            const fullScreenNavigator = stateForBackTo.routes.find((rt) => rt.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+            if (fullScreenNavigator && fullScreenNavigator.state) {
+                return fullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+            }
+
+            // If we know that backTo targets a central pane screen we want to use it.
+            const centralPaneScreen = stateForBackTo.routes.find((rt) => isCentralPaneName(rt.name));
+            if (centralPaneScreen) {
+                return centralPaneScreen as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
             }
         }
     }
@@ -125,19 +137,26 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     // Check for CentralPaneNavigator
     for (const [centralPaneName, RHPNames] of Object.entries(CENTRAL_PANE_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            const params = {...route.params};
-            if (centralPaneName === SCREENS.SEARCH.CENTRAL_PANE) {
-                delete (params as Record<string, string | undefined>)?.reportID;
-            }
-            return {name: centralPaneName as CentralPaneName, params};
+            const paramsFromRoute = getParamsFromRoute(centralPaneName);
+
+            return {name: centralPaneName as CentralPaneName, params: pick(route.params, paramsFromRoute)};
         }
     }
 
     // Check for FullScreenNavigator
     for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
+            const paramsFromRoute = getParamsFromRoute(fullScreenName);
+
+            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: pick(route.params, paramsFromRoute)});
         }
+    }
+
+    // check for valid reportID in the route params
+    // if the reportID is valid, we should navigate back to screen report in CPN
+    const reportID = (route.params as Record<string, string | undefined>)?.reportID;
+    if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+        return {name: SCREENS.REPORT, params: {reportID}};
     }
 }
 
@@ -159,11 +178,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
     const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
 
-    if (isNarrowLayout) {
-        metainfo.isFullScreenNavigatorMandatory = false;
-        metainfo.isCentralPaneAndBottomTabMandatory = false;
-    }
-
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab
@@ -177,7 +191,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         if (focusedRHPRoute) {
             let matchingRootRoute = getMatchingRootRouteForRHPRoute(focusedRHPRoute);
             const isRHPScreenOpenedFromLHN = focusedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(focusedRHPRoute?.name as RHPScreenOpenedFromLHN);
-            // This may happen if this RHP doens't have a route that should be under the overlay defined.
+            // This may happen if this RHP doesn't have a route that should be under the overlay defined.
             if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
                 metainfo.isFullScreenNavigatorMandatory = false;
@@ -351,7 +365,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     };
 }
 
-const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
+const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
     const isAnonymous = isAnonymousUser();
@@ -360,15 +374,18 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
-    replacePathInNestedState(state, path);
+    if (shouldReplacePathInNestedState) {
+        replacePathInNestedState(state, path);
+    }
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
 
-    // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
-    const policyIDs = extractPolicyIDsFromState(state);
+    // On SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently inside search query ("q" param), so we're handling this case
+    const focusedRoute = findFocusedRoute(state);
+    const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
 
-    return getAdaptedState(state, policyID ?? policyIDs);
+    return getAdaptedState(state, policyID ?? policyIDFromQuery);
 };
 
 export default getAdaptedStateFromPath;

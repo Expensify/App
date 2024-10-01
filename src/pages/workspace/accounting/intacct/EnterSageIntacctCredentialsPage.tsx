@@ -16,13 +16,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
-type IntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
-function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps) {
+function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID: string = route.params.policyID;
@@ -30,8 +29,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     const confirmCredentials = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             connectToSageIntacct(policyID, values);
-            Navigation.goBack();
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [policyID],
     );
@@ -59,7 +57,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
@@ -93,6 +91,6 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     );
 }
 
-EnterSageIntacctCredentialsPage.displayName = 'PolicyEnterSageIntacctCredentialsPage';
+EnterSageIntacctCredentialsPage.displayName = 'EnterSageIntacctCredentialsPage';
 
 export default EnterSageIntacctCredentialsPage;
