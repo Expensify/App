@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -36,8 +36,9 @@ type NewContactMethodPageOnyxProps = {
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
+function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const contactMethod = account?.primaryLogin ?? '';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -162,6 +163,4 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
 
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 
-export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(NewContactMethodPage);
+export default NewContactMethodPage;

@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
@@ -35,9 +35,12 @@ type ContactMethodsPageOnyxProps = {
 
 type ContactMethodsPageProps = ContactMethodsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
 
-function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps) {
+function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
+    const [loginList] = useOnyx(`${ONYXKEYS.LOGIN_LIST}`);
+    const [session] = useOnyx(`${ONYXKEYS.SESSION}`);
+
     const loginNames = Object.keys(loginList ?? {});
     const navigateBackTo = route?.params?.backTo;
 
@@ -139,11 +142,4 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
 
 ContactMethodsPage.displayName = 'ContactMethodsPage';
 
-export default withOnyx<ContactMethodsPageProps, ContactMethodsPageOnyxProps>({
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ContactMethodsPage);
+export default ContactMethodsPage;

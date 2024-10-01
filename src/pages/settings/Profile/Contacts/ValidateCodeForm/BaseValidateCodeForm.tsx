@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -66,7 +66,6 @@ type ValidateCodeFormProps = {
 type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
 
 function BaseValidateCodeForm({
-    account = {},
     contactMethod,
     hasMagicCodeBeenSent,
     loginList,
@@ -82,6 +81,7 @@ function BaseValidateCodeForm({
     const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const loginData = loginList?.[pendingContact?.contactMethod ?? contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
@@ -278,6 +278,4 @@ BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
-export default withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(BaseValidateCodeForm);
+export default BaseValidateCodeForm;
