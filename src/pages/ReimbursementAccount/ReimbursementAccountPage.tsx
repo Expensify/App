@@ -28,7 +28,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
@@ -129,12 +128,12 @@ function getFieldsForStep(step: TBankAccountStep): InputID[] {
 
 function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps) {
     const session = useSession();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
-    const [plaidCurrentEvent] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
+    const [plaidLinkToken = ''] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
+    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID ?? '-1';
@@ -280,9 +279,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const backTo = route.params.backTo;
-
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyIDParam, backTo));
+            Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton, policyIDParam],
