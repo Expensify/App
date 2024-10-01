@@ -67,7 +67,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                 cardCVV: values.securityCode,
                 addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
-                currency: CONST.CURRENCY.USD,
+                currency: values.currency,
             };
 
             PolicyActions.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);

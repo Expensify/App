@@ -1,6 +1,6 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type AddressLineParams = {
@@ -109,7 +109,6 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 };
 
 type RequestCountParams = {
-    count: number;
     scanningReceipts: number;
     pendingReceipts: number;
 };
@@ -280,11 +279,7 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
 
-type DistanceRateOperationsParams = {count: number};
-
 type ReimbursementRateParams = {unit: Unit};
-
-type ConfirmHoldExpenseParams = {transactionCount: number};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -332,10 +327,6 @@ type RemoveMemberPromptParams = {
     memberName: string;
 };
 
-type DeleteExpenseTranslationParams = {
-    count: number;
-};
-
 type IssueVirtualCardParams = {
     assignee: string;
     link: string;
@@ -347,7 +338,7 @@ type ApprovalWorkflowErrorParams = {
 };
 
 type ConnectionNameParams = {
-    connectionName: ConnectionName;
+    connectionName: AllConnectionName;
 };
 
 type LastSyncDateParams = {
@@ -384,8 +375,6 @@ type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
 type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 
 type AmountWithCurrencyParams = {amountWithCurrency: string};
-
-type SelectedNumberParams = {selectedNumber: number};
 
 type LowerUpperParams = {lower: string; upper: string};
 
@@ -455,11 +444,7 @@ type RequiredFieldParams = {fieldName: string};
 
 type ImportFieldParams = {importField: string};
 
-type DimensionsCountParams = {dimensionsCount: number};
-
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
-
-type AgeParams = {age: number};
 
 type LastSyncAccountingParams = {relativeDate: string};
 
@@ -571,9 +556,7 @@ export type {
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
-    AgeParams,
     RequiredFieldParams,
-    DimensionsCountParams,
     IntacctMappingTitleParams,
     ImportFieldParams,
     AssigneeParams,
@@ -609,7 +592,6 @@ export type {
     SecondaryLoginParams,
     TaxAmountParams,
     CategoryNameParams,
-    SelectedNumberParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
@@ -623,7 +605,6 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     CompanyCardFeedNameParams,
     DateShouldBeAfterParams,
@@ -631,7 +612,6 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
@@ -733,7 +713,6 @@ export type {
     StripePaidParams,
     UnapprovedParams,
     RemoveMembersWarningPrompt,
-    DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
     LastSyncDateParams,
