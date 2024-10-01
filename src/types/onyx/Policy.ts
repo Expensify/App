@@ -995,8 +995,8 @@ type NetSuiteConnection = {
     /** Date when the connection's last failed sync occurred */
     lastErrorSyncDate: string;
 
-    /** Where did the connection's last sync came from */
-    source: JobSourceValues;
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
 
     /** Config object used solely to store autosync settings */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{

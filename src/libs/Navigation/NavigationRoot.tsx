@@ -11,8 +11,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
+import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
@@ -92,7 +92,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
 
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
@@ -103,7 +103,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
-        if (!NativeModules.HybridAppModule && !hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
+        if (!NativeModules.HybridAppModule && !isOnboardingCompleted && authenticated && !shouldShowRequire2FAModal) {
             const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
             return adaptedState;
         }

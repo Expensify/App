@@ -211,6 +211,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                pendingChatMembers: reportOnyx.pendingChatMembers,
             },
         [reportOnyx, permissions],
     );
@@ -237,7 +238,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const isEmptyChat = useMemo(() => ReportUtils.isEmptyReport(report), [report]);
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const indexOfLinkedMessage = useMemo(
         (): number => reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
@@ -282,7 +282,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.goBack(undefined, false, true);
     }, [isInNarrowPaneModal]);
 
-    let headerView = report && (
+    let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
             onNavigationMenuButtonClicked={onBackButtonPress}
@@ -292,13 +292,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         />
     );
 
-    if (isSingleTransactionView && report) {
+    if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
             />
         );
@@ -311,14 +310,13 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
     }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
 
-    if (report && (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report))) {
+    if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
             />
         );
@@ -440,7 +438,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (report && !shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+        if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
             return;
         }
 
@@ -695,6 +693,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -773,7 +772,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        {shouldShowMostRecentReportAction && report && (
+                                        {shouldShowMostRecentReportAction && (
                                             <ReportActionsListItemRenderer
                                                 reportAction={mostRecentReportAction}
                                                 reportActions={reportActions}
@@ -802,7 +801,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
-                                        isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         workspaceTooltip={workspaceTooltip}
                                     />

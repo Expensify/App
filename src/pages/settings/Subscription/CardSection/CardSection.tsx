@@ -61,7 +61,7 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = SearchUtils.buildQueryStringFromFilterValues({merchant: CONST.EXPENSIFY_MERCHANT});
+        const query = SearchUtils.buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
     }, []);
 
@@ -139,9 +139,9 @@ function CardSection() {
                                 <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName,
+                                        name: defaultCard?.accountData?.addressName ?? '',
                                         expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency,
+                                        currency: defaultCard?.accountData?.currency ?? '',
                                     })}
                                 </Text>
                             </View>

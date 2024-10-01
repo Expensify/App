@@ -169,9 +169,10 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
+            preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, canUseP2PDistanceRequests, iouRequestType, isCategorizeOrShareAction, action]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -257,8 +258,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                // TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID, currentUserLogin)?.id;
+                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getInvoicePrimaryWorkspace(activePolicyID, currentUserLogin)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,
