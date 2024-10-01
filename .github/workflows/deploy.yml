@@ -218,6 +218,9 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEY_PASSWORD
 
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
       - name: Load files 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
