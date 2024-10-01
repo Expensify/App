@@ -14,6 +14,8 @@ jobs:
         with:
           bundler-cache: true
 
-      - run: bundle exec fastlane android test
+      - run: |
+          bundle exec fastlane android test
+          echo "hello $apkPath"
 
-      - run: echo "hello $apkPath"
+      - run: echo "hi $apkPath"
