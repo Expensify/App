@@ -256,7 +256,6 @@ module.exports = {
                 },
             },
         ],
-        'deprecation/deprecation': 'off',
     },
 
     overrides: [
