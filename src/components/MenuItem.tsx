@@ -781,7 +781,9 @@ function MenuItem(
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={floatRightAvatars.at(0)}
+                                                                // because of the check above we know that there is an avatar on index 0, but the error still appears
+                                                                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                                                mainAvatar={floatRightAvatars.at(0)!}
                                                                 secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />

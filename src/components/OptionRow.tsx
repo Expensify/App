@@ -209,7 +209,9 @@ function OptionRow({
                                 {!!option.icons?.length &&
                                     (option.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            mainAvatar={option.icons.at(0)}
+                                            // because of the check above we know that there is an icon on index 0
+                                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                            mainAvatar={option.icons.at(0)!}
                                             secondaryAvatar={option.icons.at(1)}
                                             backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}

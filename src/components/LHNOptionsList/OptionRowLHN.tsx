@@ -242,7 +242,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             (optionItem.shouldShowSubscript ? (
                                                 <SubscriptAvatar
                                                     backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    mainAvatar={optionItem.icons.at(0)}
+                                                    // because of the check above we know that there is an icon on index 0
+                                                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                                    mainAvatar={optionItem.icons.at(0)!}
                                                     secondaryAvatar={optionItem.icons.at(1)}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                 />

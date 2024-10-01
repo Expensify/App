@@ -224,7 +224,7 @@ function ReportActionItemSingle({
             if (shouldShowSubscriptAvatar) {
                 return (
                     <SubscriptAvatar
-                        mainAvatar={icons.at(0)}
+                        mainAvatar={icons.at(0) ?? icon}
                         secondaryAvatar={icons.at(1) ?? secondaryAvatar}
                         noMargin
                         backgroundColor={isHovered ? theme.hoverComponentBG : theme.componentBG}

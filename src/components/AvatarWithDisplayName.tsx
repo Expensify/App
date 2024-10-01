@@ -13,8 +13,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
+import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -44,6 +46,13 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+};
+
+const fallbackIcon: Icon = {
+    source: FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
+    id: -1,
 };
 
 function AvatarWithDisplayName({
@@ -126,7 +135,7 @@ function AvatarWithDisplayName({
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
                                 backgroundColor={avatarBorderColor}
-                                mainAvatar={icons.at(0)}
+                                mainAvatar={icons.at(0) ?? fallbackIcon}
                                 secondaryAvatar={icons.at(1)}
                                 size={size}
                             />
