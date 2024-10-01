@@ -96,20 +96,20 @@ jobs:
       - name: Download Android build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: /etc/usr/artifacts
+          path: /tmp/artifacts
           pattern: android-artifact-*
           merge-multiple: true
 
       - name: Log downloaded artifact paths
-        run: ls -R /etc/usr/artifacts
+        run: ls -R /tmp/artifacts
 
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android upload_google_play_internal
         env:
-          aabPath: /etc/usr/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
+          aabPath: /tmp/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
 
       - name: Upload Android build to Browser Stack
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/etc/usr/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
@@ -136,12 +136,12 @@ jobs:
       - name: Download Android build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: /etc/usr/artifacts
+          path: /tmp/artifacts
           pattern: android-artifact-*
           merge-multiple: true
 
       - name: Log downloaded artifact paths
-        run: ls -R /etc/usr/artifacts
+        run: ls -R /tmp/artifacts
 
       - name: Submit Android build for review
         run: bundle exec fastlane android upload_google_play_production
