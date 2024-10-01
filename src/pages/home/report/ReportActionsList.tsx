@@ -228,26 +228,31 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    const isMessageOffline = useCallback(
+        (m: OnyxTypes.ReportAction) => wasMessageReceivedWhileOffline(m, lastOfflineAt, lastOnlineAt, preferredLocale),
+        [lastOfflineAt, lastOnlineAt, preferredLocale],
+    );
+
     /**
      * The reportActionID the unread marker should display above
      */
     const unreadMarkerReportActionID = useMemo(() => {
-        const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
+        const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions[index + 1];
 
             // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
-            if (!ReportActionsUtils.wasActionTakenByCurrentUser(reportAction)) {
-                const isCurrentMessageOffline = wasMessageReceivedWhileOffline(reportAction, lastOfflineAt, lastOnlineAt, preferredLocale);
-                const isNextMessageOffline = (nextMessage && wasMessageReceivedWhileOffline(nextMessage, lastOfflineAt, lastOnlineAt, preferredLocale)) || !nextMessage;
+            if (!ReportActionsUtils.wasActionTakenByCurrentUser(message)) {
+                const isCurrentMessageOffline = isMessageOffline(message);
+                const isNextMessageOffline = nextMessage && !ReportActionsUtils.wasActionTakenByCurrentUser(nextMessage) && isMessageOffline(nextMessage);
                 if (isCurrentMessageOffline && !isNextMessageOffline) {
                     return true;
                 }
             }
 
-            const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
+            const isCurrentMessageUnread = isMessageUnread(message, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
-            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
+            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(message);
+            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
             return shouldDisplay && isWithinVisibleThreshold;
         };
 
@@ -260,7 +265,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, lastOfflineAt, lastOnlineAt, preferredLocale, unreadMarkerTime]);
+    }, [sortedVisibleReportActions, unreadMarkerTime, isMessageOffline]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
