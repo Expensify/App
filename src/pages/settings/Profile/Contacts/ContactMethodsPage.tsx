@@ -41,16 +41,21 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
     const loginNames = Object.keys(loginList ?? {});
     const navigateBackTo = route?.params?.backTo;
 
-    // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
-    // The default contact method is determined by checking against the session email (the current login).
-    const sortedLoginNames = loginNames.sort((loginName) => (loginList?.[loginName].partnerUserID === session?.email ? -1 : 1));
-
-    const loginMenuItems = sortedLoginNames.map((loginName) => {
+    const filteredLoginNames = loginNames.filter((loginName) => {
         const login = loginList?.[loginName];
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
-        if (!login?.partnerUserID && !pendingAction) {
-            return null;
-        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return login?.partnerUserID || pendingAction;
+    });
+
+    // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
+    // The default contact method is determined by checking against the session email (the current login).
+    const sortedLoginNames = filteredLoginNames.sort((loginName) => (loginList?.[loginName].partnerUserID === session?.email ? -1 : 1));
+    const loginMenuItems = sortedLoginNames.map((loginName) => {
+        const login = loginList?.[loginName];
+        const isDefaultContactMethod = session?.email === login?.partnerUserID;
+        const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
 
         let description = '';
         if (session?.email === login?.partnerUserID) {
@@ -63,7 +68,9 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         let indicator;
         if (Object.values(login?.errorFields ?? {}).some((errorField) => !isEmptyObject(errorField))) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        } else if (!login?.validatedDate) {
+        } else if (!login?.validatedDate && !isDefaultContactMethod) {
+            indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        } else if (!login?.validatedDate && isDefaultContactMethod && sortedLoginNames.length > 1) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
 
