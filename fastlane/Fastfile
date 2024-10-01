@@ -22,9 +22,8 @@ KEY_DSYM_PATH = "dsymPath"
 KEY_S3_APK_PATH = "s3APKPath"
 KEY_S3_HTML_PATH = "s3HtmlPath"
 
-# Export environment variables in the parent shell.
-# In a GitHub Actions environment, it will save the environment variables in the GITHUB_ENV file.
-# In any other environment, it will save them to the current shell environment using the `export` command.
+# Export environment variables to GITHUB_ENV
+# If there's no GITHUB_ENV file set in the env, then this is a no-op
 def exportEnvVars(env_vars)
   github_env_path = ENV['GITHUB_ENV']
   if github_env_path && File.exist?(github_env_path)
@@ -34,13 +33,6 @@ def exportEnvVars(env_vars)
         puts "#{key}=#{value}"
         file.puts "#{key}=#{value}"
       end
-    end
-  else
-    puts "Saving environment variables in parent shell..."
-    env_vars.each do |key, value|
-      puts "#{key}=#{value}"
-      command = "export #{key}=#{value}"
-      system(command)
     end
   end
 end

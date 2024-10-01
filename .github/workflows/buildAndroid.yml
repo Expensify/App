@@ -127,6 +127,9 @@ jobs:
           esac
           bundle exec fastlane android "$lane"
 
+          # Reload environment variables from GITHUB_ENV
+          source "$GITHUB_ENV"
+
           SHOULD_UPLOAD_SOURCEMAPS='false'
           if [ -f ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map ]; then
             SHOULD_UPLOAD_SOURCEMAPS='true'
