@@ -68,7 +68,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             return;
         }
         ref.current?.movePrevious();
-        formRef.current?.resetError();
+        formRef.current?.resetErrors();
         prevScreen();
     };
 

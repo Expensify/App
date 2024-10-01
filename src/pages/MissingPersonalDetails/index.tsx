@@ -34,6 +34,7 @@ function MissingPersonalDetails() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const formRef = useRef<FormRef | null>(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
@@ -65,6 +66,7 @@ function MissingPersonalDetails() {
             return;
         }
         ref.current?.movePrevious();
+        formRef.current?.resetErrors();
         prevScreen();
     };
 
@@ -187,6 +189,7 @@ function MissingPersonalDetails() {
                 />
             </View>
             <FormProvider
+                ref={formRef}
                 formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
                 submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                 onSubmit={screenIndex === formSteps.length - 1 ? updatePersonalDetails : handleNextScreen}
