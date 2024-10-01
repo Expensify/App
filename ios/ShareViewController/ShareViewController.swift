@@ -6,8 +6,9 @@ import Intents
 import os
 
 class ShareViewController: UIViewController {
-  let APP_GROUP_ID = "group.com.expensify.chat"
-    
+  let APP_GROUP_ID = "group.com.expensify.new"
+  let FILES_DIRECTORY_NAME = "sharedImages"
+
   enum ImageSaveError: String {
       case IncorrectType
       case CouldNotLoad
@@ -41,6 +42,7 @@ class ShareViewController: UIViewController {
         let filePath = folder.appendingPathComponent(filename)
         do {
             try imageData.write(to: filePath, options: .completeFileProtection)
+            os_log("TEST SAVE PATH: \(filePath).")
             return filePath
         } catch {
             os_log("Unexpected saveImageToFolder error: \(error).")
@@ -55,7 +57,7 @@ class ShareViewController: UIViewController {
           os_log("ShareViewController.saveImageToAppGroup failed to get group shared folder")
           return
       }
-      let sharedImageFolder = groupURL.appendingPathComponent("sharedImages", isDirectory: true)
+      let sharedImageFolder = groupURL.appendingPathComponent(FILES_DIRECTORY_NAME, isDirectory: true)
 
       // Try to create folder to share images if it doesn't exist
       do {
@@ -65,6 +67,7 @@ class ShareViewController: UIViewController {
           return
       }
 
+      os_log("sharedImageFolder.path \(sharedImageFolder.path)")
       // Clear any image that was in the folder (in case it already existed)
       do {
           let filePaths = try FileManager.default.contentsOfDirectory(atPath: sharedImageFolder.path)
@@ -86,7 +89,7 @@ class ShareViewController: UIViewController {
           return
       }
 
-      // This is ran for each image that is selected.
+      // This is ran : NSItemProvider: NSItemProviderfor each image that is selected.
       for attatchment in attachments {
           group.enter()
 
@@ -95,9 +98,10 @@ class ShareViewController: UIViewController {
               group.leave()
               continue
           }
-          attatchment.loadItem(forTypeIdentifier: contentType, options: nil) { (data, error) in
+          attatchment.loadItem(forTypeIdentifier: contentType, options: nil, completionHandler: { (data, error) in
               guard error == nil else {
                   DispatchQueue.main.async {
+                      os_log("Sharing error: \(error)")
                       completion(.CouldNotLoad)
                       group.leave()
                   }
@@ -113,10 +117,12 @@ class ShareViewController: UIViewController {
                       group.leave()
                       return
                   }
+                  os_log("handleShareAction FILE NAME \(filename)")
                   if let imageFinalPath = self.saveImageToFolder(folder: sharedImageFolder, filename: filename, imageData: imageData) {
                       imagePaths.append(imageFinalPath.path)
+                      os_log("handleShareAction Saving image \(imageFinalPath.path)")
                   } else {
-                      os_log("Skipping image \(String(describing: filename)), failed to save")
+                      os_log("handleShareAction Skipping image \(String(describing: filename)), failed to save")
                   }
                   group.leave()
                   // Try to get image as UIImage. This is the case when extension is run from screenshot editor.
@@ -135,7 +141,8 @@ class ShareViewController: UIViewController {
                   }
                   return
               }
-          }
+
+          })
       }
     }
   

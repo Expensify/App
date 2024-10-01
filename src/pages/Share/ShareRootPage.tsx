@@ -1,6 +1,6 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {AppStateStatus} from 'react-native';
-import {AppState, View} from 'react-native';
+import {AppState, Image, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,6 +20,7 @@ function ShareRootPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const fileIsScannable = false;
+    const [imageURIs, setImageURIs] = useState<string[]>([]);
     const appState = useRef(AppState.currentState);
 
     const handleProcessFiles = () => {
@@ -27,6 +28,7 @@ function ShareRootPage() {
         ShareActionHandlerModule.processFiles((processedFiles) => {
             // eslint-disable-next-line no-console
             console.log('PROCESSED FILES ', processedFiles);
+            setImageURIs(processedFiles);
         });
     };
 
@@ -63,6 +65,13 @@ function ShareRootPage() {
                     title="Share"
                     onBackButtonPress={navigateBack}
                 />
+                {imageURIs.map((uri) => (
+                    <Image
+                        key={`image-${uri}`}
+                        source={{uri}} // Note the change here
+                        style={{width: 100, height: 100}}
+                    />
+                ))}
                 {/* <OnyxTabNavigator
                     id={CONST.TAB.SHARE_TAB_ID}
                     // @ts-expect-error I think that OnyxTabNavigator is going to be refactored in terms of types

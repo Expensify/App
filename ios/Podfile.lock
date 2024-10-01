@@ -3057,7 +3057,7 @@ SPEC CHECKSUMS:
   AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
-  boost: 26992d1adf73c1c7676360643e687aee6dda994b
+  boost: 4cb898d0bf20404aab1850c656dcea009429d6c1
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: 62e66b067185d630fe4cb4aa6eb0e48f72e67e0f
@@ -3208,7 +3208,7 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
-  Yoga: 2a45d7e59592db061217551fd3bbe2dd993817ae
+  Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
 PODFILE CHECKSUM: e479ec84cb53e5fd463486d71dfee91708d3fd9a
 
