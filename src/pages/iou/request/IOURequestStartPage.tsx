@@ -54,7 +54,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
-        [CONST.IOU.TYPE.GLOBAL_CREATE]: translate('iou.createExpense'),
+        [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const {canUseP2PDistanceRequests, canUseCombinedTrackSubmit} = usePermissions(iouType);

@@ -116,7 +116,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
         CONST.IOU.TYPE.PAY,
         CONST.IOU.TYPE.TRACK,
         CONST.IOU.TYPE.INVOICE,
-        CONST.IOU.TYPE.GLOBAL_CREATE,
+        CONST.IOU.TYPE.CREATE,
     ];
 
     return moneyRequestType.includes(iouType);

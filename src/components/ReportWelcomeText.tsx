@@ -47,7 +47,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions
         .filter(
-            (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.GLOBAL_CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
+            (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
                 item !== CONST.IOU.TYPE.INVOICE,
         )
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))

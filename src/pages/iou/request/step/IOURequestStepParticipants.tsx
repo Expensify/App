@@ -139,7 +139,7 @@ function IOURequestStepParticipants({
         // we will use the submit IOU type in the confirmation flow.
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
-            iouType === CONST.IOU.TYPE.GLOBAL_CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
             transactionID,
             selectedReportID.current || reportID,
         );

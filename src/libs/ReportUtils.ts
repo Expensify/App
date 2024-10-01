@@ -6690,9 +6690,9 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.GLOBAL_CREATE>> {
+): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE>> {
     return getMoneyRequestOptions(report, policy, reportParticipants, true) as Array<
-        Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.GLOBAL_CREATE>
+        Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE>
     >;
 }
 
@@ -6941,7 +6941,7 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
 
     const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs);
     if (Permissions.canUseCombinedTrackSubmit(betas ?? [])) {
-        requestOptions.push(CONST.IOU.TYPE.GLOBAL_CREATE);
+        requestOptions.push(CONST.IOU.TYPE.CREATE);
     }
 
     return requestOptions.includes(iouType);

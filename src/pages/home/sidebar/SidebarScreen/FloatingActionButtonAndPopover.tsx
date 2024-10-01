@@ -357,12 +357,12 @@ function FloatingActionButtonAndPopover(
         if (canUseCombinedTrackSubmit) {
             return [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.GLOBAL_CREATE),
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
                     onSelected: () =>
                         interceptAnonymousUser(() =>
                             IOU.startMoneyRequest(
-                                CONST.IOU.TYPE.GLOBAL_CREATE,
+                                CONST.IOU.TYPE.CREATE,
                                 // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                 // for all of the routes in the creation flow.
                                 ReportUtils.generateReportID(),
