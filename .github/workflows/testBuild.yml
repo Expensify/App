@@ -80,6 +80,11 @@ jobs:
       S3_APK_PATH: ${{ steps.exportS3Paths.outputs.S3_APK_PATH }}
       S3_HTML_PATH: ${{ steps.exportS3Paths.outputs.S3_HTML_PATH }}
     steps:
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
       - name: Download Android build artifacts
         uses: actions/download-artifact@v4
         with:
