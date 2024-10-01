@@ -140,8 +140,8 @@ function IOURequestStepScan({
                 navigator.mediaDevices.enumerateDevices().then((devices) => {
                     let lastBackDeviceId = '';
                     for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices[i];
-                        if (device.kind === 'videoinput') {
+                        const device = devices.at(i);
+                        if (device?.kind === 'videoinput') {
                             lastBackDeviceId = device.deviceId;
                             break;
                         }
@@ -266,7 +266,9 @@ function IOURequestStepScan({
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+            // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
                 navigateToParticipantPage();
                 return;
             }
@@ -302,6 +304,10 @@ function IOURequestStepScan({
                 }
                 getCurrentPosition(
                     (successData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
                             IOU.trackExpense(
                                 report,
@@ -311,7 +317,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -336,7 +342,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -355,6 +361,10 @@ function IOURequestStepScan({
                         }
                     },
                     (errorData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
@@ -366,7 +376,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -379,7 +389,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
