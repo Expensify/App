@@ -48,6 +48,8 @@ type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
+
 let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -353,12 +355,12 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     return daysOfWeek.map((date) => format(date, 'eeee'));
 }
 
-// Used to throttle updates to the timezone when necessary
-let lastUpdatedTimezoneTime = new Date();
+// Used to throttle updates to the timezone when necessary. Initialize outside the throttle window so it's updated the first time.
+let lastUpdatedTimezoneTime = subMinutes(new Date(), TIMEZONE_UPDATE_THROTTLE_MINUTES + 1);
 
 function canUpdateTimezone(): boolean {
     const currentTime = new Date();
-    const fiveMinutesAgo = subMinutes(currentTime, 5);
+    const fiveMinutesAgo = subMinutes(currentTime, TIMEZONE_UPDATE_THROTTLE_MINUTES);
     // Compare the last updated time with five minutes ago
     return isBefore(lastUpdatedTimezoneTime, fiveMinutesAgo);
 }
