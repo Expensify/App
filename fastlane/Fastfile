@@ -75,6 +75,23 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
+  desc "Generate a production HybridApp AAB"
+    lane :build_hybrid do
+      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      gradle(
+        project_dir: '../Mobile-Expensify/Android',
+        task: "bundleRelease",
+        flags: "--refresh-dependencies",
+        properties: {
+            "android.injected.signing.store.file" => options[:keystore_file],
+            "android.injected.signing.store.password" => options[:keystore_password],
+            "android.injected.signing.key.alias" => options[:key_alias],
+            "android.injected.signing.key.password" => options[:key_password],
+        }
+      )
+      setGradleOutputsInEnv()
+    end
+
   desc "Generate a new local APK"
   lane :build_local do
     ENV["ENVFILE"]=".env.production"
@@ -86,6 +103,18 @@ platform :android do
     )
     setGradleOutputsInEnv()
   end
+
+  desc "Generate a new local HybridApp APK"
+    lane :build_local_hybrid do
+      ENV["ENVFILE"]=".env.production"
+      gradle(
+        project_dir: '../Mobile-Expensify/Android',
+        task: 'assemble',
+        flavor: 'Production',
+        build_type: 'Release',
+      )
+      setGradleOutputsInEnv()
+    end
 
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
@@ -234,7 +263,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp production build"
     lane :build_hybrid do
-      ENV["ENVFILE"]=".env.production"
+      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
 
       setupIOSSigningCertificate()
 
@@ -275,7 +304,7 @@ platform :ios do
 
   desc "Build an unsigned iOS HybridApp production build"
     lane :build_unsigned_hybrid do
-      ENV["ENVFILE"]=".env.production"
+      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
       build_app(
           workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
           scheme: "Expensify"

@@ -161,6 +161,100 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
+  android_hybrid:
+    name: Build and deploy Android
+    needs: prep
+    runs-on: ubuntu-latest-xl
+    env:
+      RUBYOPT: '-rostruct'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Decrypt keystore
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Decrypt json key
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Get Android native version
+        id: getAndroidVersion
+        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+
+      - name: Build Android app
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane android build
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
+        env:
+          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+
+      - name: Upload Android build to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload Android sourcemaps artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps-artifact
+          path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
+
+      - name: Upload Android build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-artifact
+          path: ./android/app/build/outputs/bundle/productionRelease/app-production-release.aab
+
+      - name: Set current App version in Env
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
+      - name: Warn deployers if Android production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   desktop:
     name: Build and deploy Desktop
     needs: prep
@@ -419,7 +513,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, iOS, web]
+    needs: [android, android_hybrid, desktop, iOS, iOS_hybrid, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -429,23 +523,12 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-  # Build a version of iOS and Android HybridApp if we are deploying to staging
-  hybridApp:
-    runs-on: ubuntu-latest
-    needs: prep
-    if: ${{ github.ref == 'refs/heads/staging' }}
-    steps:
-      - name: 'Deploy HybridApp'
-        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true -f build_version="${{ needs.prep.outputs.APP_VERSION }}"
-        env:
-            GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   checkDeploymentSuccess:
     runs-on: ubuntu-latest
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android, desktop, iOS, web]
+    needs: [android, android_hybrid, desktop, iOS, iOS_hybrid, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
@@ -453,7 +536,9 @@ jobs:
         run: |
           isAtLeastOnePlatformDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] || \
+          if [ "${{ needs.android_hybrid.result }}" == "success" ] || \
             [ "${{ needs.iOS.result }}" == "success" ] || \
+            [ "${{ needs.iOS_hybrid.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
@@ -466,7 +551,9 @@ jobs:
         run: |
           isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] && \
+          if [ "${{ needs.android_hybrid.result }}" == "success" ] && \
             [ "${{ needs.iOS.result }}" == "success" ] && \
+            [ "${{ needs.iOS_hybrid.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
@@ -556,6 +643,7 @@ jobs:
           mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
           mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
+# TODO: Add HybridApp artifacts to the release
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
@@ -590,7 +678,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -644,11 +732,13 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ needs.android.result }}
+      android_hybrid: ${{ needs.android_hybrid.result }}
       ios: ${{ needs.iOS.result }}
+      ios_hybrid: ${{ needs.iOS_hybrid.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}
