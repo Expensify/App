@@ -80,6 +80,9 @@ jobs:
       S3_APK_PATH: ${{ steps.exportS3Paths.outputs.S3_APK_PATH }}
       S3_HTML_PATH: ${{ steps.exportS3Paths.outputs.S3_HTML_PATH }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
