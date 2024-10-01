@@ -113,6 +113,7 @@ function createTaskAndNavigate(
     assigneeAccountID = 0,
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
+    isCreatedUsingMarkdown = false,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
@@ -277,8 +278,6 @@ function createTaskAndNavigate(
         },
     });
 
-    clearOutTaskInfo();
-
     const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
         parentReportID,
@@ -295,7 +294,10 @@ function createTaskAndNavigate(
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(parentReportID);
+    if (!isCreatedUsingMarkdown) {
+        clearOutTaskInfo();
+        Navigation.dismissModal(parentReportID);
+    }
     Report.notifyNewAction(parentReportID, currentUserAccountID);
 }
 

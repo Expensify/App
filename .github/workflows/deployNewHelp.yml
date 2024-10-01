@@ -1,21 +1,24 @@
 name: Deploy New Help Site
 
 on:
-  # Run on any push to main that has changes to the help directory
-# TEST: Verify Cloudflare picks this up even if not run when merged to main
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'help/**'
+  # Run on any push to main that has changes to the help directory.  This will cause this
+  # to deploy the latest code to newhelp.expensify.com
+  push:
+    branches:
+      - main
+    paths:
+      - 'help/**'
+      - './.github/workflows/deployNewHelp.yml'
 
-  # Run on any pull request (except PRs against staging or production) that has changes to the help directory
+  # Run on any pull request (except PRs against staging or production) that has
+  # changes to the help directory.  This will cause it to deploy this unmerged branch to
+  # a Cloudflare "preview" environment
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths:
       - 'help/**'
-
+      - './.github/workflows/deployNewHelp.yml'
   # Run on any manual trigger
   workflow_dispatch:
 
@@ -27,10 +30,17 @@ concurrency:
 jobs:
   build:
     env:
+      # Open source contributors do not have write access to the Expensify/App repo,
+      # so must submit PRs from forks.  This variable detects if the PR is coming
+      # from a fork, and thus is from an outside contributor.
       IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+
+    # Set up a clean Ubuntu build environment
     runs-on: ubuntu-latest
 
     steps:
+      # We start by checking out the entire repo into a clean build environment within
+      # the Github Action
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -41,34 +51,60 @@ jobs:
           bundler-cache: true
           working-directory: ./help
 
+      # Manually run Jekyll, bypassing Github Pages
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./help  # Ensure Jekyll is building the site in /help
 
+      # This will copy the contents of /help/_site to Cloudflare.  The pages-action will
+      # evaluate the current branch to determine into which CF environment to deploy:
+      # - If you are on 'main', it will deploy to 'production' in Cloudflare
+      # - Otherwise it will deploy to a 'preview' environment made for this branch
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
-        id: deploy
-        if: env.IS_PR_FROM_FORK != 'true'
+        id: cloudflarePagesAction
+        if: ${{ env.IS_PR_FROM_FORK != 'true' }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: newhelp
           directory: ./help/_site  # Deploy the built site
 
-      - name: Setup Cloudflare CLI
-        if: env.IS_PR_FROM_FORK != 'true'
-        run: pip3 install cloudflare==2.19.0
-
-      - name: Purge Cloudflare cache
-        if: env.IS_PR_FROM_FORK != 'true'
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["newhelp.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
-        env:
-          CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
-
+      # After deploying Cloudflare preview build, share wherever it deployed to in the PR comment.
       - name: Leave a comment on the PR
         uses: actions-cool/maintain-one-comment@v3.2.0
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
           token: ${{ github.token }}
-          body: ${{ format('A preview of your New Help changes have been deployed to {0} :zap:️', steps.deploy.outputs.alias) }}
+          body: ${{ format('Your New Help changes have been deployed to {0} :zap:️', steps.cloudflarePagesAction.outputs.alias) }}
 
+      - name: Get merged pull request
+        if: ${{ github.event_name == 'push' }}
+        id: getMergedPullRequest
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        with:
+          github_token: ${{ github.token }}
+
+      - name: Leave a comment on the PR after it's merged
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body "$(cat <<'EOF'
+          🚀Deployed to [NewHelp production](https://newhelp.expensify.com)! 🚀
+
+          ([_View deploy workflow run_](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
+          EOF
+          )"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # Use the Cloudflare CLI...
+      - name: Setup Cloudflare CLI
+        if: ${{ env.IS_PR_FROM_FORK != 'true' }}
+        run: pip3 install cloudflare==2.19.0
+
+      # ... to purge the cache, such that all users will see the latest content.
+      - name: Purge Cloudflare cache
+        if: ${{ env.IS_PR_FROM_FORK != 'true' }}
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["newhelp.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        env:
+          CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}

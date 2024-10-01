@@ -116,16 +116,9 @@ function isValidMoneyRequestType(iouType: string): boolean {
         CONST.IOU.TYPE.PAY,
         CONST.IOU.TYPE.TRACK,
         CONST.IOU.TYPE.INVOICE,
+        CONST.IOU.TYPE.CREATE,
     ];
-    return moneyRequestType.includes(iouType);
-}
 
-/**
- * Checks if the iou type is one of submit, pay, track, or split.
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function temporary_isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE];
     return moneyRequestType.includes(iouType);
 }
 
@@ -169,5 +162,4 @@ export {
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
-    temporary_isValidMoneyRequestType,
 };
