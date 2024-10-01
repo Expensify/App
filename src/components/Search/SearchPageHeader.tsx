@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -150,9 +150,14 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
             return;
         }
 
-        clearSelectedTransactions();
         setIsDeleteExpensesConfirmModalVisible(false);
         SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+
+        // Translations copy for delete modal depends on amount of selected items,
+        // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
     };
 
     const headerButtonsOptions = useMemo(() => {
