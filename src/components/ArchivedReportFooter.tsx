@@ -47,6 +47,10 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     let policyName = ReportUtils.getPolicyName(report);
 
+    if (archiveReason === CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED) {
+        policyName = originalMessage?.receiverPolicyName ?? '';
+    }
+
     if (shouldRenderHTML) {
         oldDisplayName = lodashEscape(oldDisplayName);
         displayName = lodashEscape(displayName);

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -47,9 +48,6 @@ type ReportFooterProps = {
     /** Whether to show educational tooltip in workspace chat for first-time user */
     workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 
-    /** Whether the chat is empty */
-    isEmptyChat?: boolean;
-
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
@@ -72,7 +70,6 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
     workspaceTooltip,
@@ -111,7 +108,8 @@ function ReportFooter({
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const shouldHideComposer = (!ReportUtils.canUserPerformWriteAction(report) && !shouldShowComposerOptimistically) || isBlockedFromChat;
+    const canPerformWriteAction = ReportUtils.canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
@@ -128,29 +126,39 @@ function ReportFooter({
              * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
+            // The regex is copied from the expensify-common CONST file, but the domain is optional to accept short mention
+            const emailWithOptionalDomainRegex =
+                /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
+            const taskRegex = `^\\[\\]\\s+(?:@(?:${emailWithOptionalDomainRegex.source}))?\\s*([\\s\\S]*)`;
 
             const match = text.match(taskRegex);
             if (!match) {
                 return false;
             }
-            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
             if (!title) {
                 return false;
             }
 
-            const mention = match[1] ? match[1].trim() : undefined;
-            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
+            const mention = match[1] ? match[1].trim() : '';
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention) ?? mention;
+            const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
             let assigneeChatReport;
             if (mentionWithDomain) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                if (!Object.keys(assignee ?? {}).length) {
-                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
-                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
-                    assignee = optimisticDataForNewAssignee.assignee;
-                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                if (isValidMention) {
+                    assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                    if (!Object.keys(assignee ?? {}).length) {
+                        const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                        const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        assignee = optimisticDataForNewAssignee.assignee;
+                        assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                    }
+                } else {
+                    // If the mention is not valid, include it on the title.
+                    // The mention could be invalid if it's a short mention and failed to be converted to a full mention.
+                    title = `@${mentionWithDomain} ${title}`;
                 }
             }
             Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID);
@@ -212,7 +220,6 @@ function ReportFooter({
                             onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
-                            isEmptyChat={isEmptyChat}
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
@@ -234,9 +241,10 @@ export default memo(
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-        prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
+        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+        lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
+        lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
 );

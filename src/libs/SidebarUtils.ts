@@ -129,10 +129,10 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = ReportUtils.isSystemChat(report);
-        const isExpenseReportManagerWithoutParentAccess = ReportUtils.isExpenseReportManagerWithoutParentAccess(report);
+        const isExpenseReportWithoutParentAccess = ReportUtils.isExpenseReportWithoutParentAccess(report);
         const shouldOverrideHidden =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned || isExpenseReportManagerWithoutParentAccess;
+            hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned || isExpenseReportWithoutParentAccess;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -284,7 +284,8 @@ function getOptionData({
         hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
-        isArchivedRoom: false,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived: undefined,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
@@ -307,8 +308,8 @@ function getOptionData({
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
-    result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    result.private_isArchived = report?.private_isArchived;
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -399,8 +400,7 @@ function getOptionData({
 
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
@@ -432,9 +432,11 @@ function getOptionData({
             result.alternateText = ReportUtils.getWorkspaceNameUpdatedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
+        } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {
+            result.alternateText = ReportActionsUtils.getCardIssuedMessage(lastAction);
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
+        } else if (ReportActionsUtils.isTagModificationAction(lastAction?.actionName)) {
             result.alternateText = PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(lastAction)?.text ?? '');
         } else if (lastAction && ReportActionsUtils.isOldDotReportAction(lastAction)) {
             result.alternateText = ReportActionsUtils.getMessageOfOldDotReportAction(lastAction);
@@ -446,6 +448,8 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = ReportActionsUtils.getReportActionMessageText(lastAction) ?? '';
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
+            result.alternateText = ReportActionsUtils.getRemovedConnectionMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
@@ -575,8 +579,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
-    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+    if (report?.private_isArchived) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {

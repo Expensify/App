@@ -1,9 +1,10 @@
 import React, {useRef} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -36,9 +37,21 @@ type MenuItemListProps = {
 
     /** Whether or not to use the single execution hook */
     shouldUseSingleExecution?: boolean;
+
+    /** Any additional styles to apply for each item */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Icon to display on the left side of each item */
+    icon?: IconAsset;
+
+    /** Icon Width */
+    iconWidth?: number;
+
+    /** Icon Height */
+    iconHeight?: number;
 };
 
-function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuItemListProps) {
+function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
 
@@ -58,18 +71,23 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
 
     return (
         <>
-            {menuItems.map((menuItemProps) => (
+            {menuItems.map(({key, ...menuItemProps}) => (
                 <OfflineWithFeedback
+                    key={key ?? menuItemProps.title}
                     pendingAction={menuItemProps.pendingAction}
                     onClose={menuItemProps.onPendingActionDismiss}
                     errors={menuItemProps.error}
                     shouldForceOpacity={menuItemProps.shouldForceOpacity}
                 >
                     <MenuItem
-                        key={menuItemProps.key ?? menuItemProps.title}
+                        key={key ?? menuItemProps.title}
+                        wrapperStyle={wrapperStyle}
                         onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                         ref={popoverAnchor}
                         shouldBlockSelection={!!menuItemProps.link}
+                        icon={icon}
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...menuItemProps}
                         disabled={!!menuItemProps.disabled || isExecuting}

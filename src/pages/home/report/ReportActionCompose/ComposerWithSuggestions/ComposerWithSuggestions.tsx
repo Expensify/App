@@ -29,7 +29,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
@@ -40,13 +39,12 @@ import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
-import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
@@ -66,9 +64,6 @@ type SyncSelection = {
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
-    /** The parent report actions for the report */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
     /** The modal state */
     modal: OnyxEntry<OnyxTypes.Modal>;
 
@@ -150,21 +145,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Whether the edit is focused */
         editFocused: boolean;
 
-        /** Wheater chat is empty */
-        isEmptyChat?: boolean;
-
         /** The last report action */
         lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** The parent report action ID */
-        parentReportActionID?: string;
-
-        /** The parent report ID */
-        // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
-        parentReportID: string | undefined;
 
         /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
@@ -176,6 +161,19 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
     callback: () => void;
+};
+
+type ComposerRef = {
+    blur: () => void;
+    focus: (shouldDelay?: boolean) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    getCurrentText: () => string;
+    isFocused: () => boolean;
+    /**
+     * Calling clear will immediately clear the input on the UI thread (its a worklet).
+     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     */
+    clear: () => void;
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -198,10 +196,6 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -213,14 +207,11 @@ function ComposerWithSuggestions(
         // Onyx
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-        parentReportActions,
 
         // Props: Report
         reportID,
         includeChronos,
-        isEmptyChat,
         lastReportAction,
-        parentReportActionID,
         isGroupPolicyReport,
         policyID,
 
@@ -285,16 +276,12 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = parentReportActions?.[parentReportActionID ?? '-1'];
-    const shouldAutoFocus =
-        !modal?.isVisible &&
-        Modal.areAllModalsHidden() &&
-        isFocused &&
-        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) &&
-        shouldShowComposeInput;
+    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused;
 
     const valueRef = useRef(value);
     valueRef.current = value;
+
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
@@ -551,16 +538,22 @@ function ComposerWithSuggestions(
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
-    const setUpComposeFocusManager = useCallback(() => {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-            if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
-                return;
-            }
+    /**
+     * Set focus callback
+     * @param shouldTakeOverFocus - Whether this composer should gain focus priority
+     */
+    const setUpComposeFocusManager = useCallback(
+        (shouldTakeOverFocus = false) => {
+            ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
+                    return;
+                }
 
-            focus(true);
-        }, true);
-    }, [focus, isFocused]);
+                focus(true);
+            }, shouldTakeOverFocus);
+        },
+        [focus, isFocused],
+    );
 
     /**
      * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
@@ -603,7 +596,7 @@ function ComposerWithSuggestions(
     const clear = useCallback(() => {
         'worklet';
 
-        forceClearInput(animatedRef, textInputRef);
+        forceClearInput(animatedRef);
     }, [animatedRef]);
 
     const getCurrentText = useCallback(() => {
@@ -623,7 +616,7 @@ function ComposerWithSuggestions(
         setUpComposeFocusManager();
 
         return () => {
-            ReportActionComposeFocusManager.clear(true);
+            ReportActionComposeFocusManager.clear();
 
             KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
@@ -756,7 +749,11 @@ function ComposerWithSuggestions(
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
-                    onFocus={onFocus}
+                    onFocus={() => {
+                        // The last composer that had focus should re-gain focus
+                        setUpComposeFocusManager(true);
+                        onFocus();
+                    }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
@@ -765,7 +762,6 @@ function ComposerWithSuggestions(
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
-                    isReportActionCompose
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isFullComposerAvailable={isFullComposerAvailable}
@@ -776,6 +772,19 @@ function ComposerWithSuggestions(
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
+                    showSoftInputOnFocus={showSoftInputOnFocus}
+                    onTouchStart={() => {
+                        if (showSoftInputOnFocus) {
+                            return;
+                        }
+                        if (Browser.isMobileSafari()) {
+                            setTimeout(() => {
+                                setShowSoftInputOnFocus(true);
+                            }, CONST.ANIMATED_TRANSITION);
+                            return;
+                        }
+                        setShowSoftInputOnFocus(true);
+                    }}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                 />
@@ -826,11 +835,6 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     editFocused: {
         key: ONYXKEYS.INPUT_FOCUSED,
     },
-    parentReportActions: {
-        key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        canEvict: false,
-        initWithStoredValues: false,
-    },
 })(memo(ComposerWithSuggestionsWithRef));
 
-export type {ComposerWithSuggestionsProps};
+export type {ComposerWithSuggestionsProps, ComposerRef};

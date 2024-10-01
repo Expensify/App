@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as Connections from '@libs/actions/connections';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -88,29 +87,17 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: !!qboConfig?.autoSync?.enabled,
-            onToggle: () =>
-                Connections.updatePolicyConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
-                    {
-                        enabled: !qboConfig?.autoSync?.enabled,
-                    },
-                    {
-                        enabled: qboConfig?.autoSync?.enabled,
-                    },
-                ),
-            subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
-            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLED),
-            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLED], qboConfig?.pendingFields),
+            onToggle: () => QuickbooksOnline.updateQuickbooksOnlineAutoSync(policyID, !qboConfig?.autoSync?.enabled),
+            subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], qboConfig?.pendingFields),
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: !!qboConfig?.syncPeople,
-            onToggle: () =>
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE, !qboConfig?.syncPeople, qboConfig?.syncPeople),
+            onToggle: () => QuickbooksOnline.updateQuickbooksOnlineSyncPeople(policyID, !qboConfig?.syncPeople),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
             errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE], qboConfig?.pendingFields),
@@ -148,10 +135,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
-                Connections.updatePolicyConnectionConfig(
+                QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(
                     policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
                     isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
                     qboConfig?.collectionAccountID,
                 ),

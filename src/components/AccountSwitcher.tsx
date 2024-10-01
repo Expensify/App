@@ -38,6 +38,8 @@ function AccountSwitcher() {
     const {canUseNewDotCopilot} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [user] = useOnyx(ONYXKEYS.USER);
     const buttonRef = useRef<HTMLDivElement>(null);
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
@@ -106,7 +108,7 @@ function AccountSwitcher() {
                 const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', role),
+                    badgeText: translate('delegate.role', {role}),
                     onPress: () => {
                         if (isOffline) {
                             Modal.close(() => setShouldShowOfflineModal(true));
@@ -131,12 +133,13 @@ function AccountSwitcher() {
                 }}
                 ref={buttonRef}
                 interactive={canSwitchAccounts}
+                pressDimmingValue={canSwitchAccounts ? undefined : 1}
                 wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
             >
                 <View style={[styles.flexRow, styles.gap3]}>
                     <Avatar
                         type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.MEDIUM}
+                        size={CONST.AVATAR_SIZE.DEFAULT}
                         avatarID={currentUserPersonalDetails?.accountID}
                         source={currentUserPersonalDetails?.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
@@ -145,7 +148,7 @@ function AccountSwitcher() {
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge]}
+                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
@@ -166,6 +169,14 @@ function AccountSwitcher() {
                         >
                             {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                         </Text>
+                        {!!user?.isDebugModeEnabled && (
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                numberOfLines={1}
+                            >
+                                AccountID: {session?.accountID}
+                            </Text>
+                        )}
                     </View>
                 </View>
             </PressableWithFeedback>

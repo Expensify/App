@@ -8,10 +8,12 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -20,6 +22,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -54,13 +57,14 @@ type PolicyOption = ListItem & {
 type WorkspaceCategoriesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
@@ -109,6 +113,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             }),
         [policyCategories, selectedCategories, canSelectMultiple, translate],
     );
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
     const toggleCategory = useCallback((category: PolicyOption) => {
         setSelectedCategories((prev) => {
@@ -234,7 +240,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedCategoriesArray.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
@@ -247,7 +253,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
-                        medium
                         success
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
@@ -256,7 +261,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
                 <Button
-                    medium
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
@@ -298,8 +302,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [
-            {
+        const menuItems = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
@@ -309,8 +314,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
-            },
-            {
+            });
+        }
+        if (hasVisibleCategories) {
+            menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
@@ -318,13 +325,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Category.downloadCategoriesCSV(policyId);
+                    Modal.close(() => {
+                        Category.downloadCategoriesCSV(policyId, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    });
                 },
-            },
-        ];
+            });
+        }
 
         return menuItems;
-    }, [policyId, translate, isOffline]);
+    }, [policyId, translate, isOffline, hasVisibleCategories, policy]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -382,12 +393,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {!hasVisibleCategories && !isLoading && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyState}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                        headerMedia={LottieAnimations.GenericEmptyState}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (
@@ -416,6 +428,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     prompt={translate('common.thisFeatureRequiresInternet')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadFailureModalVisible}
+                    onClose={() => setIsDownloadFailureModalVisible(false)}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -2,8 +2,7 @@ import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -35,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -51,11 +49,7 @@ type WorkspaceMenuItem = {
     routeName?:
         | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
         | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.CARD
-        | typeof SCREENS.WORKSPACE.REIMBURSE
-        | typeof SCREENS.WORKSPACE.BILLS
         | typeof SCREENS.WORKSPACE.INVOICES
-        | typeof SCREENS.WORKSPACE.TRAVEL
         | typeof SCREENS.WORKSPACE.DISTANCE_RATES
         | typeof SCREENS.WORKSPACE.WORKFLOWS
         | typeof SCREENS.WORKSPACE.CATEGORIES
@@ -70,15 +64,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.RULES;
 };
 
-type WorkspaceInitialPageOnyxProps = {
-    /** Bank account attached to free plan */
-    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
@@ -91,12 +77,13 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
     const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -165,50 +152,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
-
-    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.card',
-            icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.CARD,
-        },
-        {
-            translationKey: 'workspace.common.reimburse',
-            icon: Expensicons.Receipt,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REIMBURSE,
-        },
-        {
-            translationKey: 'workspace.common.bills',
-            icon: Expensicons.Bill,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.BILLS,
-        },
-        {
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.Invoice,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-        },
-        {
-            translationKey: 'workspace.common.travel',
-            icon: Expensicons.Luggage,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TRAVEL,
-        },
-        {
-            translationKey: 'workspace.common.bankAccount',
-            icon: Expensicons.Bank,
-            action: () =>
-                policy?.outputCurrency === CONST.CURRENCY.USD
-                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policyID, Navigation.getActiveRouteWithoutParams())))()
-                    : setIsCurrencyModalOpen(true),
-            brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-    ];
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
@@ -241,7 +185,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.expensifyCard',
-            icon: Expensicons.CreditCard,
+            icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
         });
@@ -346,7 +290,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
-        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
@@ -449,8 +392,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                                     wrapperStyle={styles.sectionMenuItem}
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    hoverAndPressStyle={styles.hoveredComponentBG}
-                                    isPaneMenu
                                 />
                             ))}
                         </View>
@@ -473,14 +414,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
-        },
-    })(WorkspaceInitialPage),
-);
+export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);

@@ -38,7 +38,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1');
+    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', route.params.backTo);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -88,7 +88,6 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                         <Button
                             text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                            medium
                             isDisabled={isSelectedMemberCurrentUser}
                             icon={Expensicons.RemoveMembers}
                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
