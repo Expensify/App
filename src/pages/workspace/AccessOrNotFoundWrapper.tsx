@@ -30,24 +30,16 @@ const ACCESS_VARIANTS = {
         login: string,
         report: OnyxEntry<OnyxTypes.Report>,
         allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null,
-        betas: OnyxEntry<OnyxTypes.Beta[]>,
         iouType?: IOUType,
     ) =>
         !!iouType &&
         IOUUtils.isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
-        (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, betas, iouType)) &&
+        (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies, login)),
 } as const satisfies Record<
     string,
-    (
-        policy: OnyxTypes.Policy,
-        login: string,
-        report: OnyxTypes.Report,
-        allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null,
-        betas: OnyxEntry<OnyxTypes.Beta[]>,
-        iouType?: IOUType,
-    ) => boolean
+    (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null, iouType?: IOUType) => boolean
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
@@ -60,8 +52,6 @@ type AccessOrNotFoundWrapperOnyxProps = {
 
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
-
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
@@ -113,7 +103,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
 }
 
 function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
-    const {policy, policyID, report, iouType, allPolicies, featureName, isLoadingReportData, betas} = props;
+    const {policy, policyID, report, iouType, allPolicies, featureName, isLoadingReportData} = props;
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
@@ -139,7 +129,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
     }, true);
 
     const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;
@@ -184,8 +174,5 @@ export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOny
     },
     isLoadingReportData: {
         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(AccessOrNotFoundWrapper);

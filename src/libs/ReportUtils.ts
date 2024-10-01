@@ -6932,7 +6932,7 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
 /**
  * Check if the report can create the expense with type is iouType
  */
-function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, betas: OnyxEntry<Beta[]>, iouType: ValueOf<typeof CONST.IOU.TYPE>): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: ValueOf<typeof CONST.IOU.TYPE>): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
     if (!canUserPerformWriteAction(report)) {
@@ -6940,7 +6940,7 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     }
 
     const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs);
-    if (Permissions.canUseCombinedTrackSubmit(betas ?? [])) {
+    if (Permissions.canUseCombinedTrackSubmit(allBetas ?? [])) {
         requestOptions.push(CONST.IOU.TYPE.CREATE);
     }
 
