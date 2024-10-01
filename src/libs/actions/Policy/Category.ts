@@ -1213,7 +1213,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     } else {
         const indexToUpdate = updatedApprovalRules.indexOf(existingCategoryApproverRule);
         const approvalRule = updatedApprovalRules.at(indexToUpdate);
-        if (approvalRule) {
+        if (approvalRule && indexToUpdate !== -1) {
             approvalRule.approver = approver;
         }
     }

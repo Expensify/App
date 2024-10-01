@@ -360,7 +360,7 @@ function SuggestionMention(
             const leftString = newValue.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
-            const secondToLastWord = words.length > 2 ? words.at(words.length - 3) : undefined;
+            const secondToLastWord = words.at(-3);
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';
