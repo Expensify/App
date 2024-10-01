@@ -173,12 +173,14 @@ jobs:
         with:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
+          fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Change directories to Mobile-Expensify
         run: |
           cd react-native
-          git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
+          git submodule update --init
+          git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -454,12 +456,14 @@ jobs:
         with:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
+          fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Change directories to Mobile-Expensify
         run: |
-            cd react-native
-            git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
+          cd react-native
+          git submodule update --init
+          git checkout andrew-mobile-deploy
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
