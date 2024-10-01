@@ -1865,7 +1865,6 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
-    getRemovedConnectionMessage,
 };
 
 export type {LastVisibleMessage};
