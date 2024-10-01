@@ -2,6 +2,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
@@ -142,6 +143,7 @@ function IOURequestStepCategory({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
+            shouldShowOfflineIndicator={policyCategories !== undefined}
             testID={IOURequestStepCategory.displayName}
         >
             {isLoading && (
@@ -152,35 +154,37 @@ function IOURequestStepCategory({
                 />
             )}
             {shouldShowEmptyState && (
-                <View style={[styles.flex1]}>
-                    <WorkspaceEmptyStateSection
-                        shouldStyleAsCard={false}
-                        icon={Illustrations.EmptyStateExpenses}
-                        title={translate('workspace.categories.emptyCategories.title')}
-                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
-                    />
-                    {PolicyUtils.isPolicyAdmin(policy) && (
-                        <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                            <Button
-                                large
-                                success
-                                style={[styles.w100]}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                            policy?.id ?? '-1',
-                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                        ),
-                                    )
-                                }
-                                text={translate('workspace.categories.editCategories')}
-                                pressOnEnter
-                            />
-                        </FixedFooter>
-                    )}
-                    {!isSmallScreenWidth && <OfflineIndicator />}
-                </View>
+                <FullPageOfflineBlockingView>
+                    <View style={[styles.flex1]}>
+                        <WorkspaceEmptyStateSection
+                            shouldStyleAsCard={false}
+                            icon={Illustrations.EmptyStateExpenses}
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                        />
+                        {PolicyUtils.isPolicyAdmin(policy) && (
+                            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                                <Button
+                                    large
+                                    success
+                                    style={[styles.w100]}
+                                    onPress={() =>
+                                        Navigation.navigate(
+                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                policy?.id ?? '-1',
+                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                            ),
+                                        )
+                                    }
+                                    text={translate('workspace.categories.editCategories')}
+                                    pressOnEnter
+                                />
+                            </FixedFooter>
+                        )}
+                        {!isSmallScreenWidth && <OfflineIndicator />}
+                    </View>
+                </FullPageOfflineBlockingView>
             )}
             {!shouldShowEmptyState && !isLoading && (
                 <>
