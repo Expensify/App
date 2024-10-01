@@ -123,6 +123,19 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
+function wasMessageReceivedWhileOffline(message: OnyxTypes.ReportAction, offlineLastAt: Date | undefined, onlineLastAt: Date | undefined, locale: OnyxTypes.Locale): boolean {
+    if (!onlineLastAt || !offlineLastAt) {
+        return false;
+    }
+
+    const messageCreatedAt = DateUtils.getLocalDateFromDatetime(locale, message.created);
+
+    if (messageCreatedAt > offlineLastAt && messageCreatedAt <= onlineLastAt) {
+        return true;
+    }
+    return false;
+}
+
 function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string): boolean {
     if (!lastReadTime) {
         return !ReportActionsUtils.isCreatedAction(message);
@@ -162,7 +175,8 @@ function ReportActionsList({
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {isOffline} = useNetwork();
+    const {preferredLocale} = useLocalize();
+    const {isOffline, lastOfflineAt, lastOnlineAt} = useNetwork();
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -214,16 +228,31 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    const isMessageOffline = useCallback(
+        (m: OnyxTypes.ReportAction) => wasMessageReceivedWhileOffline(m, lastOfflineAt, lastOnlineAt, preferredLocale),
+        [lastOfflineAt, lastOnlineAt, preferredLocale],
+    );
+
     /**
      * The reportActionID the unread marker should display above
      */
     const unreadMarkerReportActionID = useMemo(() => {
-        const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
+        const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions[index + 1];
-            const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
+
+            // If the user recevied new messages while being offline, we want to display the unread marker above the first offline message.
+            if (!ReportActionsUtils.wasActionTakenByCurrentUser(message)) {
+                const isCurrentMessageOffline = isMessageOffline(message);
+                const isNextMessageOffline = nextMessage && !ReportActionsUtils.wasActionTakenByCurrentUser(nextMessage) && isMessageOffline(nextMessage);
+                if (isCurrentMessageOffline && !isNextMessageOffline) {
+                    return true;
+                }
+            }
+
+            const isCurrentMessageUnread = isMessageUnread(message, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
-            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
+            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(message);
+            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
             return shouldDisplay && isWithinVisibleThreshold;
         };
 
@@ -236,7 +265,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, unreadMarkerTime]);
+    }, [sortedVisibleReportActions, unreadMarkerTime, isMessageOffline]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
