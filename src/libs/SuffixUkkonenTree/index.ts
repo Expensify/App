@@ -20,7 +20,8 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
 function makeTree(numericSearchValues: Uint8Array) {
     // Every leaf represents a suffix. There can't be more than n suffixes.
     // Every internal node has to have at least 2 children. So the total size of ukkonen tree is not bigger than 2n - 1.
-    const maxNodes = 2 * numericSearchValues.length;
+    // + 2 is because an extra character at the beginning to offset the 1-based indexing.
+    const maxNodes = 2 * numericSearchValues.length + 2;
     /* 
        This array represents all internal nodes in the suffix tree.
        When building this tree, we'll be given a character in the string, and we need to be able to lookup in constant time
@@ -33,29 +34,27 @@ function makeTree(numericSearchValues: Uint8Array) {
        and the next character in our string is 'd', we need to be able do check if any of the edges from the root node
        start with the letter 'd', without looping through all the edges.
 
-       To accomplish this, each node gets an array matching the alphabet size (x4 because it's 4 bytes per character).
+       To accomplish this, each node gets an array matching the alphabet size.
        So you can imagine if our alphabet was just [a,b,c,d], then each node would get an array like [0,0,0,0].
        If we add an edge starting with 'a', then the root node would be [1,0,0,0]
        So given an arbitrary letter such as 'd', then we can take the position of that letter in its alphabet (position 3 in our example)
        and check whether that index in the array is 0 or 1. If it's a 1, then there's an edge starting with the letter 'd'.
 
-       Note that for efficiency, all nodes are stored in a single flag array. That's how we end up with (maxNodes * alphabet_size * 4).
+       Note that for efficiency, all nodes are stored in a single flag array. That's how we end up with (maxNodes * alphabet_size).
        In the example of a 4-character alphabet, we'd have an array like this:
 
           root       root.left     root.right              last possible node
         /     \       /     \       /     \                      /     \
        [0,0,0,0,      0,0,0,0,      0,0,0,0,  .................  0,0,0,0]
      */
-    const transitionNodes = new Uint32Array(maxNodes * ALPHABET_SIZE * 4);
-    // transitionNodes.fill(-1); // Initialize all transitions to -1 (no transition)
+    const transitionNodes = new Uint32Array(maxNodes * ALPHABET_SIZE);
 
     // Storing the range of the original string that each node represents:
-    const rangeStart = new Uint32Array(maxNodes * 4);
-    const rangeEnd = new Uint32Array(maxNodes * 4);
-    const defaultRange = numericSearchValues.length;
+    const rangeStart = new Uint32Array(maxNodes);
+    const rangeEnd = new Uint32Array(maxNodes);
 
-    const parent = new Uint32Array(maxNodes * 4);
-    const suffixLink = new Uint32Array(maxNodes * 4);
+    const parent = new Uint32Array(maxNodes);
+    const suffixLink = new Uint32Array(maxNodes);
 
     let currentNode = 1;
     let currentPosition = 1;
@@ -124,16 +123,16 @@ function makeTree(numericSearchValues: Uint8Array) {
     function handleDescent(ts: number) {
         currentNode = suffixLink[parent[ts - 2]];
         currentPosition = rangeStart[ts - 2];
-        while (currentPosition <= (rangeEnd[ts - 2] ?? defaultRange)) {
+        while (currentPosition <= rangeEnd[ts - 2]) {
             currentNode = transitionNodes[currentNode * ALPHABET_SIZE + numericSearchValues[currentPosition]];
             currentPosition += rangeEnd[currentNode] - rangeStart[currentNode] + 1;
         }
-        if (currentPosition === (rangeEnd[ts - 2] ?? defaultRange) + 1) {
+        if (currentPosition === rangeEnd[ts - 2] + 1) {
             suffixLink[ts - 2] = currentNode;
         } else {
             suffixLink[ts - 2] = ts;
         }
-        currentPosition = rangeEnd[currentNode] - (currentPosition - (rangeEnd[ts - 2] ?? defaultRange)) + 2;
+        currentPosition = rangeEnd[currentNode] - (currentPosition - rangeEnd[ts - 2]) + 2;
     }
 
     function build() {
@@ -161,7 +160,7 @@ function makeTree(numericSearchValues: Uint8Array) {
 
         function dfs(node: number, depth: number) {
             const leftRange = rangeStart[node];
-            const rightRange = rangeEnd[node] ?? defaultRange;
+            const rightRange = rangeEnd[node];
             const rangeLen = node === 1 ? 0 : rightRange - leftRange + 1;
 
             for (let i = 0; i < rangeLen && depth + i < searchValue.length && leftRange + i < numericSearchValues.length; i++) {
