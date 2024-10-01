@@ -18,6 +18,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -112,6 +113,7 @@ function createTaskAndNavigate(
     assigneeAccountID = 0,
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
+    isCreatedUsingMarkdown = false,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
@@ -276,8 +278,6 @@ function createTaskAndNavigate(
         },
     });
 
-    clearOutTaskInfo();
-
     const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
         parentReportID,
@@ -294,7 +294,10 @@ function createTaskAndNavigate(
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(parentReportID);
+    if (!isCreatedUsingMarkdown) {
+        clearOutTaskInfo();
+        Navigation.dismissModal(parentReportID);
+    }
     Report.notifyNewAction(parentReportID, currentUserAccountID);
 }
 
@@ -846,7 +849,7 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
         setAssigneeValue(accountLogin, accountID, reportID, chatReport, accountID === currentUserAccountID, skipConfirmation);
     }
-    Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
+    Navigation.navigate(ROUTES.NEW_TASK_DETAILS.getRoute(Navigation.getReportRHPActiveRoute()));
 }
 
 /**
@@ -1097,8 +1100,12 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Closes the current open task modal and clears out the task info from the store.
  */
-function dismissModalAndClearOutTaskInfo() {
-    Navigation.closeRHPFlow();
+function dismissModalAndClearOutTaskInfo(backTo?: Route) {
+    if (backTo) {
+        Navigation.goBack(backTo);
+    } else {
+        Navigation.closeRHPFlow();
+    }
     clearOutTaskInfo();
 }
 

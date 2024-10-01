@@ -42,6 +42,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -63,6 +64,7 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -1247,8 +1249,8 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             value: {
                 invoice: {
-                    companyName: undefined,
-                    companyWebsite: undefined,
+                    companyName: null,
+                    companyWebsite: null,
                     pendingFields: {
                         companyName: null,
                         companyWebsite: null,
@@ -3395,8 +3397,6 @@ function categorizeTrackedExpense(
         receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
-        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
-        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
@@ -3472,8 +3472,6 @@ function shareTrackedExpense(
         receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
-        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
-        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
@@ -6640,23 +6638,10 @@ function getPayMoneyRequestParams(
             successData: policySuccessData,
             params,
         } = Policy.buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
-        const {
-            announceChatReportID,
-            announceCreatedReportActionID,
-            adminsChatReportID,
-            adminsCreatedReportActionID,
-            expenseChatReportID,
-            expenseCreatedReportActionID,
-            customUnitRateID,
-            customUnitID,
-            ownerEmail,
-            policyName,
-        } = params;
+        const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
         policyParams = {
             policyID: payerPolicyID,
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
@@ -7013,6 +6998,24 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain[approvalChain.length - 1] === currentUserEmail;
 }
 
+function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>) {
+    const ownerAccountID = report?.ownerAccountID ?? -1;
+    const policy = PolicyUtils.getPolicy(report?.policyID);
+    const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
+
+    if (approvalChain.length === 0) {
+        return submitToAccountID;
+    }
+
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+    if (!nextApproverEmail) {
+        return submitToAccountID;
+    }
+
+    return PersonalDetailsUtils.getAccountIDsByLogins([nextApproverEmail])[0];
+}
+
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
     if (expenseReport?.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
@@ -7031,6 +7034,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = isLastApprover(approvalChain) ? expenseReport?.managerID : getNextApproverAccountID(expenseReport);
 
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = ReportUtils.getReportOrDraftReport(expenseReport?.chatReportID);
@@ -7054,6 +7058,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticApprovedReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            managerID,
             pendingFields: {
                 partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -7558,8 +7563,6 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         params: {
             reportActionID,
             policyID,
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
@@ -7585,8 +7588,6 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         params = {
             ...params,
             policyID,
-            announceChatReportID,
-            announceCreatedReportActionID,
             adminsChatReportID,
             adminsCreatedReportActionID,
             expenseChatReportID,
@@ -7834,7 +7835,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, reportID: string) {
+function putOnHold(transactionID: string, comment: string, reportID: string, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
@@ -7891,6 +7892,34 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
         },
     ];
 
+    // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: true,
+                        canUnhold: false,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+    }
+
     API.write(
         'HoldRequest',
         {
@@ -7906,7 +7935,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string) {
+function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
@@ -7963,6 +7992,34 @@ function unholdRequest(transactionID: string, reportID: string) {
             value: transactionViolations ?? null,
         },
     ];
+
+    // If we are unholding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: true,
+                        canUnhold: false,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+    }
 
     API.write(
         'UnHoldRequest',
@@ -8169,6 +8226,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
 
 export {
     adjustRemainingSplitShares,
+    getNextApproverAccountID,
     approveMoneyRequest,
     canApproveIOU,
     cancelPayment,

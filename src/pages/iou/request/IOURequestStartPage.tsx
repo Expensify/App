@@ -54,9 +54,10 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
+        [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
+    const {canUseP2PDistanceRequests, canUseCombinedTrackSubmit} = usePermissions(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
@@ -69,7 +70,8 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
+    const shouldDisplayDistanceRequest =
+        !!canUseCombinedTrackSubmit || !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();

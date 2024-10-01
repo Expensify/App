@@ -219,13 +219,19 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: n
  *
  * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
         if (!includeMemberWithErrors) {
             const member = members?.[email];
             if (Object.keys(member?.errors ?? {})?.length > 0) {
+                return;
+            }
+        }
+        if (!includeMemberWithPendingDelete) {
+            const member = members?.[email];
+            if (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
         }
@@ -544,11 +550,11 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
 }
 
 /**
- * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-    return getAccountIDsByLogins([reimburserEmail])[0];
+    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail])[0] : -1;
 }
 
 function getPersonalPolicy() {
@@ -588,9 +594,7 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
-    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
-    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-    // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
+    return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -823,7 +827,10 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
 
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, {
+        importFields,
+        importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
+    });
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
