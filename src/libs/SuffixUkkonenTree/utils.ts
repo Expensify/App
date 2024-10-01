@@ -60,7 +60,8 @@ function stringToNumeric(
             // As outArray is a ArrayBuffer we need to keep track of the current offset
             offset: {value: number};
             // A map of <PositionInOutArray, IndexInOriginalData> to map the found occurrences to the correct data set
-            outOccurrenceToIndex?: Int32Array;
+            // As the search string can be very long for high traffic accounts (500k+), this has to be big enough, thus its a Uint32Array
+            outOccurrenceToIndex?: Uint32Array;
             // The index that will be used in the outOccurrenceToIndex array (this is the index of your original data position)
             index?: number;
         };
@@ -69,12 +70,12 @@ function stringToNumeric(
     },
 ): {
     numeric: Uint8Array;
-    occurrenceToIndex: Int32Array;
+    occurrenceToIndex: Uint32Array;
     offset: {value: number};
 } {
     const outArray = options?.out?.outArray ?? new Uint8Array(input.length * 8); // We assume that the number output array will fit in 8 times the input length (for letters a-z only 1 number is needed, for any other unicode more numbers are needed)
     const offset = options?.out?.offset ?? {value: 0};
-    const occurrenceToIndex = options?.out?.outOccurrenceToIndex ?? new Int32Array(input.length * 16 * 4);
+    const occurrenceToIndex = options?.out?.outOccurrenceToIndex ?? new Uint32Array(input.length * 16 * 4);
     const index = options?.out?.index ?? 0;
 
     for (let i = 0; i < input.length; i++) {
