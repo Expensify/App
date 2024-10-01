@@ -25,6 +25,12 @@ KEY_DSYM_PATH = "dsymPath"
 # In any other environment, it will save them to the current shell environment using the `export` command.
 def exportEnvVars(env_vars)
   github_env_path = ENV['GITHUB_ENV']
+  puts "Saving environment variables in parent shell..."
+  env_vars.each do |key, value|
+    puts "#{key}=#{value}"
+    command = "export #{key}=#{value}"
+    system(command)
+  end
   if github_env_path && File.exist?(github_env_path)
     puts "Saving environment variables in GITHUB_ENV..."
     File.open(github_env_path, "a") do |file|
@@ -32,13 +38,6 @@ def exportEnvVars(env_vars)
         puts "#{key}=#{value}"
         file.puts "#{key}=#{value}"
       end
-    end
-  else
-    puts "Saving environment variables in parent shell..."
-    env_vars.each do |key, value|
-      puts "#{key}=#{value}"
-      command = "export #{key}=#{value}"
-      system(command)
     end
   end
 end
