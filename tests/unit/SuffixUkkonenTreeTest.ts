@@ -22,6 +22,15 @@ describe('SuffixUkkonenTree', () => {
         expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([1, 3, 8]));
     });
 
+    it('should find by first character', () => {
+        const strings = ['pancake', 'banana'];
+        const numericIntArray = helperStringsToNumericForTree(strings);
+        const tree = SuffixUkkonenTree.makeTree(numericIntArray);
+        tree.build();
+        const searchValue = SuffixUkkonenTree.stringToNumeric('p', {clamp: true}).numeric;
+        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([0]));
+    });
+
     it('should handle identical words', () => {
         const strings = ['banana', 'banana', 'x'];
         const numericIntArray = helperStringsToNumericForTree(strings);
