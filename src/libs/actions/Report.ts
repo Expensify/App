@@ -515,6 +515,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         reportComment: reportCommentText,
         file,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
+        idempotencyKey: Str.guid(),
     };
 
     if (reportIDDeeplinkedFromOldDot === reportID && ReportUtils.isConciergeChatReport(report)) {
@@ -3579,6 +3580,11 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {hasCompletedGuidedSetupFlow: true},
+        },
     );
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
@@ -3633,6 +3639,11 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {hasCompletedGuidedSetupFlow: false},
         },
     );
 

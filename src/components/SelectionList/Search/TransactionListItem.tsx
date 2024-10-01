@@ -23,7 +23,16 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, styles.ph3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv3,
+        styles.ph3,
+        item.isSelected && styles.activeComponentBG,
+        isFocused && styles.sidebarLinkActive,
+        // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
+        {backgroundColor: 'unset'},
+        styles.mh0,
+    ];
 
     const listItemWrapperStyle = [
         styles.flex1,
@@ -50,6 +59,7 @@ function TransactionListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            hasAnimateInHighlightStyle
         >
             <TransactionListItemRow
                 item={transactionItem}
