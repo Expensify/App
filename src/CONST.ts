@@ -2059,6 +2059,7 @@ const CONST = {
             INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
+            CREATE: 'create',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
