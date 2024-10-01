@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
+import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
 
 /** Types of join workspace resolutions */
@@ -38,6 +39,9 @@ type OriginalMessageIOU = {
 
     /** How much was transactioned */
     amount: number;
+
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
 
     /** Optional comment */
     comment?: string;
@@ -157,6 +161,9 @@ type OriginalMessageSubmitted = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Was the report submitted via harvesting (delayed submit) */
+    harvesting?: boolean;
 };
 
 /** Model of `closed` report action */
@@ -268,6 +275,9 @@ type OriginalMessageChangeLog = {
 
     /** Old role of user */
     oldValue?: string;
+
+    /** Name of connection */
+    connectionName?: AllConnectionName;
 };
 
 /** Model of `join policy changelog` report action */

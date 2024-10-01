@@ -213,8 +213,6 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 1000,
-    explanationModalDelay: 2000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -250,9 +248,16 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
+
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
+
+    minimalTopBarOffset: -26,
+    searchHeaderHeight: 80,
+    searchListContentMarginTop: 116,
 
     h20: 20,
     h28: 28,
