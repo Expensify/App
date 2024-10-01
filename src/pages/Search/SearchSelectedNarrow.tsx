@@ -45,7 +45,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     };
 
     return (
-        <View style={[styles.pb4]}>
+        <View style={[styles.pb3]}>
             <Button
                 onPress={openMenu}
                 ref={buttonRef}
