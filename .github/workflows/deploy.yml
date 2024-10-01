@@ -29,29 +29,29 @@ jobs:
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-#  prep:
-#    needs: validateActor
-#    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-#    runs-on: ubuntu-latest
-#    outputs:
-#      APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#        with:
-#          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-#
-#      - name: Setup git for OSBotify
-#        uses: ./.github/actions/composite/setupGitForOSBotifyApp
-#        id: setupGitForOSBotify
-#        with:
-#          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-#          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-#          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-#
-#      - name: Get app version
-#        id: getAppVersion
-#        run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
+  prep:
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+    runs-on: ubuntu-latest
+    outputs:
+      APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup git for OSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Get app version
+        id: getAppVersion
+        run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 #
 #      - name: Create and push tag
 #        if: ${{ github.ref == 'refs/heads/staging' }}
@@ -196,15 +196,22 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Decrypt keystore
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
+      - name: Load Android upload keystore credentials from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/"Repository Secrets"/ANDROID_UPLOAD_KEY_PASSWORD
 
-      - name: Decrypt json key
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+      - name: Load files 1Password
         env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op document get upload-key.keystore
+          op document get android-fastlane-json-key.json
 
       - name: Get Android native version
         id: getAndroidVersion
@@ -215,9 +222,9 @@ jobs:
         run: bundle exec fastlane android build_hybrid keystore_file:$ANDROID_KEYSTORE_LOCAL_PATH keystore_password:$ANDROID_UPLOAD_KEYSTORE_PASSWORD key_alias:$ANDROID_UPLOAD_KEYSTORE_ALIAS key_password:$ANDROID_UPLOAD_KEY_PASSWORD
         env:
           ANDROID_KEYSTORE_LOCAL_PATH: 'android/app/my-upload-key.keystore'
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-docker-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-docker-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-docker-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
 #      - name: Upload Android app to Google Play
 #        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
