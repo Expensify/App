@@ -469,7 +469,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                     alternateTextNumberOfLines={alternateTextNumberOfLines}
                     onFocus={() => {
-                        if (shouldIgnoreFocus || isDisabled) {
+                        if (!!shouldIgnoreFocus || isDisabled) {
                             return;
                         }
                         setFocusedIndex(normalizedIndex);
