@@ -135,7 +135,7 @@ function MissingPersonalDetails() {
                     if (countrySpecificZipRegex) {
                         if (!countrySpecificZipRegex.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim().toUpperCase())) {
                             if (ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
-                                errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
+                                errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                             } else {
                                 errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                             }
