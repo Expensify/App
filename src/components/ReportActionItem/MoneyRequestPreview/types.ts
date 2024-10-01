@@ -1,9 +1,33 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type * as OnyxTypes from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type MoneyRequestPreviewProps = {
+type MoneyRequestPreviewOnyxProps = {
+    /** All of the personal details for everyone */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** Chat report associated with iouReport */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** IOU report data object */
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The transaction attached to the action.message.iouTransactionID */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** The transaction violations attached to the action.message.iouTransactionID */
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: OnyxEntry<OnyxTypes.WalletTerms>;
+};
+
+type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     /** The active IOUReport, used for Onyx subscription */
     // The iouReportID is used inside withOnyx HOC
     // eslint-disable-next-line react/no-unused-prop-types
@@ -66,4 +90,4 @@ type PendingProps = {
 
 type PendingMessageProps = PendingProps | NoPendingProps;
 
-export type {MoneyRequestPreviewProps, PendingMessageProps};
+export type {MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps, PendingMessageProps};
