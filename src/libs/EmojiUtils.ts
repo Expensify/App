@@ -596,7 +596,7 @@ function splitTextWithEmojis(text = ''): TextWithEmoji[] {
         return [];
     }
 
-    const doesTextContainEmojis = CONST.REGEX.ALL_EMOJIS.test(text);
+    const doesTextContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(text);
 
     if (!doesTextContainEmojis) {
         return [];
