@@ -20,8 +20,8 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
 function makeTree(numericSearchValues: Uint8Array) {
     // Every leaf represents a suffix. There can't be more than n suffixes.
     // Every internal node has to have at least 2 children. So the total size of ukkonen tree is not bigger than 2n - 1.
-    // + 2 is because an extra character at the beginning to offset the 1-based indexing.
-    const maxNodes = 2 * numericSearchValues.length + 2;
+    // + 1 is because an extra character at the beginning to offset the 1-based indexing.
+    const maxNodes = 2 * numericSearchValues.length + 1;
     /* 
        This array represents all internal nodes in the suffix tree.
        When building this tree, we'll be given a character in the string, and we need to be able to lookup in constant time
