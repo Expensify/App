@@ -515,6 +515,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         reportComment: reportCommentText,
         file,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
+        idempotencyKey: Str.guid(),
     };
 
     if (reportIDDeeplinkedFromOldDot === reportID && ReportUtils.isConciergeChatReport(report)) {
@@ -2689,28 +2690,31 @@ function openReportFromDeepLink(url: string) {
                             return;
                         }
 
+                        const handleDeeplinkNavigation = () => {
+                            const state = navigationRef.getRootState();
+                            const currentFocusedRoute = findFocusedRoute(state);
+
+                            if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                                Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                                return;
+                            }
+
+                            if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            if (isAuthenticated) {
+                                return;
+                            }
+
+                            Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                        };
+
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         Welcome.isOnboardingFlowCompleted({
-                            onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
-                            onCompleted: () => {
-                                const state = navigationRef.getRootState();
-                                const currentFocusedRoute = findFocusedRoute(state);
-
-                                if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                    Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-                                    return;
-                                }
-
-                                if (shouldSkipDeepLinkNavigation(route)) {
-                                    return;
-                                }
-
-                                if (isAuthenticated) {
-                                    return;
-                                }
-
-                                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
-                            },
+                            onNotCompleted: OnboardingFlow.startOnboardingFlow,
+                            onCompleted: handleDeeplinkNavigation,
+                            onCanceled: handleDeeplinkNavigation,
                         });
                     });
                 },
@@ -3576,6 +3580,11 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {hasCompletedGuidedSetupFlow: true},
+        },
     );
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
@@ -3630,6 +3639,11 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {hasCompletedGuidedSetupFlow: false},
         },
     );
 

@@ -39,6 +39,9 @@ type OriginalMessageIOU = {
     /** How much was transactioned */
     amount: number;
 
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
+
     /** Optional comment */
     comment?: string;
 
@@ -157,6 +160,9 @@ type OriginalMessageSubmitted = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Was the report submitted via harvesting (delayed submit) */
+    harvesting?: boolean;
 };
 
 /** Model of `closed` report action */
