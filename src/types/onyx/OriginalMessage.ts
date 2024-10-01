@@ -39,6 +39,9 @@ type OriginalMessageIOU = {
     /** How much was transactioned */
     amount: number;
 
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
+
     /** Optional comment */
     comment?: string;
 
