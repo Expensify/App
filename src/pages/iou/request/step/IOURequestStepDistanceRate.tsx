@@ -86,8 +86,6 @@ function IOURequestStepDistanceRate({
         };
     });
 
-    const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
-
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
@@ -96,6 +94,7 @@ function IOURequestStepDistanceRate({
         if (shouldShowTax) {
             const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
+            const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
             taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
@@ -121,7 +120,7 @@ function IOURequestStepDistanceRate({
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
                 sections={[{data: sections}]}

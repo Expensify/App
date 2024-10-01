@@ -1007,7 +1007,7 @@ const translations = {
         changed: 'changed',
         removed: 'removed',
         transactionPending: 'Transaction pending.',
-        chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        chooseARate: 'Select a workspace reimbursement rate per mile or kilometer',
         unapprove: 'Unapprove',
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
