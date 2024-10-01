@@ -88,13 +88,16 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.TRANSACTION_FIELD_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.TRANSACTION_FIELD_ID])) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`);
-                        errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customLists.find((customList) => customList.transactionFieldID.toLowerCase() === values[INPUT_IDS.TRANSACTION_FIELD_ID].toLowerCase())) {
                         errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.customLists.errors.uniqueTransactionFieldIDError');
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING:
-                    return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                        errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+                    }
+                    return errors;
                 default:
                     return errors;
             }
@@ -163,6 +166,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     enabledWhenOffline
                     isSubmitDisabled={!!config?.pendingFields?.customLists}
                     submitFlexEnabled={submitFlexAllowed}
+                    shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING}
                 >
                     <SubStep
                         isEditing={isEditing}
