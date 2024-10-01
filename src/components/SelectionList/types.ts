@@ -489,6 +489,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to SectionList component */
     sectionListStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to ignore the focus event */
+    shouldIgnoreFocus?: boolean;
+
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
