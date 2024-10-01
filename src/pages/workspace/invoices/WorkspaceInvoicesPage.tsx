@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
+import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
 
 type WorkspaceInvoicesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 
@@ -32,12 +33,11 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldSkipVBBACall={false}
                 route={route}
             >
-                {(hasVBA?: boolean, policyID?: string) => (
-                    <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
-                        {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
-                    </View>
-                )}
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
+                    {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
+                    {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
+                </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
