@@ -36,12 +36,10 @@ function WorkspaceCompanyCardsSettingsPage({
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
     const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
-    // TODO: use data form onyx instead of mocked one when API is implemented
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
-    const liabilityType = cardFeeds?.companyCards?.[lastSelectedFeed]?.liabilityType;
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const feedName = lastSelectedFeed ? cardFeeds?.companyCardNicknames?.[lastSelectedFeed] : '';
+    const liabilityType = lastSelectedFeed ? cardFeeds?.companyCards?.[lastSelectedFeed]?.liabilityType : '';
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {
@@ -49,12 +47,18 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
+        if (!lastSelectedFeed) {
+            return;
+        }
         Policy.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, lastSelectedFeed);
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {
+        if (!lastSelectedFeed) {
+            return;
+        }
         Policy.setWorkspaceCompanyCardTransactionLiability(
             workspaceAccountID,
             lastSelectedFeed,
@@ -101,7 +105,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         isVisible={deleteCompanyCardConfirmModalVisible}
                         onConfirm={deleteCompanyCardFeed}
                         onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
+                        title={feedName ? translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName}) : ''}
                         prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}

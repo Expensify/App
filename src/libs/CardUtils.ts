@@ -210,11 +210,11 @@ function getCardDetailsImage(cardFeed: string): IconAsset {
 function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<WorkspaceCardsList>, accountID?: number) {
     const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
     const cards: WorkspaceCardsList = {};
-    const mockedCardsList = allCardsList ?? {};
-    Object.keys(mockedCardsList)
+    const cardsList = allCardsList ?? {};
+    Object.keys(cardsList)
         .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceId}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
         .forEach((key) => {
-            const feedCards = mockedCardsList?.[key];
+            const feedCards = cardsList?.[key];
             if (feedCards && Object.keys(feedCards).length > 0) {
                 Object.keys(feedCards).forEach((feedCardKey) => {
                     if (feedCards?.[feedCardKey].accountID !== accountID) {
