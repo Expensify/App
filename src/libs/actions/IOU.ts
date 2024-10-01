@@ -6449,7 +6449,7 @@ function getReportFromHoldRequestsOnyxData(
         chatReport.policyID ?? iouReport?.policyID ?? '',
         recipient.accountID ?? 1,
         ((iouReport?.total ?? 0) - ((iouReport?.unheldTotal ?? 0) + (iouReport?.nonReimbursableTotal ?? 0))) * (ReportUtils.isIOUReport(iouReport) ? 1 : -1),
-        getCurrency(firstHoldTransaction),
+        iouReport?.currency ?? '',
         false,
         newParentReportActionID,
     );
