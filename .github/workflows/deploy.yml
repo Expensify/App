@@ -163,7 +163,7 @@ jobs:
 
   android_hybrid:
     name: Build and deploy Android HybridApp
-#    needs: prep
+    needs: prep
     runs-on: ubuntu-latest-xl
     env:
       RUBYOPT: '-rostruct'
@@ -173,11 +173,12 @@ jobs:
         with:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          ref: 'andrew-mobile-deploy'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Change directories to Mobile-Expensify
-        run: cd ./Mobile-Expensify/react-native
+        run: |
+          cd ./Mobile-Expensify/react-native
+          git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -443,7 +444,7 @@ jobs:
 
   iOS_hybrid:
     name: Build and deploy iOS HybridApp
-#    needs: prep
+    needs: prep
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     runs-on: macos-13-xlarge
@@ -453,11 +454,12 @@ jobs:
         with:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          ref: 'andrew-mobile-deploy'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Change directories to Mobile-Expensify
-        run: cd ./Mobile-Expensify/react-native
+        run: | 
+            cd ./Mobile-Expensify/react-native
+            git fetch && git checkout andrew-mobile-deploy #TODO: remove this line once the PR is merged
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
