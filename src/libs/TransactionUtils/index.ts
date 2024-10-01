@@ -139,6 +139,7 @@ function buildOptimisticTransaction(
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
+    existingTransaction: OnyxEntry<Transaction> | undefined = undefined,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -150,6 +151,24 @@ function buildOptimisticTransaction(
     }
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
+    }
+
+    const isDistanceTransaction = (pendingFields?.waypoints ?? '') !== '';
+    if (isDistanceTransaction) {
+        // Get the policy of this transaction from the report.policyID
+        const allReports = ReportConnection.getAllReports();
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+        const policyID = report?.policyID ?? '';
+        const policy = PolicyUtils.getPolicy(policyID);
+
+        // Set the distance unit, which comes from the policy distance unit or the P2P rate data
+        const distanceRates = DistanceRequestUtils.getMileageRates(policy, true);
+        const customUnitRateID = existingTransaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+        const mileageRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[customUnitRateID] ?? {};
+        if (!commentJSON.customUnit) {
+            commentJSON.customUnit = {};
+        }
+        commentJSON.customUnit.distanceUnit = mileageRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     }
 
     return {

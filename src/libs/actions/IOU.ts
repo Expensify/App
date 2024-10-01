@@ -2019,6 +2019,7 @@ function getMoneyRequestInformation(
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -2071,7 +2072,6 @@ function getMoneyRequestInformation(
     }
 
     // STEP 3: Build an optimistic transaction with the receipt
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
@@ -2091,6 +2091,8 @@ function getMoneyRequestInformation(
         ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        undefined,
+        existingTransaction,
     );
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
@@ -5092,6 +5094,7 @@ function createDistanceRequest(
     currentUserAccountID = -1,
     splitShares: SplitShares = {},
     iouType: ValueOf<typeof CONST.IOU.TYPE> = CONST.IOU.TYPE.SUBMIT,
+    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -5184,6 +5187,8 @@ function createDistanceRequest(
             userAccountID,
             currentUserEmail,
             moneyRequestReportID,
+            undefined,
+            existingTransaction,
         );
         onyxData = moneyRequestOnyxData;
 
