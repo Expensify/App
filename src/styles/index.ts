@@ -4676,11 +4676,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
-        singleIconListItemStyle: {
+        searchQueryListItemStyle: {
             alignItems: 'center',
             flexDirection: 'row',
-            paddingHorizontal: 16,
-            paddingVertical: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
             borderRadius: 8,
         },
 

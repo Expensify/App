@@ -840,11 +840,16 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
 }
 
+function getContextualSuggestionQuery(reportID: string) {
+    return `type:chat in:${reportID}`;
+}
+
 function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
 export {
+    getContextualSuggestionQuery,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,

@@ -30,7 +30,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.singleIconListItemStyle, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle]]}
+            pressableStyle={[[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}

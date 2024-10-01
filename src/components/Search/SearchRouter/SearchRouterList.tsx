@@ -71,7 +71,8 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     }
     return (
         <UserListItem
-            pressableStyle={styles.br2}
+            pressableStyle={[styles.br2]}
+            wrapperStyle={[styles.pr3, styles.pl3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
@@ -113,7 +114,7 @@ function SearchRouterList(
                 {
                     text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
-                    query: `in:${reportForContextualSearch.reportID}`,
+                    query: SearchUtils.getContextualSuggestionQuery(reportForContextualSearch.reportID),
                     itemStyle: styles.activeComponentBG,
                     keyForList: 'contextualSearch',
                     isContextualSearchItem: true,
