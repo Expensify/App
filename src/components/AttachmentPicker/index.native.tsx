@@ -107,7 +107,13 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  */
-function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false, shouldHideGalleryOption = false}: AttachmentPickerProps) {
+function AttachmentPicker({
+    type = CONST.ATTACHMENT_PICKER_TYPE.FILE,
+    children,
+    shouldHideCameraOption = false,
+    shouldHideGalleryOption = false,
+    shouldValidateImage = true,
+}: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -315,6 +321,26 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 width: ('width' in fileData && fileData.width) || undefined,
                 height: ('height' in fileData && fileData.height) || undefined,
             };
+
+            if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
+                ImageSize.getSize(fileDataUri)
+                    .then(({width, height}) => {
+                        fileDataObject.width = width;
+                        fileDataObject.height = height;
+                        return fileDataObject;
+                    })
+                    .then((file) => {
+                        getDataForUpload(file)
+                            .then((result) => {
+                                completeAttachmentSelection.current(result);
+                            })
+                            .catch((error: Error) => {
+                                showGeneralAlert(error.message);
+                                throw error;
+                            });
+                    });
+                return;
+            }
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
                 ImageSize.getSize(fileDataUri)
@@ -328,7 +354,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 return validateAndCompleteAttachmentSelection(fileDataObject);
             }
         },
-        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert],
+        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert, shouldValidateImage, showGeneralAlert],
     );
 
     /**

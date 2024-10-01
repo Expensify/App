@@ -46,6 +46,9 @@ type AttachmentPickerProps = {
     shouldHideCameraOption?: boolean;
 
     shouldHideGalleryOption?: boolean;
+
+    /** Whether to validate the image and show the alert or not. */
+    shouldValidateImage?: boolean;
 };
 
 export default AttachmentPickerProps;
