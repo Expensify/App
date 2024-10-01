@@ -177,7 +177,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     function hasInProgressVBBA(): boolean {
-        return !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
+        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
     }
 
     /*
