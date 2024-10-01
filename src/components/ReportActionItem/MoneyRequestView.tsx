@@ -216,7 +216,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
-    const {unit} = mileageRate;
+    const unit = DistanceRequestUtils.getDistanceUnit(transaction, mileageRate);
     const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
     const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);

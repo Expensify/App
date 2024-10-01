@@ -1,10 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -223,9 +222,9 @@ function getDistanceMerchant(
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
  * @param currency
- * @returns The rate and unit in RateAndUnit object.
+ * @returns The rate and unit in MileageRate object.
  */
-function getRateForP2P(currency: string): RateAndUnit {
+function getRateForP2P(currency: string): MileageRate {
     const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
     return {
         ...CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate],
@@ -301,6 +300,10 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     return amount * taxClaimablePercentage;
 }
 
+function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>) {
+    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -312,6 +315,7 @@ export default {
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
+    getDistanceUnit,
 };
 
 export type {MileageRate};

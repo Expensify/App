@@ -100,6 +100,9 @@ type TransactionCustomUnit = {
 
     /** Default rate for custom unit */
     defaultP2PRate?: number | null;
+
+    /** The unit for the distance/quantity */
+    distanceUnit?: 'mi' | 'km';
 };
 
 /** Types of geometry */
