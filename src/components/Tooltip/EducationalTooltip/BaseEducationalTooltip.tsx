@@ -79,7 +79,7 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
 
     useEffect(
         () => hide,
-        // eslint-disable-next-line react-compiler/react-compiler react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
