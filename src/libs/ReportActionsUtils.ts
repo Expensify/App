@@ -163,6 +163,10 @@ function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 }
 
+function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
+}
+
 function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
 }
@@ -1692,6 +1696,15 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     return Localize.translateLocal('report.actions.type.removeMember', {email, role});
 }
 
+function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const connectionName = originalMessage?.connectionName;
+    return connectionName ? Localize.translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
+}
+
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
     const originalMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
@@ -1830,6 +1843,7 @@ export {
     isTripPreview,
     isWhisperAction,
     isSubmittedAction,
+    isSubmittedAndClosedAction,
     isApprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
@@ -1851,6 +1865,7 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
+    getRemovedConnectionMessage,
 };
 
 export type {LastVisibleMessage};

@@ -175,6 +175,9 @@ type ListItem = {
 
     /** The style to override the cursor appearance */
     cursorStyle?: CursorStyles[keyof CursorStyles];
+
+    /** Determines whether the newly added item should animate in / highlight */
+    shouldAnimateInHighlight?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -288,6 +291,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
+    hasAnimateInHighlightStyle?: boolean;
+    /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
 };
 
@@ -565,6 +570,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
+    scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
 type ItemLayout = {
