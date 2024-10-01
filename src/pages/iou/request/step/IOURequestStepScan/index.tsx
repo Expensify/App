@@ -86,6 +86,7 @@ function IOURequestStepScan({
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
 
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -444,9 +445,9 @@ function IOURequestStepScan({
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(file as Blob);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
+                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', !isEditing);
 
-                if (action === CONST.IOU.ACTION.EDIT) {
+                if (isEditing) {
                     updateScanAndNavigate(file, source);
                     return;
                 }
@@ -478,15 +479,15 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name, !isEditing);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (isEditing) {
             updateScanAndNavigate(file, source);
             return;
         }
 
         navigateToConfirmationStep(file, source);
-    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
+    }, [isEditing, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -695,7 +696,7 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo}
+            shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (

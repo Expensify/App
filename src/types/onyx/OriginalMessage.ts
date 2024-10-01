@@ -39,6 +39,9 @@ type OriginalMessageIOU = {
     /** How much was transactioned */
     amount: number;
 
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
+
     /** Optional comment */
     comment?: string;
 
@@ -157,6 +160,9 @@ type OriginalMessageSubmitted = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Was the report submitted via harvesting (delayed submit) */
+    harvesting?: boolean;
 };
 
 /** Model of `closed` report action */
@@ -523,12 +529,19 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
  */
 type OriginalMessageExpensifyCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
 };
+
+/**
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ */
+type IssueNewCardOriginalMessage = OriginalMessage<
+    typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+>;
 
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
@@ -620,4 +633,5 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
+    IssueNewCardOriginalMessage,
 };
