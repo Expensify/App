@@ -1,0 +1,19 @@
+name: Temp workflow for debugging
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - run: bundle exec fastlane android test
+
+      - run: echo "hello $apkPath"

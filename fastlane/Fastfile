@@ -63,6 +63,12 @@ def setIOSBuildOutputsInEnv()
 end
 
 platform :android do
+  lane :test do
+    exportEnvVars({
+      KEY_GRADLE_APK_PATH => 'FooBar',
+    })
+  end
+
   desc "Generate a production AAB"
   lane :build do
     ENV["ENVFILE"]=".env.production"
