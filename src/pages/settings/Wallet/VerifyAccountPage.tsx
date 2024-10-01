@@ -28,7 +28,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const {translate} = useLocalize();
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
-    const firstRenderRef = useRef(true);
     const loginData = loginList?.[contactMethod];
     const styles = useThemeStyles();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
@@ -39,10 +38,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_WALLET;
 
     useEffect(() => {
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
-            User.requestValidateCodeAction();
-        }
+        User.requestValidateCodeAction();
         return () => User.clearUnvalidatedNewContactMethodAction();
     }, []);
 

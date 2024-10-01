@@ -17,6 +17,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -35,7 +36,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListProps = {
     /** Type of active/highlighted payment method */
@@ -77,6 +77,9 @@ type PaymentMethodListProps = {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton?: boolean;
 
+    /** Whether the add Bank account button be shown on the list */
+    shouldShowAddBankAccountButton?: boolean;
+
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
@@ -95,6 +98,9 @@ type PaymentMethodListProps = {
         isDefault?: boolean,
         methodID?: number,
     ) => void;
+
+    /** The policy invoice's transfer bank accountID */
+    invoiceTransferBankAccountID?: number;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -159,13 +165,12 @@ function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
     buttonRef = () => {},
-    // Temporarily disabled because P2P debit cards are disabled.
-    // fundList = {},
     filterType = '',
     listHeaderComponent,
     onPress,
     shouldShowSelectedState = false,
     shouldShowAddPaymentMethodButton = true,
+    shouldShowAddBankAccountButton = false,
     shouldShowAddBankAccount = true,
     shouldShowEmptyListMessage = true,
     shouldShowAssignedCards = false,
@@ -175,6 +180,7 @@ function PaymentMethodList({
     style = {},
     listItemStyle = {},
     shouldShowRightIcon = true,
+    invoiceTransferBankAccountID,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -184,8 +190,8 @@ function PaymentMethodList({
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    // Temporarily disabled - used for P2P debit cards
-    // const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    // Temporarily disabled because P2P debit cards are disabled.
+    // const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
 
     const getDescriptionForPolicyDomainCard = (domainName: string): string => {
@@ -320,16 +326,29 @@ function PaymentMethodList({
     }, [isUserValidated, onPress]);
 
     const renderListFooterComponent = useCallback(
-        () => (
-            <MenuItem
-                onPress={onPressItem}
-                title={translate('walletPage.addBankAccount')}
-                icon={Expensicons.Plus}
-                wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                ref={buttonRef}
-            />
-        ),
-        [translate, styles.paymentMethod, listItemStyle, buttonRef, onPressItem],
+        () =>
+            shouldShowAddBankAccountButton ? (
+                <Button
+                    ref={buttonRef}
+                    key="addBankAccountButton"
+                    text={translate('walletPage.addBankAccount')}
+                    large
+                    success
+                    isDisabled={!isUserValidated}
+                    onPress={onPressItem}
+                />
+            ) : (
+                <MenuItem
+                    onPress={onPressItem}
+                    title={translate('walletPage.addBankAccount')}
+                    icon={Expensicons.Plus}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    ref={buttonRef}
+                    disabled={!isUserValidated}
+                />
+            ),
+
+        [shouldShowAddBankAccountButton, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
     );
 
     /**
@@ -354,7 +373,11 @@ function PaymentMethodList({
                     iconHeight={item.iconHeight ?? item.iconSize}
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
-                    badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : undefined}
+                    badgeText={
+                        shouldShowDefaultBadge(filteredPaymentMethods, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
+                            ? translate('paymentMethodList.defaultPaymentMethod')
+                            : undefined
+                    }
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}
@@ -368,7 +391,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

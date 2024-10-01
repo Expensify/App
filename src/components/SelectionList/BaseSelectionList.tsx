@@ -71,6 +71,7 @@ function BaseSelectionList<TItem extends ListItem>(
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
+        shouldPreventDefault = true,
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
@@ -100,6 +101,8 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
+        scrollEventThrottle,
+        contentContainerStyle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -616,13 +619,14 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, scrollToIndex}), [scrollAndHighlightItem, clearInputAfterSelect, scrollToIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
+        shouldPreventDefault,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
@@ -734,6 +738,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
+                                scrollEventThrottle={scrollEventThrottle}
+                                contentContainerStyle={contentContainerStyle}
                             />
                             {children}
                         </>
