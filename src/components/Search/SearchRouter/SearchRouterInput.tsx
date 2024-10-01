@@ -64,11 +64,7 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
                     onBlur={() => setIsFocused(false)}
                 />
             </View>
-            {rightComponent && (
-                <View style={styles.pr3}>
-                    {rightComponent}
-                </View>
-            )}
+            {rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
         </View>
     );
 }
