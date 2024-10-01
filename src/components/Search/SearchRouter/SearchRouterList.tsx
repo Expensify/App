@@ -1,6 +1,8 @@
 import React, {forwardRef, useCallback} from 'react';
 import type {ForwardedRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem from '@components/SelectionList/Search/SearchQueryListItem';
@@ -8,11 +10,14 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Report from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type ItemWithQuery = {
@@ -20,12 +25,25 @@ type ItemWithQuery = {
 };
 
 type SearchRouterListProps = {
+    /** currentQuery value computed coming from parsed TextInput value */
     currentQuery: SearchQueryJSON | undefined;
-    reportForContextualSearch?: OptionData;
+
+    /** Recent searches */
     recentSearches: ItemWithQuery[] | undefined;
+
+    /** Recent reports */
     recentReports: OptionData[];
+
+    /** Callback to submit query when selecting a list item */
     onSearchSubmit: (query: SearchQueryJSON | undefined) => void;
+
+    /** Context present when opening SearchRouter from a report, invoice or workspace page */
+    reportForContextualSearch?: OptionData;
+
+    /** Callback to update search query when selecting contextual suggestion */
     updateUserSearchQuery: (newSearchQuery: string) => void;
+
+    /** Callback to close and clear SearchRouter */
     closeAndClearRouter: () => void;
 };
 
@@ -66,6 +84,13 @@ function SearchRouterList(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const contextualQuery = `in:${reportForContextualSearch?.reportID}`;
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
     if (currentQuery?.inputQuery) {
@@ -82,11 +107,11 @@ function SearchRouterList(
         });
     }
 
-    if (reportForContextualSearch) {
+    if (reportForContextualSearch && !currentQuery?.inputQuery?.includes(contextualQuery)) {
         sections.push({
             data: [
                 {
-                    text: `${translate('search.searchIn')}${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                    text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
                     singleIcon: Expensicons.MagnifyingGlass,
                     query: `in:${reportForContextualSearch.reportID}`,
                     itemStyle: styles.activeComponentBG,
@@ -97,12 +122,15 @@ function SearchRouterList(
         });
     }
 
-    const recentSearchesData = recentSearches?.map(({query}) => ({
-        text: query,
-        singleIcon: Expensicons.History,
-        query,
-        keyForList: query,
-    }));
+    const recentSearchesData = recentSearches?.map(({query}) => {
+        const searchQueryJSON = SearchUtils.buildSearchQueryJSON(query);
+        return {
+            text: searchQueryJSON ? SearchUtils.getSearchHeaderTitle(searchQueryJSON, personalDetails, cardList, reports, taxRates) : query,
+            singleIcon: Expensicons.History,
+            query,
+            keyForList: query,
+        };
+    });
 
     if (recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
@@ -144,7 +172,7 @@ function SearchRouterList(
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph5, styles.pb5]}
+            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb5]}
             ref={ref}
         />
     );

@@ -33,7 +33,7 @@ const SEARCH_DEBOUNCE_DELAY = 150;
 function SearchRouter() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [betas] = useOnyx(`${ONYXKEYS.BETAS}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
 
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -173,9 +173,6 @@ function SearchRouter() {
                         value={textInputValue}
                         setValue={setTextInputValue}
                         updateSearch={onSearchChange}
-                        onSubmit={() => {
-                            onSearchSubmit(userSearchQuery);
-                        }}
                         routerListRef={listRef}
                     />
                     <SearchRouterList

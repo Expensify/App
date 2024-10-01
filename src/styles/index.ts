@@ -3613,10 +3613,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
-        searchRouterInputStyle: {
+        searchRouterTextInputContainerStyle: {
             borderRadius: variables.componentBorderRadiusSmall,
-            borderWidth: 2,
-            borderColor: theme.borderFocus,
+            borderWidth: 1,
+            borderBottomWidth: 1,
             paddingHorizontal: 8,
         },
 

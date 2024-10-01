@@ -45,8 +45,8 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                     <Icon
                         src={item.singleIcon}
                         fill={theme.icon}
-                        additionalStyles={styles.mr2}
-                        small
+                        additionalStyles={styles.mr3}
+                        medium
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
