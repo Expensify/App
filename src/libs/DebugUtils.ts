@@ -729,6 +729,11 @@ function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         });
     }
 
+    // Has a child report which is a task
+    if (report.hasOutstandingChildTask) {
+        return Object.values(reportActions).find((action) => action.childType === CONST.REPORT.TYPE.TASK);
+    }
+
     // Is an invoice room and there's an invoice missing a bank account
     if (ReportUtils.isInvoiceRoom(report)) {
         return Object.values(reportActions).find(
