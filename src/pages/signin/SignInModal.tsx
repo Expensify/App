@@ -13,6 +13,7 @@ import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 import SignInPage from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
+import { waitForIdle } from '@libs/Network/SequentialQueue';
 
 type SignInModalOnyxProps = {
     session: OnyxEntry<Session>;
@@ -30,7 +31,9 @@ function SignInModal({session}: SignInModalProps) {
         if (!isAnonymousUser) {
             // Signing in RHP is only for anonymous users
             Navigation.isNavigationReady().then(() => Navigation.dismissModal());
-            App.openApp();
+            waitForIdle().then(() => {
+                App.openApp();
+            })
         }
     }, [session?.authTokenType]);
 

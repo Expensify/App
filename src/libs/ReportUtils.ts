@@ -1360,12 +1360,6 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         });
     }
 
-    // if the user hasn't completed the onboarding flow, whether the user should be in the concierge chat or system chat
-    // should be consistent with what chat the user will land after onboarding flow
-    if (!getIsSmallScreenWidth() && !Array.isArray(onboarding) && !onboarding?.hasCompletedGuidedSetupFlow) {
-        return reportsValues.find(isChatUsedForOnboarding);
-    }
-
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
     if (shouldFilter) {

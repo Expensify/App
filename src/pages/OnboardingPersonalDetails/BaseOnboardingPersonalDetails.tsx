@@ -70,11 +70,11 @@ function BaseOnboardingPersonalDetails({
 
             Navigation.dismissModal();
 
-            // Only navigate to concierge chat when central pane is visible
-            // Otherwise stay on the chats screen.
-            if (!shouldUseNarrowLayout && !route.params?.backTo) {
-                Report.navigateToConciergeChat();
-            }
+            // // Only navigate to concierge chat when central pane is visible
+            // // Otherwise stay on the chats screen.
+            // if (!shouldUseNarrowLayout && !route.params?.backTo) {
+            //     Report.navigateToConciergeChat();
+            // }
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, shouldUseNarrowLayout, route.params?.backTo],
     );
