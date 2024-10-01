@@ -6927,7 +6927,7 @@ function canIOUBePaid(
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     transactions?: OnyxTypes.Transaction[],
-    shouldForceShowOnlyPayElsewhere = false,
+    onlyShowPayElsewhere = false,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
@@ -6939,7 +6939,7 @@ function canIOUBePaid(
     }
 
     if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
-        if (!shouldForceShowOnlyPayElsewhere) {
+        if (!onlyShowPayElsewhere) {
             return false;
         }
         if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
@@ -6963,7 +6963,7 @@ function canIOUBePaid(
             accountID: userAccountID,
         },
         iouReport,
-        shouldForceShowOnlyPayElsewhere,
+        onlyShowPayElsewhere,
     );
 
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);

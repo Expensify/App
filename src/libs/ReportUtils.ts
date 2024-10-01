@@ -1683,7 +1683,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is a payer of the expense
  */
 
-function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, shouldForceShowOnlyPayElsewhere = false) {
+function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false) {
     const isApproved = isReportApproved(iouReport);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
@@ -1694,7 +1694,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, shou
             const isReimburser = session?.email === policy?.achAccount?.reimburser;
             return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
         }
-        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || shouldForceShowOnlyPayElsewhere) {
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin && (isApproved || isManager);
         }
         return false;

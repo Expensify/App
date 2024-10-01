@@ -58,7 +58,7 @@ function SettlementButton({
     useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    forceShowOnlyPayElsewhere,
+    onlyShowPayElsewhere,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -103,7 +103,7 @@ function SettlementButton({
             return [approveButtonOption];
         }
 
-        if (forceShowOnlyPayElsewhere) {
+        if (onlyShowPayElsewhere) {
             return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
@@ -178,7 +178,7 @@ function SettlementButton({
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,
-        forceShowOnlyPayElsewhere,
+        onlyShowPayElsewhere,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
