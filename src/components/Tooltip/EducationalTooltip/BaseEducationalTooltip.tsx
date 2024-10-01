@@ -23,13 +23,13 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
 
     const didShow = useRef(false);
 
-    const hideTooltip = useCallback(() => {
+    const hide = useCallback(() => {
         if (!didShow.current) {
             return;
         }
         hideTooltipRef.current?.();
         onHideTooltip?.();
-    }, []);
+    }, [onHideTooltip]);
 
     useEffect(
         () => () => {
@@ -50,18 +50,18 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
 
         // If the modal is open, hide the tooltip immediately and clear the timeout
         if (!shouldShow) {
-            hideTooltip();
+            hide();
             return;
         }
 
         // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
         const timerID = setTimeout(() => {
-            hideTooltip();
+            hide();
         }, 5000);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldAutoDismiss, shouldShow, hideTooltip]);
+    }, [shouldAutoDismiss, shouldShow, hide]);
 
     useEffect(() => {
         if (!shouldMeasure || !shouldShow || didShow.current) {
@@ -77,7 +77,11 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
         };
     }, [shouldMeasure, shouldShow]);
 
-    useEffect(() => hideTooltip, []);
+    useEffect(
+        () => hide,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
 
     return (
         <GenericTooltip
