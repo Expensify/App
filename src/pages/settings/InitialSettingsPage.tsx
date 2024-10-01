@@ -132,20 +132,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
                 {
-                    translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    ...(NativeModules.HybridAppModule
-                        ? {
-                              action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                                  setInitialURL(undefined);
-                              },
-                          }
-                        : {
-                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                          }),
-                },
-                {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
                     routeName: ROUTES.SETTINGS_PROFILE,
@@ -239,6 +225,20 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
+                },
+                {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.ExpensifyLogoNew,
+                    ...(NativeModules.HybridAppModule
+                        ? {
+                              action: () => {
+                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                                  setInitialURL(undefined);
+                              },
+                          }
+                        : {
+                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                          }),
                 },
                 {
                     translationKey: 'initialSettingsPage.about',
