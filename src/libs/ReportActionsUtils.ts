@@ -1692,6 +1692,15 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     return Localize.translateLocal('report.actions.type.removeMember', {email, role});
 }
 
+function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const connectionName = originalMessage?.connectionName;
+    return connectionName ? Localize.translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
+}
+
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
     const originalMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
@@ -1851,6 +1860,7 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
+    getRemovedConnectionMessage,
 };
 
 export type {LastVisibleMessage};

@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
+import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
 
 /** Types of join workspace resolutions */
@@ -274,6 +275,9 @@ type OriginalMessageChangeLog = {
 
     /** Old role of user */
     oldValue?: string;
+
+    /** Name of connection */
+    connectionName?: AllConnectionName;
 };
 
 /** Model of `join policy changelog` report action */
