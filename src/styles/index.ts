@@ -3613,11 +3613,21 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
-        searchRouterInputStyle: {
+        searchRouterInput: {
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 2,
             borderColor: theme.borderFocus,
-            paddingHorizontal: 8,
+        },
+
+        searchRouterInputResults: {
+            backgroundColor: theme.sidebarHover,
+            borderWidth: 1,
+            borderColor: theme.sidebarHover,
+        },
+
+        searchRouterInputResultsFocused: {
+            borderWidth: 1,
+            borderColor: theme.success,
         },
 
         searchTableHeaderActive: {
