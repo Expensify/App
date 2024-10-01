@@ -94,7 +94,10 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING:
-                    return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                        errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+                    }
+                    return errors;
                 default:
                     return errors;
             }
@@ -163,6 +166,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     enabledWhenOffline
                     isSubmitDisabled={!!config?.pendingFields?.customLists}
                     submitFlexEnabled={submitFlexAllowed}
+                    shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING}
                 >
                     <SubStep
                         isEditing={isEditing}
