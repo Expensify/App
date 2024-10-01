@@ -4,10 +4,14 @@ describe('SuffixUkkonenTree', () => {
     // The suffix tree doesn't take strings, but expects an array buffer, where strings have been separated by a delimiter.
     function helperStringsToNumericForTree(strings: string[]) {
         const numericLists = strings.map((s) => SuffixUkkonenTree.stringToNumeric(s, {clamp: true}));
-        const numericList = numericLists.reduce((acc, {numeric}) => {
-            acc.push(...numeric, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
-            return acc;
-        }, [] as number[]);
+        const numericList = numericLists.reduce(
+            (acc, {numeric}) => {
+                acc.push(...numeric, SuffixUkkonenTree.DELIMITER_CHAR_CODE);
+                return acc;
+            },
+            // The value we pass to makeTree needs to be offset by one
+            [0],
+        );
         numericList.push(SuffixUkkonenTree.END_CHAR_CODE);
         return Uint8Array.from(numericList);
     }
@@ -19,7 +23,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = SuffixUkkonenTree.makeTree(numericIntArray);
         tree.build();
         const searchValue = SuffixUkkonenTree.stringToNumeric('an', {clamp: true}).numeric;
-        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([1, 3, 8]));
+        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([2, 4, 9]));
     });
 
     it('should find by first character', () => {
@@ -28,7 +32,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = SuffixUkkonenTree.makeTree(numericIntArray);
         tree.build();
         const searchValue = SuffixUkkonenTree.stringToNumeric('p', {clamp: true}).numeric;
-        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([0]));
+        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([1]));
     });
 
     it('should handle identical words', () => {
@@ -37,7 +41,7 @@ describe('SuffixUkkonenTree', () => {
         const tree = SuffixUkkonenTree.makeTree(numericIntArray);
         tree.build();
         const searchValue = SuffixUkkonenTree.stringToNumeric('an', {clamp: true}).numeric;
-        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([1, 3, 8, 10]));
+        expect(tree.findSubstring(Array.from(searchValue))).toEqual(expect.arrayContaining([2, 4, 9, 11]));
     });
 
     it('should convert string to numeric with a list of chars to skip', () => {

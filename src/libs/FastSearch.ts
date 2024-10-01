@@ -101,8 +101,6 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
  * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
  */
 function dataToNumericRepresentation<T>(concatenatedNumericList: Uint8Array, occurrenceToIndex: Uint32Array, offset: {value: number}, {data, toSearchableString}: SearchableData<T>): void {
-    // const searchIndexList: Array<T | undefined> = [];
-
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
         const cleanedSearchStringForTree = cleanString(searchStringForTree);

@@ -135,7 +135,7 @@ function makeTree(numericSearchValues: Uint8Array) {
 
     function build() {
         initializeTree();
-        for (currentIndex = 0; currentIndex < numericSearchValues.length; ++currentIndex) {
+        for (currentIndex = 1; currentIndex < numericSearchValues.length; ++currentIndex) {
             const c = numericSearchValues[currentIndex];
             processCharacter(c);
         }
