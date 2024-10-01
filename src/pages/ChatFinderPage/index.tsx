@@ -144,6 +144,7 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const newOptions = findInSearchTree(debouncedSearchValue);
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const userToInvite = OptionsListUtils.pickUserToInvite({
             canInviteUser: true,
             recentReports: newOptions.recentReports,
@@ -151,11 +152,10 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
             searchValue: debouncedSearchValue,
             optionsToExclude: [{login: CONST.EMAIL.NOTIFICATIONS}],
         });
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!userToInvite) > 0, false, debouncedSearchValue);
         return {
-            recentReports: newOptions.recentReports,
+            recentReports: OptionsListUtils.orderOptions(newOptions.recentReports, debouncedSearchValue, {preferChatroomsOverThreads: true}),
             personalDetails: newOptions.personalDetails,
             userToInvite,
             headerMessage: header,

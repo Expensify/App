@@ -2549,6 +2549,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getShareLogOptions,
+    orderOptions,
     filterOptions,
     createOptionList,
     createOptionFromReport,
