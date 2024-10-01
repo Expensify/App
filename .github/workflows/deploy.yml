@@ -188,7 +188,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./react-native/.github/actions/composite/setupNode
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -475,7 +475,7 @@ jobs:
 
       - name: Setup Node
         id: setup-node
-        uses: ./.github/actions/composite/setupNode
+        uses: ./react-native/.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
