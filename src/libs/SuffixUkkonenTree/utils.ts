@@ -73,7 +73,9 @@ function stringToNumeric(
     occurrenceToIndex: Uint32Array;
     offset: {value: number};
 } {
-    const outArray = options?.out?.outArray ?? new Uint8Array(input.length * 8); // We assume that the number output array will fit in 8 times the input length (for letters a-z only 1 number is needed, for any other unicode more numbers are needed)
+    // The out array might be longer than our input string length, because we encode special characters as multiple numbers using the base26 encoding.
+    // * 6 is because the upper limit of encoding any char in UTF-8 to base26 is at max 6 numbers.
+    const outArray = options?.out?.outArray ?? new Uint8Array(input.length * 6);
     const offset = options?.out?.offset ?? {value: 0};
     const occurrenceToIndex = options?.out?.outOccurrenceToIndex ?? new Uint32Array(input.length * 16 * 4);
     const index = options?.out?.index ?? 0;
