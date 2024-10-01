@@ -153,10 +153,12 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
             optionsToExclude: [{login: CONST.EMAIL.NOTIFICATIONS}],
         });
 
+        const recentReports = newOptions.recentReports.concat(newOptions.personalDetails);
+
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!userToInvite) > 0, false, debouncedSearchValue);
         return {
-            recentReports: OptionsListUtils.orderOptions(newOptions.recentReports, debouncedSearchValue, {preferChatroomsOverThreads: true}),
-            personalDetails: newOptions.personalDetails,
+            recentReports: OptionsListUtils.orderOptions(recentReports, debouncedSearchValue, {preferChatroomsOverThreads: true}),
+            personalDetails: [],
             userToInvite,
             headerMessage: header,
         };
