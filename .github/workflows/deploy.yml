@@ -193,7 +193,9 @@ jobs:
           cache: npm
 
       - name: Install node modules
-        run: cd .. && npm install
+        run: |
+          npm install
+          cd .. && npm install
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -220,8 +222,8 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get upload-key.keystore
-          op document get android-fastlane-json-key.json
+          op document get upload-key.keystore --out-file upload-key.keystore
+          op document get android-fastlane-json-key.json --out-file android-fastlane-json-key.json
 
       - name: Get Android native version
         id: getAndroidVersion
@@ -484,7 +486,9 @@ jobs:
           cache: npm
 
       - name: Install node modules
-        run: cd .. && npm install
+        run: |
+          npm install
+          cd .. && npm install
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
