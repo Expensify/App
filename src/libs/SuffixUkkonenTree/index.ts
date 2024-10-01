@@ -17,7 +17,7 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
  *
  * The tree will be built using the Ukkonen's algorithm: https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
  */
-function makeTree(numericSearchValues: Int8Array) {
+function makeTree(numericSearchValues: Uint8Array) {
     const maxNodes = 2 * numericSearchValues.length;
     // Allocate an ArrayBuffer to store all transitions (flat buffer), 4 bytes per transition (Uint32)
     const transitionNodes = new Int32Array(maxNodes * ALPHABET_SIZE * 4);

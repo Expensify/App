@@ -9,7 +9,7 @@ describe('SuffixUkkonenTree', () => {
             return acc;
         }, [] as number[]);
         numericList.push(SuffixUkkonenTree.END_CHAR_CODE);
-        return Int8Array.from(numericList);
+        return Uint8Array.from(numericList);
     }
 
     it('should insert, build, and find all occurrences', () => {

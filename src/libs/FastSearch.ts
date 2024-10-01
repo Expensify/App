@@ -28,9 +28,9 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
     const maxNumericListSize = 400_000;
     // The user might provide multiple data sets, but internally, the search values will be stored in this one list:
-    let concatenatedNumericList = new Int8Array(maxNumericListSize);
+    let concatenatedNumericList = new Uint8Array(maxNumericListSize);
     // Here we store the index of the data item in the original data list, so we can map the found occurrences back to the original data:
-    const occurrenceToIndex = new Int32Array(maxNumericListSize * 4);
+    const occurrenceToIndex = new Uint32Array(maxNumericListSize * 4);
     // As we are working with ArrayBuffers, we need to keep track of the current offset:
     const offset = {value: 0};
     // We store the last offset for a dataSet, so we can map the found occurrences to the correct dataSet:
@@ -100,7 +100,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
  * This function converts the user data (which are most likely objects) to a numeric representation.
  * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
  */
-function dataToNumericRepresentation<T>(concatenatedNumericList: Int8Array, occurrenceToIndex: Int32Array, offset: {value: number}, {data, toSearchableString}: SearchableData<T>): void {
+function dataToNumericRepresentation<T>(concatenatedNumericList: Uint8Array, occurrenceToIndex: Uint32Array, offset: {value: number}, {data, toSearchableString}: SearchableData<T>): void {
     // const searchIndexList: Array<T | undefined> = [];
 
     data.forEach((option, index) => {

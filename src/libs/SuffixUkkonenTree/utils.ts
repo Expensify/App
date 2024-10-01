@@ -56,7 +56,7 @@ function stringToNumeric(
         charSetToSkip?: Set<string>;
         // When out is provided, the function will write the result to the provided arrays instead of creating new ones (performance)
         out?: {
-            outArray: Int8Array;
+            outArray: Uint8Array;
             // As outArray is a ArrayBuffer we need to keep track of the current offset
             offset: {value: number};
             // A map of <PositionInOutArray, IndexInOriginalData> to map the found occurrences to the correct data set
@@ -68,11 +68,11 @@ function stringToNumeric(
         clamp?: boolean;
     },
 ): {
-    numeric: Int8Array;
+    numeric: Uint8Array;
     occurrenceToIndex: Int32Array;
     offset: {value: number};
 } {
-    const outArray = options?.out?.outArray ?? new Int8Array(input.length * 8); // We assume that the number output array will fit in 8 times the input length (for letters a-z only 1 number is needed, for any other unicode more numbers are needed)
+    const outArray = options?.out?.outArray ?? new Uint8Array(input.length * 8); // We assume that the number output array will fit in 8 times the input length (for letters a-z only 1 number is needed, for any other unicode more numbers are needed)
     const offset = options?.out?.offset ?? {value: 0};
     const occurrenceToIndex = options?.out?.outOccurrenceToIndex ?? new Int32Array(input.length * 16 * 4);
     const index = options?.out?.index ?? 0;
