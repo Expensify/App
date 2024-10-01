@@ -174,7 +174,6 @@ function ReportActionItemMessageEdit(
                 ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
             }
             return () => {
-                ReportActionComposeFocusManager.editComposerRef.current = null;
                 ReportActionComposeFocusManager.clear(true);
             };
         },
@@ -201,14 +200,6 @@ function ReportActionItemMessageEdit(
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
         }, true);
     }, [focus]);
-
-    useEffect(
-        // Remove focus callback on unmount to avoid stale callbacks
-        () => () => {
-            ReportActionComposeFocusManager.clear(true);
-        },
-        [],
-    );
 
     useEffect(
         () => {
