@@ -50,6 +50,9 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
+    // We silence this warning for now and will address all the places where it happens separately.
+    // Then we can remove this line so the problem does not occur in the future.
+    '[Reanimated] Tried to modify key `current`',
 ]);
 
 const fill = {flex: 1};
