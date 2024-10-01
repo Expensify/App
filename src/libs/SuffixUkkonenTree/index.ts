@@ -18,6 +18,8 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
  * The tree will be built using the Ukkonen's algorithm: https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
  */
 function makeTree(numericSearchValues: Uint8Array) {
+    // Every leaf represents a suffix. There can't be more than n suffixes.
+    // Every internal node has to have at least 2 children. So the total size of ukkonen tree is not bigger than 2n - 1.
     const maxNodes = 2 * numericSearchValues.length;
     // Allocate an ArrayBuffer to store all transitions (flat buffer), 4 bytes per transition (Uint32)
     const transitionNodes = new Int32Array(maxNodes * ALPHABET_SIZE * 4);
