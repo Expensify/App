@@ -209,8 +209,6 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 1000,
-    explanationModalDelay: 2000,
 
     // Emoji related variables
     fontSizeOnlyEmojis: 30,
@@ -254,9 +252,16 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    inlineImagePreviewMinSize: 64,
+    inlineImagePreviewMaxSize: 148,
+
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
+
+    minimalTopBarOffset: -26,
+    searchHeaderHeight: 80,
+    searchListContentMarginTop: 116,
 
     h20: 20,
     h28: 28,
