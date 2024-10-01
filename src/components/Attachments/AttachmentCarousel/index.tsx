@@ -74,14 +74,14 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        let targetAttachments: Attachment[] = [];
+        let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
         } else {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
 
-        if (isEqual(attachments, targetAttachments)) {
+        if (isEqual(attachments, newAttachments)) {
             if (attachments.length === 0) {
                 setPage(-1);
                 setDownloadButtonVisibility?.(false);
@@ -89,28 +89,28 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             return;
         }
 
-        let attachmentIndex = targetAttachments.findIndex(compareImage);
-        const prevAttachmentIndex = attachments.findIndex(compareImage);
+        let newIndex = newAttachments.findIndex(compareImage);
+        const index = attachments.findIndex(compareImage);
 
         // If no matching attachment with the same index, dismiss the modal
-        if (!targetAttachments[attachmentIndex] && targetAttachments[prevAttachmentIndex]) {
-            attachmentIndex = prevAttachmentIndex;
+        if (!newAttachments[newIndex] && newAttachments[index]) {
+            newIndex = index;
         }
 
-        if (!targetAttachments[attachmentIndex] && attachments[prevAttachmentIndex]) {
+        if (!newAttachments[newIndex] && attachments[index]) {
             Navigation.dismissModal();
         } else {
-            setPage(attachmentIndex);
-            setAttachments(targetAttachments);
+            setPage(newIndex);
+            setAttachments(newAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(attachmentIndex !== -1);
+                setDownloadButtonVisibility(newIndex !== -1);
             }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments[attachmentIndex] !== undefined && onNavigate) {
-                onNavigate(targetAttachments[attachmentIndex]);
+            if (newAttachments[newIndex] !== undefined && onNavigate) {
+                onNavigate(newAttachments[newIndex]);
             }
         }
     }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
