@@ -187,7 +187,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
-                onHideTooltip={() => User.dismissGBRTooltip()}
+                onHideTooltip={User.dismissGBRTooltip}
             >
                 <View>
                     <Hoverable>
