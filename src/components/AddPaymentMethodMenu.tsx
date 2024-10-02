@@ -15,6 +15,7 @@ import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
+import { completePaymentOnboarding } from '@libs/actions/IOU';
 
 type AddPaymentMethodMenuOnyxProps = {
     /** Session info for the currently logged-in user. */
@@ -80,6 +81,7 @@ function AddPaymentMethodMenu({
             return;
         }
 
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
     }, [isPersonalOnlyOption, isVisible, onItemSelected]);
 
@@ -108,7 +110,8 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                                completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
+                                onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
                       ]
@@ -118,7 +121,10 @@ function AddPaymentMethodMenu({
                           {
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
-                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
+                              onSelected: () => {
+                                completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA);
+                                onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                              },
                           },
                       ]
                     : []),
