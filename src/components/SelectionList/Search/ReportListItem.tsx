@@ -86,10 +86,10 @@ function ReportListItem<TItem extends ListItem>({
         styles.pv1half,
         styles.ph0,
         styles.overflowHidden,
-        item.isSelected && styles.activeComponentBG,
-        isFocused && styles.sidebarLinkActive,
         // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
         {backgroundColor: 'unset'},
+        item.isSelected && styles.activeComponentBG,
+        isFocused && styles.sidebarLinkActive,
         styles.mh0,
     ];
 
