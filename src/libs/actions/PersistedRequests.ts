@@ -13,7 +13,7 @@ Onyx.connect({
         persistedRequests = val ?? [];
 
         if (ongoingRequest && persistedRequests.length > 0) {
-            const nextRequestToProcess = persistedRequests[0];
+            const nextRequestToProcess = persistedRequests.at(0);
 
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
@@ -35,6 +35,7 @@ Onyx.connect({
  */
 function clear() {
     ongoingRequest = null;
+    Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 

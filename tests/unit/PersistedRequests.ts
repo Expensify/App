@@ -57,7 +57,7 @@ describe('PersistedRequests', () => {
         PersistedRequests.processNextRequest();
         return waitForBatchedUpdates().then(() => {
             expect(PersistedRequests.getAll().length).toBe(1);
-            expect(PersistedRequests.getAll()[0]).toEqual(request2);
+            expect(PersistedRequests.getAll().at(0)).toEqual(request2);
         });
     });
 
@@ -68,7 +68,7 @@ describe('PersistedRequests', () => {
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
         };
         PersistedRequests.update(0, newRequest);
-        expect(PersistedRequests.getAll()[0]).toEqual(newRequest);
+        expect(PersistedRequests.getAll().at(0)).toEqual(newRequest);
     });
 
     it('update the ongoing request with new data', () => {

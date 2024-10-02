@@ -118,7 +118,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll()[0].command).toBe(WRITE_COMMANDS.RECONNECT_APP);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
@@ -140,7 +140,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll()[0].command).toBe(WRITE_COMMANDS.RECONNECT_APP);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 

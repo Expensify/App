@@ -57,7 +57,7 @@ describe('SequentialQueue', () => {
         expect(PersistedRequests.getLength()).toBe(1);
         // We know there is only one request in the queue, so we can get the first one and verify
         // that the persisted request is the second one.
-        const persistedRequest = PersistedRequests.getAll()[0];
+        const persistedRequest = PersistedRequests.getAll().at(0);
         expect(persistedRequest?.data?.accountID).toBe(56789);
     });
 
@@ -179,7 +179,7 @@ describe('SequentialQueue', () => {
         const persistedRequests = PersistedRequests.getAll();
         // We know ReconnectApp is at index 1 in the queue, so we can get it to verify
         // that was replaced by the new request.
-        expect(persistedRequests[1]?.data?.accountID).toBe(56789);
+        expect(persistedRequests.at(1)?.data?.accountID).toBe(56789);
     });
 
     // need to test a rance condition between processing the next request and then pushing a new request with conflict resolver
@@ -223,8 +223,8 @@ describe('SequentialQueue', () => {
 
         // We know ReconnectApp is at index 9 in the queue, so we can get it to verify
         // that was replaced by the new request.
-        expect(persistedRequests[9]?.command).toBe('ReconnectApp-replaced');
-        expect(persistedRequests[9]?.data?.accountID).toBe(56789);
+        expect(persistedRequests.at(9)?.command).toBe('ReconnectApp-replaced');
+        expect(persistedRequests.at(9)?.data?.accountID).toBe(56789);
     });
 
     // I need to test now when moving the request from the queue to the ongoing request the PERSISTED_REQUESTS is decreased and PERSISTED_ONGOING_REQUESTS has the new request
