@@ -76,7 +76,11 @@ const issues = fs
         if (!issue) {
             return acc;
         }
-        acc.push(Number(issue.trim()));
+        const issueNum = Number(issue.trim());
+        if (!issueNum) {
+            return acc;
+        }
+        acc.push(issueNum);
         return acc;
     }, [] as number[]);
 
