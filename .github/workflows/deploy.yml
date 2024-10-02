@@ -472,9 +472,6 @@ jobs:
     name: Build and deploy iOS HybridApp
     needs: prep
     runs-on: macos-13-xlarge
-    defaults:
-      run:
-        working-directory: ~/work/App/Mobile-Expensify/react-native
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     steps:
@@ -488,12 +485,12 @@ jobs:
 
       - name: Rename directory to Mobile-Expensify in order to build correctly
         run: mv ~/work/App/App ~/work/App/Mobile-Expensify
-        working-directory: ~/work/App/App
 
       - name: Update submodule
         run: |
           git submodule update --init
           git checkout andrew-mobile-deploy
+        working-directory: react-native
 
       - name: Configure MapBox SDK
         run: | 
