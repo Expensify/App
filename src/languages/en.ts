@@ -665,7 +665,7 @@ const translations = {
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `This chat is with everyone in ${workspaceName} workspace.`,
         beginningOfChatHistoryAnnounceRoomPartTwo: ` Use it for the most important announcements.`,
         beginningOfChatHistoryUserRoomPartOne: 'This chat room is for anything ',
-        beginningOfChatHistoryUserRoomPartTwo: ({displayName}: {displayName: string}) => ` related. It was created by ${displayName}`,
+        beginningOfChatHistoryUserRoomPartTwo: ({displayName}: {displayName: string}) => ` related. It was created by ${displayName}.`,
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
