@@ -151,7 +151,6 @@ function IOURequestStepDistance({
 
             const participantAccountIDs: number[] | undefined = participants?.map((participant) => Number(participant.accountID ?? -1));
             if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
-                console.log('TRUE', transaction, amount, currency ?? '', participantAccountIDs ?? []);
                 IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
