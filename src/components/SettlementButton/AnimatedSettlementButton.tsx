@@ -6,6 +6,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SettlementButton from '.';
 import type SettlementButtonProps from './types';
+import useLocalize from '@hooks/useLocalize';
 
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
@@ -24,6 +25,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         transform: [{scale: buttonScale.value}],
         opacity: buttonOpacity.value,
     }));
+    const {translate, toLocaleDigit} = useLocalize();
     const paymentCompleteTextStyles = useAnimatedStyle(() => ({
         transform: [{scale: paymentCompleteTextScale.value}],
         opacity: paymentCompleteTextOpacity.value,
@@ -77,7 +79,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         <Animated.View style={containerStyles}>
             {isPaidAnimationRunning && (
                 <Animated.View style={paymentCompleteTextStyles}>
-                    <Text style={[styles.buttonMediumText]}>Payment complete</Text>
+                    <Text style={[styles.buttonMediumText]}>${translate('iou.paymentComplete')}</Text>
                 </Animated.View>
             )}
             <Animated.View style={buttonStyles}>

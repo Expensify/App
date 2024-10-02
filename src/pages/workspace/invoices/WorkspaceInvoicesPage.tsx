@@ -8,6 +8,7 @@ import type {FullScreenNavigatorParamList} from '@navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import AccessOrNotFoundWrapper from '../AccessOrNotFoundWrapper';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
@@ -18,21 +19,27 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
-        <WorkspacePageWithSections
-            shouldUseScrollView
-            headerText={translate('workspace.common.invoices')}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldSkipVBBACall={false}
-            route={route}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
-            {(hasVBA?: boolean, policyID?: string) => (
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
-                    {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
-                </View>
-            )}
-        </WorkspacePageWithSections>
+            <WorkspacePageWithSections
+                shouldUseScrollView
+                headerText={translate('workspace.common.invoices')}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldSkipVBBACall={false}
+                route={route}
+            >
+                {(hasVBA?: boolean, policyID?: string) => (
+                    <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
+                        {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
+                    </View>
+                )}
+            </WorkspacePageWithSections>
+        </AccessOrNotFoundWrapper>
     );
 }
 

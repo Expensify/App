@@ -5,7 +5,8 @@ import type Beta from '@src/types/onyx/Beta';
 import * as Environment from './Environment/Environment';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+    return true;
+    // return !!betas?.includes(CONST.BETAS.ALL);
 }
 
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {

@@ -94,6 +94,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     useEffect(() => {
         if (isFocused || shouldPreserveSelection) {
             setShouldPreserveSelection(false);
+            refreshSelection();
             return;
         }
         setSelectedCategories({});
@@ -134,7 +135,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const isAllSelected = availableCategories.length === Object.keys(selectedCategories).length;
         setSelectedCategories(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
-
+    const refreshSelection = () => {
+        const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        setSelectedCategories(Object.fromEntries(availableCategories.map((item) => Object.keys(selectedCategories).includes(item.keyForList) ? [item.keyForList, true]: [])));
+    }
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
