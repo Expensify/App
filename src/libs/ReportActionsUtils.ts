@@ -1729,13 +1729,14 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
     const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const cardID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.cardID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
 
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const link = shouldRenderHTML
-        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+        ? `<a href='${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID))}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
 
     const missingDetails =

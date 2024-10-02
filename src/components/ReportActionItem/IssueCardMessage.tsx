@@ -42,7 +42,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     return (
         <>
-            <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true)}</muted-text>`} />
+            <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true, policyID)}</muted-text>`} />
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => {
