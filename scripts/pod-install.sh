@@ -8,10 +8,23 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
-# Go to project root
+# Go to NewDot project root
 START_DIR="$(pwd)"
 ROOT_DIR="$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")"
 cd "$ROOT_DIR" || exit 1
+
+# See if we're in the HybridApp repo
+IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app-repo.sh)
+
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$1" != "--new-dot" ]]; then
+    cd ../ios
+    if [ "$1" == "--clean" ]; then
+    bundle exec pod deintegrate
+    fi
+    # Navigate to the OldDot repository, and run pod install
+    bundle exec pod install
+    exit 0
+fi
 
 # Cleanup and exit
 # param - status code
