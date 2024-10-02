@@ -12,6 +12,7 @@ import type {
     ViewStyle,
 } from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -25,6 +26,7 @@ import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
+import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -182,6 +184,9 @@ type ListItem = {
 
     /** Determines whether the newly added item should animate in / highlight */
     shouldAnimateInHighlight?: boolean;
+
+    /** The style to override the default appearance */
+    itemStyle?: StyleProp<ViewStyle>;
 };
 
 type TransactionListItemType = ListItem &
@@ -329,7 +334,9 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof ReportListItem
-    | typeof ChatListItem;
+    | typeof ChatListItem
+    | typeof SearchQueryListItem
+    | typeof SearchRouterItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -577,6 +584,8 @@ type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
+    updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
+    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
 };
 
 type ItemLayout = {
