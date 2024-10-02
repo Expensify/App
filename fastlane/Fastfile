@@ -84,9 +84,9 @@ platform :android do
         flags: "--refresh-dependencies",
         properties: {
             "android.injected.signing.store.file" => './upload-key.keystore',
-            "android.injected.signing.store.password" => options[:keystore_password],
-            "android.injected.signing.key.alias" => options[:key_alias],
-            "android.injected.signing.key.password" => options[:key_password],
+            "android.injected.signing.store.password" => ENV["ANDROID_UPLOAD_KEYSTORE_PASSWORD"],
+            "android.injected.signing.key.alias" => ENV["ANDROID_UPLOAD_KEYSTORE_ALIAS"],
+            "android.injected.signing.key.password" => ENV["ANDROID_UPLOAD_KEY_PASSWORD"],
         }
       )
       setGradleOutputsInEnv()
