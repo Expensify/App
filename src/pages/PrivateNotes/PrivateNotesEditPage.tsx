@@ -152,7 +152,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
                         maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.markdownTextInputAutoGrowMaxHeight}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         defaultValue={privateNote}
                         value={privateNote}
                         onChangeText={(text: string) => {
