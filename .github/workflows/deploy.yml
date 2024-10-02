@@ -229,6 +229,8 @@ jobs:
         run: |
           op document get --output ./upload-key.keystore upload-key.keystore 
           op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          # Copy the keystore to the Android directory for Fullstory
+          cp ./upload-key.keystore ../Android 
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
@@ -515,20 +517,20 @@ jobs:
       - name: Install New Expensify Gems
         run: bundle install
 
-#      - name: Cache Pod dependencies
-#        uses: actions/cache@v4
-#        id: pods-cache
-#        with:
-#          path: ios/Pods
-#          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-#
-#      - name: Compare Podfile.lock and Manifest.lock
-#        id: compare-podfile-and-manifest
-#        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+      - name: Cache Pod dependencies
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-#        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
