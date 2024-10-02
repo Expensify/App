@@ -23,7 +23,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-    const tNodeChild = tnode?.domNode?.children?.[0];
+    const tNodeChild = tnode?.domNode?.children?.at(0);
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};

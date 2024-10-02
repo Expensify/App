@@ -59,11 +59,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string) => {
-            if (reportActionID) {
-                return `search/view/${reportID}/${reportActionID}` as const;
-            }
-            return `search/view/${reportID}` as const;
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
@@ -1579,6 +1577,12 @@ type Route = {
 
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
+/**
+ * Represents all routes in the app as a union of literal strings.
+ *
+ * If TS throws on this line, it implies that one or more routes defined within `ROUTES` have not correctly used
+ * `as const` in their `getRoute` function return value.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 

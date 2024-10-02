@@ -515,8 +515,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         if (isGroupChat && !isThread) {
             return (
                 <AvatarWithImagePicker
-                    source={icons[0].source}
-                    avatarID={icons[0].id}
+                    source={icons.at(0)?.source}
+                    avatarID={icons.at(0)?.id}
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
@@ -821,7 +821,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     shouldEnableNewFocusManagement
                 />
                 <ConfirmModal
-                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense')}
+                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
@@ -844,7 +844,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                             ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
-                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
+                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
