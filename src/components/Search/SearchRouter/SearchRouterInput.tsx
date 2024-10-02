@@ -6,7 +6,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -43,7 +42,6 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({value, setValue, updateSearch, routerListRef, isFullWidth, disabled = false, wrapperStyle, wrapperFocusedStyle, rightComponent}: SearchRouterInputProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -62,8 +60,7 @@ function SearchRouterInput({value, setValue, updateSearch, routerListRef, isFull
                     value={value}
                     onChangeText={onChangeText}
                     autoFocus
-                    // containerStyles={[isSmallScreenWidth ? styles.pv3 : styles.pv2, isSmallScreenWidth ? styles.ph5 : styles.ph2]}
-                    loadingSpinnerStyle={styles.mt0}
+                    loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                     role={CONST.ROLE.PRESENTATION}
                     placeholder={translate('search.searchPlaceholder')}
                     autoCapitalize="none"

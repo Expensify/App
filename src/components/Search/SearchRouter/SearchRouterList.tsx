@@ -133,7 +133,7 @@ function SearchRouterList(
         };
     });
 
-    if (recentSearchesData && recentSearchesData.length > 0) {
+    if (!currentQuery?.inputQuery && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
@@ -173,7 +173,7 @@ function SearchRouterList(
             onSelectRow={onSelectRow}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb5]}
+            sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
             ref={ref}
         />
     );

@@ -177,6 +177,8 @@ function SearchRouter() {
                         isFullWidth={isSmallScreenWidth}
                         updateSearch={onSearchChange}
                         routerListRef={listRef}
+                        wrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2, styles.border]}
+                        wrapperFocusedStyle={[styles.borderColorFocus]}
                     />
                     <SearchRouterList
                         currentQuery={userSearchQuery}
