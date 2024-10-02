@@ -17,7 +17,7 @@ type ZipCodeExampleFormatParams = {
 };
 
 type LoggedInAsParams = {
-    email: OnyxEntry<string>;
+    email: string;
 };
 
 type SignUpNewFaceCodeParams = {
