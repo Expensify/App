@@ -1,8 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
 
-export default function mapOnyxCollectionItems<Item, Collection extends OnyxCollection<Item>, RT>(collection: Collection, mapper: (item: Item) => RT) {
-    return Object.entries(collection ?? {}).reduce((acc: NonNullable<OnyxCollection<RT>>, [key, item]) => {
-        acc[key] = mapper(item as Item);
+export default function mapOnyxCollectionItems<TKey extends OnyxCollectionKey, TReturn, TEntryData = KeyValueMapping[TKey]>(
+    collection: OnyxCollection<TEntryData>,
+    mapper: (entry: OnyxEntry<TEntryData>) => TReturn,
+): NonNullable<OnyxCollection<TReturn>> {
+    return Object.entries(collection ?? {}).reduce((acc: NonNullable<OnyxCollection<TReturn>>, [key, entry]) => {
+        acc[key] = mapper(entry);
         return acc;
     }, {});
 }
