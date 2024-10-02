@@ -2,21 +2,28 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
+import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import StatePicker from '@components/StatePicker';
 import type {State} from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import usePersonalDetailsStepFormSubmit from '@hooks/usePersonalDetailsStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
+const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.COUNTRY, INPUT_IDS.ZIP_POST_CODE];
+
+function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const address = useMemo(() => PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
@@ -38,6 +45,40 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
         setZipcode(address.zip);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const addressRequiredFields = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.CITY, INPUT_IDS.COUNTRY, INPUT_IDS.STATE] as const;
+            addressRequiredFields.forEach((fieldKey) => {
+                const fieldValue = values[fieldKey] ?? '';
+                if (ValidationUtils.isRequiredFulfilled(fieldValue)) {
+                    return;
+                }
+                errors[fieldKey] = translate('common.error.fieldRequired');
+            });
+
+            // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
+            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+
+            // The postal code system might not exist for a country, so no regex either for them.
+            const countrySpecificZipRegex = countryRegexDetails?.regex;
+            const countryZipFormat = countryRegexDetails?.samples ?? '';
+            if (countrySpecificZipRegex) {
+                if (!countrySpecificZipRegex.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim().toUpperCase())) {
+                    if (ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
+                        errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                    } else {
+                        errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
+                    }
+                }
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim()?.toUpperCase() ?? '')) {
+                errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat');
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     const handleAddressChange = useCallback((value: unknown, key: unknown) => {
         const addressPart = value as string;
@@ -67,6 +108,12 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
         setZipcode(addressPart);
     }, []);
 
+    const handleSubmit = usePersonalDetailsStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
 
     const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
@@ -74,7 +121,14 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     return (
-        <>
+        <FormProvider
+            formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
+            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            onSubmit={handleSubmit}
+            validate={validate}
+            style={[styles.mh0, styles.flexGrow1]}
+            submitButtonStyles={[styles.mb0]}
+        >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterAddress')}</Text>
             <View>
                 <InputWrapper
@@ -95,6 +149,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                         country: INPUT_IDS.COUNTRY as Country,
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    shouldSaveDraft={!isEditing}
                 />
             </View>
             <InputWrapper
@@ -107,6 +162,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 containerStyles={styles.mt6}
+                shouldSaveDraft={!isEditing}
             />
             <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
@@ -114,6 +170,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                     inputID={INPUT_IDS.COUNTRY}
                     value={currentCountry}
                     onValueChange={handleAddressChange}
+                    shouldSaveDraft={!isEditing}
                 />
             </View>
             {isUSAForm ? (
@@ -123,6 +180,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                         inputID={INPUT_IDS.STATE}
                         value={state as State}
                         onValueChange={handleAddressChange}
+                        shouldSaveDraft={!isEditing}
                     />
                 </View>
             ) : (
@@ -137,6 +195,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                     spellCheck={false}
                     onValueChange={handleAddressChange}
                     containerStyles={styles.mt3}
+                    shouldSaveDraft={!isEditing}
                 />
             )}
             <InputWrapper
@@ -150,6 +209,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                 spellCheck={false}
                 onValueChange={handleAddressChange}
                 containerStyles={isUSAForm ? styles.mt3 : styles.mt6}
+                shouldSaveDraft={!isEditing}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -163,8 +223,9 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                 hint={zipFormat}
                 onValueChange={handleAddressChange}
                 containerStyles={styles.mt6}
+                shouldSaveDraft={!isEditing}
             />
-        </>
+        </FormProvider>
     );
 }
 
