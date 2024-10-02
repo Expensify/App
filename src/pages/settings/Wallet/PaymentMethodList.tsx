@@ -334,8 +334,7 @@ function PaymentMethodList({
                     text={translate('walletPage.addBankAccount')}
                     large
                     success
-                    isDisabled={!isUserValidated}
-                    onPress={onPressItem}
+                    onPress={onPress}
                 />
             ) : (
                 <MenuItem
@@ -344,7 +343,6 @@ function PaymentMethodList({
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     ref={buttonRef}
-                    disabled={!isUserValidated}
                 />
             ),
 
