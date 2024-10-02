@@ -177,8 +177,8 @@ const usePanGesture = ({
 
             // TODO: this needs tuning to work properly
             if (!shouldDisableTransformationGestures.value && zoomScale.value === 1 && previousTouch.value !== null) {
-                const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
-                const velocityY = evt.allTouches[0].y - previousTouch.value.y;
+                const velocityX = Math.abs((evt.allTouches.at(0)?.x ?? 0) - previousTouch.value.x);
+                const velocityY = (evt.allTouches.at(0)?.y ?? 0) - previousTouch.value.y;
 
                 if (Math.abs(velocityY) > velocityX && velocityY > 20) {
                     state.activate();
@@ -192,8 +192,8 @@ const usePanGesture = ({
 
             if (previousTouch.value === null) {
                 previousTouch.value = {
-                    x: evt.allTouches[0].x,
-                    y: evt.allTouches[0].y,
+                    x: evt.allTouches.at(0)?.x ?? 0,
+                    y: evt.allTouches.at(0)?.y ?? 0,
                 };
             }
         })

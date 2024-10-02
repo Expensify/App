@@ -2,12 +2,12 @@ import React from 'react';
 import BaseOnboardingWork from './BaseOnboardingWork';
 import type {OnboardingWorkProps} from './types';
 
-function OnboardingWork({...rest}: Omit<OnboardingWorkProps, 'shouldUseNativeStyles'>) {
+function OnboardingWork(props: OnboardingWorkProps) {
     return (
         <BaseOnboardingWork
             shouldUseNativeStyles
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...props}
         />
     );
 }

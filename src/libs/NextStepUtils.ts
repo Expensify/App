@@ -43,8 +43,8 @@ function parseMessage(messages: Message[] | undefined) {
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        const previousPart = messages[index - 1];
-        const nextPart = messages[index + 1];
+        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
+        const nextPart = messages.at(index + 1);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
@@ -94,7 +94,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
-    const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -261,10 +260,14 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: 'Waiting for ',
                     },
-                    {
-                        text: reimburserDisplayName,
-                        type: 'strong',
-                    },
+                    reimburserAccountID === -1
+                        ? {
+                              text: 'an admin',
+                          }
+                        : {
+                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
+                              type: 'strong',
+                          },
                     {
                         text: ' to ',
                     },
