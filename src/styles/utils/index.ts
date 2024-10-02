@@ -1252,10 +1252,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /*
      * Returns the actual maxHeight of the auto-growing markdown text input.
      */
-    getMarkdownMaxHeight: (maxAutoGrowHeight) => {
+    getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return ({maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth});
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
     },
 
     /**
