@@ -145,6 +145,8 @@ jobs:
 
       - name: Submit Android build for review
         run: bundle exec fastlane android upload_google_play_production
+        env:
+          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() }}
