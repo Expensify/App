@@ -8,6 +8,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -233,6 +234,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {openSearchRouter} = useSearchRouterContext();
+
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(onboardingIsMediumOrLargerScreenWidth), [screenOptions, onboardingIsMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
         () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, onboardingIsMediumOrLargerScreenWidth),
@@ -241,6 +244,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
     if (isInitialRender.current) {
@@ -363,13 +367,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         );
 
         // Listen for the key K being pressed so that focus can be given to
-        // the chat switcher, or new group chat
+        // Search Router, or new group chat
         // based on the key modifiers pressed and the operating system
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
                 Modal.close(
-                    Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)),
+                    Session.checkIfActionIsAllowed(() => {
+                        openSearchRouter();
+                    }),
                     true,
                     true,
                 );

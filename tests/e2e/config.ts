@@ -4,6 +4,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
+    OpenSearchRouter: 'Open search router TTI',
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
@@ -71,6 +72,9 @@ export default {
         [TEST_NAMES.AppStartTime]: {
             name: TEST_NAMES.AppStartTime,
             // ... any additional config you might need
+        },
+        [TEST_NAMES.OpenSearchRouter]: {
+            name: TEST_NAMES.OpenSearchRouter,
         },
         [TEST_NAMES.ReportTyping]: {
             name: TEST_NAMES.ReportTyping,

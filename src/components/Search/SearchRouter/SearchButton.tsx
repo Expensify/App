@@ -5,7 +5,11 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
+import * as Session from '@userActions/Session';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import {useSearchRouterContext} from './SearchRouterContext';
 
 function SearchButton() {
@@ -22,9 +26,13 @@ function SearchButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('common.search')}
             style={[styles.flexRow, styles.touchableButtonImage]}
-            onPress={() => {
+            onPress={Session.checkIfActionIsAllowed(() => {
+                // Todo [Search] add finishing for this timing in <SearchRouterList>
+                Timing.start(CONST.TIMING.SEARCH_ROUTER_OPEN);
+                Performance.markStart(CONST.TIMING.SEARCH_ROUTER_OPEN);
+
                 openSearchRouter();
-            }}
+            })}
         >
             <Icon
                 src={Expensicons.MagnifyingGlass}
