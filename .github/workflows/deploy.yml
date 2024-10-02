@@ -215,6 +215,7 @@ jobs:
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
+          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -509,6 +510,7 @@ jobs:
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
+          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
