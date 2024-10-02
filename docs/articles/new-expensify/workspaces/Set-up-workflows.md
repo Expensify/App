@@ -17,6 +17,12 @@ Workflows are available for Collect and Control workspaces. Additionally, you mu
 4. Click **More features** in the left menu.
 5. Under the Spend section, enable the Workflows toggle.
 
+![Click Account Settings > Workspaces > click on the workspace]({{site.url}}/assets/images/ExpensifyHelp-Workflows-1.png){:width="100%"}
+
+![Click More Features > Enable Workflows]({{site.url}}/assets/images/ExpensifyHelp-Workflows-2.png){:width="100%"}
+
+![Enable workflow features]({{site.url}}/assets/images/ExpensifyHelp-Workflows-3.png){:width="100%"}
+
 # Select workflows
 
 You can choose to require additional approvals and/or allow delayed submissions.
