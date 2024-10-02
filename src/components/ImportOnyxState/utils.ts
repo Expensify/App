@@ -3,7 +3,7 @@ import type {UnknownRecord} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION, ONYXKEYS.PREFERRED_THEME];
+const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION, ONYXKEYS.PREFERRED_THEME];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
