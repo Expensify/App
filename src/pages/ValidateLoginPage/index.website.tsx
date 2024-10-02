@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
@@ -9,22 +9,22 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
+import type {ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
-    account,
-    credentials,
     route: {
         params: {accountID, validateCode, exitTo},
     },
-    session,
-    autoAuthState: autoAuthStateProp,
-}: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
+}: ValidateLoginPageProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+
     const login = credentials?.login;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     // To ensure that the previous autoAuthState does not impact the rendering of the current magic link page, the autoAuthState prop sets initWithStoredValues to false.
     // This is done unless the user is signed in, in which case the page will be remounted upon successful sign-in, as explained in Session.initAutoAuthState.
-    const autoAuthState = isSignedIn ? session?.autoAuthState : autoAuthStateProp;
+    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {initWithStoredValues: isSignedIn, selector: (session) => session?.autoAuthState});
     const autoAuthStateWithDefault = autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
@@ -91,13 +91,4 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxProps>, ValidateLoginPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    session: {key: ONYXKEYS.SESSION},
-    autoAuthState: {
-        key: ONYXKEYS.SESSION,
-        selector: (session) => session?.autoAuthState,
-        initWithStoredValues: false,
-    },
-})(ValidateLoginPage);
+export default ValidateLoginPage;
