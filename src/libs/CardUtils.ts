@@ -1,4 +1,4 @@
-import lodash from 'lodash';
+import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -107,7 +107,7 @@ function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
     // Check for domainName to filter out personal credit cards.
     const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
 
-    return lodash.groupBy(activeCards, (card) => card.domainName);
+    return groupBy(activeCards, (card) => card.domainName);
 }
 
 /**

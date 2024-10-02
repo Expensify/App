@@ -67,8 +67,8 @@ const webpackConfig = ({config}: {config: Configuration}) => {
 
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
     const definePluginIndex = config.plugins.findIndex((plugin) => plugin instanceof DefinePlugin);
-    if (definePluginIndex !== -1 && config.plugins[definePluginIndex] instanceof DefinePlugin) {
-        const definePlugin = config.plugins[definePluginIndex] as DefinePlugin;
+    if (definePluginIndex !== -1 && config.plugins.at(definePluginIndex) instanceof DefinePlugin) {
+        const definePlugin = config.plugins.at(definePluginIndex) as DefinePlugin;
         if (definePlugin.definitions) {
             definePlugin.definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
         }
@@ -76,8 +76,8 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     config.resolve.extensions = custom.resolve.extensions;
 
     const babelRulesIndex = custom.module.rules.findIndex((rule) => rule.loader === 'babel-loader');
-    const babelRule = custom.module.rules[babelRulesIndex];
-    if (babelRule) {
+    const babelRule = custom.module.rules.at(babelRulesIndex);
+    if (babelRulesIndex !== -1 && babelRule) {
         config.module.rules?.push(babelRule);
     }
 
