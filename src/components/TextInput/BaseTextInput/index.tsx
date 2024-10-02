@@ -66,6 +66,7 @@ function BaseTextInput(
         isMarkdownEnabled = false,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -396,7 +397,7 @@ function BaseTextInput(
                                         : []),
                                     isAutoGrowHeightMarkdown ? [{maxHeight: maxAutoGrowHeight}, styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && styles.textInputDisabled,
+                                    inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
