@@ -14,7 +14,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const PERSONAL_DETAILS_STEP_INDEXES = CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
 
-function Confirmation({personalDetailsValues: values, onNext, onMove}: CustomSubStepProps) {
+function ConfirmationStep({personalDetailsValues: values, onNext, onMove}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -77,6 +77,6 @@ function Confirmation({personalDetailsValues: values, onNext, onMove}: CustomSub
     );
 }
 
-Confirmation.displayName = 'ConfirmationStep';
+ConfirmationStep.displayName = 'ConfirmationStep';
 
-export default Confirmation;
+export default ConfirmationStep;
