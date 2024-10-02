@@ -20,10 +20,12 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
@@ -98,6 +100,7 @@ function IOURequestStepDistance({
     const scrollViewRef = useRef<RNScrollView>(null);
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
+    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const hasRouteError = !!transaction?.errorFields?.route;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const isWaypointEmpty = (waypoint?: Waypoint) => {
@@ -119,7 +122,37 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const customUnitRateID = TransactionUtils.getRateID(transaction);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+
+    // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
+    const setDistanceRequestData = useCallback(() => {
+        // Get policy report based on transaction participants
+        const participants = transaction?.participants;
+        const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
+        const selectedReportID = participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID;
+        const policyReport = transaction?.participants?.[0] ? ReportUtils.getReport(selectedReportID) : report;
+
+        const policyID2 = IOU.getIOURequestPolicyID(transaction, policyReport);
+        const policy2 = PolicyUtils.getPolicy(report?.policyID ?? policyID2);
+        const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+
+        const mileageRates = DistanceRequestUtils.getMileageRates(policy2);
+        const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy2);
+        const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+            ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+            : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+
+        const {unit, rate} = mileageRate ?? {};
+        const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
+        const currency = mileageRate?.currency ?? policyCurrency;
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+        IOU.setMoneyRequestAmount(transactionID, amount, currency);
+
+        const participantAccountIDs: number[] | undefined = transaction?.participants?.map((participant) => participant.accountID ?? -1);
+        if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
+            IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
+        }
+    }, [report, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID]);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -404,6 +437,7 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
+        setDistanceRequestData();
         // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
@@ -451,6 +485,7 @@ function IOURequestStepDistance({
         transaction?.routes,
         report?.reportID,
         policy,
+        setDistanceRequestData,
     ]);
 
     const renderItem = useCallback(

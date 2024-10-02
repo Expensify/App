@@ -8,11 +8,9 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -43,7 +41,6 @@ function IOURequestStepParticipants({
     },
     transaction,
     skipConfirmation,
-    report,
 }: IOURequestStepParticipantsProps) {
     const participants = transaction?.participants;
     const {translate} = useLocalize();
@@ -56,7 +53,6 @@ function IOURequestStepParticipants({
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
-    const isDistanceRequest = iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     const headerTitle = useMemo(() => {
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
@@ -119,37 +115,6 @@ function IOURequestStepParticipants({
         [iouType, reportID, transactionID, canUseP2PDistanceRequests],
     );
 
-    // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
-    const setDistanceRequestData = useCallback(
-        (isPolicyExpenseChat: boolean) => {
-            // Get policy report based on transaction participants
-            const policyReport = transaction?.participants?.[0] ? ReportUtils.getReport(selectedReportID.current) : report;
-
-            const policyID = IOU.getIOURequestPolicyID(transaction, policyReport);
-            const policy = PolicyUtils.getPolicy(report?.policyID ?? policyID);
-            const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-
-            const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
-            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-            const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-                ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-                : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
-
-            const {unit, rate} = mileageRate ?? {};
-            const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
-            const currency = mileageRate?.currency ?? policyCurrency;
-            const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-            IOU.setMoneyRequestAmount(transactionID, amount, currency);
-
-            const participantAccountIDs: number[] | undefined = transaction?.participants?.map((participant) => participant.accountID ?? -1);
-            if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
-                IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
-            }
-        },
-        [report, transaction, transactionID, isSplitRequest],
-    );
-
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
@@ -158,10 +123,6 @@ function IOURequestStepParticipants({
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
             const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
             IOU.setSplitShares(transaction, transaction.amount, transaction.currency, participantAccountIDs);
-        }
-
-        if (isDistanceRequest) {
-            setDistanceRequestData(!!isPolicyExpenseChat);
         }
 
         IOU.setMoneyRequestTag(transactionID, '');
@@ -177,7 +138,7 @@ function IOURequestStepParticipants({
         } else {
             Navigation.navigate(iouConfirmationPageRoute);
         }
-    }, [iouType, transactionID, transaction, reportID, action, participants, setDistanceRequestData, isDistanceRequest]);
+    }, [iouType, transactionID, transaction, reportID, action, participants]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
