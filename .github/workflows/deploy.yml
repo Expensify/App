@@ -133,16 +133,6 @@ jobs:
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
 
-      - name: Download Android build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/artifacts
-          pattern: android-artifact-*
-          merge-multiple: true
-
-      - name: Log downloaded artifact paths
-        run: ls -R /tmp/artifacts
-
       - name: Submit Android build for review
         run: bundle exec fastlane android upload_google_play_production
         env:
