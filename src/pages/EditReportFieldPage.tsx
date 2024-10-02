@@ -17,6 +17,7 @@ import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralP
 import Navigation from '@libs/Navigation/Navigation';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -90,7 +91,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const menuItems: PopoverMenuItem[] = [];
 
-    const isReportFieldDeletable = reportField.deletable && !isReportFieldTitle;
+    const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
 
     if (isReportFieldDeletable) {
         menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => setIsDeleteModalVisible(true), shouldCallAfterModalHide: true});
