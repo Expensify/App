@@ -145,12 +145,18 @@ function ReportPreview({
         transform: [{scale: checkMarkScale.value}],
     }));
 
+    const isApproved = ReportUtils.isReportApproved(iouReport, action);
+    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0.25);
+    const thumbsUpStyle = useAnimatedStyle(() => ({
+        ...styles.defaultCheckmarkWrapper,
+        transform: [{scale: thumbsUpScale.value}],
+    }));
+
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
-    const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
@@ -433,6 +439,14 @@ function ReportPreview({
         }
     }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
+    useEffect(() => {
+        if (!isApproved) {
+            return;
+        }
+
+        thumbsUpScale.value = withSpring(1, {duration: 200});
+    }, [isApproved, thumbsUpScale]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -491,6 +505,14 @@ function ReportPreview({
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
+                                                        />
+                                                    </Animated.View>
+                                                )}
+                                                {isApproved && (
+                                                    <Animated.View style={thumbsUpStyle}>
+                                                        <Icon
+                                                            src={Expensicons.ThumbsUp}
+                                                            fill={theme.icon}
                                                         />
                                                     </Animated.View>
                                                 )}
