@@ -90,13 +90,13 @@ function Composer(
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const clipboardContent = e.nativeEvent.items[0];
-            if (clipboardContent.type === 'text/plain') {
+            const clipboardContent = e.nativeEvent.items.at(0);
+            if (clipboardContent?.type === 'text/plain') {
                 return;
             }
-            const mimeType = clipboardContent.type;
-            const fileURI = clipboardContent.data;
-            const baseFileName = fileURI.split('/').pop() ?? 'file';
+            const mimeType = clipboardContent?.type ?? '';
+            const fileURI = clipboardContent?.data;
+            const baseFileName = fileURI?.split('/').pop() ?? 'file';
             const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
             const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;

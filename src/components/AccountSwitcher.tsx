@@ -54,7 +54,7 @@ function AccountSwitcher() {
         errors?: Errors,
         additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
     ): PopoverMenuItem => {
-        const error = Object.values(errors ?? {})[0] ?? '';
+        const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
             text: personalDetails?.displayName ?? personalDetails?.login ?? '',
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),

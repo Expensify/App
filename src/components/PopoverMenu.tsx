@@ -171,7 +171,10 @@ function PopoverMenu({
     const WrapComponent = shouldUseScrollView ? ScrollView : Fragment;
 
     const selectItem = (index: number) => {
-        const selectedItem = currentMenuItems[index];
+        const selectedItem = currentMenuItems.at(index);
+        if (!selectedItem) {
+            return;
+        }
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
