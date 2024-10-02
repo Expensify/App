@@ -8,6 +8,7 @@ import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
+    AddPaymentCardParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
@@ -73,6 +74,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -227,7 +229,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
-    return primaryPolicy ?? activeAdminWorkspaces[0];
+    return primaryPolicy ?? activeAdminWorkspaces.at(0);
 }
 
 /** Check if the policy has invoicing company details */
@@ -836,18 +838,78 @@ function addBillingCardAndRequestPolicyOwnerChange(
         },
     ];
 
-    const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
-        policyID,
-        cardNumber,
-        cardYear,
-        cardMonth,
-        cardCVV,
-        addressName,
-        addressZip,
-        currency,
-    };
+    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+        const params: AddPaymentCardParams = {
+            cardNumber,
+            cardYear,
+            cardMonth,
+            cardCVV,
+            addressName,
+            addressZip,
+            currency,
+            isP2PDebitCard: false,
+        };
+        PaymentMethods.addPaymentCardGBP(params);
+    } else {
+        const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
+            policyID,
+            cardNumber,
+            cardYear,
+            cardMonth,
+            cardCVV,
+            addressName,
+            addressZip,
+            currency,
+        };
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+    }
+}
 
-    API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+/**
+ * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
+ *
+ */
+function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: true,
+                isChangeOwnerFailed: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: true,
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID: sessionAccountID, policyID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1197,8 +1259,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         (request) => request.data?.policyID === policyID && request.command === WRITE_COMMANDS.CREATE_WORKSPACE && request.data?.policyName !== name,
     );
 
-    const createWorkspaceRequest = persistedRequests[createWorkspaceRequestChangedIndex];
-    if (createWorkspaceRequest) {
+    const createWorkspaceRequest = persistedRequests.at(createWorkspaceRequestChangedIndex);
+    if (createWorkspaceRequest && createWorkspaceRequestChangedIndex !== -1) {
         const workspaceRequest: Request = {
             ...createWorkspaceRequest,
             data: {
@@ -1386,13 +1448,13 @@ function generateDefaultWorkspaceName(email = ''): string {
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
     }
-    const username = emailParts[0];
-    const domain = emailParts[1];
+    const username = emailParts.at(0) ?? '';
+    const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
     const displayName = userDetails?.displayName?.trim();
 
     if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.').at(0) ?? '')}'s Workspace`;
     } else if (displayName) {
         defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
     } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
@@ -2248,7 +2310,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: {
-                [Object.keys(adminsChatData)[0]]: {
+                [Object.keys(adminsChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -2267,7 +2329,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: {
-                [Object.keys(workspaceChatData)[0]]: {
+                [Object.keys(workspaceChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -3330,6 +3392,7 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
                           [groupID]: {
                               category,
                               groupID,
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                           },
                       },
                   },
@@ -3343,13 +3406,35 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `policy_${policyID}`,
                   value: {
-                      mccGroup,
+                      mccGroup: {
+                          ...mccGroup,
+                          [groupID]: {
+                              ...mccGroup[groupID],
+                              pendingAction: null,
+                          },
+                      },
                   },
               },
           ]
         : [];
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData: [], failureData});
+    const successData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      mccGroup: {
+                          [groupID]: {
+                              pendingAction: null,
+                          },
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
 }
 /**
  * Call the API to set the receipt required amount for the given policy
@@ -4755,6 +4840,7 @@ export {
     updateCompanyCardName,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
+    verifySetupIntentAndRequestPolicyOwnerChange,
 };
 
 export type {NewCustomUnit};

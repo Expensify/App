@@ -67,6 +67,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -442,6 +443,7 @@ const translations = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -816,6 +818,7 @@ const translations = {
         share: 'Compartir',
         participants: 'Participantes',
         submitExpense: 'Presentar gasto',
+        createExpense: 'Crear gasto',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         trackExpense: 'Seguimiento de gastos',
         pay: 'Pagar',
@@ -915,6 +918,8 @@ const translations = {
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} de otra forma`,
         paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} con Expensify`,
+        automaticallyPaidWithExpensify: ({payer, amount}: PaidWithExpensifyWithAmountParams) =>
+            `${payer ? `${payer} ` : ''}auto-pagó ${amount} con Expensify via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
@@ -1011,6 +1016,7 @@ const translations = {
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
         paymentComplete: 'Pago Completo',
+        justTrackIt: 'Solo guardarlo (no enviarlo)',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1206,7 +1212,6 @@ const translations = {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
-        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -1371,7 +1376,6 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
         walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
-        bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Agregar una cuenta bancaria te permite recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
@@ -2106,7 +2110,7 @@ const translations = {
         enterYourDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
         enterTheLast4: '¿Cuáles son los últimos 4 dígitos de tu número de la seguridad social?',
         dontWorry: 'No te preocupes, no hacemos verificaciones de crédito personales.',
-        last4SSN: 'Últimos 4 dígitos de tu número de la seguridad social',
+        last4SSN: 'Últimos 4 dígitos de tu SSN',
         enterYourAddress: '¿Cuál es tu dirección?',
         address: 'Dirección',
         letsDoubleCheck: 'Revisemos que todo esté bien',
@@ -2805,6 +2809,7 @@ const translations = {
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Importados como ${importedTypes.join(' y ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Por favor, introduzca el ${fieldName}`,
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
@@ -3691,6 +3696,7 @@ const translations = {
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
+            bankAccountsSubtitle: 'Agrega una cuenta bancaria para recibir pagos de facturas.',
         },
         invite: {
             member: 'Invitar miembros',
@@ -4060,11 +4066,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
             }
             return {
                 one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
@@ -4317,6 +4323,7 @@ const translations = {
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },
