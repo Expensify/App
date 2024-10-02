@@ -325,7 +325,7 @@ function ReportPreview({
         () => !canIOUBePaid && IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, true),
         [iouReport, chatReport, policy, allTransactions, canIOUBePaid],
     );
-    const shouldShowPayButton = useMemo(() => isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere, [isPaidAnimationRunning, canIOUBePaid, onlyShowPayElsewhere]);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
