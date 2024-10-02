@@ -319,6 +319,7 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory;
+    const [shouldResetAmount, setShouldResetAmount] = useState(false);
 
     const shouldDisableParticipant = (participant: Participant): boolean => {
         if (ReportUtils.isDraftReport(participant.reportID)) {
@@ -565,6 +566,8 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
+                    shouldResetAmount={shouldResetAmount}
+                    onResetAmount={(resetValue) => setShouldResetAmount(resetValue)}
                     contentWidth={formattedTotalAmount.length * 8}
                 />
             ),
@@ -587,6 +590,7 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
+        shouldResetAmount,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -604,6 +608,7 @@ function MoneyRequestConfirmationList({
                     <PressableWithFeedback
                         onPress={() => {
                             IOU.resetSplitShares(transaction);
+                            setShouldResetAmount(true);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
