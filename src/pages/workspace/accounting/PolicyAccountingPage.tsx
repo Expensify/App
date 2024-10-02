@@ -87,9 +87,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
-    // Enter credentials item shouldn't be shown for SageIntacct and NetSuite integrations
-    const shouldShowEnterCredentials =
-        connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration) && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+    const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
     const policyID = policy?.id ?? '-1';
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
@@ -106,7 +104,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            ...(shouldShowEnterCredentials
+            ...(shouldShowEnterCredentials && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE)
                 ? [
                       {
                           icon: Expensicons.Key,
@@ -115,7 +113,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
-                          shouldShowRightIcon: connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
                       },
                   ]
                 : [
@@ -325,8 +322,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldShowRedDotIndicator: true,
                 description:
                     isSyncInProgress && connectionSyncProgress?.stageInProgress
-                        ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
-                        : translate('workspace.accounting.lastSync', datetimeToRelative),
+                        ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
+                        : translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative}),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
@@ -513,7 +510,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
+                    title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         if (connectedIntegration) {
@@ -522,7 +519,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration})}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

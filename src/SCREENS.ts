@@ -112,6 +112,7 @@ const SCREENS = {
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
 
         EXIT_SURVEY: {
@@ -245,6 +246,8 @@ const SCREENS = {
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
     },
 
+    SETTINGS_TAGS_ROOT: 'Settings_Tags',
+
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
         NAME: 'Report_Settings_Name',
@@ -375,11 +378,6 @@ const SCREENS = {
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
-        CARD: 'Workspace_Card',
-        REIMBURSE: 'Workspace_Reimburse',
-        RATE_AND_UNIT: 'Workspace_RateAndUnit',
-        RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
-        RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
@@ -403,11 +401,9 @@ const SCREENS = {
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
         EXPENSIFY_CARD_SETTINGS_ACCOUNT: 'Workspace_ExpensifyCard_Settings_Account',
         EXPENSIFY_CARD_SETTINGS_FREQUENCY: 'Workspace_ExpensifyCard_Settings_Frequency',
-        BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         INVOICES_COMPANY_NAME: 'Workspace_Invoices_Company_Name',
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
-        TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
@@ -471,6 +467,7 @@ const SCREENS = {
         CATEGORIES_IMPORTED: 'Categories_Imported',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_NEW_CARD: 'Workspace_Member_NewCard',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
         OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
