@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams} from '@src/languages/types';
+import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
