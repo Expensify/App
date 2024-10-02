@@ -97,7 +97,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             newIndex = index;
         }
 
-        if (newIndex === -1 && attachments.find(compareImage)) {
+        if (newIndex === -1 && attachments.at(index)) {
             Navigation.dismissModal();
         } else {
             setPage(newIndex);
