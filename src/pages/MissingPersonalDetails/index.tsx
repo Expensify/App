@@ -5,7 +5,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
@@ -34,6 +34,7 @@ function MissingPersonalDetails() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const formRef = useRef<FormRef | null>(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
@@ -65,6 +66,7 @@ function MissingPersonalDetails() {
             return;
         }
         ref.current?.movePrevious();
+        formRef.current?.resetErrors();
         prevScreen();
     };
 
@@ -135,7 +137,7 @@ function MissingPersonalDetails() {
                     if (countrySpecificZipRegex) {
                         if (!countrySpecificZipRegex.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim().toUpperCase())) {
                             if (ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
-                                errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
+                                errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                             } else {
                                 errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                             }
@@ -187,6 +189,7 @@ function MissingPersonalDetails() {
                 />
             </View>
             <FormProvider
+                ref={formRef}
                 formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
                 submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                 onSubmit={screenIndex === formSteps.length - 1 ? updatePersonalDetails : handleNextScreen}

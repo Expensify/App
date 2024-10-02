@@ -11,6 +11,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -19,6 +20,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -126,6 +128,8 @@ function WorkspaceReportFieldsPage({
         ];
     }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
+
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
         const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
@@ -172,7 +176,7 @@ function WorkspaceReportFieldsPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedReportFields.length})}
+                    customText={translate('workspace.common.selected', {count: selectedReportFields.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
@@ -286,10 +290,11 @@ function WorkspaceReportFieldsPage({
                         title={translate('workspace.reportFields.emptyReportFields.title')}
                         subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                        headerMedia={LottieAnimations.GenericEmptyState}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                        headerContentStyles={styles.emptyStateFolderWebStyles}
                     />
                 )}
                 {!shouldShowEmptyState && !isLoading && (
