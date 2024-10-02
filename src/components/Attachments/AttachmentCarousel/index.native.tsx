@@ -43,7 +43,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         const index = attachments.findIndex(compareImage);
 
         // If no matching attachment with the same index, dismiss the modal
-        if (!newAttachments.at(newIndex) && newAttachments[index]) {
+        if (!newAttachments.at(newIndex) && newAttachments.at(index)) {
             newIndex = index;
         }
 
