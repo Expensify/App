@@ -64,7 +64,7 @@ function DebugDetailsConstantPickerPage({
             Navigation.navigate(appendParam(backTo, fieldName, value));
         }
     };
-    const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue)[0]?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);
 
     return (
         <ScreenWrapper testID={DebugDetailsConstantPickerPage.displayName}>

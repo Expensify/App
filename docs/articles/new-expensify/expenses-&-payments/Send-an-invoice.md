@@ -57,12 +57,24 @@ Only workspace admins can send invoices. Invoices can be sent directly from Expe
 
 {% include end-selector.html %}
 
+![Go to Account Settings click Workspace]({{site.url}}/assets/images/invoices_01.png){:width="100%"}
+
+![Click More Features for the workspace and enable Invoices]({{site.url}}/assets/images/invoices_02.png){:width="100%"}
+
+![Click the green button Send Invoice]({{site.url}}/assets/images/invoices_03.png){:width="100%"}
+
+![Enter Invoice amount]({{site.url}}/assets/images/invoices_04.png){:width="100%"}
+
+![Choose a recipient]({{site.url}}/assets/images/invoices_05.png){:width="100%"}
+
+![Add Invoice details and Send Invoice]({{site.url}}/assets/images/invoices_06.png){:width="100%"}
+
 # Receive invoice payment 
 
 If you have not [connected a business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account) to receive invoice payments, you will see an **Invoice balance** in your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet). Expensify will automatically transfer these invoice payments once a business bank account is connected.
 
  
-# FAQs
+{% include faq-begin.md %}
 
 **Why do I need to create a workspace to send an invoice?**
 
@@ -90,5 +102,6 @@ When invoicing is disabled, all previously created invoice rooms and historical 
 
 We can only accept a private domain website to ensure the security of your business. If you receive an error when entering your website, it is likely because the domain is not recognized as private. Make sure you are using a business email with a private domain. If you continue to experience issues, contact our support team at concierge@expensify.com for further assistance.
 
+{% include faq-end.md %}
 
 </div>

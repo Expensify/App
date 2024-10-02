@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -79,6 +80,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
     const companyCards = CardUtils.getMemberCards(policy, allCardsList, accountID);
+
+    // TODO: for now enabled for testing purposes. Change this to check for the actual multiple feeds when API is ready
+    const hasMultipleFeeds = policy?.areCompanyCardsEnabled;
 
     const memberCards = useMemo(() => {
         if (!expensifyCardsList) {
@@ -159,7 +163,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         [policyID],
     );
 
-    const navigateToIssueNewCard = useCallback(() => {
+    const handleIssueNewCard = useCallback(() => {
+        if (hasMultipleFeeds) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
+            return;
+        }
         const activeRoute = Navigation.getActiveRoute();
 
         Card.setIssueNewCardStepAndData({
@@ -170,7 +178,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             isEditing: false,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [memberLogin, policyID]);
+    }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
@@ -233,14 +241,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         </Text>
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                        <Button
-                                            text={translate('workspace.people.transferOwner')}
-                                            onPress={startChangeOwnershipFlow}
-                                            isDisabled={isOffline}
-                                            icon={Expensicons.Transfer}
-                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                            style={styles.mv5}
-                                        />
+                                        shouldRenderTransferOwnerButton() && (
+                                            <Button
+                                                text={translate('workspace.people.transferOwner')}
+                                                onPress={startChangeOwnershipFlow}
+                                                isDisabled={isOffline}
+                                                icon={Expensicons.Transfer}
+                                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                                style={styles.mv5}
+                                            />
+                                        )
                                     ) : (
                                         <Button
                                             text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
@@ -265,7 +275,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={translate(`workspace.common.roleName`, member?.role)}
+                                        title={translate(`workspace.common.roleName`, {role: member?.role})}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}
@@ -283,7 +293,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onRoleChange={changeRole}
                                         onClose={() => setIsRoleSelectionModalVisible(false)}
                                     />
-                                    {policy?.areExpensifyCardsEnabled && (
+                                    {(policy?.areExpensifyCardsEnabled ?? policy?.areCompanyCardsEnabled) && (
                                         <>
                                             <View style={[styles.ph5, styles.pv3]}>
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
@@ -324,7 +334,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             <MenuItem
                                                 title={translate('workspace.expensifyCard.newCard')}
                                                 icon={Expensicons.Plus}
-                                                onPress={navigateToIssueNewCard}
+                                                onPress={handleIssueNewCard}
                                             />
                                         </>
                                     )}

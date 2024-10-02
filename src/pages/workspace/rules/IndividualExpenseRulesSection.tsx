@@ -108,7 +108,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             return '';
         }
 
-        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', policy?.maxExpenseAge);
+        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge});
     }, [policy?.maxExpenseAge, translate]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);

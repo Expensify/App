@@ -57,7 +57,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
     const cardFeeds = mockedData;
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
     const selectedFeed = lastSelectedFeed ?? defaultFeed;
 
     const feeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
