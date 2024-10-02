@@ -101,7 +101,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
-        shouldIgnoreFocus,
+        shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
     }: BaseSelectionListProps<TItem>,
@@ -469,7 +469,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                     alternateTextNumberOfLines={alternateTextNumberOfLines}
                     onFocus={() => {
-                        if (!!shouldIgnoreFocus || isDisabled) {
+                        if (shouldIgnoreFocus || isDisabled) {
                             return;
                         }
                         setFocusedIndex(normalizedIndex);
