@@ -1,3 +1,4 @@
+import {OnyxEntry} from 'react-native-onyx';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
@@ -25,7 +26,7 @@ type ZipCodeExampleFormatParams = {
 };
 
 type LoggedInAsParams = {
-    email: string;
+    email: OnyxEntry<string>;
 };
 
 type SignUpNewFaceCodeParams = {
