@@ -273,7 +273,25 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
+        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
+            checkAndFixConflictingRequest: (persistedRequests) => {
+                const index = persistedRequests.findIndex((request) => request.command === WRITE_COMMANDS.RECONNECT_APP);
+                if (index === -1) {
+                    return {
+                        conflictAction: {
+                            type: 'push',
+                        },
+                    };
+                }
+
+                return {
+                    conflictAction: {
+                        type: 'replace',
+                        index,
+                    },
+                };
+            },
+        });
     });
 }
 

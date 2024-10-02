@@ -11,6 +11,7 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -59,6 +60,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the pressable component wrapper view */
+    pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -296,7 +300,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
-    hasAnimateInHighlightStyle?: boolean;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
 };

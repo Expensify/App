@@ -204,9 +204,10 @@ function MoneyRequestPreviewContent({
             if (shouldShowHoldMessage) {
                 return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
-            if (violations?.[0]) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
-                const violationsCount = violations.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length;
+            const firstViolation = violations?.at(0);
+            if (firstViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
