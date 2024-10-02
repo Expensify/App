@@ -101,12 +101,9 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
-<<<<<<< HEAD
         listItemWrapperStyle,
-=======
         scrollEventThrottle,
         contentContainerStyle,
->>>>>>> main
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {

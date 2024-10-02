@@ -560,16 +560,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
 
-<<<<<<< HEAD
     /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
-=======
+
     /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
     scrollEventThrottle?: number;
 
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
->>>>>>> main
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
