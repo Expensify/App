@@ -32,6 +32,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
@@ -51,6 +54,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
+    const shouldShowUsePlusButtonText =
+        (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
+            moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
+            moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
+            moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) &&
+        !isPolicyExpenseChat;
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -110,6 +119,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         </Text>
                     ))}
                 {isInvoiceRoom &&
+                    !isArchivedRoom &&
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
@@ -139,7 +149,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         </Text>
                     ))}
                 {isChatRoom &&
-                    !isInvoiceRoom &&
+                    (!isInvoiceRoom || isArchivedRoom) &&
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
@@ -206,10 +216,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
-                    moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
-                    moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
-                    moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                {isPolicyExpenseChat && moneyRequestOptions.length && <Text>{translate('reportActionsView.justUsePlusButton')}</Text>}
                 {ReportUtils.isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
             </View>
         </>

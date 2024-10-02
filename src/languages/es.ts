@@ -665,7 +665,7 @@ const translations = {
         beginningOfChatHistory: 'Este chat es con',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Aquí es donde ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' enviará los gastos al espacio de trabajo ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: '. Solo usa el botón +.',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: '.',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -673,6 +673,7 @@ const translations = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
+        justUsePlusButton: `\nSolo usa el botón +.`,
         askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
         iouTypes: {
             pay: 'pagar',
