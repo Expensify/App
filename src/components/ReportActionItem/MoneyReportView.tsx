@@ -121,6 +121,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
                                 return (
                                     <OfflineWithFeedback
+                                        // Need to return undefined when we have pendingAction to avoid the duplicate pending action
                                         pendingAction={pendingAction ? undefined : report.pendingFields?.[fieldKey]}
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}

@@ -275,6 +275,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
     const pendingAction = transaction?.pendingAction;
+    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const getErrorForField = useCallback(
