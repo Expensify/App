@@ -14,6 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as Link from './actions/Link';
 import Navigation from './Navigation/Navigation';
+import * as PolicyUtils from './PolicyUtils';
 
 let travelSettings: OnyxEntry<TravelSettings>;
 Onyx.connect({
@@ -78,7 +79,8 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         setCtaErrorMessage(translate('travel.phoneError'));
         return;
     }
-    if (isEmptyObject(travelSettings)) {
+    const policy = PolicyUtils.getPolicy(activePolicyID);
+    if (isEmptyObject(policy?.address)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
         return;
     }

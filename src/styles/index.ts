@@ -320,6 +320,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        bottomTabBarLabel: {
+            lineHeight: 14,
+            height: 16,
+        },
+
         webViewStyles: webViewStyles(theme),
 
         link: link(theme),
@@ -1595,10 +1600,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         selectedAvatarBorder: {
-            padding: 2,
+            padding: 1,
             borderWidth: 2,
             borderRadius: 20,
+            height: variables.sidebarAvatarSize + 6,
+            width: variables.sidebarAvatarSize + 6,
             borderColor: theme.success,
+            right: -3,
+            top: -3,
         },
 
         statusIndicator: (backgroundColor: string = theme.danger) =>
@@ -1621,8 +1630,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             borderWidth: 2,
             position: 'absolute',
-            right: -3,
-            top: -4,
+            right: -2,
+            top: -3,
             height: 12,
             width: 12,
             zIndex: 10,
@@ -3613,15 +3622,41 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
-        searchRouterInputStyle: {
+        searchRouterInput: {
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 2,
             borderColor: theme.borderFocus,
-            paddingHorizontal: 8,
+        },
+
+        searchRouterInputResults: {
+            backgroundColor: theme.sidebarHover,
+            borderWidth: 1,
+            borderColor: theme.sidebarHover,
+        },
+
+        searchRouterInputResultsFocused: {
+            borderWidth: 1,
+            borderColor: theme.success,
         },
 
         searchTableHeaderActive: {
             fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        zIndex10: {
+            zIndex: 10,
+        },
+
+        searchListContentContainerStyles: {
+            marginTop: variables.searchListContentMarginTop,
+        },
+
+        searchTopBarStyle: {
+            left: 0,
+            right: 0,
+            position: 'absolute',
+            zIndex: 9,
+            backgroundColor: theme.appBG,
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
@@ -4517,6 +4552,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: 20,
         },
+
+        sidebarStatusAvatarWithEmojiContainer: {
+            height: 28,
+            width: 28,
+            top: -2,
+        },
+
         sidebarStatusAvatar: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -4525,9 +4567,9 @@ const styles = (theme: ThemeColors) =>
             width: 20,
             borderRadius: 10,
             position: 'absolute',
-            right: -4,
-            bottom: -4,
-            borderColor: theme.highlightBG,
+            right: -6,
+            bottom: -6,
+            borderColor: theme.appBG,
             borderWidth: 2,
             overflow: 'hidden',
         },
