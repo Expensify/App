@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
@@ -12,8 +13,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
+
+const fallbackIcon: Icon = {
+    source: FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
+    id: -1,
+};
 
 function InviteMemberListItem<TItem extends ListItem>({
     item,
@@ -77,14 +86,14 @@ function InviteMemberListItem<TItem extends ListItem>({
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
-                                mainAvatar={item.icons[0]}
-                                secondaryAvatar={item.icons[1]}
+                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
+                                secondaryAvatar={item.icons.at(1)}
                                 showTooltip={showTooltip}
                                 backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             />
                         ) : (
                             <MultipleAvatars
-                                icons={item.icons ?? []}
+                                icons={item.icons}
                                 shouldShowTooltip={showTooltip}
                                 secondAvatarStyle={[
                                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),

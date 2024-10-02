@@ -568,6 +568,7 @@ function ReportActionItem({
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
+                        style={displayAsGroup ? [] : [styles.mt1]}
                         taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '-1' : '-1'}
                         chatReportID={reportID}
                         action={action}
@@ -627,7 +628,10 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(reportID, action)} />;
-        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
+        } else if (
+            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
+        ) {
             const wasSubmittedViaHarvesting = ReportActionsUtils.getOriginalMessage(action)?.harvesting ?? false;
             if (wasSubmittedViaHarvesting) {
                 children = (
@@ -669,12 +673,7 @@ function ReportActionItem({
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
-            children = (
-                <IssueCardMessage
-                    action={action}
-                    policyID={report?.policyID}
-                />
-            );
+            children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
