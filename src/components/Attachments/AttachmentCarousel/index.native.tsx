@@ -41,13 +41,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
         let newIndex = newAttachments.findIndex(compareImage);
         const index = attachments.findIndex(compareImage);
-        let shouldRemountPager = false;
+
         // If no matching attachment with the same index, dismiss the modal
-        if (!newAttachments[newIndex] && newAttachments[index]) {
+        if (!newAttachments.at(newIndex) && newAttachments[index]) {
             newIndex = index;
         }
 
-        if (!newAttachments[newIndex] && attachments[index]) {
+        if (!newAttachments.at(newIndex) && attachments.at(index)) {
             Navigation.dismissModal();
         } else {
             setPage(newIndex);
@@ -59,7 +59,6 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             }
 
             const attachment = newAttachments.at(newIndex);
-
             // Update the parent modal's state with the source and name from the mapped attachments
             if (newIndex !== -1 && attachment !== undefined && onNavigate) {
                 onNavigate(attachment);
