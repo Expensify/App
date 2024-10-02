@@ -123,7 +123,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [canIOUBePaid, chatReport, moneyRequestReport, policy, transaction],
     );
 
-    const shouldShowPayButton = useMemo(() => canIOUBePaid || onlyShowPayElsewhere, [canIOUBePaid, onlyShowPayElsewhere]);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy), [moneyRequestReport, policy]);
 
