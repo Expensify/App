@@ -101,8 +101,21 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         return items;
     }, [typeMenuItems, title, activeItemIndex, singleExecution, theme, policyID, closeMenu, currentSavedSearch]);
 
-    const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
-    const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
+    const {menuIcon, menuTitle} = useMemo(() => {
+        if (title) {
+            return {
+                menuIcon: Expensicons.Filters,
+                menuTitle: title,
+            };
+        }
+
+        const item = activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex) : undefined;
+        return {
+            menuIcon: item?.icon ?? Expensicons.Receipt,
+            menuTitle: item?.text,
+        };
+    }, [activeItemIndex, popoverMenuItems, title]);
+
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 
     const savedSearchItems = savedSearchesMenuItems.map((item) => ({
@@ -142,7 +155,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         <View style={[styles.pb3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
             <PressableWithFeedback
                 accessible
-                accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
+                accessibilityLabel={activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex)?.text ?? '' : ''}
                 ref={buttonRef}
                 wrapperStyle={styles.flex1}
                 onPress={openMenu}

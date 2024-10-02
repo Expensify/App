@@ -69,9 +69,11 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 setDownloadButtonVisibility(newIndex !== -1);
             }
 
+            const attachment = newAttachments.at(newIndex);
+
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (newAttachments[newIndex] !== undefined && onNavigate) {
-                onNavigate(newAttachments[newIndex]);
+            if (newIndex !== -1 && attachment !== undefined && onNavigate) {
+                onNavigate(attachment);
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -83,13 +85,15 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Keyboard.dismiss();
             setShouldShowArrows(true);
 
-            const item = attachments[newPageIndex];
+            const item = attachments.at(newPageIndex);
 
             setPage(newPageIndex);
-            setActiveSource(item.source);
-
-            if (onNavigate) {
-                onNavigate(item);
+            if (newPageIndex >= 0 && item) {
+                setActiveSource(item.source);
+                if (onNavigate) {
+                    onNavigate(item);
+                }
+                onNavigate?.(item);
             }
         },
         [setShouldShowArrows, attachments, onNavigate],

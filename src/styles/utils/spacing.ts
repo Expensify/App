@@ -219,8 +219,16 @@ export default {
         marginTop: 0,
     },
 
+    mt0Half: {
+        marginTop: 2,
+    },
+
     mt1: {
         marginTop: 4,
+    },
+
+    mt1Half: {
+        marginTop: 6,
     },
 
     mt2: {
@@ -261,6 +269,10 @@ export default {
 
     mtAuto: {
         marginTop: 'auto',
+    },
+
+    mtn0Half: {
+        marginTop: -2,
     },
 
     mtn1: {

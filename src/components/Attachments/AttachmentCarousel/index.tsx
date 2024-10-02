@@ -108,9 +108,10 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 setDownloadButtonVisibility(newIndex !== -1);
             }
 
+            const attachment = newAttachments.at(newIndex);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (newAttachments[newIndex] !== undefined && onNavigate) {
-                onNavigate(newAttachments[newIndex]);
+            if (newIndex !== -1 && attachment !== undefined && onNavigate) {
+                onNavigate(attachment);
             }
         }
     }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
@@ -137,7 +138,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
-            const entry = viewableItems[0];
+            const entry = viewableItems.at(0);
             if (!entry) {
                 setActiveSource(null);
                 return;
@@ -164,9 +165,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             }
 
             const nextIndex = page + deltaSlide;
-            const nextItem = attachments[nextIndex];
+            const nextItem = attachments.at(nextIndex);
 
-            if (!nextItem || !scrollRef.current) {
+            if (!nextItem || nextIndex < 0 || !scrollRef.current) {
                 return;
             }
 
