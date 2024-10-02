@@ -433,7 +433,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
-      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastAllPlatform.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
     needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
     if: ${{ always() }}
     steps:
@@ -460,7 +460,7 @@ jobs:
           echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED is $isAtLeastOnePlatformDeployed"
 
       - name: Check deployment success on all platforms
-        id: checkDeploymentSuccessOnAtLeastAllPlatform
+        id: checkDeploymentSuccessOnAllPlatforms
         run: |
           isAllPlatformsDeployed="false"
           if [ "${{ needs.iOS.result }}" == "success" ] && \
