@@ -73,7 +73,7 @@ function LegalNameStep({isEditing, onNext, personalDetailsValues}: CustomSubStep
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-                <View style={[styles.flex2, styles.mb6]}>
+                <View style={[styles.flex2, styles.mb5]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LEGAL_FIRST_NAME}
@@ -85,7 +85,7 @@ function LegalNameStep({isEditing, onNext, personalDetailsValues}: CustomSubStep
                         spellCheck={false}
                     />
                 </View>
-                <View style={[styles.flex2, styles.mb6]}>
+                <View style={[styles.flex2, styles.mb5]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LEGAL_LAST_NAME}

@@ -126,7 +126,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                             handleAddressChange(data, key);
                         }}
                         defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_1]}
-                        containerStyles={styles.mt3}
                         renamedInputKeys={{
                             street: INPUT_IDS.ADDRESS_LINE_1,
                             street2: INPUT_IDS.ADDRESS_LINE_2,
@@ -147,9 +146,9 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
-                    containerStyles={styles.mt6}
+                    containerStyles={styles.mt5}
                 />
-                <View style={[styles.mt3, styles.mhn5]}>
+                <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={CountryPicker}
                         inputID={INPUT_IDS.COUNTRY}
@@ -158,7 +157,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     />
                 </View>
                 {isUSAForm ? (
-                    <View style={[styles.mt3, styles.mhn5]}>
+                    <View style={[styles.mt2, styles.mhn5]}>
                         <InputWrapper
                             InputComponent={StatePicker}
                             inputID={INPUT_IDS.STATE}
@@ -177,7 +176,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                         maxLength={CONST.STATE_CHARACTER_LIMIT}
                         spellCheck={false}
                         onValueChange={handleAddressChange}
-                        containerStyles={styles.mt3}
+                        containerStyles={styles.mt2}
                     />
                 )}
                 <InputWrapper
@@ -190,7 +189,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
-                    containerStyles={isUSAForm ? styles.mt3 : styles.mt6}
+                    containerStyles={isUSAForm ? styles.mt2 : styles.mt5}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -203,7 +202,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     hint={zipFormat}
                     onValueChange={handleAddressChange}
-                    containerStyles={styles.mt6}
+                    containerStyles={styles.mt5}
                 />
             </View>
         </FormProvider>
