@@ -13,15 +13,15 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
 
     useEffect(() => {
         if (currentScreenName === 'confirmation') {
-            setPrevScreen(intersection[intersection.length - 1] ?? '');
+            setPrevScreen(intersection.at(-1));
             return;
         }
         const currentIndex = intersection.indexOf(currentScreenName);
         const nextScreenIndex = currentIndex + 1;
         const prevScreenIndex = currentIndex - 1;
         setCurrentScreenIndex(currentIndex);
-        setNextScreen(intersection[nextScreenIndex] ?? '');
-        setPrevScreen(intersection[prevScreenIndex] ?? '');
+        setNextScreen(intersection.at(nextScreenIndex));
+        setPrevScreen(prevScreenIndex !== -1 ? intersection.at(prevScreenIndex) : undefined);
     }, [currentScreenName, intersection]);
 
     const goBack = () => {
