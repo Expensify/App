@@ -44,9 +44,29 @@ type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> &
 
 function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps) {
     const styles = useThemeStyles();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+
+    const [input, setInput] = useState(text);
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
+
+    const onSubmit = () => {
+        if (!input) {
+            return;
+        }
+        const queryJSON = SearchUtils.buildSearchQueryJSON(input);
+        if (queryJSON) {
+            const standardQuery = SearchUtils.standardizeQueryJSON(queryJSON, cardList, reports, taxRates);
+            const query = SearchUtils.buildSearchQueryString(standardQuery);
+            SearchActions.clearAllFilters();
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        } else {
+            // Handle query parsing error
+        }
+    };
 
     return (
         <View
@@ -69,12 +89,13 @@ function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
-                        disabled
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                         wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
                         defaultValue={text}
                         rightComponent={children}
+                        onSubmit={onSubmit}
+                        onChange={setInput}
                     />
                 </View>
             )}

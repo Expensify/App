@@ -56,6 +56,7 @@ function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', 
                     onSubmitEditing={onSubmit}
                     role={CONST.ROLE.PRESENTATION}
                     autoCapitalize="none"
+                    autoCorrect={false}
                     disabled={disabled}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={styles.borderNone}
