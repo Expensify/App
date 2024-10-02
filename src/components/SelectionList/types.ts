@@ -1,5 +1,16 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {
+    GestureResponderEvent,
+    InputModeOptions,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    SectionListData,
+    StyleProp,
+    TextInput,
+    TextStyle,
+    ViewStyle,
+} from 'react-native';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -164,6 +175,9 @@ type ListItem = {
 
     /** The style to override the cursor appearance */
     cursorStyle?: CursorStyles[keyof CursorStyles];
+
+    /** Determines whether the newly added item should animate in / highlight */
+    shouldAnimateInHighlight?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -233,6 +247,7 @@ type ReportListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
 
+        /** List of transactions that belong to this report */
         transactions: TransactionListItemType[];
     };
 
@@ -276,6 +291,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
+    hasAnimateInHighlightStyle?: boolean;
+    /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
 };
 
@@ -407,7 +424,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     initiallyFocusedOptionKey?: string | null;
 
     /** Callback to fire when the list is scrolled */
-    onScroll?: () => void;
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Callback to fire when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
@@ -542,11 +559,18 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
+
+    /** Scroll event throttle for preventing onScroll callbacks to be fired too often */
+    scrollEventThrottle?: number;
+
+    /** Additional styles to apply to scrollable content */
+    contentContainerStyle?: StyleProp<ViewStyle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
+    scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
 type ItemLayout = {
