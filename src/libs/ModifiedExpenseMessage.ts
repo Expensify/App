@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -132,12 +132,13 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, reports?: OnyxCollection<Report>, propPolicyTags?: OnyxCollection<PolicyTagLists>): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
+    const report = (reports ?? ReportConnection.getAllReports())?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -224,7 +225,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const policyTags = (propPolicyTags ?? allPolicyTags)?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
