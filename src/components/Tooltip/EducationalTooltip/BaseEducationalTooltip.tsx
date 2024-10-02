@@ -23,7 +23,7 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
 
     const didShow = useRef(false);
 
-    const hide = useCallback(() => {
+    const closeTooltip = useCallback(() => {
         if (!didShow.current) {
             return;
         }
@@ -50,35 +50,35 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
 
         // If the modal is open, hide the tooltip immediately and clear the timeout
         if (!shouldShow) {
-            hide();
+            closeTooltip();
             return;
         }
 
         // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
         const timerID = setTimeout(() => {
-            hide();
+            closeTooltip();
         }, 5000);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldAutoDismiss, shouldShow, hide]);
+    }, [shouldAutoDismiss, shouldShow, closeTooltip]);
 
     useEffect(() => {
         if (!shouldMeasure || !shouldShow || didShow.current) {
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
-        const timeout = setTimeout(() => {
+        const timerID = setTimeout(() => {
             show.current?.();
             didShow.current = true;
         }, 500);
         return () => {
-            clearTimeout(timeout);
+            clearTimeout(timerID);
         };
     }, [shouldMeasure, shouldShow]);
 
     useEffect(
-        () => hide,
+        () => closeTooltip,
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
