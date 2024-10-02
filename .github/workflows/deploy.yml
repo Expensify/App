@@ -532,7 +532,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd iOS && pod install
+          command: cd Mobile-Expensify/react-native/iOS && pod install
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
