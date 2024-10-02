@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
@@ -10,16 +10,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type UserTypingEventListenerOnyxProps = {
-    /** Stores last visited path */
-    lastVisitedPath?: string;
-};
-
-type UserTypingEventListenerProps = UserTypingEventListenerOnyxProps & {
+type UserTypingEventListenerProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
-function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListenerProps) {
+function UserTypingEventListener({report}: UserTypingEventListenerProps) {
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: (path) => path ?? ''});
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
@@ -83,9 +79,4 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
 
 UserTypingEventListener.displayName = 'UserTypingEventListener';
 
-export default withOnyx<UserTypingEventListenerProps, UserTypingEventListenerOnyxProps>({
-    lastVisitedPath: {
-        key: ONYXKEYS.LAST_VISITED_PATH,
-        selector: (path) => path ?? '',
-    },
-})(UserTypingEventListener);
+export default UserTypingEventListener;
