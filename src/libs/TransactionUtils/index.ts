@@ -1,5 +1,6 @@
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -25,7 +26,6 @@ import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, 
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
-import lodashSet from 'lodash/set';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({

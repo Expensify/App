@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
@@ -72,7 +73,6 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
-import lodashSet from 'lodash/set';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2530,7 +2530,6 @@ function getUpdateMoneyRequestParams(
         const mileageRate =
             customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID ? DistanceRequestUtils.getRateForP2P(updatedTransaction?.currency ?? 'USD') : distanceRates[customUnitRateID] ?? {};
         lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', mileageRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
-
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
