@@ -97,3 +97,45 @@ jobs:
       - name: Get iOS native version
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
+
+      - name: Build iOS release app
+        id: build
+        run: |
+          lane=''
+          if [ '${{ inputs.type }}' == 'release' ]; then
+            lane='build'
+          else
+            lane='build_adhoc'
+          fi
+
+          bundle exec fastlane ios "$lane"
+
+          # Reload environment variables from GITHUB_ENV
+          # shellcheck disable=SC1090
+          source "$GITHUB_ENV"
+
+          {
+            # ipaPath and dsymPath are environment variables set within the Fastfile
+            echo "IPA_PATH=$ipaPath"
+            echo "IPA_FILE_NAME=$(basename "$ipaPath")"
+            echo "DYSM_PATH=$dysmPath"
+            echo "DSYM_FILE_NAME=$(basename "$dysmPath")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload iOS build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifact-ipa
+          path: ${{ steps.build.outputs.IPA_PATH }}
+
+      - name: Upload iOS debug symbols artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifact-dsym
+          path: ${{ steps.build.outputs.DYSM_PATH }}
+
+      - name: Announce failure in slack
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
