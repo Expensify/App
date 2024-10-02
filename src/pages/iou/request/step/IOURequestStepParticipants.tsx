@@ -46,7 +46,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {canUseP2PDistanceRequests, canUseCombinedTrackSubmit} = usePermissions(iouType);
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -76,7 +76,7 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
-    const shouldDisplayTrackExpenseButton = !!selfDMReportID && canUseCombinedTrackSubmit;
+    const shouldDisplayTrackExpenseButton = !!selfDMReportID && action === CONST.IOU.ACTION.CREATE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
