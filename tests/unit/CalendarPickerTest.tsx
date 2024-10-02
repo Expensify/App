@@ -69,7 +69,7 @@ describe('CalendarPicker', () => {
         fireEvent.press(screen.getByTestId('next-month-arrow'));
 
         const nextMonth = addMonths(new Date(), 1).getMonth();
-        expect(screen.getByText(monthNames[nextMonth])).toBeTruthy();
+        expect(screen.getByText(monthNames.at(nextMonth) ?? '')).toBeTruthy();
     });
 
     test('clicking previous month arrow updates the displayed month', () => {
@@ -78,7 +78,7 @@ describe('CalendarPicker', () => {
         fireEvent.press(screen.getByTestId('prev-month-arrow'));
 
         const prevMonth = subMonths(new Date(), 1).getMonth();
-        expect(screen.getByText(monthNames[prevMonth])).toBeTruthy();
+        expect(screen.getByText(monthNames.at(prevMonth) ?? '')).toBeTruthy();
     });
 
     test('clicking a day updates the selected date', () => {

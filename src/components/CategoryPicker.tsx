@@ -24,12 +24,9 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     policyID: string;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
-
-    /** Whether SectionList should use custom ScrollView */
-    shouldUseCustomScrollView?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldUseCustomScrollView = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit}: CategoryPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -65,7 +62,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
         );
 
-        const categoryData = categoryOptions?.[0]?.data ?? [];
+        const categoryData = categoryOptions?.at(0)?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
         const categoriesCount = OptionsListUtils.getEnabledCategoriesCount(categories);
         const isCategoriesCountBelowThreshold = categoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
@@ -74,7 +71,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return [categoryOptions, header, showInput];
     }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft]);
 
-    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((category) => category.searchText === selectedCategory)[0]?.keyForList, [sections, selectedCategory]);
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
 
     return (
         <SelectionList
@@ -87,7 +84,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
-            shouldUseCustomScrollView={shouldUseCustomScrollView}
         />
     );
 }
