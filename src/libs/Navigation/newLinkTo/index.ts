@@ -56,6 +56,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
-    const minimalAction = getMinimalAction(action, navigation.getRootState());
+    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
     navigation.dispatch(minimalAction);
 }

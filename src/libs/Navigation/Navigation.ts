@@ -1,9 +1,11 @@
-import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
+import {getActionFromState} from '@react-navigation/core';
+import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {Writable} from 'type-fest';
 import Log from '@libs/Log';
 import {removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -27,9 +29,9 @@ import linkTo from './linkTo';
 import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
-import type {NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorName, SplitNavigatorParamListType, StackNavigationAction, State, StateOrRoute} from './types';
+import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorParamListType, State, StateOrRoute} from './types';
 
-const SPLIT_NAVIGATOR_TO_SIDEBAR_MAP: Record<SplitNavigatorName, SplitNavigatorLHNScreen> = {
+const SPLIT_NAVIGATOR_TO_SIDEBAR_MAP: Record<keyof SplitNavigatorParamListType, SplitNavigatorLHNScreen> = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: SCREENS.HOME,
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SCREENS.SETTINGS.ROOT,
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: SCREENS.WORKSPACE.INITIAL,
@@ -202,6 +204,28 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
     linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
+function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>) {
+    if (!minimalAction.payload) {
+        return false;
+    }
+
+    if (!('name' in minimalAction.payload)) {
+        return false;
+    }
+
+    const areRouteNamesEqual = route.name === minimalAction.payload.name;
+
+    if (!areRouteNamesEqual) {
+        return false;
+    }
+
+    if (!('params' in minimalAction.payload)) {
+        return false;
+    }
+
+    return shallowCompare(route.params as Record<string, string | undefined>, minimalAction.payload.params as Record<string, string | undefined>);
+}
+
 function goUp(fallbackRoute: Route) {
     if (!canNavigate('goBack')) {
         return;
@@ -212,56 +236,30 @@ function goUp(fallbackRoute: Route) {
         return;
     }
 
-    const rootState = navigationRef.current?.getRootState();
-    const lastRoute = rootState?.routes.at(-1);
+    const rootState = navigationRef.current.getRootState();
+    const stateFromPath = getStateFromPath(fallbackRoute);
+    const action = getActionFromState(stateFromPath, linkingConfig.config);
 
-    const route = findFocusedRoute(getStateFromPath(fallbackRoute));
-    const routeName = route?.name;
-
-    if (!routeName) {
+    if (!action) {
         return;
     }
 
-    if (rootState?.routeNames?.includes(route?.name)) {
-        if (rootState?.routes.at(-2)?.name === routeName) {
-            navigationRef.current.dispatch(StackActions.pop());
-            return;
-        }
-        navigate(fallbackRoute, 'REPLACE');
+    const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
+
+    if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
         return;
     }
 
-    if (lastRoute?.state?.routeNames?.includes(route?.name)) {
-        const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(lastRoute?.state, fallbackRoute ?? '');
-        if (distanceFromPathInRootNavigator > 0) {
-            navigationRef.current.dispatch({...StackActions.pop(distanceFromPathInRootNavigator), target: lastRoute?.key});
-            return;
-        }
-        navigate(fallbackRoute, 'REPLACE');
+    const indexOfFallbackRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction));
+
+    if (indexOfFallbackRoute === -1) {
+        const replaceAction = {...minimalAction, type: 'REPLACE'} as NavigationAction;
+        navigationRef.current.dispatch(replaceAction);
         return;
     }
 
-    const secondToLastRoute = rootState?.routes.at(-2);
-
-    if (secondToLastRoute?.state?.routeNames?.includes(route?.name)) {
-        navigationRef.current.dispatch(StackActions.pop());
-        const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(secondToLastRoute?.state, fallbackRoute ?? '');
-        if (distanceFromPathInRootNavigator > 0) {
-            navigationRef.current.dispatch({...StackActions.pop(distanceFromPathInRootNavigator), target: secondToLastRoute?.key});
-            return;
-        }
-        const routes = navigationRef.current.getRootState().routes;
-        const stateFromPath = getStateFromPath(fallbackRoute);
-        const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
-        if (!action) {
-            return;
-        }
-        const minimalAction = getMinimalAction(action, {...rootState, routes: routes.slice(0, -1), index: rootState.index - 1});
-        navigationRef.dispatch(minimalAction);
-        return;
-    }
-
-    navigate(fallbackRoute, 'REPLACE');
+    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
+    navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 
 /**
@@ -291,7 +289,8 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     const lastRoute = rootState?.routes.at(-1);
 
     if (lastRoute?.name.endsWith('SplitNavigator') && lastRoute?.state?.routes?.length === 1) {
-        const name = SPLIT_NAVIGATOR_TO_SIDEBAR_MAP[lastRoute?.name as SplitNavigatorName];
+        const splitNavigatorName = lastRoute?.name as keyof SplitNavigatorParamListType;
+        const name = SPLIT_NAVIGATOR_TO_SIDEBAR_MAP[splitNavigatorName];
         const params = getSidebarScreenParams(lastRoute);
         navigationRef.dispatch({
             type: 'REPLACE',
