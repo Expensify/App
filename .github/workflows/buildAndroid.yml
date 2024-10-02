@@ -128,6 +128,7 @@ jobs:
           bundle exec fastlane android "$lane"
 
           # Reload environment variables from GITHUB_ENV
+          # shellcheck disable=SC1090
           source "$GITHUB_ENV"
 
           SHOULD_UPLOAD_SOURCEMAPS='false'
