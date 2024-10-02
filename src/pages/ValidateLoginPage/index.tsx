@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateLoginPageProps} from './types';
+import type ValidateLoginPageProps from './types';
 
 function ValidateLoginPage({
     route: {

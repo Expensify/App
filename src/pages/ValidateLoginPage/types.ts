@@ -4,4 +4,4 @@ import type SCREENS from '@src/SCREENS';
 
 type ValidateLoginPageProps = StackScreenProps<PublicScreensParamList, typeof SCREENS.VALIDATE_LOGIN>;
 
-export type {ValidateLoginPageProps};
+export default ValidateLoginPageProps;

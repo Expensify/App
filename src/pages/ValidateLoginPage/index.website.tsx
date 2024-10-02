@@ -9,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateLoginPageProps} from './types';
+import type ValidateLoginPageProps from './types';
 
 function ValidateLoginPage({
     route: {
@@ -24,7 +24,7 @@ function ValidateLoginPage({
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     // To ensure that the previous autoAuthState does not impact the rendering of the current magic link page, the autoAuthState prop sets initWithStoredValues to false.
     // This is done unless the user is signed in, in which case the page will be remounted upon successful sign-in, as explained in Session.initAutoAuthState.
-    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {initWithStoredValues: isSignedIn, selector: (session) => session?.autoAuthState});
+    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {initWithStoredValues: isSignedIn, selector: (sessionValue) => sessionValue?.autoAuthState});
     const autoAuthStateWithDefault = autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
