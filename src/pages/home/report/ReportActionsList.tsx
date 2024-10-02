@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -216,6 +217,21 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
+
+    const isWhisperVisibleOnlyToUser = (reportAction: OnyxInputOrEntry<ReportAction>) => {
+        if (!ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)) {
+            return false;
+        }
+        const whisperedTo = ReportActionsUtils.getWhisperedTo(reportAction);
+        const iouReportID =
+            ReportActionsUtils.isMoneyRequestAction(reportAction) && ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID
+                ? (ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID ?? '').toString()
+                : '-1';
+        const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+        const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
+        return isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
+    };
+
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
@@ -223,7 +239,8 @@ function ReportActionsList({
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
             const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
             const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-            return shouldDisplay && isWithinVisibleThreshold;
+            const isWhisperForUser = isWhisperVisibleOnlyToUser(reportAction);
+            return shouldDisplay && (isWithinVisibleThreshold || isWhisperForUser);
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -266,8 +283,7 @@ function ReportActionsList({
         if (unreadMarkerReportActionID) {
             return;
         }
-
-        const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
+        const mostRecentReportActionCreated = report.lastVisibleActionCreated ?? '';
         if (mostRecentReportActionCreated <= unreadMarkerTime) {
             return;
         }
@@ -275,11 +291,11 @@ function ReportActionsList({
         setUnreadMarkerTime(mostRecentReportActionCreated);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sortedVisibleReportActions]);
+    }, [sortedVisibleReportActions, report.lastVisibleActionCreated]);
 
     const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created >= report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
