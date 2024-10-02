@@ -106,10 +106,10 @@ jobs:
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android upload_google_play_internal
         env:
-          aabPath: /tmp/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
+          aabPath: /tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
 
       - name: Upload Android build to Browser Stack
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
