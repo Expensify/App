@@ -133,7 +133,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ROLE.PRESENTATION}
                     value={state}
-                    maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    maxLength={CONST.STATE_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
                     containerStyles={styles.mt3}

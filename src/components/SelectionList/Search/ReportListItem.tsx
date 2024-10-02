@@ -77,6 +77,9 @@ function ReportListItem<TItem extends ListItem>({
         styles.overflowHidden,
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
+        // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
+        {backgroundColor: 'unset'},
+        styles.mh0,
     ];
 
     const handleOnButtonPress = () => {
@@ -102,7 +105,7 @@ function ReportListItem<TItem extends ListItem>({
     const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
 
     if (reportItem.transactions.length === 1) {
-        const transactionItem = reportItem.transactions[0];
+        const transactionItem = reportItem.transactions.at(0);
 
         return (
             <TransactionListItem
@@ -140,6 +143,7 @@ function ReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            hasAnimateInHighlightStyle
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (

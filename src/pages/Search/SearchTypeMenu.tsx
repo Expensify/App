@@ -49,7 +49,7 @@ type SearchTypeMenuItem = {
     title: string;
     type: SearchDataTypes;
     icon: IconAsset;
-    route?: Route;
+    getRoute: (policyID?: string) => Route;
 };
 
 function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
@@ -72,25 +72,37 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             title: translate('common.expenses'),
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
         {
             title: translate('common.chats'),
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: Expensicons.ChatBubbles,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
         {
             title: translate('workspace.common.invoices'),
             type: CONST.SEARCH.DATA_TYPES.INVOICE,
             icon: Expensicons.InvoiceGeneric,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.ALL)}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
         {
             title: translate('travel.trips'),
             type: CONST.SEARCH.DATA_TYPES.TRIP,
             icon: Expensicons.Suitcase,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
     ];
 
@@ -227,7 +239,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 {typeMenuItems.map((item, index) => {
                     const onPress = singleExecution(() => {
                         SearchActions.clearAllFilters();
-                        Navigation.navigate(item.route);
+                        Navigation.navigate(item.getRoute(queryJSON.policyID));
                     });
 
                     return (
