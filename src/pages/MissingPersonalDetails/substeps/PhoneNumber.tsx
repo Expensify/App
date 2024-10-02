@@ -56,7 +56,7 @@ function PhoneNumberStep({isEditing, onNext, personalDetailsValues}: CustomSubSt
             enabledWhenOffline
         >
             <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.PHONE_NUMBER}
@@ -65,7 +65,6 @@ function PhoneNumberStep({isEditing, onNext, personalDetailsValues}: CustomSubSt
                     role={CONST.ROLE.PRESENTATION}
                     inputMode={CONST.INPUT_MODE.TEL}
                     defaultValue={personalDetailsValues[INPUT_IDS.PHONE_NUMBER]}
-                    containerStyles={[styles.mt6]}
                 />
             </View>
         </FormProvider>
