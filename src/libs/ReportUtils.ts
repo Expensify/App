@@ -6961,7 +6961,7 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     }
 
     const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs);
-    if (Permissions.canUseCombinedTrackSubmit(allBetas ?? [])) {
+    if (Permissions.canUseCombinedTrackSubmit()) {
         requestOptions.push(CONST.IOU.TYPE.CREATE);
     }
 
