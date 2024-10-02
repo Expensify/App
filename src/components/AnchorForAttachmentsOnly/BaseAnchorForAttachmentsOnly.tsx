@@ -1,6 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -13,26 +12,20 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Download as OnyxDownload} from '@src/types/onyx';
 import type AnchorForAttachmentsOnlyProps from './types';
 
-type BaseAnchorForAttachmentsOnlyOnyxProps = {
-    /** If a file download is happening */
-    download: OnyxEntry<OnyxDownload>;
+type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
+    /** Press in handler for the link */
+    onPressIn?: () => void;
+
+    /** Press out handler for the link */
+    onPressOut?: () => void;
 };
 
-type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps &
-    BaseAnchorForAttachmentsOnlyOnyxProps & {
-        /** Press in handler for the link */
-        onPressIn?: () => void;
-
-        /** Press out handler for the link */
-        onPressOut?: () => void;
-    };
-
-function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', download, onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
+function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -79,11 +72,4 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 
-export default withOnyx<BaseAnchorForAttachmentsOnlyProps, BaseAnchorForAttachmentsOnlyOnyxProps>({
-    download: {
-        key: ({source}) => {
-            const sourceID = (source?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-            return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
-        },
-    },
-})(BaseAnchorForAttachmentsOnly);
+export default BaseAnchorForAttachmentsOnly;
