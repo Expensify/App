@@ -177,10 +177,12 @@ jobs:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
           fetch-depth: 0
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Change directories to Mobile-Expensify
+      - name: Rename directory to Mobile-Expensify
+        run: mv ../App ../Mobile-Expensify
+
+      - name: Update submodule
         run: |
           git submodule update --init
           git checkout andrew-mobile-deploy
@@ -476,10 +478,12 @@ jobs:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
           fetch-depth: 0
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Change directories to Mobile-Expensify
+      - name: Rename directory to Mobile-Expensify
+        run: mv ../App ../Mobile-Expensify
+
+      - name: Update submodule
         run: |
           git submodule update --init
           git checkout andrew-mobile-deploy
