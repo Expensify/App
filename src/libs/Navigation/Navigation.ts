@@ -288,7 +288,9 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     const rootState = navigationRef.current?.getRootState();
     const lastRoute = rootState?.routes.at(-1);
 
-    if (lastRoute?.name.endsWith('SplitNavigator') && lastRoute?.state?.routes?.length === 1) {
+    const canGoBack = navigationRef.current?.canGoBack();
+
+    if (!canGoBack && lastRoute?.name.endsWith('SplitNavigator') && lastRoute?.state?.routes?.length === 1) {
         const splitNavigatorName = lastRoute?.name as keyof SplitNavigatorParamListType;
         const name = SPLIT_NAVIGATOR_TO_SIDEBAR_MAP[splitNavigatorName];
         const params = getSidebarScreenParams(lastRoute);
@@ -302,12 +304,12 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
         return;
     }
 
-    if (!navigationRef.current?.canGoBack()) {
+    if (!canGoBack) {
         Log.hmmm('[Navigation] Unable to go back');
         return;
     }
 
-    navigationRef.current.goBack();
+    navigationRef.current?.goBack();
 }
 
 /**
