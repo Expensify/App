@@ -32,7 +32,7 @@ function TransactionListItem<TItem extends ListItem>({
         styles.pv3,
         styles.ph3,
         // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
-        {backgroundColor: 'unset'},
+        {backgroundColor: 'transparent'},
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
         styles.mh0,
