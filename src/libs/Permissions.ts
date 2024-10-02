@@ -3,6 +3,9 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 import * as Environment from './Environment/Environment';
+import * as SessionUtils from './SessionUtils';
+
+const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -45,9 +48,10 @@ function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
 }
 
-function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
+function canUseCombinedTrackSubmit(): boolean {
     // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
-    return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
+    const session = SessionUtils.getSession();
+    return isAccountIDEven(session?.accountID ?? -1);
 }
 
 /**
