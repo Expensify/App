@@ -217,7 +217,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     </Text>
                 )}
                 {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
-                {isPolicyExpenseChat && moneyRequestOptions.length && <Text>{translate('reportActionsView.justUsePlusButton')}</Text>}
                 {ReportUtils.isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
             </View>
         </>
