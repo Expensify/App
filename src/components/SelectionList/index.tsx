@@ -43,7 +43,8 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
             {...props}
             ref={ref}
             onScroll={onScroll ?? defaultOnScroll}
-            // Ignore the focus if it's caused by a touch event on a mobile chrome
+            // Ignore the focus if it's caused by a touch event on mobile chrome.
+            // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={Browser.isMobileChrome() && isScreenTouched}
         />
     );
