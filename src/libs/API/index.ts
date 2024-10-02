@@ -116,10 +116,10 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData);
-    processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
+    return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
 /**
@@ -181,8 +181,9 @@ function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
 function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
+    // Apply optimistic updates of read requests immediately
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
     waitForWrites(command).then(() => {
-        const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });
 }

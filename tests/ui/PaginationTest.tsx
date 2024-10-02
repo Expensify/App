@@ -339,6 +339,7 @@ describe('Pagination', () => {
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
@@ -354,6 +355,7 @@ describe('Pagination', () => {
         mockGetNewerActions(0);
 
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
