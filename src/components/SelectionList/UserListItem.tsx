@@ -3,6 +3,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
@@ -13,8 +14,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
+
+const fallbackIcon: IconType = {
+    source: FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
+    id: -1,
+};
 
 function UserListItem<TItem extends ListItem>({
     item,
@@ -29,6 +38,7 @@ function UserListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    wrapperStyle,
     pressableStyle,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -51,7 +61,7 @@ function UserListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -62,7 +72,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
-            pressableStyle={pressableStyle}
+            pressableStyle={[isFocused && styles.sidebarLinkActive, pressableStyle]}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
@@ -100,14 +110,14 @@ function UserListItem<TItem extends ListItem>({
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
-                                mainAvatar={item.icons[0]}
-                                secondaryAvatar={item.icons[1]}
+                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
+                                secondaryAvatar={item.icons.at(1)}
                                 showTooltip={showTooltip}
                                 backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             />
                         ) : (
                             <MultipleAvatars
-                                icons={item.icons ?? []}
+                                icons={item.icons}
                                 shouldShowTooltip={showTooltip}
                                 secondAvatarStyle={[
                                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
