@@ -1,5 +1,7 @@
 ---
 title: New Expensify Help
 ---
+
 Pages:
-* [Expensify Superapp](/superapp.html)
+
+-   [Expensify Superapp](/superapp.html)

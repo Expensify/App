@@ -15,7 +15,7 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
     // you might want to clone your array first.
 
     for (let i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i]) {
+        if (a.at(i) !== b.at(i)) {
             return false;
         }
     }
