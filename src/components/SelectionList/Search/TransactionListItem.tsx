@@ -1,8 +1,11 @@
 import React from 'react';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -20,6 +23,7 @@ function TransactionListItem<TItem extends ListItem>({
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
 
@@ -40,6 +44,13 @@ function TransactionListItem<TItem extends ListItem>({
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
+
     return (
         <BaseListItem
             item={item}
@@ -59,7 +70,7 @@ function TransactionListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            hasAnimateInHighlightStyle
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <TransactionListItemRow
                 item={transactionItem}

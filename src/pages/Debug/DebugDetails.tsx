@@ -76,7 +76,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                         !DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys),
                 )
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
-                .sort((a, b) => a[0].localeCompare(b[0])),
+                .sort((a, b) => (a.at(0) ?? '').localeCompare(b.at(0) ?? '')),
         [data],
     );
     const dateTimeFields = useMemo(
