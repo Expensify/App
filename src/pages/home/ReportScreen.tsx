@@ -211,6 +211,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                pendingChatMembers: reportOnyx.pendingChatMembers,
             },
         [reportOnyx, permissions],
     );
@@ -685,7 +686,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report?.reportID ?? '');
     }, [report]);
-    const mostRecentReportAction = reportActions[0];
+    const mostRecentReportAction = reportActions.at(0);
     const shouldShowMostRecentReportAction =
         !!mostRecentReportAction &&
         !ReportActionsUtils.isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
@@ -693,6 +694,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const lastRoute = usePrevious(route);
     const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
