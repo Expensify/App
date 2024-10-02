@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect} from 'react';
-import {BackHandler, View} from 'react-native';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
+import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -40,17 +41,11 @@ function SearchPageBottomTab() {
         if (!selectionMode?.isEnabled) {
             return false;
         }
-        if (selectionMode?.isEnabled) {
-            clearSelectedTransactions(undefined, true);
-            return true;
-        }
+        clearSelectedTransactions(undefined, true);
+        return true;
     }, [selectionMode, clearSelectedTransactions]);
 
-    useEffect(() => {
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonPress);
-
-        return () => backHandler.remove();
-    }, [handleBackButtonPress]);
+    useHandleBackButton(handleBackButtonPress);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
