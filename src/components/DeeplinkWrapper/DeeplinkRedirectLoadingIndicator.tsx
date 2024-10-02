@@ -21,7 +21,7 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email ?? ''});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -34,7 +34,7 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={[styles.mt2, styles.textAlignCenter]}>
-                    <Text>{translate('deeplinkWrapper.loggedInAs', {email})}</Text>
+                    <Text>{translate('deeplinkWrapper.loggedInAs', {email: currentUserLogin ?? ''})}</Text>
                     <Text style={[styles.textAlignCenter]}>
                         {translate('deeplinkWrapper.doNotSeePrompt')} <TextLink onPress={() => openLinkInBrowser(true)}>{translate('deeplinkWrapper.tryAgain')}</TextLink>
                         {translate('deeplinkWrapper.or')} <TextLink onPress={() => Navigation.goBack()}>{translate('deeplinkWrapper.continueInWeb')}</TextLink>.
