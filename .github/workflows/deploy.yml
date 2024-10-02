@@ -79,7 +79,6 @@ jobs:
 
   uploadAndroid:
     name: Upload Android build to Google Play Store
-    if: ${{ github.ref == 'refs/heads/staging' }}
     needs: buildAndroid
     runs-on: ubuntu-latest
     env:
