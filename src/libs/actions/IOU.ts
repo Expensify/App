@@ -8312,7 +8312,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         });
     });
 
-    const transactionThreadReportID = getIOUActionForTransactions([params.transactionID], params.reportID)?.[0]?.childReportID;
+    const transactionThreadReportID = getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID;
     const optimisticReportAction = ReportUtils.buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
