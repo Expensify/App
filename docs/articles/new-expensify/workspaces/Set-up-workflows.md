@@ -21,8 +21,6 @@ Workflows are available for Collect and Control workspaces. Additionally, you mu
 
 ![Click More Features > Enable Workflows]({{site.url}}/assets/images/ExpensifyHelp-Workflows-2.png){:width="100%"}
 
-![Enable workflow features]({{site.url}}/assets/images/ExpensifyHelp-Workflows-3.png){:width="100%"}
-
 # Select workflows
 
 You can choose to require additional approvals and/or allow delayed submissions.
@@ -34,6 +32,8 @@ You can choose to require additional approvals and/or allow delayed submissions.
 - **Delay Submissions**: Determines when issue-free expenses are automatically submitted. Once enabled, choose a delay frequency: 
 -- With delayed submission **enabled**, all reimbursable and non-reimbursable expenses will be submitted at a designated frequency.
 -- If delay submission is **disabled**, all reimbursable and non-reimbursable expenses are submitted instantly.
+
+![Enable workflow features]({{site.url}}/assets/images/ExpensifyHelp-Workflows-3.png){:width="100%"}
 
 # Set up payment account 
 
