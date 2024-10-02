@@ -24,7 +24,7 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const assigneeAccountID = (action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const assigneeAccountID = (ReportActionsUtils.getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
 
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
