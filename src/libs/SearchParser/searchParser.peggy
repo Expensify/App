@@ -120,6 +120,7 @@ key "key"
       / "from"
       / "expenseType"
       / "in"
+      / "no"
     )
 
 defaultKey "default key"
