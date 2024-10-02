@@ -2,14 +2,12 @@ import React, {useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type SearchRouterInputProps = {
     /** Value of TextInput */
@@ -38,12 +36,25 @@ type SearchRouterInputProps = {
 
     /** Component to be displayed on the right */
     rightComponent?: ReactNode;
+
+    /** Whether the search reports API call is running  */
+    isSearchingForReports?: boolean;
 };
 
-function SearchRouterInput({value, setValue, updateSearch, routerListRef, isFullWidth, disabled = false, wrapperStyle, wrapperFocusedStyle, rightComponent}: SearchRouterInputProps) {
+function SearchRouterInput({
+    value,
+    setValue,
+    updateSearch,
+    routerListRef,
+    isFullWidth,
+    disabled = false,
+    wrapperStyle,
+    wrapperFocusedStyle,
+    rightComponent,
+    isSearchingForReports,
+}: SearchRouterInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const onChangeText = (text: string) => {

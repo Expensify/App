@@ -35,6 +35,7 @@ function SearchRouter() {
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
@@ -179,6 +180,7 @@ function SearchRouter() {
                         routerListRef={listRef}
                         wrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2, styles.border]}
                         wrapperFocusedStyle={[styles.borderColorFocus]}
+                        isSearchingForReports={isSearchingForReports}
                     />
                     <SearchRouterList
                         currentQuery={userSearchQuery}
