@@ -286,6 +286,7 @@ platform :ios do
   desc "Upload app to TestFlight"
   lane :upload_testflight do
     upload_to_testflight(
+      ipa: ENV[KEY_IPA_PATH],
       api_key_path: "./ios/ios-fastlane-json-key.json",
       distribute_external: true,
       notify_external_testers: true,
