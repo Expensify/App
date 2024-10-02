@@ -2331,6 +2331,7 @@ function getTrackExpenseInformation(
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         false,
+        existingTransaction,
     );
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -3973,6 +3974,8 @@ function createSplitsAndOnyxData(
         taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        undefined,
+        existingTransaction,
     );
 
     // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
