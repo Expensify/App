@@ -222,6 +222,7 @@ jobs:
           op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
 
       - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
         uses: 1password/load-secrets-action@v2
         with:
           export-env: false
@@ -239,10 +240,10 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android build_hybrid keystore_file:$ANDROID_KEYSTORE_LOCAL_PATH keystore_password:$ANDROID_UPLOAD_KEYSTORE_PASSWORD key_alias:$ANDROID_UPLOAD_KEYSTORE_ALIAS key_password:$ANDROID_UPLOAD_KEY_PASSWORD
         env:
-          ANDROID_KEYSTORE_LOCAL_PATH: 'android/app/my-upload-key.keystore'
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-docker-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-docker-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-docker-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_LOCAL_PATH: './my-upload-key.keystore'
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
 #      - name: Upload Android app to Google Play
 #        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
