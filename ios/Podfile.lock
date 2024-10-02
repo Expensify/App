@@ -1968,7 +1968,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-view-shot (4.0.0-alpha.3):
+  - react-native-view-shot (3.8.0):
     - React-Core
   - react-native-webview (13.8.6):
     - DoubleConversion
@@ -2382,7 +2382,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.143):
+  - RNLiveMarkdown (0.1.159):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2402,9 +2402,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.143)
+    - RNLiveMarkdown/common (= 0.1.159)
     - Yoga
-  - RNLiveMarkdown/common (0.1.143):
+  - RNLiveMarkdown/common (0.1.159):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3218,7 +3218,7 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
   react-native-safe-area-context: 38fdd9b3c5561de7cabae64bd0cd2ce05d2768a1
-  react-native-view-shot: ee44129a7c470310d3c7e67085834fc8cc077655
+  react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: ad29375839c9aa0409ce8e8693291b42bdc067a4
   React-nativeconfig: 57781b79e11d5af7573e6f77cbf1143b71802a6d
   React-NativeModulesApple: 7ff2e2cfb2e5fa5bdedcecf28ce37e696c6ef1e1
@@ -3259,7 +3259,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: e44918843c2638692348f39eafc275698baf0444
+  RNLiveMarkdown: 2d97e3f4952c642cdd31bc05555e44dc5edcdba1
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
@@ -3276,7 +3276,7 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
-  Yoga: 2a45d7e59592db061217551fd3bbe2dd993817ae
+  Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
 PODFILE CHECKSUM: 15e2f095b9c80d658459723edf84005a6867debf
 
