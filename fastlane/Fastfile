@@ -268,11 +268,11 @@ platform :ios do
       setupIOSSigningCertificate()
 
       install_provisioning_profile(
-        path: "../Mobile-Expensify/iOS/OldApp_AppStore.mobileprovision"
+        path: "./OldApp_AppStore.mobileprovision"
       )
 
       install_provisioning_profile(
-        path: "../Mobile-Expensify/iOS/OldApp_AppStore_Share_Extension.mobileprovision"
+        path: "./OldApp_AppStore_Share_Extension.mobileprovision"
       )
 
       build_app(
