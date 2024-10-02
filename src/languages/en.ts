@@ -69,6 +69,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -825,6 +826,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         submitExpense: 'Submit expense',
+        createExpense: 'Create expense',
         trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -1019,6 +1021,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -2771,6 +2774,7 @@ const translations = {
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Imported as ${importedTypes.join(' and ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
@@ -4018,11 +4022,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' and ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
             }
             return {
                 one: `removed you from ${joinedNames}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
@@ -4273,6 +4277,7 @@ const translations = {
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },

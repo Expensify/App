@@ -52,7 +52,7 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     return textMatrix.map((rowText, rowIndex) => (
         <Fragment
             // eslint-disable-next-line react/no-array-index-key
-            key={`${rowText[0]}-${rowIndex}`}
+            key={`${rowText.at(0)}-${rowIndex}`}
         >
             {rowText.map((colText, colIndex) => (
                 // Outer View is important to vertically center the Text
