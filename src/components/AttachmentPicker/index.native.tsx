@@ -112,7 +112,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  */
-function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false}: AttachmentPickerProps) {
+function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false, shouldValidateImage = true}: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -177,7 +177,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                                             const uri = manipResult.uri;
                                             const convertedAsset = {
                                                 uri,
-                                                name: uri.substring(uri.lastIndexOf('/') + 1).split('?')[0],
+                                                name: uri
+                                                    .substring(uri.lastIndexOf('/') + 1)
+                                                    .split('?')
+                                                    .at(0),
                                                 type: 'image/jpeg',
                                                 width: manipResult.width,
                                                 height: manipResult.height,
@@ -318,6 +321,26 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 width: ('width' in fileData && fileData.width) || undefined,
                 height: ('height' in fileData && fileData.height) || undefined,
             };
+
+            if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
+                ImageSize.getSize(fileDataUri)
+                    .then(({width, height}) => {
+                        fileDataObject.width = width;
+                        fileDataObject.height = height;
+                        return fileDataObject;
+                    })
+                    .then((file) => {
+                        getDataForUpload(file)
+                            .then((result) => {
+                                completeAttachmentSelection.current(result);
+                            })
+                            .catch((error: Error) => {
+                                showGeneralAlert(error.message);
+                                throw error;
+                            });
+                    });
+                return;
+            }
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
                 ImageSize.getSize(fileDataUri)
@@ -331,7 +354,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 return validateAndCompleteAttachmentSelection(fileDataObject);
             }
         },
-        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert],
+        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert, shouldValidateImage, showGeneralAlert],
     );
 
     /**
@@ -363,8 +386,11 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             if (focusedIndex === -1) {
                 return;
             }
-            selectItem(menuItemData[focusedIndex]);
-            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            const item = menuItemData.at(focusedIndex);
+            if (item) {
+                selectItem(item);
+                setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            }
         },
         {
             isActive: isVisible,
