@@ -28,7 +28,6 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
-    const [carouselPagerKey, setCarouselPagerKey] = useState(0);
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
@@ -46,9 +45,6 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         // If no matching attachment with the same index, dismiss the modal
         if (!newAttachments[newIndex] && newAttachments[index]) {
             newIndex = index;
-            // Set shouldRemountPager to true to avoid unnecessary remounting of the pager.
-            // We can't directly setCarouselPagerKey here since the attachment can briefly change if the modal should be dismissed.
-            shouldRemountPager = true;
         }
 
         if (!newAttachments[newIndex] && attachments[index]) {
@@ -56,13 +52,6 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         } else {
             setPage(newIndex);
             setAttachments(newAttachments);
-
-            // Re-mount the pager to reset the carousel.
-            // The newIndex from onPageSelected is inaccurate when attachments change dynamically.
-            // Related issue: https://github.com/callstack/react-native-pager-view/issues/597
-            if (shouldRemountPager) {
-                setCarouselPagerKey((prevKey) => prevKey + 1);
-            }
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
@@ -149,7 +138,6 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     />
 
                     <AttachmentCarouselPager
-                        key={carouselPagerKey}
                         items={attachments}
                         initialPage={page}
                         activeSource={activeSource}
