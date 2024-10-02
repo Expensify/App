@@ -196,7 +196,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
           cache: npm
 
       - name: Install node modules
@@ -496,7 +496,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
           cache: npm
 
       - name: Install node modules
