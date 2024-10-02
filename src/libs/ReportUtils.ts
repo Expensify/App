@@ -2896,7 +2896,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
     if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report) && policy?.areReportFieldsEnabled) { 
-        return report.reportName; 
+        return report.reportName;
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
