@@ -524,14 +524,26 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
     const policy = PolicyUtils.getPolicy(policyID);
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
 
-    const policyCategoryRule = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], policyCategory.oldName);
+    const policyCategoryApproverRule = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], policyCategory.oldName);
+    const policyCategoryExpenseRule = CategoryUtils.getCategoryExpenseRule(policy?.rules?.expenseRules ?? [], policyCategory.oldName);
     const approvalRules = policy?.rules?.approvalRules ?? [];
+    const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
+    const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
+
+    if (policyCategoryExpenseRule) {
+        const ruleIndex = updatedExpenseRules.findIndex((rule) => rule.id === policyCategoryExpenseRule.id);
+        policyCategoryExpenseRule.applyWhen = policyCategoryExpenseRule.applyWhen.map((applyWhen) => ({
+            ...applyWhen,
+            ...(applyWhen.field === CONST.POLICY.FIELDS.CATEGORY && applyWhen.value === policyCategory.oldName && {value: policyCategory.newName}),
+        }));
+        updatedExpenseRules[ruleIndex] = policyCategoryExpenseRule;
+    }
 
     // Its related by name, so the corresponding rule has to be updated to handle offline scenario
-    if (policyCategoryRule) {
-        const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyCategoryRule.id);
-        policyCategoryRule.applyWhen = policyCategoryRule.applyWhen.map((ruleCondition) => {
+    if (policyCategoryApproverRule) {
+        const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyCategoryApproverRule.id);
+        policyCategoryApproverRule.applyWhen = policyCategoryApproverRule.applyWhen.map((ruleCondition) => {
             const {value, field, condition} = ruleCondition;
 
             if (value === policyCategory.oldName && field === CONST.POLICY.FIELDS.CATEGORY && condition === CONST.POLICY.RULE_CONDITIONS.MATCHES) {
@@ -540,7 +552,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
 
             return ruleCondition;
         });
-        updatedApprovalRules[indexToUpdate] = policyCategoryRule;
+        updatedApprovalRules[indexToUpdate] = policyCategoryApproverRule;
     }
 
     const onyxData: OnyxData = {
@@ -568,6 +580,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                 value: {
                     rules: {
                         approvalRules: updatedApprovalRules,
+                        expenseRules: updatedExpenseRules,
                     },
                 },
             },
