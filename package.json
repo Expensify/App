@@ -134,7 +134,7 @@
     "react-native-android-location-enabler": "^2.0.1",
     "react-native-blob-util": "0.19.4",
     "react-native-collapsible": "^1.6.2",
-    "react-native-config": "1.5.0",
+    "react-native-config": "1.5.3",
     "react-native-dev-menu": "^4.1.1",
     "react-native-device-info": "10.3.1",
     "react-native-document-picker": "^9.3.1",
