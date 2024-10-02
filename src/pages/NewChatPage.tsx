@@ -216,7 +216,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             if (option?.login) {
                 login = option.login;
             } else if (selectedOptions.length === 1) {
-                login = selectedOptions[0].login ?? '';
+                login = selectedOptions.at(0)?.login ?? '';
             }
             if (!login) {
                 Log.warn('Tried to create chat with empty login');

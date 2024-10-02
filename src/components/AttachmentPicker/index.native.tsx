@@ -178,7 +178,10 @@ function AttachmentPicker({
                                             const uri = manipResult.uri;
                                             const convertedAsset = {
                                                 uri,
-                                                name: uri.substring(uri.lastIndexOf('/') + 1).split('?')[0],
+                                                name: uri
+                                                    .substring(uri.lastIndexOf('/') + 1)
+                                                    .split('?')
+                                                    .at(0),
                                                 type: 'image/jpeg',
                                                 width: manipResult.width,
                                                 height: manipResult.height,
@@ -386,8 +389,11 @@ function AttachmentPicker({
             if (focusedIndex === -1) {
                 return;
             }
-            selectItem(menuItemData[focusedIndex]);
-            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            const item = menuItemData.at(focusedIndex);
+            if (item) {
+                selectItem(item);
+                setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            }
         },
         {
             isActive: isVisible,
