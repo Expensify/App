@@ -3763,7 +3763,7 @@ function getReportName(
     if (reportID && !isUserCreatedPolicyRoom(report) && !isDefaultRoom(report)) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
-        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName) {
+        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName && reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME ) {
             return reportNameFromCache.reportName;
         }
     }
