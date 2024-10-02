@@ -67,6 +67,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -817,6 +818,7 @@ const translations = {
         share: 'Compartir',
         participants: 'Participantes',
         submitExpense: 'Presentar gasto',
+        createExpense: 'Crear gasto',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         trackExpense: 'Seguimiento de gastos',
         pay: 'Pagar',
@@ -1013,6 +1015,7 @@ const translations = {
         bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
+        justTrackIt: 'Solo guardarlo (no enviarlo)',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1208,7 +1211,6 @@ const translations = {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
-        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -2806,6 +2808,7 @@ const translations = {
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Importados como ${importedTypes.join(' y ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Por favor, introduzca el ${fieldName}`,
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
@@ -4064,11 +4067,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
             }
             return {
                 one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,

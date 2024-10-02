@@ -275,7 +275,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
     const pendingAction = transaction?.pendingAction;
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
+    // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
@@ -310,7 +311,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             // Return violations if there are any
             if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+                const firstViolation = violations.at(0);
+
+                if (firstViolation) {
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                }
             }
 
             return '';
@@ -472,10 +477,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {shouldShowReceiptAudit && (
-                    <ReceiptAudit
-                        notes={receiptViolations}
-                        shouldShowAuditResult={!!shouldShowAuditMessage}
-                    />
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                        <ReceiptAudit
+                            notes={receiptViolations}
+                            shouldShowAuditResult={!!shouldShowAuditMessage}
+                        />
+                    </OfflineWithFeedback>
                 )}
                 {(hasReceipt || errors) && (
                     <OfflineWithFeedback
@@ -525,21 +532,23 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
-                    <ReceiptEmptyState
-                        hasError={hasErrors}
-                        disabled={!canEditReceipt}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction?.transactionID ?? '-1',
-                                    report?.reportID ?? '-1',
-                                    Navigation.getReportRHPActiveRoute(),
-                                ),
-                            )
-                        }
-                    />
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                        <ReceiptEmptyState
+                            hasError={hasErrors}
+                            disabled={!canEditReceipt}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction?.transactionID ?? '-1',
+                                        report?.reportID ?? '-1',
+                                        Navigation.getReportRHPActiveRoute(),
+                                    ),
+                                )
+                            }
+                        />
+                    </OfflineWithFeedback>
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}

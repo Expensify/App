@@ -162,6 +162,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const firstIcon = optionItem.icons?.at(0);
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -202,7 +204,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     if (!event) {
                                         return;
                                     }
-
                                     // Prevent composer blur on left click
                                     event.preventDefault();
                                 }}
@@ -235,11 +236,12 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length &&
+                                            firstIcon &&
                                             (optionItem.shouldShowSubscript ? (
                                                 <SubscriptAvatar
                                                     backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    mainAvatar={optionItem.icons[0]}
-                                                    secondaryAvatar={optionItem.icons[1]}
+                                                    mainAvatar={firstIcon}
+                                                    secondaryAvatar={optionItem.icons.at(1)}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                 />
                                             ) : (
