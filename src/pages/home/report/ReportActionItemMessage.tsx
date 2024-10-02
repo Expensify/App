@@ -2,8 +2,7 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -14,16 +13,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemMessageOnyxProps = {
-    /** The transaction linked to the report action. */
-    transaction: OnyxEntry<Transaction>;
-};
-
-type ReportActionItemMessageProps = ReportActionItemMessageOnyxProps & {
+type ReportActionItemMessageProps = {
     /** The report action */
     action: ReportAction;
 
@@ -40,9 +34,10 @@ type ReportActionItemMessageProps = ReportActionItemMessageOnyxProps & {
     reportID: string;
 };
 
-function ReportActionItemMessage({action, transaction, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
+function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`);
 
     const fragments = ReportActionsUtils.getReportActionMessageFragments(action);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
@@ -159,8 +154,4 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
-    transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`,
-    },
-})(ReportActionItemMessage);
+export default ReportActionItemMessage;
