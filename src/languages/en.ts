@@ -69,6 +69,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -451,6 +452,7 @@ const translations = {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
@@ -824,6 +826,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         submitExpense: 'Submit expense',
+        createExpense: 'Create expense',
         trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -922,6 +925,8 @@ const translations = {
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
         paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} with Expensify`,
+        automaticallyPaidWithExpensify: ({payer, amount}: PaidWithExpensifyWithAmountParams) =>
+            `${payer ? `${payer} ` : ''}automatically paid ${amount} with Expensify via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
@@ -1016,6 +1021,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1210,7 +1216,6 @@ const translations = {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
-        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account settings',
         account: 'Account',
@@ -1373,7 +1378,6 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
-        bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
@@ -2769,6 +2773,7 @@ const translations = {
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Imported as ${importedTypes.join(' and ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
@@ -3649,6 +3654,7 @@ const translations = {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
+            bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
         },
         invite: {
             member: 'Invite member',
@@ -4015,11 +4021,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' and ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
             }
             return {
                 one: `removed you from ${joinedNames}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
@@ -4270,6 +4276,7 @@ const translations = {
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },

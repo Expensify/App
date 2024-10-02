@@ -13,6 +13,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -46,6 +47,8 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {canUseNewDotCopilot} = usePermissions();
     const {windowWidth} = useWindowDimensions();
+    const personalDetails = usePersonalDetails();
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -128,66 +131,76 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates
-        .filter((d) => !d.optimisticAccountID)
-        .map(({email, role, pendingAction, errorFields, pendingFields}) => {
-            const personalDetail = getPersonalDetailByEmail(email);
+    const delegateMenuItems: MenuItemProps[] = useMemo(
+        () =>
+            delegates
+                .filter((d) => !d.optimisticAccountID)
+                .map(({email, role, pendingAction, errorFields, pendingFields}) => {
+                    const personalDetail = getPersonalDetailByEmail(email);
+                    const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
-            const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
+                    const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
+                        if (isEmptyObject(pendingAction)) {
+                            showPopoverMenu(e, {email, role});
+                            return;
+                        }
+                        if (!role) {
+                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
+                            return;
+                        }
+                        if (pendingFields?.role && !pendingFields?.email) {
+                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));
+                    };
 
-            const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
-                if (isEmptyObject(pendingAction)) {
-                    showPopoverMenu(e, {email, role});
-                    return;
-                }
-                if (!role) {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
-                    return;
-                }
-                if (pendingFields?.role && !pendingFields?.email) {
-                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));
-            };
+                    const formattedEmail = formatPhoneNumber(email);
+                    return {
+                        title: personalDetail?.displayName ?? formattedEmail,
+                        description: personalDetail?.displayName ? formattedEmail : '',
+                        badgeText: translate('delegate.role', {role}),
+                        avatarID: personalDetail?.accountID ?? -1,
+                        icon: personalDetail?.avatar ?? FallbackAvatar,
+                        iconType: CONST.ICON_TYPE_AVATAR,
+                        numberOfLinesDescription: 1,
+                        wrapperStyle: [styles.sectionMenuItemTopDescription],
+                        iconRight: Expensicons.ThreeDots,
+                        shouldShowRightIcon: true,
+                        pendingAction,
+                        shouldForceOpacity: !!pendingAction,
+                        onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
+                        error,
+                        onPress,
+                    };
+                }),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegates, translate, styles, personalDetails],
+    );
 
-            const formattedEmail = formatPhoneNumber(email);
-            return {
-                title: personalDetail?.displayName ?? formattedEmail,
-                description: personalDetail?.displayName ? formattedEmail : '',
-                badgeText: translate('delegate.role', {role}),
-                avatarID: personalDetail?.accountID ?? -1,
-                icon: personalDetail?.avatar ?? FallbackAvatar,
-                iconType: CONST.ICON_TYPE_AVATAR,
-                numberOfLinesDescription: 1,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
-                pendingAction,
-                success: selectedDelegate?.email === email,
-                shouldForceOpacity: !!pendingAction,
-                onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
-                error,
-                onPress,
-            };
-        });
+    const delegatorMenuItems: MenuItemProps[] = useMemo(
+        () =>
+            delegators.map(({email, role}) => {
+                const personalDetail = getPersonalDetailByEmail(email);
+                const formattedEmail = formatPhoneNumber(email);
 
-    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
-        const formattedEmail = formatPhoneNumber(email);
-
-        return {
-            title: personalDetail?.displayName ?? formattedEmail,
-            description: personalDetail?.displayName ? formattedEmail : '',
-            badgeText: translate('delegate.role', {role}),
-            avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? FallbackAvatar,
-            iconType: CONST.ICON_TYPE_AVATAR,
-            numberOfLinesDescription: 1,
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            interactive: false,
-        };
-    });
+                return {
+                    title: personalDetail?.displayName ?? formattedEmail,
+                    description: personalDetail?.displayName ? formattedEmail : '',
+                    badgeText: translate('delegate.role', {role}),
+                    avatarID: personalDetail?.accountID ?? -1,
+                    icon: personalDetail?.avatar ?? FallbackAvatar,
+                    iconType: CONST.ICON_TYPE_AVATAR,
+                    numberOfLinesDescription: 1,
+                    wrapperStyle: [styles.sectionMenuItemTopDescription],
+                    interactive: false,
+                };
+            }),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegators, styles, translate, personalDetails],
+    );
 
     return (
         <ScreenWrapper
