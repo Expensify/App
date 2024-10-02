@@ -66,6 +66,7 @@ function BaseTextInput(
         isMarkdownEnabled = false,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -391,7 +392,7 @@ function BaseTextInput(
                                         : []),
 
                                     // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && styles.textInputDisabled,
+                                    inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}

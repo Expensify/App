@@ -122,6 +122,9 @@ type CustomBaseTextInputProps = {
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
 
+    /** Whether to apply styles when input is disabled */
+    shouldUseDisabledStyles?: boolean;
+
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 

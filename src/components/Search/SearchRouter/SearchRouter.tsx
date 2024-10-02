@@ -174,6 +174,7 @@ function SearchRouter() {
                     <SearchRouterInput
                         value={textInputValue}
                         setValue={setTextInputValue}
+                        isFullWidth={isSmallScreenWidth}
                         updateSearch={onSearchChange}
                         routerListRef={listRef}
                     />
