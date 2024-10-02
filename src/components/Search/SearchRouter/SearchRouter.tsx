@@ -50,9 +50,7 @@ function SearchRouter() {
         return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
     }, [recentSearches]);
 
-    const {options, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: true,
-    });
+    const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
@@ -90,6 +88,15 @@ function SearchRouter() {
     useEffect(() => {
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
+
+    useEffect(() => {
+        if (!textInputValue && isSearchRouterDisplayed) {
+            return;
+        }
+        listRef.current?.updateAndScrollToFocusedIndex(0);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSearchRouterDisplayed]);
 
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
