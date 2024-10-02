@@ -22,12 +22,12 @@ const maskSessionDetails = (data: Record<string, unknown>): Record<string, unkno
     };
 };
 
-const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Record<string, unknown> => {
-    const maskedData: Record<string, unknown> = {};
-
-    if (!data) {
-        return maskedData;
+const maskFragileData = (data: Record<string, unknown> | unknown[], parentKey?: string): Record<string, unknown> | unknown[] => {
+    if (Array.isArray(data)) {
+        return data.map((item): unknown => (typeof item === 'object' ? maskFragileData(item as Record<string, unknown>, parentKey) : item));
     }
+
+    const maskedData: Record<string, unknown> = {};
 
     Object.keys(data).forEach((key) => {
         if (!Object.prototype.hasOwnProperty.call(data, key)) {
@@ -56,7 +56,7 @@ const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnable
     onyxState = maskSessionDetails(onyxState);
     // Mask fragile data other than session details if the user has enabled the option
     if (isMaskingFragileDataEnabled) {
-        onyxState = maskFragileData(onyxState);
+        onyxState = maskFragileData(onyxState) as Record<string, unknown>;
     }
 
     return onyxState;
