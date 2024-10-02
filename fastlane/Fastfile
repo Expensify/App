@@ -19,6 +19,7 @@ KEY_GRADLE_APK_PATH = "apkPath"
 KEY_S3_APK_PATH = "s3APKPath"
 KEY_GRADLE_AAB_PATH = "aabPath"
 KEY_IPA_PATH = "ipaPath"
+KEY_S3_IPA_PATH = "s3IpaPath"
 KEY_DSYM_PATH = "dsymPath"
 
 # Export environment variables to GITHUB_ENV
@@ -280,7 +281,10 @@ platform :ios do
       ipa: ENV[KEY_IPA_PATH],
       app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
     )
-    sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
+    puts "Saving S3 outputs in env..."
+    exportEnvVars({
+      KEY_S3_IPA_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH].
+    })
   end
 
   desc "Upload app to TestFlight"
