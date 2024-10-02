@@ -25,6 +25,7 @@ import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, 
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
+import lodashSet from 'lodash/set';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -165,10 +166,7 @@ function buildOptimisticTransaction(
         const distanceRates = DistanceRequestUtils.getMileageRates(policy, true);
         const customUnitRateID = existingTransaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         const mileageRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[customUnitRateID] ?? {};
-        if (!commentJSON.customUnit) {
-            commentJSON.customUnit = {};
-        }
-        commentJSON.customUnit.distanceUnit = mileageRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        lodashSet(commentJSON, 'customUnit.distanceUnit', mileageRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     }
 
     return {
