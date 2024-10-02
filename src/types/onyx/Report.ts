@@ -39,7 +39,7 @@ type PendingChatMember = {
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the participant is visible in the report */
-    hidden?: boolean;
+    notificationPreference: NotificationPreference;
 
     /** What is the role of the participant in the report */
     role?: 'admin' | 'member';
@@ -70,6 +70,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
+
+        /** The filename of the avatar */
+        avatarFileName?: string;
 
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -112,9 +115,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The time of the last mention of the report */
         lastMentionedTime?: string | null;
-
-        /** The current user's notification preference for this report */
-        notificationPreference?: NotificationPreference;
 
         /** The policy avatar to use, if any */
         policyAvatar?: string | null;
@@ -296,6 +296,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
+
+        /** Participant account id's */
+        participantAccountIDs?: number[];
+
+        /** Visible chat member account id's */
+        visibleChatMemberAccountIDs?: number[];
     },
     PolicyReportField['fieldID']
 >;

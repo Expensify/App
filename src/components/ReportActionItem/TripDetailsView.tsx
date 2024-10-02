@@ -62,7 +62,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     const formattedDate = getFormattedDate();
 
     const bottomDescription = useMemo(() => {
-        const code = `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}`;
+        const code = `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
             const longName = reservation.company?.longName ? `${reservation.company?.longName} • ` : '';
             const shortName = reservation?.company?.shortName ? `${reservation?.company?.shortName} ` : '';
@@ -129,7 +129,6 @@ function ReservationView({reservation}: ReservationViewProps) {
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
-            hoverAndPressStyle={styles.hoveredComponentBG}
         />
     );
 }

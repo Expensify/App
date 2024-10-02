@@ -18,6 +18,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -58,9 +59,11 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
+    // See https://github.com/Expensify/App/issues/48724 for more details
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
@@ -93,11 +96,11 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues[index] ?? true,
+                enabled: !disabledListValues.at(index) ?? true,
                 rightElement: (
                     <ListItemRightCaretWithLabel
                         shouldShowCaret={false}
-                        labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                        labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
                     />
                 ),
             }))
@@ -187,13 +190,13 @@ function ReportFieldsListValuesPage({
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return !disabledListValues?.[index];
+                return !disabledListValues?.at(index);
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (!disabledListValues?.[index] && index !== -1) {
+                    if (!disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
 
@@ -219,13 +222,13 @@ function ReportFieldsListValuesPage({
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return disabledListValues?.[index];
+                return disabledListValues?.at(index);
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (disabledListValues?.[index] && index !== -1) {
+                    if (disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
 
@@ -255,7 +258,7 @@ function ReportFieldsListValuesPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedValuesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
@@ -267,7 +270,6 @@ function ReportFieldsListValuesPage({
         return (
             <Button
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
-                medium
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
@@ -313,9 +315,9 @@ function ReportFieldsListValuesPage({
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.EmptyStateExpenses}
-                        headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={styles.emptyStateFolderIconSize}
+                        headerMedia={Illustrations.FolderWithPapers}
+                        headerStyles={styles.emptyFolderDarkBG}
+                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (

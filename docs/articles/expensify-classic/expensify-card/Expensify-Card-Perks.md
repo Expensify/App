@@ -7,7 +7,7 @@ description: An overview of all the various perks the Expensify Card offers
 ### Cashback
 Get 1% cash back with every swipe — no minimums necessary — and 2% back if you spend $250k+/month across cards.
 
-This applies to USD purchases only.
+This applies to US purchases only.
 
 ### Discounts on Monthly Expensify Bill
 Get the Expensify Visa® Commercial Card and use it for at least half of your organization's monthly expenses to save 50% on your monthly Expensify bill.

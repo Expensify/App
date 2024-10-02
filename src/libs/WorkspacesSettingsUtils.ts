@@ -1,13 +1,14 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
+import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
-import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -17,14 +18,6 @@ import * as ReportUtils from './ReportUtils';
 type CheckingMethod = () => boolean;
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
@@ -100,7 +93,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
-function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConnectionProgresses: OnyxCollection<PolicyConnectionSyncProgress>) {
     // When attempting to open a policy with an invalid policyID, the policy collection is updated to include policy objects with error information.
     // Only policies displayed on the policy list page should be verified. Otherwise, the user will encounter an RBR unrelated to any policies on the list.
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
@@ -110,7 +103,10 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanPolicies).some(hasEmployeeListError),
-        () => Object.values(cleanPolicies).some(hasSyncError),
+        () =>
+            Object.values(cleanPolicies).some((cleanPolicy) =>
+                hasSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
+            ),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
 
@@ -152,19 +148,6 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
     }
 
     return undefined;
-}
-
-function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
-    if (!policyID) {
-        return hasGlobalWorkspaceSettingsRBR(allPolicies);
-    }
-    const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
-
-    if (!policy) {
-        return false;
-    }
-
-    return hasWorkspaceSettingsRBR(policy);
 }
 
 /**
@@ -251,7 +234,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: LocaleContextProps['translate'],
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
@@ -288,14 +271,14 @@ function getOwnershipChecksDisplayText(
         case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
             title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
             text = translate('workspace.changeOwner.duplicateSubscriptionText', {
-                email: changeOwner?.duplicateSubscription,
-                workspaceName: policy?.name,
+                email: changeOwner?.duplicateSubscription ?? '',
+                workspaceName: policy?.name ?? '',
             });
             buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
             title = translate('workspace.changeOwner.hasFailedSettlementsTitle');
-            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin});
+            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin ?? ''});
             buttonText = translate('workspace.changeOwner.hasFailedSettlementsButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
@@ -318,7 +301,6 @@ export {
     getWorkspacesBrickRoads,
     getWorkspacesUnreadStatuses,
     hasGlobalWorkspaceSettingsRBR,
-    checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
     getUnitTranslationKey,

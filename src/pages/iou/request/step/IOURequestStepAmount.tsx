@@ -10,7 +10,6 @@ import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -63,7 +62,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency = ''},
+        params: {iouType, reportID, transactionID, backTo, pageIndex, action, currency: selectedCurrency = ''},
     },
     transaction,
     policy,
@@ -80,7 +79,6 @@ function IOURequestStepAmount({
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -135,9 +133,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, pageIndex, currency, Navigation.getActiveRoute()));
     };
 
     const navigateToParticipantPage = () => {
@@ -182,10 +178,13 @@ function IOURequestStepAmount({
             return;
         }
 
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // If a reportID exists in the report object, it's because either:
+        // - The user started this flow from using the + button in the composer inside a report.
+        // - The user started this flow from using the global create menu by selecting the Track expense option.
+        // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
@@ -216,11 +215,11 @@ function IOURequestStepAmount({
 
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
@@ -229,10 +228,10 @@ function IOURequestStepAmount({
                         backendAmount,
                         currency,
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
                         {},
                     );
@@ -244,10 +243,10 @@ function IOURequestStepAmount({
                         backendAmount,
                         currency ?? 'USD',
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
                     );
                     return;
@@ -255,9 +254,7 @@ function IOURequestStepAmount({
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
-                const participantAccountIDs = Object.keys(report.participants)
-                    .map((accountID) => Number(accountID))
-                    .filter((accountID) => !PolicyUtils.isExpensifyTeam(allPersonalDetails?.[accountID]?.login));
+                const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
                 IOU.setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             navigateToConfirmationPage();

@@ -23,6 +23,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap().onEnd(() => {
         handleSendMessage();

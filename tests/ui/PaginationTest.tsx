@@ -198,7 +198,10 @@ async function signInAndGetApp(): Promise<void> {
             reportID: REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
-            participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+            participants: {
+                [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
             lastActorAccountID: USER_B_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
@@ -212,7 +215,7 @@ async function signInAndGetApp(): Promise<void> {
             reportID: COMMENT_LINKING_REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
-            participants: {[USER_A_ACCOUNT_ID]: {hidden: false}},
+            participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             lastActorAccountID: USER_A_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
@@ -309,9 +312,7 @@ describe('Pagination', () => {
         expect(getReportActions()).toHaveLength(18);
     });
 
-    // Currently broken on main by https://github.com/Expensify/App/pull/42582.
-    // TODO: Investigate and re-enable.
-    it.skip('opens a chat and load newer messages', async () => {
+    it('opens a chat and load newer messages', async () => {
         mockOpenReport(5, '5');
         mockGetNewerActions(5);
 
@@ -325,26 +326,45 @@ describe('Pagination', () => {
         });
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
+        await waitForBatchedUpdatesWithAct();
 
-        expect(getReportActions()).toHaveLength(5);
+        // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
+        expect(getReportActions()).toHaveLength(10);
 
         // There is 1 extra call here because of the comment linking report.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
 
+        // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
+        scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 1, {reportID: REPORT_ID, reportActionID: '10'});
 
+        // We now have 15 messages. 5 from the initial OpenReport and 10 from the 2 GetNewerActions calls.
+        expect(getReportActions()).toHaveLength(15);
+
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
+
+        scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
+        scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        // We now have 10 messages. 5 from the initial OpenReport and 5 from GetNewerActions.
-        expect(getReportActions()).toHaveLength(10);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 3);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 2, {reportID: REPORT_ID, reportActionID: '15'});
+
+        // We still have 15 messages. 5 from the initial OpenReport and 10 from the 2 GetNewerActions calls.
+        expect(getReportActions()).toHaveLength(15);
     });
 });

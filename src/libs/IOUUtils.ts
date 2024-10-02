@@ -116,16 +116,9 @@ function isValidMoneyRequestType(iouType: string): boolean {
         CONST.IOU.TYPE.PAY,
         CONST.IOU.TYPE.TRACK,
         CONST.IOU.TYPE.INVOICE,
+        CONST.IOU.TYPE.CREATE,
     ];
-    return moneyRequestType.includes(iouType);
-}
 
-/**
- * Checks if the iou type is one of submit, pay, track, or split.
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function temporary_isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE];
     return moneyRequestType.includes(iouType);
 }
 
@@ -141,7 +134,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
-    while (tagArray.length > 0 && !tagArray[tagArray.length - 1]) {
+    while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
     }
 
@@ -156,13 +149,17 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
+function shouldUseTransactionDraft(action: IOUAction | undefined) {
+    return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
+}
+
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
+    shouldUseTransactionDraft,
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
-    temporary_isValidMoneyRequestType,
 };

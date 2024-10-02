@@ -16,6 +16,8 @@
 		0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
 		0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0CDA8E36287DD6A0004ECBEC /* Images.xcassets */; };
 		0CDA8E38287DD6A0004ECBEC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0CDA8E36287DD6A0004ECBEC /* Images.xcassets */; };
+		0DFC45942C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */; };
+		0DFC45952C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */; };
 		0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0F5BE0CD252686320097D869 /* GoogleService-Info.plist */; };
 		0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
 		0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
@@ -103,6 +105,8 @@
 		0CDA8E33287DD650004ECBEC /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = NewExpensify/AppDelegate.mm; sourceTree = "<group>"; };
 		0CDA8E36287DD6A0004ECBEC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
 		0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = NewExpensify/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		0DFC45922C884D7900B56C91 /* RCTShortcutManagerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTShortcutManagerModule.h; sourceTree = "<group>"; };
+		0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTShortcutManagerModule.m; sourceTree = "<group>"; };
 		0F5BE0CD252686320097D869 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnvironmentChecker.h; sourceTree = "<group>"; };
 		0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EnvironmentChecker.m; sourceTree = "<group>"; };
@@ -135,6 +139,13 @@
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		707151F8A56D2431696273AB /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
+		7F3784A22C75103800063508 /* NewExpensifyDebugDevelopment.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyDebugDevelopment.entitlements; path = NewExpensify/NewExpensifyDebugDevelopment.entitlements; sourceTree = "<group>"; };
+		7F3784A32C75129D00063508 /* NewExpensifyDebugAdHoc.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyDebugAdHoc.entitlements; path = NewExpensify/NewExpensifyDebugAdHoc.entitlements; sourceTree = "<group>"; };
+		7F3784A42C7512BF00063508 /* NewExpensifyDebugProduction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyDebugProduction.entitlements; path = NewExpensify/NewExpensifyDebugProduction.entitlements; sourceTree = "<group>"; };
+		7F3784A52C7512CF00063508 /* NewExpensifyReleaseDevelopment.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyReleaseDevelopment.entitlements; path = NewExpensify/NewExpensifyReleaseDevelopment.entitlements; sourceTree = "<group>"; };
+		7F3784A62C7512D900063508 /* NewExpensifyReleaseAdHoc.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyReleaseAdHoc.entitlements; path = NewExpensify/NewExpensifyReleaseAdHoc.entitlements; sourceTree = "<group>"; };
+		7F3784A72C75131000063508 /* NewExpensifyReleaseProduction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = NewExpensifyReleaseProduction.entitlements; path = NewExpensify/NewExpensifyReleaseProduction.entitlements; sourceTree = "<group>"; };
+		7F9C91352CA5EC4900FC4DC1 /* NotificationServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotificationServiceExtension.entitlements; sourceTree = "<group>"; };
 		7F9DD8D92B2A445B005E3AFA /* ExpError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpError.swift; sourceTree = "<group>"; };
 		7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -228,6 +239,12 @@
 		13B07FAE1A68108700A75B9A /* NewExpensify */ = {
 			isa = PBXGroup;
 			children = (
+				7F3784A72C75131000063508 /* NewExpensifyReleaseProduction.entitlements */,
+				7F3784A62C7512D900063508 /* NewExpensifyReleaseAdHoc.entitlements */,
+				7F3784A52C7512CF00063508 /* NewExpensifyReleaseDevelopment.entitlements */,
+				7F3784A42C7512BF00063508 /* NewExpensifyDebugProduction.entitlements */,
+				7F3784A32C75129D00063508 /* NewExpensifyDebugAdHoc.entitlements */,
+				7F3784A22C75103800063508 /* NewExpensifyDebugDevelopment.entitlements */,
 				0F5BE0CD252686320097D869 /* GoogleService-Info.plist */,
 				E9DF872C2525201700607FDC /* AirshipConfig.plist */,
 				0CDA8E36287DD6A0004ECBEC /* Images.xcassets */,
@@ -277,6 +294,7 @@
 		7FD73C9C2B23CE9500420AF3 /* NotificationServiceExtension */ = {
 			isa = PBXGroup;
 			children = (
+				7F9C91352CA5EC4900FC4DC1 /* NotificationServiceExtension.entitlements */,
 				7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */,
 				7FD73C9F2B23CE9500420AF3 /* Info.plist */,
 				7F9DD8D92B2A445B005E3AFA /* ExpError.swift */,
@@ -296,6 +314,8 @@
 			children = (
 				E5A27B8F2C7F2F51002C36BF /* RCTShareActionHandlerModule.h */,
 				E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */,
+				0DFC45922C884D7900B56C91 /* RCTShortcutManagerModule.h */,
+				0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */,
 				499B0DA92BE2A1C000CABFB0 /* PrivacyInfo.xcprivacy */,
 				374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */,
 				374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */,
@@ -948,6 +968,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
+				0DFC45952C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */,
 				0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */,
 				7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
 				7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */,
@@ -961,6 +982,7 @@
 			files = (
 				E5A27B912C7F2FA8002C36BF /* RCTShareActionHandlerModule.m in Sources */,
 				18D050E0262400AF000D658B /* BridgingFile.swift in Sources */,
+				0DFC45942C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */,
 				0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */,
 				7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
@@ -1262,6 +1284,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -1324,7 +1347,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyDebugDevelopment.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -1365,7 +1388,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyReleaseDevelopment.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -1428,6 +1451,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -1514,6 +1538,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -1599,8 +1624,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -1641,7 +1667,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) Development: Notification Service";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) AppStore: Notification Service";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1685,6 +1711,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -1764,6 +1791,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -1842,6 +1870,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = NotificationServiceExtension/NotificationServiceExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
@@ -2131,7 +2160,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyDebugProduction.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
@@ -2281,7 +2310,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyDebugAdHoc.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
@@ -2425,7 +2454,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyReleaseProduction.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
@@ -2565,7 +2594,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/NewExpensifyReleaseAdHoc.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;

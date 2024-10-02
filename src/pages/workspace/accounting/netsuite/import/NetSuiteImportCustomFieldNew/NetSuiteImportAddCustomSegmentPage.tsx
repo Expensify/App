@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useLocalize from '@hooks/useLocalize';
@@ -35,12 +35,15 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
+        });
     }, [policyID]);
 
     const {
@@ -65,6 +68,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             return;
         }
         ref.current?.movePrevious();
+        formRef.current?.resetErrors();
         prevScreen();
     };
 
@@ -86,22 +90,21 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             switch (screenIndex) {
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_NAME:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SEGMENT_NAME])) {
-                        errors[INPUT_IDS.SEGMENT_NAME] = translate(
-                            'workspace.netsuite.import.importCustomFields.requiredFieldError',
-                            translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
-                        );
+                        errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {
+                            fieldName: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
+                        });
                     } else if (customSegments.find((customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLowerCase())) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
-                        errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
+                        errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.INTERNAL_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.INTERNAL_ID])) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
-                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customSegments.find((customSegment) => customSegment.internalID.toLowerCase() === values[INPUT_IDS.INTERNAL_ID].toLowerCase())) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
-                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
+                        errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SCRIPT_ID:
@@ -111,14 +114,14 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                                 customSegmentRecordType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT ? 'scriptID' : 'customRecordScriptID'
                             }`,
                         );
-                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customSegments.find((customSegment) => customSegment.scriptID.toLowerCase() === values[INPUT_IDS.SCRIPT_ID].toLowerCase())) {
                         const fieldLabel = translate(
                             `workspace.netsuite.import.importCustomFields.customSegments.fields.${
                                 customSegmentRecordType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT ? 'scriptID' : 'customRecordScriptID'
                             }`,
                         );
-                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
+                        errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING:
@@ -143,7 +146,13 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     mapping: formValues[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 },
             ]);
-            Connections.updateNetSuiteCustomSegments(policyID, updatedCustomSegments, customSegments);
+            Connections.updateNetSuiteCustomSegments(
+                policyID,
+                updatedCustomSegments,
+                customSegments,
+                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             nextScreen();
         },
         [customSegments, nextScreen, policyID],
@@ -199,6 +208,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     renderSubStepContent
                 ) : (
                     <FormProvider
+                        ref={formRef}
                         formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM}
                         submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                         onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomSegments : handleNextScreen}
@@ -207,7 +217,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         submitButtonStyles={[styles.ph5, styles.mb0]}
                         shouldUseScrollView={!selectionListForm}
                         enabledWhenOffline
-                        isSubmitDisabled={!!config?.syncOptions?.pendingFields?.customSegments}
+                        isSubmitDisabled={!!config?.pendingFields?.customSegments}
                         submitFlexEnabled={submitFlexAllowed}
                         shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING}
                     >

@@ -40,7 +40,7 @@ function ExportWithDropdownMenu({
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -59,7 +59,7 @@ function ExportWithDropdownMenu({
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', connectionName),
+                text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
                 ...optionTemplate,
             },
             {
@@ -119,14 +119,14 @@ function ExportWithDropdownMenu({
                 }}
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
-                style={[isSmallScreenWidth && styles.flexGrow1]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal
                 title={translate('workspace.exportAgainModal.title')}
                 onConfirm={confirmExport}
                 onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                prompt={translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''})}
                 confirmText={translate('workspace.exportAgainModal.confirmText')}
                 cancelText={translate('workspace.exportAgainModal.cancelText')}
                 isVisible={!!modalStatus}

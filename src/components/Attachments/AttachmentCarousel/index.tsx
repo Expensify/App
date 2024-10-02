@@ -12,6 +12,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -40,7 +41,8 @@ const MIN_FLING_VELOCITY = 500;
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
@@ -49,7 +51,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
+    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const cellWidth = useMemo(
         () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
         [modalStyles.borderWidth, modalStyles.marginHorizontal, windowWidth],
@@ -100,9 +102,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 setDownloadButtonVisibility(initialPage !== -1);
             }
 
+            const attachment = targetAttachments.at(initialPage);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments[initialPage] !== undefined && onNavigate) {
-                onNavigate(targetAttachments[initialPage]);
+            if (initialPage !== -1 && attachment !== undefined && onNavigate) {
+                onNavigate(attachment);
             }
         }
     }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
@@ -129,7 +132,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
-            const entry = viewableItems[0];
+            const entry = viewableItems.at(0);
             if (!entry) {
                 setActiveSource(null);
                 return;
@@ -156,9 +159,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             }
 
             const nextIndex = page + deltaSlide;
-            const nextItem = attachments[nextIndex];
+            const nextItem = attachments.at(nextIndex);
 
-            if (!nextItem || !scrollRef.current) {
+            if (!nextItem || nextIndex < 0 || !scrollRef.current) {
                 return;
             }
 

@@ -30,6 +30,12 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -88,12 +94,12 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {})[0];
-                reportActionID = resultAction.reportActionID;
+                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {}).at(0);
+                reportActionID = resultAction?.reportActionID ?? '-1';
 
-                expect(resultAction.message).toEqual(REPORT_ACTION.message);
-                expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.pendingAction).toBeUndefined();
+                expect(resultAction?.message).toEqual(REPORT_ACTION.message);
+                expect(resultAction?.person).toEqual(REPORT_ACTION.person);
+                expect(resultAction?.pendingAction).toBeUndefined();
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
@@ -103,7 +109,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            notificationPreference: 'always',
+                            participants: {
+                                [TEST_USER_ACCOUNT_ID]: {
+                                    notificationPreference: 'always',
+                                },
+                            },
                             lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
                             lastActorAccountID: TEST_USER_ACCOUNT_ID,
@@ -186,7 +196,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments.at(URL_ARGUMENT_INDEX)?.includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
@@ -230,7 +240,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            notificationPreference: 'always',
+                            participants: {
+                                [USER_1_ACCOUNT_ID]: {
+                                    notificationPreference: 'always',
+                                },
+                            },
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_2_ACCOUNT_ID,
                             lastVisibleActionCreated: reportActionCreatedDate,
@@ -380,7 +394,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            notificationPreference: 'always',
+                            participants: {
+                                [USER_1_ACCOUNT_ID]: {
+                                    notificationPreference: 'always',
+                                },
+                            },
                             lastMessageText: 'Current User Comment 3',
                             lastActorAccountID: 1,
                             lastVisibleActionCreated: reportActionCreatedDate,
@@ -567,7 +585,7 @@ describe('actions/Report', () => {
                 reportActionsReactions[key] = val ?? {};
             },
         });
-        let reportAction: OnyxTypes.ReportAction;
+        let reportAction: OnyxTypes.ReportAction | undefined;
         let reportActionID: string;
 
         // Set up Onyx with some test user data
@@ -584,15 +602,17 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = Object.values(reportActions)[0];
-                reportActionID = reportAction.reportActionID;
+                reportAction = Object.values(reportActions).at(0);
+                reportActionID = reportAction?.reportActionID ?? '-1';
 
-                // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                if (reportAction) {
+                    // Add a reaction to the comment
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                }
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = Object.values(reportActions)[0];
+                reportAction = Object.values(reportActions).at(0);
 
                 // Expect the reaction to exist in the reportActionsReactions collection
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -605,8 +625,10 @@ describe('actions/Report', () => {
                 const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                 expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                // Now we remove the reaction
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                if (reportAction) {
+                    // Now we remove the reaction
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                }
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -616,20 +638,24 @@ describe('actions/Report', () => {
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             })
             .then(() => {
-                reportAction = Object.values(reportActions)[0];
+                reportAction = Object.values(reportActions).at(0);
 
-                // Add the same reaction to the same report action with a different skintone
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                if (reportAction) {
+                    // Add the same reaction to the same report action with a different skintone
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                }
                 return waitForBatchedUpdates()
                     .then(() => {
-                        reportAction = Object.values(reportActions)[0];
+                        reportAction = Object.values(reportActions).at(0);
 
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
+                        if (reportAction) {
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
+                        }
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
-                        reportAction = Object.values(reportActions)[0];
+                        reportAction = Object.values(reportActions).at(0);
 
                         // Expect the reaction to exist in the reportActionsReactions collection
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -647,8 +673,10 @@ describe('actions/Report', () => {
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
 
-                        // Now we remove the reaction, and expect that both variations are removed
-                        Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                        if (reportAction) {
+                            // Now we remove the reaction, and expect that both variations are removed
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                        }
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
@@ -686,7 +714,7 @@ describe('actions/Report', () => {
             },
         });
 
-        let resultAction: OnyxTypes.ReportAction;
+        let resultAction: OnyxTypes.ReportAction | undefined;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -702,26 +730,30 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = Object.values(reportActions)[0];
+                resultAction = Object.values(reportActions).at(0);
 
-                // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
+                if (resultAction) {
+                    // Add a reaction to the comment
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
+                }
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = Object.values(reportActions)[0];
+                resultAction = Object.values(reportActions).at(0);
 
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
+                if (resultAction) {
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2);
+                }
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Expect the reaction to have null where the users reaction used to be
-                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`);
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
     });

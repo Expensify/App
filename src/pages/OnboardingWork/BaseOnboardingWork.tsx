@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -19,20 +19,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
-import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
+import type {BaseOnboardingWorkProps} from './types';
 
-const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
-
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
+    const {isOffline} = useNetwork();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -68,65 +69,55 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
         return errors;
     };
 
-    const WorkFooterInstance = <OfflineIndicator />;
-
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             shouldEnableKeyboardAvoidingView
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWork"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <FormProvider
-                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
-                    footerContent={shouldUseNarrowLayout && WorkFooterInstance}
-                    validate={validate}
-                    onSubmit={completeEngagement}
-                    submitButtonText={translate('common.continue')}
-                    enabledWhenOffline
-                    submitFlexEnabled
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
-                    shouldTrimValues={false}
-                >
-                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.WORK}
-                            name="fwork"
-                            label={translate('common.businessName')}
-                            aria-label={translate('common.businessName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            shouldSaveDraft
-                            maxLength={CONST.TITLE_CHARACTER_LIMIT}
-                            spellCheck={false}
-                            autoFocus
-                        />
-                    </View>
-                </FormProvider>
-            </View>
+            <HeaderWithBackButton
+                shouldShowBackButton
+                progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
+                onBackButtonPress={OnboardingFlow.goBack}
+            />
+            <FormProvider
+                style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
+                validate={validate}
+                onSubmit={completeEngagement}
+                submitButtonText={translate('common.continue')}
+                enabledWhenOffline
+                submitFlexEnabled
+                shouldValidateOnBlur
+                shouldValidateOnChange
+                shouldTrimValues={false}
+            >
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
+                </View>
+                <View style={styles.mb4}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={inputCallbackRef}
+                        inputID={INPUT_IDS.WORK}
+                        name="fwork"
+                        label={translate('common.businessName')}
+                        aria-label={translate('common.businessName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        shouldSaveDraft
+                        maxLength={CONST.TITLE_CHARACTER_LIMIT}
+                        spellCheck={false}
+                    />
+                </View>
+            </FormProvider>
+            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
-    onboardingPurposeSelected: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    onboardingPolicyID: {
-        key: ONYXKEYS.ONBOARDING_POLICY_ID,
-    },
-})(BaseOnboardingWork);
+export default BaseOnboardingWork;

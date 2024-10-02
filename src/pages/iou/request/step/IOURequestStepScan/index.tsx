@@ -67,6 +67,7 @@ function IOURequestStepScan({
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
+    // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
@@ -85,6 +86,7 @@ function IOURequestStepScan({
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
 
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -138,8 +140,8 @@ function IOURequestStepScan({
                 navigator.mediaDevices.enumerateDevices().then((devices) => {
                     let lastBackDeviceId = '';
                     for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices[i];
-                        if (device.kind === 'videoinput') {
+                        const device = devices.at(i);
+                        if (device?.kind === 'videoinput') {
                             lastBackDeviceId = device.deviceId;
                             break;
                         }
@@ -264,7 +266,9 @@ function IOURequestStepScan({
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+            // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
                 navigateToParticipantPage();
                 return;
             }
@@ -300,6 +304,10 @@ function IOURequestStepScan({
                 }
                 getCurrentPosition(
                     (successData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
                             IOU.trackExpense(
                                 report,
@@ -309,7 +317,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -334,7 +342,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -353,6 +361,10 @@ function IOURequestStepScan({
                         }
                     },
                     (errorData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
@@ -364,7 +376,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -377,7 +389,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -443,9 +455,9 @@ function IOURequestStepScan({
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(file as Blob);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
+                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', !isEditing);
 
-                if (action === CONST.IOU.ACTION.EDIT) {
+                if (isEditing) {
                     updateScanAndNavigate(file, source);
                     return;
                 }
@@ -477,15 +489,15 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name, !isEditing);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (isEditing) {
             updateScanAndNavigate(file, source);
             return;
         }
 
         navigateToConfirmationStep(file, source);
-    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
+    }, [isEditing, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -566,10 +578,9 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                             additionalStyles={[styles.pb5]}
                         />
-                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                        <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                         <Button
-                            medium
                             success
                             text={translate('common.continue')}
                             accessibilityLabel={translate('common.continue')}
@@ -601,7 +612,7 @@ function IOURequestStepScan({
                 <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityLabel={translate('receipt.chooseFile')}
+                            accessibilityLabel={translate('common.chooseFile')}
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
@@ -658,12 +669,12 @@ function IOURequestStepScan({
             </View>
 
             <View
-                style={[styles.receiptViewTextContainer, styles.userSelectNone]}
+                style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                <Text style={[styles.subTextReceiptUpload]}>
+                <Text style={[styles.textFileUpload]}>{translate('receipt.upload')}</Text>
+                <Text style={[styles.subTextFileUpload]}>
                     {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
@@ -676,10 +687,9 @@ function IOURequestStepScan({
             <AttachmentPicker>
                 {({openPicker}) => (
                     <Button
-                        medium
                         success
-                        text={translate('receipt.chooseFile')}
-                        accessibilityLabel={translate('receipt.chooseFile')}
+                        text={translate('common.chooseFile')}
+                        accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
@@ -696,13 +706,13 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo}
+            shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadFileView(isSmallScreenWidth)]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                         <ReceiptDropUI
                             onDrop={(e) => {

@@ -64,7 +64,9 @@ function BaseTextInput(
         suffixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -78,7 +80,7 @@ function BaseTextInput(
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -389,7 +391,7 @@ function BaseTextInput(
                                         : []),
 
                                     // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && styles.textInputDisabled,
+                                    inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}

@@ -144,6 +144,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
 function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
@@ -214,7 +215,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             if (option?.login) {
                 login = option.login;
             } else if (selectedOptions.length === 1) {
-                login = selectedOptions[0].login ?? '';
+                login = selectedOptions.at(0)?.login ?? '';
             }
             if (!login) {
                 Log.warn('Tried to create chat with empty login');
@@ -227,7 +228,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
-            if (item.isSelfDM) {
+            if (!!item.isSelfDM || (item.accountID && CONST.NON_ADDABLE_ACCOUNT_IDS.includes(item.accountID))) {
                 return null;
             }
             /**

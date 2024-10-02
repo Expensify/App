@@ -3,6 +3,8 @@ import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import SearchPageHeader from '@components/Search/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +18,7 @@ type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEA
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {q, isCustomQuery} = route.params;
+    const {q} = route.params;
 
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
@@ -40,10 +42,18 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {queryJSON && (
-                    <Search
-                        isCustomQuery={isCustomQuery}
-                        queryJSON={queryJSON}
-                    />
+                    <>
+                        <SearchPageHeader
+                            queryJSON={queryJSON}
+                            hash={queryJSON.hash}
+                        />
+                        <SearchStatusBar
+                            type={queryJSON.type}
+                            status={queryJSON.status}
+                            policyID={queryJSON.policyID}
+                        />
+                        <Search queryJSON={queryJSON} />
+                    </>
                 )}
             </FullPageNotFoundView>
         </ScreenWrapper>
