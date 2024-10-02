@@ -492,7 +492,7 @@ function getTagArrayFromName(tagName: string): string[] {
 function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
-        return tagsArray[tagIndex] ?? '';
+        return tagsArray.at(tagIndex) ?? '';
     }
 
     return transaction?.tag ?? '';
@@ -646,7 +646,7 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
     let waypointIndex = -1;
 
     return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
-        const previousWaypoint = waypointValues[lastWaypointIndex];
+        const previousWaypoint = waypointValues.at(lastWaypointIndex);
 
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
@@ -982,12 +982,12 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
     // Helper function to check if all comments are equal
     function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+        return items.every((item) => lodashIsEqual(getDescription(item), getDescription(firstTransaction)));
     }
 
     // Helper function to check if all fields are equal for a given key
     function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
-        const firstTransaction = transactions[0];
+        const firstTransaction = transactions.at(0);
         return items.every((item) => keyExtractor(item) === keyExtractor(firstTransaction));
     }
 
@@ -1002,13 +1002,12 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
-            const firstTransaction = transactions[0];
+            const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
-
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {

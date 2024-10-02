@@ -3,9 +3,9 @@ import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-ht
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function EmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
+function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
-    const style = 'islarge' in tnode.attributes ? styles.onlyEmojisText : {};
+    const style = {...styleProp, ...('islarge' in tnode.attributes ? styles.onlyEmojisText : {})};
     return (
         <EmojiWithTooltip
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}

@@ -20,10 +20,10 @@ import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
-import WorkspaceCardCreateAWorkspace from '@pages/workspace/card/WorkspaceCardCreateAWorkspace';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {

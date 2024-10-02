@@ -22,6 +22,7 @@ import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
+import type ConstantSelector from '@pages/Debug/ConstantSelector';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
@@ -61,7 +62,8 @@ type ValidInputs =
     | typeof NetSuiteCustomFieldMappingPicker
     | typeof NetSuiteMenuWithTopDescriptionForm
     | typeof CountryPicker
-    | typeof StatePicker;
+    | typeof StatePicker
+    | typeof ConstantSelector;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
 type ValueTypeMap = {
@@ -155,6 +157,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
+    resetErrors: () => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
