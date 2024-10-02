@@ -1211,7 +1211,6 @@ const translations = {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
-        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
