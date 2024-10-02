@@ -238,7 +238,7 @@ jobs:
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android build_hybrid keystore_file:/home/runner/work/App/App/react-native/upload-key.keystore keystore_password:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} key_alias:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} key_password:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: bundle exec fastlane android build_hybrid keystore_password:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} key_alias:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} key_password:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
 #      - name: Upload Android app to Google Play
 #        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}

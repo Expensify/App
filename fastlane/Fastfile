@@ -77,13 +77,13 @@ platform :android do
 
   desc "Generate a production HybridApp AAB"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      ENV["ENVFILE"]="../.env.production.hybridapp"
       gradle(
-        project_dir: '../Mobile-Expensify/Android',
+        project_dir: '../Android',
         task: "bundleRelease",
         flags: "--refresh-dependencies",
         properties: {
-            "android.injected.signing.store.file" => options[:keystore_file],
+            "android.injected.signing.store.file" => './upload-key.keystore',
             "android.injected.signing.store.password" => options[:keystore_password],
             "android.injected.signing.key.alias" => options[:key_alias],
             "android.injected.signing.key.password" => options[:key_password],
@@ -108,7 +108,7 @@ platform :android do
     lane :build_local_hybrid do
       ENV["ENVFILE"]=".env.production"
       gradle(
-        project_dir: '../Mobile-Expensify/Android',
+        project_dir: '../Android',
         task: 'assemble',
         flavor: 'Production',
         build_type: 'Release',
@@ -263,7 +263,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp production build"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      ENV["ENVFILE"]="../.env.production.hybridapp"
 
       setupIOSSigningCertificate()
 
