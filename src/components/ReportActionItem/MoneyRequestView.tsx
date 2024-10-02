@@ -310,7 +310,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             // Return violations if there are any
             if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+                const firstViolation = violations.at(0);
+
+                if (firstViolation) {
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                }
             }
 
             return '';

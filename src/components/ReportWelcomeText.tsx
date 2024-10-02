@@ -43,7 +43,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const filteredOptions = moneyRequestOptions.filter(
-        (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE,
+        (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
+            item !== CONST.IOU.TYPE.INVOICE,
     );
     const additionalText = filteredOptions
         .map((item, index) => `${index === filteredOptions.length - 1 ? `${translate('common.or')} ` : ''}${translate(`reportActionsView.iouTypes.${item}`)}`)
