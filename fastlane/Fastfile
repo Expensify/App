@@ -276,7 +276,7 @@ platform :ios do
       )
 
       build_app(
-        workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
+        workspace: "../iOS/Expensify.xcworkspace",
         scheme: "Expensify",
         output_name: "Expensify.ipa",
         export_method: "app-store",
