@@ -167,7 +167,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     defaults:
       run:
-        working-directory: react-native
+        working-directory: Mobile-Expensify/react-native
     env:
       RUBYOPT: '-rostruct'
     steps:
@@ -177,10 +177,8 @@ jobs:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
           fetch-depth: 0
+          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Rename directory to Mobile-Expensify in order to build correctly
-        run: mv ~/work/App/App ~/work/App/Mobile-Expensify
 
       - name: Update submodule
         run: |
@@ -474,6 +472,9 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+    defaults:
+      run:
+        working-directory: Mobile-Expensify/react-native
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -481,16 +482,13 @@ jobs:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
           fetch-depth: 0
+          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Rename directory to Mobile-Expensify in order to build correctly
-        run: mv ~/work/App/App ~/work/App/Mobile-Expensify
 
       - name: Update submodule
         run: |
           git submodule update --init
           git checkout andrew-mobile-deploy
-        working-directory: react-native
 
       - name: Configure MapBox SDK
         run: | 
