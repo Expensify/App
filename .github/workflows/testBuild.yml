@@ -78,7 +78,6 @@ jobs:
       RUBYOPT: '-rostruct'
     outputs:
       S3_APK_PATH: ${{ steps.exportS3Paths.outputs.S3_APK_PATH }}
-      S3_HTML_PATH: ${{ steps.exportS3Paths.outputs.S3_HTML_PATH }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -117,9 +116,8 @@ jobs:
       - name: Export S3 paths
         id: exportS3Paths
         run: |
-          # $s3APKPath and $s3HtmlPath are from within the Fastfile, android upload_s3 lane
+          # $s3APKPath is set from within the Fastfile, android upload_s3 lane
           echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
-          echo "S3_HTML_PATH=$s3HtmlPath" >> "$GITHUB_OUTPUT"
 
   iOS:
     name: Build and deploy iOS for testing
@@ -326,7 +324,7 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_HTML_PATH }}
+          ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
           WEB_LINK: https://${{ env.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com

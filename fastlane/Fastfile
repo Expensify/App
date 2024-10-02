@@ -16,11 +16,10 @@ skip_docs
 opt_out_usage
 
 KEY_GRADLE_APK_PATH = "apkPath"
+KEY_S3_APK_PATH = "s3APKPath"
 KEY_GRADLE_AAB_PATH = "aabPath"
 KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
-KEY_S3_APK_PATH = "s3APKPath"
-KEY_S3_HTML_PATH = "s3HtmlPath"
 
 # Export environment variables to GITHUB_ENV
 # If there's no GITHUB_ENV file set in the env, then this is a no-op
@@ -135,8 +134,7 @@ platform :android do
     )
     puts "Saving S3 outputs in env..."
     exportEnvVars({
-      KEY_S3_APK_PATH => lane_context[SharedValues::S3_APK_OUTPUT_PATH],
-      KEY_S3_HTML_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH],
+      KEY_S3_APK_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH],
     })
   end
 
