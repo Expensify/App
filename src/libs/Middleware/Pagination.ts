@@ -108,10 +108,11 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         // Detect if we are at the start of the list. This will always be the case for the initial request with no cursor.
         // For previous requests we check that no new data is returned. Ideally the server would return that info.
-        if ((type === 'initial' && !cursorID) || (type === 'next' && newPage.length === 1 && newPage[0] === cursorID)) {
+        if ((type === 'initial' && !cursorID) || (type === 'next' && newPage.length === 1 && newPage.at(0) === cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
-        if (isLastItem(sortedPageItems[sortedPageItems.length - 1])) {
+        const pageItem = sortedPageItems.at(-1);
+        if (pageItem && isLastItem(pageItem)) {
             newPage.push(CONST.PAGINATION_END_ID);
         }
 
