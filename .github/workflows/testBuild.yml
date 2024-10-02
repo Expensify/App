@@ -135,7 +135,7 @@ jobs:
     needs: buildIOS
     runs-on: ubuntu-latest
     outputs:
-      S3_IPA_PATH: ${{ steps.exportS3Paths.outputs.S3_IPA_PATH }}
+      S3_IPA_PATH: ${{ steps.exportS3Path.outputs.S3_IPA_PATH }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -172,7 +172,7 @@ jobs:
           S3_REGION: us-east-1
 
       - name: Export S3 paths
-        id: exportS3Paths
+        id: exportS3Path
         run: |
           # $s3IpaPath is set from within the Fastfile, ios upload_s3 lane
           echo "S3_IPA_PATH=$s3IpaPath" >> "$GITHUB_OUTPUT"
