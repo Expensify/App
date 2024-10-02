@@ -25,6 +25,7 @@ import * as reportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
@@ -41,9 +42,11 @@ type MoneyReportViewProps = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
+
+    pendingAction?: PendingAction;
 };
 
-function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine, pendingAction}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -118,7 +121,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
                                 return (
                                     <OfflineWithFeedback
-                                        pendingAction={report.pendingFields?.[fieldKey]}
+                                        // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                                        pendingAction={pendingAction ? undefined : report.pendingFields?.[fieldKey]}
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
