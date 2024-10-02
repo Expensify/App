@@ -87,7 +87,7 @@ jobs:
     name: Build apk from latest release as a baseline
     uses: ./.github/workflows/buildAndroid.yml
     needs: prep
-    if: ${{ fromJSON(needs.prep.outputs.BASELINE_ARTIFACT_FOUND) }}
+    if: ${{ !fromJSON(needs.prep.outputs.BASELINE_ARTIFACT_FOUND) }}
     secrets: inherit
     with:
       type: e2e
