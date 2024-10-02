@@ -825,6 +825,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         submitExpense: 'Submit expense',
+        createExpense: 'Create expense',
         trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -1019,6 +1020,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -4274,6 +4276,7 @@ const translations = {
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },
