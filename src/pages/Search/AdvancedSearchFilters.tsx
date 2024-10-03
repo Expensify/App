@@ -108,7 +108,6 @@ const baseFilterConfig = {
 
     // The no filter is just a modifier for other filters, e.g. categories and tags so it does't have its own page
     no: {
-        getTitle: () => {},
         description: 'common.no' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_NO,
     },
@@ -181,6 +180,12 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return;
     }
 
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters['no']) {
+        return 'No category';
+    }
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters['no']) {
+        return 'No tag';
+    }
     if (
         (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
         filters[fieldName]
