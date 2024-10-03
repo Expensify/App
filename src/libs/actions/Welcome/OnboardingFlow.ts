@@ -10,6 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import Onboarding from '@src/types/onyx/Onboarding';
 
 let selectedPurpose: string | undefined = '';
 Onyx.connect({
@@ -28,6 +29,16 @@ const onboardingLastVisitedPathConnection = Onyx.connect({
         }
         onboardingInitialPath = value;
         Onyx.disconnect(onboardingLastVisitedPathConnection);
+    },
+});
+
+let onboardingValues: Onboarding;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        if (value !== undefined) {
+            onboardingValues = value as Onboarding;
+        }
     },
 });
 
@@ -103,6 +114,11 @@ function startOnboardingFlow() {
 
 function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
+    const showBusinessModal = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+    if (showBusinessModal) {
+        return `/${ROUTES.ONBOARDING_WORK.route}`;
+    }
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
