@@ -57,6 +57,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
+
+    // The 'no' filter is a special case because it's a modifier built into other filters, e.g. categories and tags so it doesn't have it's own page
+    SEARCH_ADVANCED_FILTERS_NO: 'search/filters/',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {

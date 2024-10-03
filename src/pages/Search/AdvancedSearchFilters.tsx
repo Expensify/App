@@ -105,6 +105,13 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
+
+    // The no filter is just a modifier for other filters, e.g. categories and tags so it does't have its own page
+    no: {
+        getTitle: () => {},
+        description: 'common.no' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_NO,
+    },
 };
 
 const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>> = {
