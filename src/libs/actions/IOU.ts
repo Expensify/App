@@ -7893,6 +7893,8 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const updatedViolations = [...transactionViolations, newViolation];
+    const parentReportActionOptimistic = ReportUtils.getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7918,6 +7920,13 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
             value: updatedViolations,
         },
     ];
+
+    parentReportActionOptimistic.forEach((parentActionData) => {
+        if (!parentActionData) {
+            return;
+        }
+        optimisticData.push(parentActionData);
+    });
 
     const successData: OnyxUpdate[] = [
         {
