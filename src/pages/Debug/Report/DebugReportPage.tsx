@@ -59,6 +59,7 @@ function DebugReportPage({
         const reasonGBR = DebugUtils.getReasonForShowingGreenDotInLHNRow(report);
         const reportActionGBR = DebugUtils.getGBRReportAction(report);
         const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
+        const hasRBR = OptionsListUtils.hasReportErrors(report, reportActions);
 
         return [
             {
@@ -68,24 +69,25 @@ function DebugReportPage({
             },
             {
                 title: translate('debug.GBR'),
-                subtitle: translate(`debug.${!!reasonGBR}`),
-                message: reasonGBR ? translate(reasonGBR) : undefined,
-                action: reportActionGBR
-                    ? {
-                          name: translate('common.view'),
-                          callback: () =>
-                              Navigation.navigate(
-                                  ROUTES.REPORT_WITH_ID.getRoute(
-                                      reportActionGBR.childReportID ?? reportActionGBR.parentReportID ?? report.reportID,
-                                      reportActionGBR.childReportID ? undefined : reportActionGBR.reportActionID,
+                subtitle: translate(`debug.${!hasRBR && !!reasonGBR}`),
+                message: !hasRBR && reasonGBR ? translate(reasonGBR) : undefined,
+                action:
+                    !hasRBR && reportActionGBR
+                        ? {
+                              name: translate('common.view'),
+                              callback: () =>
+                                  Navigation.navigate(
+                                      ROUTES.REPORT_WITH_ID.getRoute(
+                                          reportActionGBR.childReportID ?? reportActionGBR.parentReportID ?? report.reportID,
+                                          reportActionGBR.childReportID ? undefined : reportActionGBR.reportActionID,
+                                      ),
                                   ),
-                              ),
-                      }
-                    : undefined,
+                          }
+                        : undefined,
             },
             {
                 title: translate('debug.RBR'),
-                subtitle: translate(`debug.${OptionsListUtils.hasReportErrors(report, reportActions)}`),
+                subtitle: translate(`debug.${hasRBR}`),
                 action: reportActionRBR
                     ? {
                           name: translate('common.view'),
