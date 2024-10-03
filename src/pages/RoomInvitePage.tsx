@@ -185,7 +185,7 @@ function RoomInvitePage({
         }
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, role, backTo]);
-    const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
+    const reportName = useMemo(() => ReportUtils.getReportName({report}), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 

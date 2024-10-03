@@ -353,7 +353,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName({report}))}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedMembers([]);

@@ -110,7 +110,7 @@ export default {
         }
 
         if (isChatRoom) {
-            const roomName = ReportUtils.getReportName(report);
+            const roomName = ReportUtils.getReportName({report});
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {

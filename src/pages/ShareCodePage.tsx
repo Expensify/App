@@ -82,7 +82,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails, isReport]);
 
-    const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
+    const title = isReport ? ReportUtils.getReportName({report}) : currentUserPersonalDetails.displayName ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

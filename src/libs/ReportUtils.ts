@@ -547,6 +547,21 @@ type Thread = {
     parentReportActionID: string;
 } & Report;
 
+type GetReportNameParams = {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
+    personalDetails?: Partial<PersonalDetailsList>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    shouldIncludePolicyName?: boolean;
+    transactions?: OnyxCollection<Transaction>;
+    reports?: OnyxCollection<Report>;
+    draftReports?: OnyxCollection<Report>;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    policyTagLists?: OnyxCollection<PolicyTagLists>;
+    policies?: OnyxCollection<Policy>;
+};
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -3679,7 +3694,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
+            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1])}) ?? '';
         }
     }
 
@@ -3755,20 +3770,20 @@ const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-
 /**
  * Get the title for a report.
  */
-function getReportName(
-    report: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
-    personalDetails?: Partial<PersonalDetailsList>,
-    invoiceReceiverPolicy?: OnyxEntry<Policy>,
+function getReportName({
+    report,
+    policy,
+    parentReportActionParam,
+    personalDetails,
+    invoiceReceiverPolicy,
     shouldIncludePolicyName = false,
-    transactions?: OnyxCollection<Transaction>,
-    reports?: OnyxCollection<Report>,
-    draftReports?: OnyxCollection<Report>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    policyTagLists?: OnyxCollection<PolicyTagLists>,
-    policies?: OnyxCollection<Policy>,
-): string {
+    transactions,
+    reports,
+    draftReports,
+    reportNameValuePairs,
+    policyTagLists,
+    policies,
+}: GetReportNameParams): string {
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
 
@@ -4003,7 +4018,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
     }
 
     return {
-        reportName: getReportName(parentReport),
+        reportName: getReportName({report: parentReport}),
         workspaceName: getPolicyName(parentReport, true),
     };
 }

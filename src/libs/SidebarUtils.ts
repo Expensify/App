@@ -185,7 +185,7 @@ function getOrderedReportIDs(
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
-            displayName: ReportUtils.getReportName(report),
+            displayName: ReportUtils.getReportName({report}),
             lastVisibleActionCreated: report?.lastVisibleActionCreated,
         };
 
@@ -488,7 +488,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, true);
+    const reportName = ReportUtils.getReportName({report, policy, invoiceReceiverPolicy, shouldIncludePolicyName: true});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -604,7 +604,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName({report}) : ''} ${welcomeMessage.phrase2 ?? ''}`;
 
     return welcomeMessage;
 }

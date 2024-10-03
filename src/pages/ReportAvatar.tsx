@@ -23,7 +23,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
         if (ReportUtils.isGroupChat(report) && !ReportUtils.isThread(report)) {
             return {
                 source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID ?? ''),
-                headerTitle: ReportUtils.getReportName(report),
+                headerTitle: ReportUtils.getReportName({report}),
                 originalFileName: report?.avatarFileName ?? '',
                 isWorkspaceAvatar: false,
             };

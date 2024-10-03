@@ -53,7 +53,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
-    const reportName = ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName({report});
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -137,7 +137,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     onPress={navigateToReport}
                                     suppressHighlighting
                                 >
-                                    {ReportUtils.getReportName(report)}
+                                    {ReportUtils.getReportName({report})}
                                 </Text>
                             )}
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}

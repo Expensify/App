@@ -734,7 +734,7 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
         return cardList[filter].bank;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
+        return ReportUtils.getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]});
     }
     return filter;
 }

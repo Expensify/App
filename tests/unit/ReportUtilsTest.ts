@@ -117,8 +117,10 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(
                     ReportUtils.getReportName({
-                        reportID: '',
-                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                        report: {
+                            reportID: '',
+                            participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                        },
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -126,8 +128,10 @@ describe('ReportUtils', () => {
             test('no displayName', () => {
                 expect(
                     ReportUtils.getReportName({
-                        reportID: '',
-                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                        report: {
+                            reportID: '',
+                            participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                        },
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -135,8 +139,10 @@ describe('ReportUtils', () => {
             test('SMS', () => {
                 expect(
                     ReportUtils.getReportName({
-                        reportID: '',
-                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                        report: {
+                            reportID: '',
+                            participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                        },
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -145,8 +151,10 @@ describe('ReportUtils', () => {
         test('Group DM', () => {
             expect(
                 ReportUtils.getReportName({
-                    reportID: '',
-                    participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
+                    report: {
+                        reportID: '',
+                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
+                    },
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
@@ -159,7 +167,7 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(ReportUtils.getReportName(baseAdminsRoom)).toBe('#admins');
+                expect(ReportUtils.getReportName({report: baseAdminsRoom})).toBe('#admins');
             });
 
             test('Archived', () => {
@@ -171,9 +179,9 @@ describe('ReportUtils', () => {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
+                expect(ReportUtils.getReportName({report: archivedAdminsRoom})).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName({report: archivedAdminsRoom})).toBe('#admins (archivado)'));
             });
         });
 
@@ -185,7 +193,7 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(ReportUtils.getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
+                expect(ReportUtils.getReportName({report: baseUserCreatedRoom})).toBe('#VikingsChat');
             });
 
             test('Archived', () => {
@@ -197,9 +205,9 @@ describe('ReportUtils', () => {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
+                expect(ReportUtils.getReportName({report: archivedPolicyRoom})).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(ReportUtils.getReportName({report: archivedPolicyRoom})).toBe('#VikingsChat (archivado)'));
             });
         });
 
@@ -208,11 +216,13 @@ describe('ReportUtils', () => {
                 test('as member', () => {
                     expect(
                         ReportUtils.getReportName({
-                            reportID: '',
-                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                            policyID: policy.id,
-                            isOwnPolicyExpenseChat: true,
-                            ownerAccountID: 1,
+                            report: {
+                                reportID: '',
+                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                                policyID: policy.id,
+                                isOwnPolicyExpenseChat: true,
+                                ownerAccountID: 1,
+                            },
                         }),
                     ).toBe('Vikings Policy');
                 });
@@ -220,11 +230,13 @@ describe('ReportUtils', () => {
                 test('as admin', () => {
                     expect(
                         ReportUtils.getReportName({
-                            reportID: '',
-                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                            policyID: policy.id,
-                            isOwnPolicyExpenseChat: false,
-                            ownerAccountID: 1,
+                            report: {
+                                reportID: '',
+                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                                policyID: policy.id,
+                                isOwnPolicyExpenseChat: false,
+                                ownerAccountID: 1,
+                            },
                         }),
                     ).toBe('Ragnar Lothbrok');
                 });
@@ -249,10 +261,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    expect(ReportUtils.getReportName({report: memberArchivedPolicyExpenseChat})).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'),
+                        expect(ReportUtils.getReportName({report: memberArchivedPolicyExpenseChat})).toBe('Vikings Policy (archivado)'),
                     );
                 });
 
@@ -262,10 +274,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
+                    expect(ReportUtils.getReportName({report: adminArchivedPolicyExpenseChat})).toBe('Ragnar Lothbrok (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'),
+                        expect(ReportUtils.getReportName({report: adminArchivedPolicyExpenseChat})).toBe('Ragnar Lothbrok (archivado)'),
                     );
                 });
             });
