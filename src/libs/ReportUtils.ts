@@ -789,13 +789,13 @@ const unavailableTranslation = Localize.translateLocal('workspace.common.unavail
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
+function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>, policies?: OnyxCollection<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
-    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && !report?.policyName)) {
+    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && isEmptyObject(policies) && !report?.policyName)) {
         return noPolicyFound;
     }
 
-    const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const finalPolicy = policy ?? (policies ?? allPolicies)?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
     const parentReport = getRootParentReport(report);
 
@@ -2738,9 +2738,9 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, allRepo
 /**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  */
-function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): string | undefined {
+function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, personalDetailsProp?: Partial<PersonalDetailsList>): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
-    const personalDetails = allPersonalDetails?.[ownerAccountID ?? -1];
+    const personalDetails = (personalDetailsProp ?? allPersonalDetails)?.[ownerAccountID ?? -1];
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant(ownerAccountID) || login || report?.reportName;
@@ -2840,8 +2840,8 @@ function getReportFieldKey(reportFieldId: string) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyReportField> {
-    const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
+function getReportFieldsByPolicyID(policyID: string, policies?: OnyxCollection<Policy>): Record<string, PolicyReportField> {
+    const policyReportFields = Object.entries(policies ?? allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
     const fieldList = policyReportFields?.[1]?.fieldList;
 
     if (!policyReportFields || !fieldList) {
@@ -2891,9 +2891,9 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
+function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>, policies?: OnyxCollection<Policy>): string {
     const isReportSettled = isSettled(report?.reportID ?? '-1');
-    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '-1');
+    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '-1', policies);
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
     if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
@@ -3726,7 +3726,7 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
 /**
  * Get the title for an invoice room.
  */
-function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntry<Policy>): string {
+function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntry<Policy>, policies?: OnyxCollection<Policy>): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
@@ -3742,7 +3742,7 @@ function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntr
         return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
     }
 
-    return getPolicyName(report, false, invoiceReceiverPolicy);
+    return getPolicyName(report, false, invoiceReceiverPolicy, policies);
 }
 
 const reportNameCache = new Map<string, {lastVisibleActionCreated: string; reportName: string}>();
@@ -3767,6 +3767,7 @@ function getReportName(
     draftReports?: OnyxCollection<Report>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     policyTagLists?: OnyxCollection<PolicyTagLists>,
+    policies?: OnyxCollection<Policy>,
 ): string {
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
@@ -3848,7 +3849,7 @@ function getReportName(
         }
 
         if (ReportActionsUtils.isCardIssuedAction(parentReportAction)) {
-            return ReportActionsUtils.getCardIssuedMessage(parentReportAction);
+            return ReportActionsUtils.getCardIssuedMessage(parentReportAction, false, personalDetails);
         }
         return reportActionMessage;
     }
@@ -3870,27 +3871,27 @@ function getReportName(
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName(report, policy);
+        formattedName = getPolicyExpenseChatName(report, policy, personalDetails);
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName(report, policy);
+        formattedName = getMoneyRequestReportName(report, policy, undefined, policies);
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy, policies);
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
+        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy, policies);
     }
 
     if (shouldIncludePolicyName && (isUserCreatedPolicyRoom(report) || isDefaultRoom(report))) {
-        const policyName = getPolicyName(report, true);
+        const policyName = getPolicyName(report, true, undefined, policies);
         formattedName = policyName ? `${policyName} • ${report?.reportName}` : report?.reportName;
     }
 
-    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
