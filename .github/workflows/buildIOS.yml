@@ -112,7 +112,7 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Build iOS release app
+      - name: Build iOS ${{ inputs.type }} app
         id: build
         run: |
           lane=''
@@ -132,8 +132,8 @@ jobs:
             # ipaPath and dsymPath are environment variables set within the Fastfile
             echo "IPA_PATH=$ipaPath"
             echo "IPA_FILE_NAME=$(basename "$ipaPath")"
-            echo "DYSM_PATH=$dysmPath"
-            echo "DSYM_FILE_NAME=$(basename "$dysmPath")"
+            echo "DSYM_PATH=$dsymPath"
+            echo "DSYM_FILE_NAME=$(basename "$dsymPath")"
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS build artifact
@@ -146,7 +146,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact-dsym
-          path: ${{ steps.build.outputs.DYSM_PATH }}
+          path: ${{ steps.build.outputs.DSYM_PATH }}
 
       - name: Announce failure in slack
         if: failure()
