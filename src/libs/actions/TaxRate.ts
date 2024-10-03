@@ -289,7 +289,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
         .sort((a, b) => a.localeCompare(b))
         .at(0);
     const customUnits = policy?.customUnits ?? {};
-    const ratesToUpdate = Object.values(customUnits?.[Object.keys(customUnits)[0]]?.rates ?? {}).filter(
+    const customUnitID = Object.keys(customUnits).at(0) ?? '-1';
+    const ratesToUpdate = Object.values(customUnits?.[customUnitID]?.rates ?? {}).filter(
         (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
     );
 
@@ -341,8 +342,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
-                    customUnits: policy.customUnits && {
-                        [Object.keys(policy.customUnits)[0]]: {
+                    customUnits: customUnits && {
+                        [customUnitID]: {
                             rates: optimisticRates,
                         },
                     },
@@ -361,8 +362,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
-                    customUnits: policy.customUnits && {
-                        [Object.keys(policy.customUnits)[0]]: {
+                    customUnits: customUnits && {
+                        [customUnitID]: {
                             rates: successRates,
                         },
                     },
@@ -384,8 +385,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
-                    customUnits: policy.customUnits && {
-                        [Object.keys(policy.customUnits)[0]]: {
+                    customUnits: customUnits && {
+                        [customUnitID]: {
                             rates: failureRates,
                         },
                     },
