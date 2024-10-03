@@ -3,7 +3,8 @@ set -e
 
 BUILD="$1"
 NEW_DOT_FLAG="false"
-MODE="DebugDevelopment"
+IOS_MODE="DebugDevelopment"
+ANDROID_MODE="DevelopmentDebug"
 SCHEME="New Expensify Dev"
 APP_ID="com.expensify.chat.dev"
 
@@ -46,7 +47,8 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app-repo.sh)
     # Navigate to the OldDot repository
     cd ..
     # Set HybridApp-specific arguments
-    MODE="Debug"
+    IOS_MODE="Debug"
+    ANDROID_MODE="Debug"
     SCHEME="Expensify"
     APP_ID="org.me.mobiexpensifyg"
 
@@ -58,16 +60,16 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        npx react-native run-ios --list-devices --mode $MODE --scheme $SCHEME
+        npx react-native run-ios --list-devices --mode $IOS_MODE --scheme $SCHEME
         ;;
     --ipad)
-        npx react-native run-ios --simulator "iPad Pro (12.9-inch) (6th generation)" --mode $MODE --scheme $SCHEME
+        npx react-native run-ios --simulator "iPad Pro (12.9-inch) (6th generation)" --mode $IOS_MODE --scheme $SCHEME
         ;;
     --ipad-sm)
-        npx react-native run-ios --simulator "iPad Pro (11-inch) (4th generation)" --mode $MODE --scheme $SCHEME
+        npx react-native run-ios --simulator "iPad Pro (11-inch) (4th generation)" --mode $IOS_MODE --scheme $SCHEME
         ;;
     --android)
-        npx react-native run-android --list-devices --mode $MODE --appId $APP_ID --active-arch-only
+        npx react-native run-android --list-devices --mode $ANDROID_MODE --appId $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit
