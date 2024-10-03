@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,13 +15,23 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {User} from '@src/types/onyx';
+
+type SetupMethodOnyxProps = {
+    /** The user's data */
+    user: OnyxEntry<User>;
+
+    /** Whether Plaid is disabled */
+    isPlaidDisabled: OnyxEntry<boolean>;
+};
+
+type SetupMethodProps = SetupMethodOnyxProps;
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
 
-function SetupMethod() {
+function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
 
     return (
         <View>
@@ -40,10 +51,8 @@ function SetupMethod() {
                 <Button
                     icon={Expensicons.Bank}
                     text={translate('bankAccount.addBankAccount')}
-                    onPress={() => {
-                        BankAccounts.openPersonalBankAccountSetupWithPlaid();
-                    }}
-                    isDisabled={!!isPlaidDisabled}
+                    onPress={() => BankAccounts.openPersonalBankAccountSetupWithPlaid()}
+                    isDisabled={!!isPlaidDisabled || !user?.validated}
                     style={[styles.mt4, styles.mb2]}
                     iconStyles={styles.buttonCTAIcon}
                     shouldShowRightIcon
@@ -57,4 +66,11 @@ function SetupMethod() {
 
 SetupMethod.displayName = 'SetupMethod';
 
-export default SetupMethod;
+export default withOnyx<SetupMethodProps, SetupMethodOnyxProps>({
+    isPlaidDisabled: {
+        key: ONYXKEYS.IS_PLAID_DISABLED,
+    },
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(SetupMethod);
