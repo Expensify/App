@@ -427,10 +427,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1 - MAX_RECENT_REPORTS);
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
@@ -440,10 +440,10 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getFilteredOptions([], OPTIONS.personalDetails, [], '');
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
 
         // When we don't include personal detail to the result
         results = OptionsListUtils.getFilteredOptions(
@@ -519,10 +519,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 6);
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
@@ -618,10 +618,10 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
 
         // We should expect personal details to be sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
     });
 
     it('getFilteredOptions() for categories', () => {
@@ -2591,12 +2591,12 @@ describe('OptionsListUtils', () => {
         const formattedMembers = Object.values(PERSONAL_DETAILS).map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
-        expect(formattedMembers[0].text).toBe('Mister Fantastic');
-        expect(formattedMembers[1].text).toBe('Iron Man');
-        expect(formattedMembers[2].text).toBe('Spider-Man');
+        expect(formattedMembers.at(0)?.text).toBe('Mister Fantastic');
+        expect(formattedMembers.at(1)?.text).toBe('Iron Man');
+        expect(formattedMembers.at(2)?.text).toBe('Spider-Man');
 
         // We should expect only the first item to be selected
-        expect(formattedMembers[0].isSelected).toBe(true);
+        expect(formattedMembers.at(0)?.isSelected).toBe(true);
 
         // And all the others to be unselected
         expect(formattedMembers.slice(1).every((personalDetail) => !personalDetail.isSelected)).toBe(true);
@@ -2619,10 +2619,10 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(4);
-            expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
-            expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
-            expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
-            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow');
+            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should filter users by email', () => {
@@ -2632,7 +2632,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister');
         });
 
         it('should find archived chats', () => {
@@ -2641,7 +2641,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(!!filteredOptions.recentReports[0].private_isArchived).toBe(true);
+            expect(!!filteredOptions.recentReports.at(0)?.private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
@@ -2652,7 +2652,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
+            expect(filteredOptions.recentReports.at(0)?.login).toBe('barry.allen@expensify.com');
         });
 
         it('should include workspace rooms in the search results', () => {
@@ -2662,7 +2662,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].subtitle).toBe('Avengers Room');
+            expect(filteredOptions.recentReports.at(0)?.subtitle).toBe('Avengers Room');
         });
 
         it('should put exact match by login on the top of the list', () => {
@@ -2672,7 +2672,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].login).toBe(searchText);
+            expect(filteredOptions.recentReports.at(0)?.login).toBe(searchText);
         });
 
         it('should prioritize options with matching display name over chatrooms', () => {
@@ -2683,7 +2683,7 @@ describe('OptionsListUtils', () => {
             const filterOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filterOptions.recentReports.length).toBe(2);
-            expect(filterOptions.recentReports[1].isChatRoom).toBe(true);
+            expect(filterOptions.recentReports.at(1)?.isChatRoom).toBe(true);
         });
 
         it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
@@ -2693,8 +2693,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
@@ -2752,7 +2752,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com');
 
             expect(filteredOptions.personalDetails.length).toBe(1);
-            expect(filteredOptions.personalDetails[0].text).toBe('Spider-Man');
+            expect(filteredOptions.personalDetails.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {
@@ -2809,7 +2809,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.length).toBe(0);
 
             expect(filteredOptions.personalDetails.length).toBe(1);
-            expect(filteredOptions.personalDetails[0].login).toBe('brucebanner@expensify.com');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('brucebanner@expensify.com');
         });
 
         it('should return all matching reports and personal details (getFilteredOptions)', () => {
@@ -2817,10 +2817,10 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
 
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
 
             expect(filteredOptions.personalDetails.length).toBe(4);
-            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
         });
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getFilteredOptions)', () => {
@@ -2899,7 +2899,7 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
             const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
@@ -2909,10 +2909,10 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.personalDetails.length).toBe(4);
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
-            expect(filteredOptions.recentReports[1].text).toBe('Mr Sinister');
-            expect(filteredOptions.recentReports[2].text).toBe('Black Panther');
+            expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther');
         });
 
         it('should return matching option when searching (getSearchOptions)', () => {
@@ -2920,7 +2920,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'spider');
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
@@ -2928,8 +2928,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'fantastic');
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
@@ -2939,7 +2939,7 @@ describe('OptionsListUtils', () => {
                     const filteredResults = OptionsListUtils.filterOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
 
                     expect(filteredResults.recentReports.length).toBe(1);
-                    expect(filteredResults.recentReports[0].text).toBe('The Flash');
+                    expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
         });
     });
