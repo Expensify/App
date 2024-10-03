@@ -276,7 +276,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         let signupQualifier;
         if (currentUrl.includes('signupQualifier')) {
-            signupQualifier = new URL(currentUrl).searchParams.get('signupQualifier')
+            signupQualifier = new URL(currentUrl).searchParams.get('signupQualifier');
         }
         if (signupQualifier) {
             if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL) {
