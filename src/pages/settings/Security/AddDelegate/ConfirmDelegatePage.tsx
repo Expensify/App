@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
@@ -8,22 +7,17 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import DelegateMagicCodeModal from '@pages/settings/Security/AddDelegate/DelegateMagicCodeModal';
-import * as Delegate from '@userActions/Delegate';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 
 type ConfirmDelegatePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 

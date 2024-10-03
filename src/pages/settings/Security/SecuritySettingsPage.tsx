@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -26,12 +26,12 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import DelegateMagicCodeModal from '@pages/settings/Security/AddDelegate/DelegateMagicCodeModal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DelegateMagicCodeModal from './AddDelegate/DelegateMagicCodeModal';
 
 type Delegate = {
     login?: string;
