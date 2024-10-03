@@ -58,6 +58,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                                 keyForList: mccKey,
                                 groupID: mccKey,
                                 tabIndex: -1,
+                                pendingAction: mccGroup?.pendingAction,
                             } as ListItem),
                     ),
                 },
@@ -102,7 +103,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {canUseWorkspaceRules && !!currentPolicy && sections[0].data.length > 0 && (
+                    {canUseWorkspaceRules && !!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
                         <SelectionList
                             headerContent={
                                 <View style={[styles.mh5, styles.mt2, styles.mb1]}>
