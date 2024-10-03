@@ -63,6 +63,12 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
+    // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
+
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
         !isEmptyObject(policy) && !isEmptyObject(policy.address)
@@ -285,11 +291,11 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                         )}
                     </Section>
                     <ConfirmModal
-                        title={translate('common.delete')}
+                        title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
                         onConfirm={confirmDeleteAndHideModal}
                         onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={translate('workspace.common.deleteConfirmation')}
+                        prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
