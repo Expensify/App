@@ -9,6 +9,7 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
@@ -392,6 +393,8 @@ function ReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
+
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
             return [
@@ -568,6 +571,7 @@ function ReportActionItem({
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
+                        style={displayAsGroup ? [] : [styles.mt1]}
                         taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '-1' : '-1'}
                         chatReportID={reportID}
                         action={action}
@@ -672,12 +676,7 @@ function ReportActionItem({
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
-            children = (
-                <IssueCardMessage
-                    action={action}
-                    policyID={report?.policyID}
-                />
-            );
+            children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
@@ -693,59 +692,61 @@ function ReportActionItem({
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
                 !ReportActionsUtils.isPendingRemove(action);
             children = (
-                <ShowContextMenuContext.Provider value={contextValue}>
-                    <AttachmentContext.Provider value={attachmentContextValue}>
-                        {draftMessage === undefined ? (
-                            <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
-                                <ReportActionItemMessage
-                                    reportID={reportID}
-                                    action={action}
-                                    displayAsGroup={displayAsGroup}
-                                    isHidden={isHidden}
-                                />
-                                {hasBeenFlagged && (
-                                    <Button
-                                        small
-                                        style={[styles.mt2, styles.alignSelfStart]}
-                                        onPress={() => updateHiddenState(!isHidden)}
-                                    >
-                                        <Text
-                                            style={[styles.buttonSmallText, styles.userSelectNone]}
-                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                <MentionReportContext.Provider value={mentionReportContextValue}>
+                    <ShowContextMenuContext.Provider value={contextValue}>
+                        <AttachmentContext.Provider value={attachmentContextValue}>
+                            {draftMessage === undefined ? (
+                                <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
+                                    <ReportActionItemMessage
+                                        reportID={reportID}
+                                        action={action}
+                                        displayAsGroup={displayAsGroup}
+                                        isHidden={isHidden}
+                                    />
+                                    {hasBeenFlagged && (
+                                        <Button
+                                            small
+                                            style={[styles.mt2, styles.alignSelfStart]}
+                                            onPress={() => updateHiddenState(!isHidden)}
                                         >
-                                            {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
-                                        </Text>
-                                    </Button>
-                                )}
-                                {/**
+                                            <Text
+                                                style={[styles.buttonSmallText, styles.userSelectNone]}
+                                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                            >
+                                                {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
+                                            </Text>
+                                        </Button>
+                                    )}
+                                    {/**
                                 These are the actionable buttons that appear at the bottom of a Concierge message
                                 for example: Invite a user mentioned but not a member of the room
                                 https://github.com/Expensify/App/issues/32741
                             */}
-                                {actionableItemButtons.length > 0 && (
-                                    <ActionableItemButtons
-                                        items={actionableItemButtons}
-                                        layout={ReportActionsUtils.isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
-                                    />
-                                )}
-                            </View>
-                        ) : (
-                            <ReportActionItemMessageEdit
-                                action={action}
-                                draftMessage={draftMessage}
-                                reportID={reportID}
-                                policyID={report?.policyID}
-                                index={index}
-                                ref={textInputRef}
-                                shouldDisableEmojiPicker={
-                                    (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) ||
-                                    ReportUtils.isArchivedRoom(report, reportNameValuePairs)
-                                }
-                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
-                            />
-                        )}
-                    </AttachmentContext.Provider>
-                </ShowContextMenuContext.Provider>
+                                    {actionableItemButtons.length > 0 && (
+                                        <ActionableItemButtons
+                                            items={actionableItemButtons}
+                                            layout={ReportActionsUtils.isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                                        />
+                                    )}
+                                </View>
+                            ) : (
+                                <ReportActionItemMessageEdit
+                                    action={action}
+                                    draftMessage={draftMessage}
+                                    reportID={reportID}
+                                    policyID={report?.policyID}
+                                    index={index}
+                                    ref={textInputRef}
+                                    shouldDisableEmojiPicker={
+                                        (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) ||
+                                        ReportUtils.isArchivedRoom(report, reportNameValuePairs)
+                                    }
+                                    isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                />
+                            )}
+                        </AttachmentContext.Provider>
+                    </ShowContextMenuContext.Provider>
+                </MentionReportContext.Provider>
             );
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;

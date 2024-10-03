@@ -1844,6 +1844,7 @@ const CONST = {
             DATE_OF_BIRTH: 1,
             ADDRESS: 2,
             PHONE_NUMBER: 3,
+            CONFIRM: 4,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
