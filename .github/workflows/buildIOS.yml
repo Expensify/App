@@ -102,10 +102,8 @@ jobs:
             provisioningProfile='NewApp_AdHoc'
           fi
           echo "Using provisioning profile: $provisioningProfile"
-          ls
-          ls | grep "$provisioningProfile.mobileprovision.gpg"
           gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output "$provisioningProfile.mobileprovision" "$provisioningProfile.mobileprovision.gpg"
-          gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output "$provisioningProfile_Notification_Service.mobileprovision" "$provisioningProfile_Notification_Service.mobileprovision.gpg"
+          gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output "${provisioningProfile}_Notification_Service.mobileprovision" "${provisioningProfile}_Notification_Service.mobileprovision.gpg"
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
