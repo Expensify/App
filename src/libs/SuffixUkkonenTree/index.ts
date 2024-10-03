@@ -1,4 +1,6 @@
 /* eslint-disable no-continue */
+
+/* eslint-disable rulesdir/prefer-at */
 import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, stringToNumeric} from './utils';
 
 /**
@@ -162,7 +164,7 @@ function makeTree(numericSearchValues: Uint8Array) {
             const rangeLen = node === 1 ? 0 : rightRange - leftRange + 1;
 
             for (let i = 0; i < rangeLen && depth + i < searchValue.length && leftRange + i < numericSearchValues.length; i++) {
-                if (searchValue.at(depth + i) !== numericSearchValues[leftRange + i]) {
+                if (searchValue[depth + i] !== numericSearchValues[leftRange + i]) {
                     return;
                 }
             }
@@ -172,7 +174,7 @@ function makeTree(numericSearchValues: Uint8Array) {
                 const tNode = transitionNodes[node * ALPHABET_SIZE + i];
 
                 // Search speed optimization: don't go through the edge if it's different than the next char:
-                const correctChar = depth + rangeLen >= searchValue.length || i === searchValue.at(depth + rangeLen);
+                const correctChar = depth + rangeLen >= searchValue.length || i === searchValue[depth + rangeLen];
 
                 if (tNode !== 0 && tNode !== 1 && correctChar) {
                     isLeaf = false;
@@ -181,7 +183,7 @@ function makeTree(numericSearchValues: Uint8Array) {
             }
 
             if (isLeaf && depth + rangeLen >= searchValue.length) {
-                occurrences.at(push)(numericSearchValues.length - (depth + rangeLen) + 1);
+                occurrences.push(numericSearchValues.length - (depth + rangeLen) + 1);
             }
         }
 

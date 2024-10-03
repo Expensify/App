@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */
 import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';

@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */
 import {useNavigationState} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -14,6 +15,8 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Timing from '@libs/actions/Timing';
+import FastSearch from '@libs/FastSearch';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -58,6 +61,49 @@ function SearchRouter() {
         return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
+    /**
+     * Builds a suffix tree and returns a function to search in it.
+     */
+    const findInSearchTree = useMemo(() => {
+        const fastSearch = FastSearch.createFastSearch([
+            {
+                data: searchOptions.personalDetails,
+                toSearchableString: (option) => {
+                    const displayName = option.participantsList?.[0]?.displayName ?? '';
+                    return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
+                },
+            },
+            {
+                data: searchOptions.recentReports,
+                toSearchableString: (option) => {
+                    const searchStringForTree = [option.text ?? '', option.login ?? ''];
+
+                    if (option.isThread) {
+                        if (option.alternateText) {
+                            searchStringForTree.push(option.alternateText);
+                        }
+                    } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+                        if (option.subtitle) {
+                            searchStringForTree.push(option.subtitle);
+                        }
+                    }
+
+                    return searchStringForTree.join();
+                },
+            },
+        ]);
+        function search(searchInput: string) {
+            const [personalDetails, recentReports] = fastSearch.search(searchInput);
+
+            return {
+                personalDetails,
+                recentReports,
+            };
+        }
+
+        return search;
+    }, [searchOptions.personalDetails, searchOptions.recentReports]);
+
     const filteredOptions = useMemo(() => {
         if (debouncedInputValue.trim() === '') {
             return {
@@ -67,14 +113,26 @@ function SearchRouter() {
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        const newOptions = findInSearchTree(debouncedInputValue);
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        return {
+        const recentReports = newOptions.recentReports.concat(newOptions.personalDetails);
+
+        const userToInvite = OptionsListUtils.pickUserToInvite({
+            canInviteUser: true,
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: newOptions.userToInvite,
+            searchValue: debouncedInputValue,
+            optionsToExclude: [{login: CONST.EMAIL.NOTIFICATIONS}],
+        });
+
+        return {
+            recentReports,
+            personalDetails: [],
+            userToInvite,
         };
-    }, [debouncedInputValue, searchOptions]);
+    }, [debouncedInputValue, findInSearchTree]);
 
     const recentReports: OptionData[] = useMemo(() => {
         const currentSearchOptions = debouncedInputValue === '' ? searchOptions : filteredOptions;

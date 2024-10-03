@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */
 import CONST from '@src/CONST';
 import Timing from './actions/Timing';
 import SuffixUkkonenTree from './SuffixUkkonenTree';
