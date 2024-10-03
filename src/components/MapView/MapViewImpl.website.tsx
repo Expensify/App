@@ -133,7 +133,7 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
 
             if (waypoints.length === 1) {
                 mapRef.flyTo({
-                    center: waypoints[0].coordinate,
+                    center: waypoints.at(0)?.coordinate,
                     zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
                 });
                 return;

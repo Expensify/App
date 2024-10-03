@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,6 +15,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -25,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -141,13 +144,13 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
         if (dateBefore) {
-            dateValue = translate('search.filters.date.before', dateBefore);
+            dateValue = translate('search.filters.date.before', {date: dateBefore});
         }
         if (dateBefore && dateAfter) {
             dateValue += ', ';
         }
         if (dateAfter) {
-            dateValue += translate('search.filters.date.after', dateAfter);
+            dateValue += translate('search.filters.date.after', {date: dateAfter});
         }
 
         return dateValue;
@@ -156,13 +159,16 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.between', {
+                lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
+                greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
+            });
         }
         if (lessThan) {
-            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
         }
         if (greaterThan) {
-            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
+            return translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
         }
         // Will never happen
         return;
@@ -173,7 +179,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         filters[fieldName]
     ) {
         const filterArray = filters[fieldName] ?? [];
-        return filterArray.join(', ');
+        return filterArray.sort(localeCompare).join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
@@ -220,22 +226,43 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const onFormSubmit = () => {
-        const query = SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters);
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()), [queryString]);
+
+    const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query,
+                query: queryString,
             }),
         );
+    };
+
+    const onSaveSearch = () => {
+        const savedSearchKeys = Object.keys(savedSearches ?? {});
+        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
+            // If the search is already saved, return early to prevent unnecessary API calls
+            Navigation.dismissModal();
+            return;
+        }
+
+        if (isEmptyObject(savedSearches)) {
+            SearchActions.showSavedSearchRenameTooltip();
+        }
+
+        SearchActions.saveSearch({
+            queryJSON,
+        });
+
+        applyFiltersAndNavigate();
     };
 
     const filters = typeFiltersKeys[currentType].map((key) => {
@@ -275,6 +302,8 @@ function AdvancedSearchFilters() {
         };
     });
 
+    const displaySearchButton = queryJSON && !SearchUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
@@ -296,10 +325,18 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
+            {displaySearchButton && (
+                <Button
+                    text={translate('search.saveSearch')}
+                    onPress={onSaveSearch}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
-                onSubmit={onFormSubmit}
+                onSubmit={applyFiltersAndNavigate}
                 enabledWhenOffline
             />
         </>
