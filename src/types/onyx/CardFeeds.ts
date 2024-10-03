@@ -39,14 +39,11 @@ type CardFeeds = {
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    /** The email address of the cardholder */
-    assigneeEmail: string;
+    /** Card feed provider */
+    feedType: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
-    /** Card type */
-    cardType: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
-
-    /** Name of the card */
-    cardTitle: string;
+    /** Name of the bank */
+    bankName?: string;
 };
 
 /** Issue new card flow steps */

@@ -22,7 +22,7 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>>();
+    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>>();
     const [isError, setIsError] = useState(false);
 
     const submit = () => {
@@ -32,7 +32,7 @@ function CardTypeStep() {
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
-                    cardType: typeSelected,
+                    feedType: typeSelected,
                 },
                 isEditing: false,
             });
@@ -40,8 +40,8 @@ function CardTypeStep() {
     };
 
     useEffect(() => {
-        setTypeSelected(addNewCard?.data.cardType);
-    }, [addNewCard?.data.cardType]);
+        setTypeSelected(addNewCard?.data.feedType);
+    }, [addNewCard?.data.feedType]);
 
     const handleBackButtonPress = () => {
         Navigation.goBack();
@@ -49,10 +49,10 @@ function CardTypeStep() {
 
     const data = [
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             leftElement: (
                 <Icon
                     src={Illustrations.AmexCardCompanyCardDetail}
@@ -63,10 +63,10 @@ function CardTypeStep() {
             ),
         },
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             text: translate('workspace.companyCards.addNewCard.cardProviders.mastercard'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             leftElement: (
                 <Icon
                     src={Illustrations.MasterCardCompanyCardDetail}
@@ -77,10 +77,10 @@ function CardTypeStep() {
             ),
         },
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             text: translate('workspace.companyCards.addNewCard.cardProviders.visa'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             leftElement: (
                 <Icon
                     src={Illustrations.VisaCompanyCardDetail}
@@ -113,7 +113,7 @@ function CardTypeStep() {
                 }}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.cardType}
+                initiallyFocusedOptionKey={addNewCard?.data.feedType}
                 shouldUpdateFocusedIndex
                 showConfirmButton
                 confirmButtonText={translate('common.next')}

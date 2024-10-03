@@ -29,18 +29,25 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const feedProvider = addNewCard?.data.cardType;
+    const feedProvider = addNewCard?.data.feedType;
 
-    const submit = () => {
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
         if (!addNewCard?.data) {
             return;
         }
 
-        Policy.addNewCompanyCardsFeed(policyID, addNewCard.data);
+        const feedDetails = Object.entries({
+            ...values,
+            bankName: addNewCard.data.bankName ?? 'Amex',
+        })
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ');
+
+        Policy.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
     };
 
     const handleBackButtonPress = () => {
-        if (feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
+        if (feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX) {
             CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
             return;
         }
@@ -52,7 +59,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
 
             switch (feedProvider) {
-                case CONST.COMPANY_CARDS.CARD_TYPE.VISA:
+                case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:
                     if (!values[INPUT_IDS.BANK_ID]) {
                         errors[INPUT_IDS.BANK_ID] = translate('common.error.fieldRequired');
                     }
@@ -63,12 +70,12 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         errors[INPUT_IDS.COMPANY_ID] = translate('common.error.fieldRequired');
                     }
                     break;
-                case CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD:
+                case CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD:
                     if (!values[INPUT_IDS.DISTRIBUTION_ID]) {
                         errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.fieldRequired');
                     }
                     break;
-                case CONST.COMPANY_CARDS.CARD_TYPE.AMEX:
+                case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
                     if (!values[INPUT_IDS.DELIVERY_FILE_NAME]) {
                         errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.fieldRequired');
                     }
@@ -83,13 +90,13 @@ function DetailsStep({policyID}: DetailsStepProps) {
 
     const renderInputs = () => {
         switch (feedProvider) {
-            case CONST.COMPANY_CARDS.CARD_TYPE.VISA:
+            case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:
                 return (
                     <>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROCESSOR_ID}
-                            label={translate('workspace.companyCards.addNewCard.feedDetails.visa.processorLabel')}
+                            label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.processorLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
@@ -97,36 +104,36 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.BANK_ID}
-                            label={translate('workspace.companyCards.addNewCard.feedDetails.visa.bankLabel')}
+                            label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMPANY_ID}
-                            label={translate('workspace.companyCards.addNewCard.feedDetails.visa.companyLabel')}
+                            label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                         />
                     </>
                 );
-            case CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD:
+            case CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD:
                 return (
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.DISTRIBUTION_ID}
-                        label={translate('workspace.companyCards.addNewCard.feedDetails.mastercard.distributionLabel')}
+                        label={translate('workspace.companyCards.addNewCard.feedDetails.cdf.distributionLabel')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                     />
                 );
-            case CONST.COMPANY_CARDS.CARD_TYPE.AMEX:
+            case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
                 return (
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.DELIVERY_FILE_NAME}
-                        label={translate('workspace.companyCards.addNewCard.feedDetails.amex.fileNameLabel')}
+                        label={translate('workspace.companyCards.addNewCard.feedDetails.gl1025.fileNameLabel')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}

@@ -195,6 +195,16 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+function getCardFeedName(feedType: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>): string {
+    const feedNamesMapping = {
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
+    };
+
+    return feedNamesMapping[feedType];
+}
+
 function getCardDetailsImage(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
         return Illustrations.MasterCardCompanyCardDetail;
@@ -248,6 +258,7 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    getCardFeedName,
     getCardDetailsImage,
     getMemberCards,
     getSelectedFeed,

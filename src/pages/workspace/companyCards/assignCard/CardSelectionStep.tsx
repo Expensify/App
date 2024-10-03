@@ -43,14 +43,8 @@ const mockedCardList = [
 
 const mockedCardListEmpty: MockedCard[] = [];
 
-const feedNamesMapping = {
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'MasterCard',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
-};
-
 type CardSelectionStepProps = {
-    feed: string;
+    feed: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 };
 
 function CardSelectionStep({feed}: CardSelectionStepProps) {
@@ -144,7 +138,7 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                         {translate('workspace.companyCards.chooseCardFor', {
                             assignee: PersonalDetailsUtils.getPersonalDetailByEmail(assignee ?? '')?.displayName ?? '',
-                            feed: feedNamesMapping[feed as ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>] ?? 'visa',
+                            feed: CardUtils.getCardFeedName(feed),
                         })}
                     </Text>
                     <SelectionList

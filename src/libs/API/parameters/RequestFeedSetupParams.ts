@@ -1,6 +1,8 @@
 type RequestFeedSetupParams = {
-    // bankName: string;
-    // feedDetails: string;
+    authToken: string;
+    policyID: string;
+    feedDetails: string;
+    feedType: string;
 };
 
 export default RequestFeedSetupParams;
