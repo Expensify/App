@@ -13,12 +13,12 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config, {normalizedConfigs} from './config';
 import createSplitNavigator from './createSplitNavigator';
+import CENTRAL_PANE_TO_RHP_MAPPING from './RELATIONS/CENTRAL_PANE_TO_RHP_MAPPING';
+import SEARCH_RHP_SCREENS from './RELATIONS/SEARCH_RHP_SCREENS';
+import {CENTRAL_PANE_TO_TAB_MAPPING} from './RELATIONS/TAB_TO_CENTRAL_PANE_MAPPING';
 import replacePathInNestedState from './replacePathInNestedState';
-import SEARCH_RHP_SCREENS from './SEARCH_RHP_SCREENS';
-import {CENTRAL_PANE_TO_TAB_MAPPING} from './TAB_TO_CENTRAL_PANE_MAPPING';
 
 const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.SHARE_CODE,
@@ -134,9 +134,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     //     isWorkspaceNavigatorMandatory: true,
     // };
 
+    // @TODO: It's possible we don't need such granularity of getting split navigators. Maybe just splitNavigator is enough.
     // We need to check what is defined to know what we need to add.
-    const workspaceNavigator = state.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-    const reportNavigator = state.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    const workspaceSplitNavigator = state.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+    const reportsSplitNavigator = state.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
     const rhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
@@ -182,6 +184,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             // metainfo,
         };
     }
+
     if (lhpNavigator ?? onboardingModalNavigator ?? welcomeVideoModalNavigator ?? featureTrainingModalNavigator) {
         // Routes
         // - default bottom tab
@@ -222,7 +225,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             adaptedState: getRoutesWithIndex(routes),
         };
     }
-    if (workspaceNavigator) {
+
+    if (workspaceSplitNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
@@ -241,7 +245,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             ),
         );
 
-        routes.push(workspaceNavigator);
+        routes.push(workspaceSplitNavigator);
 
         return {
             adaptedState: getRoutesWithIndex(routes),
@@ -276,9 +280,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     // We need to make sure that this if only handles states where we deeplink to the bottom tab directly
 
     // If policyID is defined, it should be passed to the reportNavigator params.
-    if (reportNavigator && policyID) {
+    if (reportsSplitNavigator && policyID) {
         const routes = [];
-        const reportNavigatorWithPolicyID = {...reportNavigator};
+        const reportNavigatorWithPolicyID = {...reportsSplitNavigator};
         reportNavigatorWithPolicyID.params = {...reportNavigatorWithPolicyID.params, policyID};
         routes.push(reportNavigatorWithPolicyID);
 

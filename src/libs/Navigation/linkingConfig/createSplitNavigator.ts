@@ -1,6 +1,6 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {NavigationPartialRoute, SplitNavigatorByLHN, SplitNavigatorLHNScreen, SplitNavigatorParamListType} from '@libs/Navigation/types';
-import LHN_TO_SPLIT_NAVIGATOR_NAME from './LHN_TO_SPLIT_NAVIGATOR_MAPPING';
+import LHN_TO_SPLIT_NAVIGATOR_NAME from './RELATIONS/LHN_TO_SPLIT_NAVIGATOR_MAPPING';
 
 type ExtractRouteType<T extends SplitNavigatorLHNScreen> = Extract<keyof SplitNavigatorParamListType[(typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T]], string>;
 

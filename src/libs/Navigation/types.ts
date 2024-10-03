@@ -21,7 +21,7 @@ import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type LHN_TO_SPLIT_NAVIGATOR_NAME from './linkingConfig/LHN_TO_SPLIT_NAVIGATOR_MAPPING';
+import type LHN_TO_SPLIT_NAVIGATOR_NAME from './linkingConfig/RELATIONS/LHN_TO_SPLIT_NAVIGATOR_MAPPING';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
