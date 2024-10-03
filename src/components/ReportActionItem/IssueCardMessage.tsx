@@ -16,9 +16,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
+    policyID: string | undefined;
 };
 
-function IssueCardMessage({action}: IssueCardMessageProps) {
+function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);

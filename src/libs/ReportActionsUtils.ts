@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1732,10 +1733,11 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const cardID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.cardID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
-
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
+    const navigateRoute = isPolicyAdmin ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(cardID));
     const link = shouldRenderHTML
-        ? `<a href='${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID))}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+        ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
 
     const missingDetails =
