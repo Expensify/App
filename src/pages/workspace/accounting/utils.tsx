@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
@@ -250,7 +251,7 @@ function getAccountingIntegrationData(
                 title: translate('workspace.accounting.qbd'),
                 icon: Expensicons.QBDSquare,
                 setupConnectionFlow: (
-                    <ConnectToQuickbooksOnlineFlow
+                    <ConnectToQuickbooksDesktopFlow
                         policyID={policyID}
                         key={key}
                     />

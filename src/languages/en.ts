@@ -2919,6 +2919,14 @@ const translations = {
                 }
             },
         },
+        qbd: {
+            qbdSetup: 'QuickBooks Desktop setup',
+            requiredSetupDevice: {
+                title: "Can't connect from this device",
+                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
+                body2: "Once you're connected, you'll be able to sync and export from anywhere.",
+            },
+        },
         type: {
             free: 'Free',
             control: 'Control',
