@@ -2,10 +2,10 @@ import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Permissions from '@libs/Permissions';
 import {useSearchRouterContext} from './SearchRouterContext';
 
 function SearchButton() {
@@ -13,8 +13,9 @@ function SearchButton() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
+    const {isProduction} = useEnvironment();
 
-    if (!Permissions.canUseNewSearchRouter()) {
+    if (isProduction) {
         return;
     }
 

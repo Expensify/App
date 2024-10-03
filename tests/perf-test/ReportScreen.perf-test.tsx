@@ -103,7 +103,6 @@ jest.mock('@src/hooks/useEnvironment', () =>
 jest.mock('@src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
     canUseDefaultRooms: jest.fn(() => true),
-    canUseNewSearchRouter: jest.fn(() => true),
 }));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
