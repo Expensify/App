@@ -8,13 +8,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 function ValidateContactActionPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const contactMethod = UserUtils.getContactMethod();
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -45,7 +46,7 @@ function ValidateContactActionPage() {
             offlineIndicatorStyle={themeStyles.mtAuto}
         >
             <HeaderWithBackButton
-                title={account?.primaryLogin ?? ''}
+                title={contactMethod}
                 onBackButtonPress={onBackButtonPress}
             />
             <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
@@ -53,14 +54,14 @@ function ValidateContactActionPage() {
                     type="success"
                     style={[themeStyles.mb3]}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('contacts.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}}
+                    messages={{0: translate('contacts.enterMagicCode', {contactMethod})}}
                 />
                 <ValidateCodeForm
                     isValidatingAction
                     loginList={loginList}
                     ref={validateCodeFormRef}
                     pendingContact={pendingContactAction}
-                    contactMethod={account?.primaryLogin ?? ''}
+                    contactMethod={contactMethod}
                 />
             </View>
         </ScreenWrapper>

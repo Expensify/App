@@ -43,7 +43,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions
-        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
+        .filter(
+            (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
+                item !== CONST.IOU.TYPE.INVOICE,
+        )
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
@@ -54,7 +57,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
     };
 
     const welcomeHeroText = useMemo(() => {
@@ -110,11 +113,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
+                                const activeRoute = Navigation.getReportRHPActiveRoute();
                                 if (ReportUtils.canEditReportDescription(report, policy)) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1'));
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1', activeRoute));
                             }}
                             style={styles.renderHTML}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -158,7 +162,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()))}
                                             suppressHighlighting
                                         >
                                             {displayName}

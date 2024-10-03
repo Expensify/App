@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -25,13 +25,15 @@ import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
+import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>, PopoverMenuItem>;
+type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE>, PopoverMenuItem>;
 
 type AttachmentPickerWithMenuItemsProps = {
     /** The report currently being looked at */
@@ -65,10 +67,10 @@ type AttachmentPickerWithMenuItemsProps = {
     onTriggerAttachmentPicker: () => void;
 
     /** Called when cancelling the attachment picker */
-    onCanceledAttachmentPicker: () => void;
+    onCanceledAttachmentPicker?: () => void;
 
     /** Called when the menu with the items is closed after it was open */
-    onMenuClosed: () => void;
+    onMenuClosed?: () => void;
 
     /** Called when the add action button is pressed */
     onAddActionPressed: () => void;
@@ -109,14 +111,15 @@ function AttachmentPickerWithMenuItems({
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
 }: AttachmentPickerWithMenuItemsProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`, {initialValue: {} as OnyxTypes.Policy});
-
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`, {initialValue: {} as OnyxTypes.Policy});
 
     /**
      * Returns the list of IOU Options
@@ -145,7 +148,13 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false),
+                onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        setIsNoDelegateAccessMenuVisible(true);
+                        return;
+                    }
+                    selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false);
+                },
             },
             [CONST.IOU.TYPE.TRACK]: {
                 icon: getIconForAction(CONST.IOU.TYPE.TRACK),
@@ -162,7 +171,7 @@ function AttachmentPickerWithMenuItems({
         return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs]);
+    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
      * Determines if we can show the task option
@@ -183,7 +192,7 @@ function AttachmentPickerWithMenuItems({
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
-        onMenuClosed();
+        onMenuClosed?.();
     };
 
     const prevIsFocused = usePrevious(isFocused);
@@ -322,6 +331,11 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
+                        />
+                        <DelegateNoAccessModal
+                            isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                            onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                            delegatorEmail={delegatorEmail ?? ''}
                         />
                     </>
                 );

@@ -2,13 +2,12 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
-import * as CurrencyUtils from './CurrencyUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import * as Localize from './Localize';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
 import * as NumberUtils from './NumberUtils';
 
-type RateValueForm = typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM | typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
+type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
 
 type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
 
@@ -18,11 +17,11 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
     const decimalSeparator = toLocaleDigit('.');
 
     // Allow one more decimal place for accuracy
-    const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CurrencyUtils.getCurrencyDecimals(currency) + 1}})?$`, 'i');
+    const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-        errors.rate = Localize.translateLocal('workspace.reimburse.invalidRateError');
+        errors.rate = Localize.translateLocal('common.error.invalidRateError');
     } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-        errors.rate = Localize.translateLocal('workspace.reimburse.lowRateError');
+        errors.rate = Localize.translateLocal('common.error.lowRateError');
     }
     return errors;
 }

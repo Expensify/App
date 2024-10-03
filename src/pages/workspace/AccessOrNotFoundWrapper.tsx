@@ -103,13 +103,20 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
     );
 }
 
-function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
-    const {reportID, policyID, iouType, allPolicies, featureName} = props;
-
+function AccessOrNotFoundWrapper({
+    accessVariants = [],
+    fullPageNotFoundViewProps,
+    shouldBeBlocked,
+    policyID,
+    reportID,
+    iouType,
+    allPolicies,
+    featureName,
+    ...props
+}: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? '-1'}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
