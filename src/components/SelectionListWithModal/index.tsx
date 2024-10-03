@@ -4,7 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
-import type {BaseSelectionListProps, ListItem, ReportListItemType, SelectionListHandle} from '@components/SelectionList/types';
+import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,10 +15,11 @@ type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProp
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     shouldAutoTurnOff?: boolean;
+    isSelected?: (item: TItem) => boolean;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, shouldAutoTurnOff, ...rest}: SelectionListWithModalProps<TItem>,
+    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, shouldAutoTurnOff, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -28,12 +29,19 @@ function SelectionListWithModal<TItem extends ListItem>(
     // See https://github.com/Expensify/App/issues/48675 for more details
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectionMode} = useMobileSelectionMode(shouldAutoTurnOff);
+    // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
+    // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
-        const selectedItems = sections[0].data.filter((item) => !!item.isSelected || (item as unknown as ReportListItemType)?.transactions?.some((transaction) => transaction.isSelected));
+        const selectedItems = sections[0].data.filter((item) => {
+            if (isSelected) {
+                return isSelected(item);
+            }
+            return !!item.isSelected;
+        });
         selectionRef.current = selectedItems.length;
 
         if (!isSmallScreenWidth) {
@@ -50,7 +58,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth]);
+    }, [sections, selectionMode, isSmallScreenWidth, isSelected]);
 
     useEffect(
         () => () => {

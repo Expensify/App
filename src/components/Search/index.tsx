@@ -335,6 +335,11 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
             onCheckboxPress={toggleTransaction}
             onSelectAll={toggleAllTransactions}
+            isSelected={(item) =>
+                status !== CONST.SEARCH.STATUS.EXPENSE.ALL
+                    ? (item as ReportListItemType).transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
+                    : !!item.isSelected
+            }
             customListHeader={
                 !isLargeScreenWidth ? null : (
                     <SearchTableHeader
