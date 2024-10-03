@@ -84,8 +84,8 @@ const Pagination: Middleware = (requestResponse, request) => {
         return requestResponse;
     }
 
-    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID} = paginationConfig;
-    const {resourceID} = request;
+    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
+    const {resourceID, cursorID} = request;
     return requestResponse.then((response) => {
         if (!response?.onyxData) {
             return Promise.resolve(response);
@@ -105,7 +105,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false) {
+        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false) {
