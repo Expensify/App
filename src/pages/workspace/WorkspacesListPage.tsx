@@ -220,7 +220,7 @@ function WorkspacesListPage() {
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
+        [isLessThanMediumScreen, styles.mb2, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
     );
 
     const listHeaderComponent = useCallback(() => {
