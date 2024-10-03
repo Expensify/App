@@ -420,6 +420,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the information if user loaded the Onyx state through Import feature  */
+    IS_USING_IMPORTED_STATE: 'isUsingImportedState',
+
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
 
@@ -989,9 +992,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
 };
-
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 
 type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;
