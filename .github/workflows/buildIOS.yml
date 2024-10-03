@@ -147,3 +147,9 @@ jobs:
         with:
           name: ios-artifact-dsym
           path: ${{ steps.build.outputs.DSYM_PATH }}
+
+      - name: Upload iOS sourcemaps
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps-artifact
+          path: ./main.jsbundle.map
