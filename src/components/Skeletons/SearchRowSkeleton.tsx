@@ -126,7 +126,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
-                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.mh5]}
                 renderSkeletonItem={() => (
                     <>
                         <Rect
