@@ -19,6 +19,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,7 +66,9 @@ function SearchRouter() {
             };
         }
 
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         return {
             recentReports: newOptions.recentReports,

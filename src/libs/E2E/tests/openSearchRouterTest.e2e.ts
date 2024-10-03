@@ -20,10 +20,10 @@ const test = () => {
 
         console.debug('[E2E] Logged in, getting search router metrics and submitting them…');
 
-        const [openSearchPagePromise, openSearchPageResolve] = getPromiseWithResolve();
+        const [openSearchRouterPromise, openSearchRouterResolve] = getPromiseWithResolve();
         const [loadSearchOptionsPromise, loadSearchOptionsResolve] = getPromiseWithResolve();
 
-        Promise.all([openSearchPagePromise, loadSearchOptionsPromise]).then(() => {
+        Promise.all([openSearchRouterPromise, loadSearchOptionsPromise]).then(() => {
             console.debug(`[E2E] Submitting!`);
 
             E2EClient.submitTestDone();
@@ -40,7 +40,7 @@ const test = () => {
                     unit: 'ms',
                 })
                     .then(() => {
-                        openSearchPageResolve();
+                        openSearchRouterResolve();
                         console.debug('[E2E] Done with search, exiting…');
                     })
                     .catch((err) => {

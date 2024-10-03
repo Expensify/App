@@ -27,7 +27,6 @@ function SearchButton() {
             accessibilityLabel={translate('common.search')}
             style={[styles.flexRow, styles.touchableButtonImage]}
             onPress={Session.checkIfActionIsAllowed(() => {
-                // Todo [Search] add finishing for this timing in <SearchRouterList>
                 Timing.start(CONST.TIMING.SEARCH_ROUTER_OPEN);
                 Performance.markStart(CONST.TIMING.SEARCH_ROUTER_OPEN);
 
