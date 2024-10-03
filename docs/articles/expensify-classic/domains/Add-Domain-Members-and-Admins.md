@@ -36,10 +36,6 @@ Once the member verifies their email address, all Domain Admins will be notified
 3. Click the **Domain Members** tab on the left. 
 4. Under the Domain Members section, enter the first part of the member’s email address and click **Invite**. 
 
-{% include info.html %}
-This can be any email address—it does not have to be an email address under the domain. If someone who is not a Domain Admin invites a new member to a workspace, that member must validate their account via email before they will have access to it. 
-{% include end-info.html %}
-
 # Add Domain Admin
 
 1. Hover over Settings, then click **Domains**.
