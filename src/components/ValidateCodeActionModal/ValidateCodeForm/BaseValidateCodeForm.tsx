@@ -126,12 +126,9 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        if (!validateError) {
-            return;
-        }
         clearError();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [clearError, validateError]);
+    }, []);
 
     useEffect(() => {
         if (!hasMagicCodeBeenSent) {
