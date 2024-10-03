@@ -59,8 +59,8 @@ function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps
         }
         const queryJSON = SearchUtils.buildSearchQueryJSON(input);
         if (queryJSON) {
-            const standardQuery = SearchUtils.standardizeQueryJSON(queryJSON, cardList, reports, taxRates);
-            const query = SearchUtils.buildSearchQueryString(standardQuery);
+            const standardizedQuery = SearchUtils.standardizeQueryJSON(queryJSON, cardList, reports, taxRates);
+            const query = SearchUtils.buildSearchQueryString(standardizedQuery);
             SearchActions.clearAllFilters();
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
         } else {

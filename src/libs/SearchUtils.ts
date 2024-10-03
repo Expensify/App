@@ -840,7 +840,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
     ];
 }
 
-function getIDFromDisplayValue(filterName: string, filter: string | string[], cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>, taxRates: Record<string, string[]>) {
+function findIDFromDisplayValue(filterName: string, filter: string | string[], cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>, taxRates: Record<string, string[]>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         if (typeof filter === 'string') {
             const email = filter;
@@ -889,7 +889,7 @@ function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.Ca
             traverse(node.right);
         }
         // eslint-disable-next-line no-param-reassign
-        node.right = getIDFromDisplayValue(node.left as string, node.right as string | string[], cardList, reports, taxRates);
+        node.right = findIDFromDisplayValue(node.left as string, node.right as string | string[], cardList, reports, taxRates);
     };
 
     traverse(filters);
