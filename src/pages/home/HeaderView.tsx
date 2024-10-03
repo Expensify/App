@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -33,6 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewProps = {
@@ -52,6 +54,13 @@ type HeaderViewProps = {
     shouldUseNarrowLayout?: boolean;
 };
 
+const fallbackIcon: IconType = {
+    source: FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
+    id: -1,
+};
+
 function HeaderView({report, parentReportAction, reportID, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
@@ -66,7 +75,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
 
-    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report).slice(0, 5);
+    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
@@ -78,8 +87,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction, personalDetails, invoiceReceiverPolicy);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
+    const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, true);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, true);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
@@ -111,7 +120,15 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     );
 
     const renderAdditionalText = () => {
-        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
+        if (
+            shouldShowSubtitle() ||
+            isPersonalExpenseChat ||
+            !policyName ||
+            !isEmptyObject(parentNavigationSubtitleData) ||
+            isSelfDM ||
+            ReportUtils.isUserCreatedPolicyRoom(report) ||
+            ReportUtils.isDefaultRoom(report)
+        ) {
             return null;
         }
         return (
@@ -124,7 +141,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = ReportUtils.getIcons(reportHeaderData, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
+    const icons = ReportUtils.getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
@@ -164,7 +181,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                         )}
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <PressableWithoutFeedback
-                                onPress={() => ReportUtils.navigateToDetailsPage(report)}
+                                onPress={() => ReportUtils.navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                 disabled={shouldDisableDetailPage}
                                 accessibilityLabel={title}
@@ -172,8 +189,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             >
                                 {shouldShowSubscript ? (
                                     <SubscriptAvatar
-                                        mainAvatar={icons[0]}
-                                        secondaryAvatar={icons[1]}
+                                        mainAvatar={icons.at(0) ?? fallbackIcon}
+                                        secondaryAvatar={icons.at(1)}
                                         size={defaultSubscriptSize}
                                     />
                                 ) : (
@@ -218,11 +235,12 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     {isChatRoom && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                         <PressableWithoutFeedback
                                             onPress={() => {
+                                                const activeRoute = Navigation.getReportRHPActiveRoute();
                                                 if (ReportUtils.canEditReportDescription(report, policy)) {
-                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID));
+                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID, activeRoute));
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, activeRoute));
                                             }}
                                             style={[styles.alignSelfStart, styles.mw100]}
                                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -242,7 +260,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                                     Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                                             }}
                                             style={[styles.alignSelfStart, styles.mw100]}
                                             accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}

@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -72,7 +73,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     let participants: Array<Participant | ReportUtils.OptionData>;
     if (ReportUtils.isPolicyExpenseChat(report)) {
         participants = [
-            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true, reportID: ''}, personalDetails),
+            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
             OptionsListUtils.getPolicyExpenseReportOption({...report, selected: true, reportID}),
         ];
     } else {
@@ -104,7 +105,10 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
-                <HeaderWithBackButton title={translate('common.details')} />
+                <HeaderWithBackButton
+                    title={translate('common.details')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
                         <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
