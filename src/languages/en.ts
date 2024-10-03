@@ -670,7 +670,7 @@ const translations = {
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'This is where ',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' will submit expenses to the ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' will submit expenses to ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' workspace. Just use the + button.',
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
