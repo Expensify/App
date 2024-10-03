@@ -295,6 +295,7 @@ module.exports = {
             files: ['*.ts', '*.tsx'],
             rules: {
                 'rulesdir/prefer-at': 'error',
+                'rulesdir/boolean-conditional-rendering': 'error',
             },
         },
     ],

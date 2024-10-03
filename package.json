@@ -271,7 +271,7 @@
     "electron-builder": "25.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-expensify": "^2.0.60",
+    "eslint-config-expensify": "github:Expensify/eslint-config-expensify#46040c1628e4680433f3d9b9dde977d347aac05a",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-jest": "^28.6.0",
