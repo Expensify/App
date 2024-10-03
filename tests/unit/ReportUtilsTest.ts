@@ -270,6 +270,30 @@ describe('ReportUtils', () => {
                 });
             });
         });
+
+        describe('ParentReportAction is', () => {
+            test('Manually Submitted Report Action', () => {
+                const threadOfSubmittedReportAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    parentReportID: '101',
+                    policyID: policy.id,
+                };
+                const submittedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    originalMessage: {
+                        amount: 169,
+                        currency: 'USD',
+                    },
+                } as ReportAction;
+
+                expect(
+                    ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction),
+                ).toBe('submitted $1.69');
+            });
+        });
     });
 
     describe('requiresAttentionFromCurrentUser', () => {
