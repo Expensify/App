@@ -4,7 +4,7 @@ import type SCREENS from '@src/SCREENS';
 
 type OnboardingWorkProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>;
 
-type BaseOnboardingWorkProps = {
+type BaseOnboardingWorkProps = OnboardingWorkProps & {
     /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
 };
