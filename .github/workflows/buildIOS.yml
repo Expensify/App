@@ -11,6 +11,10 @@ on:
         description: Git ref to checkout and build
         type: string
         required: true
+      pull_request_number:
+        description: The pull request number associated with this build, if relevant.
+        type: number
+        required: false
     outputs:
       IPA_FILE_NAME:
         value: ${{ jobs.build.outputs.IPA_FILE_NAME }}
@@ -30,6 +34,10 @@ on:
         description: Git ref to checkout and build
         required: true
         type: string
+      pull_request_number:
+        description: The pull request number associated with this build, if relevant.
+        type: number
+        required: false
 
 jobs:
   build:
@@ -42,6 +50,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        if: ${{ inputs.type == 'adhoc' }}
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -74,17 +89,22 @@ jobs:
           max_attempts: 5
           command: scripts/pod-install.sh
 
-      - name: Decrypt AppStore profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
+      - name: Decrypt provisioning profiles
+        run: |
+          cd ios
+          provisioningProfile=''
+          if [ '${{ inputs.type }}' == 'release' ]; then
+            provisioningProfile='NewApp_AppStore'
+          else
+            provisioningProfile='NewApp_AdHoc'
+          fi
+          echo "Using provisioning profile: $provisioningProfile"
+          gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output "$provisioningProfile.mobileprovision" "$provisioningProfile.mobileprovision.gpg"
+          gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output "$provisioningProfile_Notification_Service.mobileprovision" "$provisioningProfile_Notification_Service.mobileprovision.gpg"
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Decrypt AppStore Notification Service profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt certificate
+      - name: Decrypt code signing certificate
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}

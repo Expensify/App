@@ -129,6 +129,7 @@ jobs:
     with:
       type: adhoc
       ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+      pull_request_number: ${{ env.PULL_REQUEST_NUMBER }}
 
   uploadIOS:
     name: Upload IOS app to S3
