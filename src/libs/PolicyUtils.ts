@@ -966,12 +966,12 @@ function hasUnsupportedIntegration(policy: Policy | undefined, accountingIntegra
 }
 
 function getCurrentConnectionName(policy: Policy | undefined, includeUnsupportedConnection = false): string | undefined {
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const accountingIntegrations: string[] = [...Object.values(CONST.POLICY.CONNECTIONS.NAME)];
     if (includeUnsupportedConnection) {
         accountingIntegrations.push(...Object.values(CONST.POLICY.UNSUPPORTED_CONNECTIONS.NAME));
     }
-    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
-    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
+    const connectionKey = accountingIntegrations.find((integration) => policy?.connections && integration in policy.connections);
+    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey as keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY] : undefined;
 }
 
 /**
