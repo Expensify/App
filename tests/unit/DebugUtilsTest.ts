@@ -481,7 +481,7 @@ describe('DebugUtils', () => {
     describe('validateReportDraftProperty', () => {
         describe.each(Object.keys(MOCK_REPORT) as Array<keyof Report>)('%s', (key) => {
             describe('is undefined', () => {
-                it(`${DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? 'throws SyntaxError' : 'does not throw SyntaxError'}`, () => {
+                it(DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? 'throws SyntaxError' : 'does not throw SyntaxError', () => {
                     if (DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key)) {
                         expect(() => {
                             DebugUtils.validateReportDraftProperty(key, 'undefined');
@@ -529,7 +529,7 @@ describe('DebugUtils', () => {
 
     describe('validateReportActionDraftProperty', () => {
         describe.each(Object.keys(MOCK_REPORT_ACTION) as Array<keyof ReportAction>)('%s', (key) => {
-            it(`${DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
+            it(DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"', () => {
                 if (DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
                         DebugUtils.validateReportActionDraftProperty(key, 'undefined');

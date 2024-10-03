@@ -40,7 +40,7 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => {
         const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
-        let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
+        let shortName = reservationTimeDetails?.shortName ? reservationTimeDetails?.shortName : '';
 
         shortName = longName && shortName ? `(${shortName})` : shortName;
 
@@ -62,7 +62,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     const formattedDate = getFormattedDate();
 
     const bottomDescription = useMemo(() => {
-        const code = `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
+        const code = reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : '';
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
             const longName = reservation.company?.longName ? `${reservation.company?.longName} • ` : '';
             const shortName = reservation?.company?.shortName ? `${reservation?.company?.shortName} ` : '';

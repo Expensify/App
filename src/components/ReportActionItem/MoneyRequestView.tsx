@@ -208,7 +208,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         [getViolationsForField],
     );
 
-    let amountDescription = `${translate('iou.amount')}`;
+    let amountDescription = translate('iou.amount');
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
     const rateID = TransactionUtils.getRateID(transaction) ?? '-1';

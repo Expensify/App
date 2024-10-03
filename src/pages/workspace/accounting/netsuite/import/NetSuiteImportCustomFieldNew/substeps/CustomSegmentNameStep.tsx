@@ -17,7 +17,7 @@ function CustomSegmentNameStep({customSegmentType}: CustomFieldSubStepWithPolicy
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
+    const fieldLabel = translate('workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName');
 
     const customSegmentRecordType = customSegmentType ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
 

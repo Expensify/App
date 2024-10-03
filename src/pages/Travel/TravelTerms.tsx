@@ -42,8 +42,8 @@ function TravelTerms() {
     const AgreeToTheLabel = useCallback(
         () => (
             <Text>
-                {`${translate('travel.termsAndConditions.agree')}`}
-                <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.travelTermsAndConditions')}`}</TextLink>
+                {translate('travel.termsAndConditions.agree')}
+                <TextLink href={CONST.TRAVEL_TERMS_URL}>{translate('travel.termsAndConditions.travelTermsAndConditions')}</TextLink>
             </Text>
         ),
         [translate],
@@ -65,15 +65,15 @@ function TravelTerms() {
                     {({safeAreaPaddingBottomStyle}) => (
                         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}>
                             <View style={styles.flex1}>
-                                <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
+                                <Text style={styles.headerAnonymousFooter}>{translate('travel.termsAndConditions.title')}</Text>
                                 <Text style={styles.mt4}>
-                                    {`${translate('travel.termsAndConditions.subtitle')}`}
+                                    {translate('travel.termsAndConditions.subtitle')}
                                     <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
                                 </Text>
                                 <Text style={styles.mt6}>
-                                    {`${translate('travel.termsAndConditions.helpDocIntro')}`}
+                                    {translate('travel.termsAndConditions.helpDocIntro')}
                                     <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
-                                    {`${translate('travel.termsAndConditions.helpDocOutro')}`}
+                                    {translate('travel.termsAndConditions.helpDocOutro')}
                                 </Text>
                                 <CheckboxWithLabel
                                     style={styles.mt6}

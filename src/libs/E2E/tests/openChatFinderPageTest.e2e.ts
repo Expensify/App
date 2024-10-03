@@ -26,14 +26,14 @@ const test = () => {
         const [loadSearchOptionsPromise, loadSearchOptionsResolve] = getPromiseWithResolve();
 
         Promise.all([openSearchPagePromise, loadSearchOptionsPromise]).then(() => {
-            console.debug(`[E2E] Submitting!`);
+            console.debug('[E2E] Submitting!');
 
             E2EClient.submitTestDone();
         });
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug(`[E2E] Sidebar loaded, navigating to chat finder route…`);
+                console.debug('[E2E] Sidebar loaded, navigating to chat finder route…');
                 Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
                 Navigation.navigate(ROUTES.CHAT_FINDER);
                 return;
@@ -73,7 +73,7 @@ const test = () => {
                     });
             }
 
-            console.debug(`[E2E] Submitting!`);
+            console.debug('[E2E] Submitting!');
         });
     });
 };

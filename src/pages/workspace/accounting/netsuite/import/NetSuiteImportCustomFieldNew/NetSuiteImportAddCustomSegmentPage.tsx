@@ -94,16 +94,16 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                             fieldName: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
                         });
                     } else if (customSegments.find((customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLowerCase())) {
-                        const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
+                        const fieldLabel = translate('workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName');
                         errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.INTERNAL_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.INTERNAL_ID])) {
-                        const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
+                        const fieldLabel = translate('workspace.netsuite.import.importCustomFields.customSegments.fields.internalID');
                         errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
                     } else if (customSegments.find((customSegment) => customSegment.internalID.toLowerCase() === values[INPUT_IDS.INTERNAL_ID].toLowerCase())) {
-                        const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
+                        const fieldLabel = translate('workspace.netsuite.import.importCustomFields.customSegments.fields.internalID');
                         errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
                     }
                     return errors;

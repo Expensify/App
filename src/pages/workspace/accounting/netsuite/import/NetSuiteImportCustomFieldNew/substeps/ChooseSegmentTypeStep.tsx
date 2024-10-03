@@ -17,13 +17,13 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}
 
     const selectionData = [
         {
-            text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentTitle`),
+            text: translate('workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentTitle'),
             keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
             isSelected: selectedType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
             value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
         },
         {
-            text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.recordTitle`),
+            text: translate('workspace.netsuite.import.importCustomFields.customSegments.addForm.recordTitle'),
             keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
             isSelected: selectedType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
             value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
@@ -42,9 +42,9 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}
     return (
         <>
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>
-                {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType`)}
+                {translate('workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType')}
             </Text>
-            <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
+            <Text style={[styles.ph5, styles.mb3]}>{translate('workspace.netsuite.import.importCustomFields.chooseOptionBelow')}</Text>
             <SelectionList
                 sections={[{data: selectionData}]}
                 ListItem={RadioListItem}

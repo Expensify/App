@@ -243,7 +243,7 @@ function AttachmentModal({
         }
 
         if (typeof sourceURL === 'string') {
-            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? FileUtils.getFileName(`${sourceURL}`) : file?.name;
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? FileUtils.getFileName(sourceURL) : file?.name;
             fileDownload(sourceURL, fileName ?? '');
         }
 

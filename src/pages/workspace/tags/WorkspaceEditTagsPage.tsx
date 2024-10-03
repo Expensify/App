@@ -74,7 +74,7 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
                 shouldEnableMaxHeight
                 testID={WorkspaceEditTagsPage.displayName}
             >
-                <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
+                <HeaderWithBackButton title={translate('workspace.tags.customTagName')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
@@ -87,8 +87,8 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.POLICY_TAGS_NAME}
-                            label={translate(`workspace.tags.customTagName`)}
-                            accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                            label={translate('workspace.tags.customTagName')}
+                            accessibilityLabel={translate('workspace.tags.customTagName')}
                             defaultValue={PolicyUtils.getCleanedTagName(taglistName)}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}

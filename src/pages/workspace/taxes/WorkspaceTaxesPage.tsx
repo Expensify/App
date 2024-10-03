@@ -96,7 +96,7 @@ function WorkspaceTaxesPage({
             if (suffix) {
                 return `${taxRate.value} ${CONST.DOT_SEPARATOR} ${suffix}`;
             }
-            return `${taxRate.value}`;
+            return taxRate.value;
         },
         [defaultExternalID, foreignTaxDefault, translate],
     );

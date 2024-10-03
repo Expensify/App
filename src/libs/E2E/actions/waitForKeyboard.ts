@@ -6,7 +6,7 @@ export default function waitForKeyboard(): Promise<void> {
             if (Keyboard.isVisible()) {
                 resolve();
             } else {
-                console.debug(`[E2E] Waiting for keyboard to appear…`);
+                console.debug('[E2E] Waiting for keyboard to appear…');
                 setTimeout(checkKeyboard, 1000);
             }
         }

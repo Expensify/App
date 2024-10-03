@@ -829,7 +829,7 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
 
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, {
+    const importedValueLabel = translate('workspace.netsuite.import.customersOrJobs.label', {
         importFields,
         importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
     });
@@ -850,7 +850,7 @@ function getNetSuiteImportCustomFieldLabel(
     const importedTypes = Array.from(mappingSet)
         .sort((a, b) => b.localeCompare(a))
         .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
-    return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
+    return translate('workspace.netsuite.import.importCustomFields.label', {importedTypes});
 }
 
 function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {

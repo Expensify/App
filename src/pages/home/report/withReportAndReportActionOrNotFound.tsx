@@ -50,7 +50,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 ): ComponentType<Omit<TProps & RefAttributes<TRef>, keyof OnyxProps>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
-            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
+            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[props.route.params.reportActionID];
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {

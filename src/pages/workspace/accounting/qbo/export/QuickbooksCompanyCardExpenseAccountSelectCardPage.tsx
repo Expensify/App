@@ -34,7 +34,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     const sections = useMemo(() => {
         const options: MenuItem[] = [
             {
-                text: translate(`workspace.qbo.accounts.credit_card`),
+                text: translate('workspace.qbo.accounts.credit_card'),
                 value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
                 keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
                 isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === qboConfig?.nonReimbursableExpensesExportDestination,
@@ -42,7 +42,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                 defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
             {
-                text: translate(`workspace.qbo.accounts.debit_card`),
+                text: translate('workspace.qbo.accounts.debit_card'),
                 value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
                 keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
                 isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD === qboConfig?.nonReimbursableExpensesExportDestination,
@@ -52,7 +52,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
         ];
         if (!isLocationEnabled) {
             options.push({
-                text: translate(`workspace.qbo.accounts.bill`),
+                text: translate('workspace.qbo.accounts.bill'),
                 value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
                 keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === qboConfig?.nonReimbursableExpensesExportDestination,

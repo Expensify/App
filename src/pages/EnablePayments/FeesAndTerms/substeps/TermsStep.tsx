@@ -17,7 +17,7 @@ function HaveReadAndAgreeLabel() {
 
     return (
         <Text>
-            {`${translate('termsStep.haveReadAndAgree')}`}
+            {translate('termsStep.haveReadAndAgree')}
             <TextLink href={CONST.ELECTRONIC_DISCLOSURES_URL}>{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
         </Text>
     );

@@ -120,7 +120,7 @@ const register: Register = (notificationID) => {
 
             // Register this device as a named user in AirshipAPI.
             // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-            Log.info(`[PushNotification] Subscribing to notifications`);
+            Log.info('[PushNotification] Subscribing to notifications');
             Airship.contact.identify(notificationID.toString());
 
             // Refresh notification opt-in status NVP for the new user.

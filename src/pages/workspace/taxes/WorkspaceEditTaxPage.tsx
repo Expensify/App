@@ -113,7 +113,7 @@ function WorkspaceEditTaxPage({
                             description={translate('common.name')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(policyID, taxID))}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -128,7 +128,7 @@ function WorkspaceEditTaxPage({
                             description={translate('workspace.taxes.value')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(policyID, taxID))}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -146,15 +146,11 @@ function WorkspaceEditTaxPage({
                             onPress={() => {
                                 if (!PolicyUtils.isControlPolicy(policy)) {
                                     Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias,
-                                            ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID),
-                                        ),
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias, ROUTES.WORKSPACE_TAX_CODE.getRoute(policyID, taxID)),
                                     );
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
+                                Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(policyID, taxID));
                             }}
                         />
                     </OfflineWithFeedback>

@@ -2428,12 +2428,12 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
         value: transactionsOptimisticData,
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
         value: transactionFailureData,
     });
 
@@ -2522,7 +2522,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // the reimbursement account to be immediately in the setup state for a new bank account:
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}`,
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         value: {
             isLoading: false,
             achData: {
@@ -2534,7 +2534,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}`,
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     });
 
@@ -2610,7 +2610,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
 
 /** Save the preferred export method for a policy */
 function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
-    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
+    Onyx.merge(ONYXKEYS.LAST_EXPORT_METHOD, {[policyID]: exportMethod});
 }
 
 function enableExpensifyCard(policyID: string, enabled: boolean) {

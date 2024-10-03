@@ -77,7 +77,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 )}
             >
                 <MenuItemWithTopDescription
-                    description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
+                    description={translate('workspace.netsuite.import.customersOrJobs.title')}
                     title={PolicyUtils.getCustomersOrJobsLabelNetSuite(policy, translate)}
                     shouldShowRightIcon
                     numberOfLinesTitle={2}

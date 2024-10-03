@@ -24,7 +24,7 @@ function MappingStep({importCustomField, customSegmentType}: CustomFieldSubStepW
     return (
         <>
             <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPaths)}</Text>
-            <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
+            <Text style={[styles.ph5, styles.mb3]}>{translate('workspace.netsuite.import.importCustomFields.chooseOptionBelow')}</Text>
             <InputWrapper
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}

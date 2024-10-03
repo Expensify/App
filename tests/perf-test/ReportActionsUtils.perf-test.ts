@@ -29,7 +29,7 @@ const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 
 const mockedReportActionsMap: Partial<ReportAction> = getMockedReportActionsMap(2, 10000);
 
 const reportActions = createCollection<ReportAction>(
-    (item) => `${item.reportActionID}`,
+    (item) => item.reportActionID,
     (index) => createRandomReportAction(index),
 );
 

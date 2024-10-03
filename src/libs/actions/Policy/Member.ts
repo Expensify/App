@@ -754,7 +754,7 @@ function clearAddMemberError(policyID: string, accountID: number) {
             [email]: null,
         },
     });
-    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [accountID]: null,
     });
 }

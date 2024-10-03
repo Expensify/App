@@ -872,7 +872,7 @@ const translations = {
                 statusText.push(`${pendingReceipts} pending`);
             }
             return {
-                one: statusText.length > 0 ? `1 expense (${statusText.join(', ')})` : `1 expense`,
+                one: statusText.length > 0 ? `1 expense (${statusText.join(', ')})` : '1 expense',
                 other: (count: number) => (statusText.length > 0 ? `${count} expenses (${statusText.join(', ')})` : `${count} expenses`),
             };
         },
@@ -888,11 +888,11 @@ const translations = {
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : 'Pay with Expensify'),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : 'Pay as an individual'),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay as a business`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : 'Pay as a business'),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : 'Pay elsewhere'),
         nextStep: 'Next steps',
         finished: 'Finished',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
@@ -2563,7 +2563,7 @@ const translations = {
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: `Please add the account in Sage Intacct and sync the connection again.`,
+            noAccountsFoundDescription: 'Please add the account in Sage Intacct and sync the connection again.',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Expensify will automatically sync with Sage Intacct every day.',
             inviteEmployees: 'Invite employees',
@@ -2843,7 +2843,7 @@ const translations = {
                             mappingTitle: 'How should this custom list be displayed in Expensify?',
                         },
                         errors: {
-                            uniqueTransactionFieldIDError: `A custom list with this transaction field ID already exists.`,
+                            uniqueTransactionFieldIDError: 'A custom list with this transaction field ID already exists.',
                         },
                     },
                 },
@@ -3802,42 +3802,47 @@ const translations = {
         upgrade: {
             reportFields: {
                 title: 'Report fields',
-                description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
+                description:
+                    'Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.',
                 onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
-                description: `Enjoy automated syncing and reduce manual entries with the Expensify + NetSuite integration. Gain in-depth, realtime financial insights with native and custom segment support, including project and customer mapping.`,
+                description:
+                    'Enjoy automated syncing and reduce manual entries with the Expensify + NetSuite integration. Gain in-depth, realtime financial insights with native and custom segment support, including project and customer mapping.',
                 onlyAvailableOnPlan: 'Our NetSuite integration is only available on the Control plan, starting at ',
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
-                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
+                description:
+                    'Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).',
                 onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
-                description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
+                description:
+                    'If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.',
                 onlyAvailableOnPlan: 'Advanced approvals are only available on the Control plan, which starts at ',
             },
             glCodes: {
                 title: 'GL codes',
-                description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
+                description: 'Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.',
                 onlyAvailableOnPlan: 'GL codes are only available on the Control plan, starting at ',
             },
             glAndPayrollCodes: {
                 title: 'GL & Payroll codes',
-                description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
+                description: 'Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.',
                 onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
             },
             taxCodes: {
                 title: 'Tax codes',
-                description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
+                description: 'Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.',
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
             companyCards: {
                 title: 'Company cards',
-                description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
+                description:
+                    'Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.',
                 onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
             rules: {
@@ -4253,7 +4258,7 @@ const translations = {
                 changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed workspace from ${fromPolicy} to ${toPolicy}`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
-                exportedToCSV: `exported this report to CSV`,
+                exportedToCSV: 'exported this report to CSV',
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
@@ -4262,21 +4267,21 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label}: IntegrationSyncFailedParams) => `failed to export this report to ${label} ("${errorMessage}").`,
-                managerAttachReceipt: `added a receipt`,
-                managerDetachReceipt: `removed a receipt`,
+                managerAttachReceipt: 'added a receipt',
+                managerDetachReceipt: 'removed a receipt',
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `paid ${currency}${amount} via integration`,
-                outdatedBankAccount: `couldn’t process the payment due to a problem with the payer’s bank account`,
-                reimbursementACHBounce: `couldn’t process the payment, as the payer doesn’t have sufficient funds`,
-                reimbursementACHCancelled: `canceled the payment`,
-                reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
-                reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
-                selectedForRandomAudit: `randomly selected for review`,
-                selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
+                outdatedBankAccount: 'couldn’t process the payment due to a problem with the payer’s bank account',
+                reimbursementACHBounce: 'couldn’t process the payment, as the payer doesn’t have sufficient funds',
+                reimbursementACHCancelled: 'canceled the payment',
+                reimbursementAccountChanged: 'couldn’t process the payment, as the payer changed bank accounts',
+                reimbursementDelayed: 'processed the payment but it’s delayed by 1-2 more business days',
+                selectedForRandomAudit: 'randomly selected for review',
+                selectedForRandomAuditMarkdown: '[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review',
                 share: ({to}: ShareParams) => `invited member ${to}`,
                 unshare: ({to}: UnshareParams) => `removed user ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
-                takeControl: `took control`,
+                takeControl: 'took control',
                 unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label} ("${errorMessage}")`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,

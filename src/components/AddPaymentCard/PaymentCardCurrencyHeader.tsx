@@ -12,12 +12,14 @@ function PaymentCardCurrencyHeader({isSectionList}: {isSectionList?: boolean}) {
     return (
         <View style={[isSectionList && styles.mh5]}>
             <Text style={[styles.mt3, isSectionList && styles.mb5]}>
-                {`${translate('billingCurrency.note')}`}{' '}
+                {translate('billingCurrency.note')}{' '}
                 <TextLink
                     style={styles.link}
                     href={CONST.PRICING}
-                >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
-                {`${translate('billingCurrency.noteDetails')}`}
+                >
+                    {translate('billingCurrency.noteLink')}
+                </TextLink>{' '}
+                {translate('billingCurrency.noteDetails')}
             </Text>
         </View>
     );

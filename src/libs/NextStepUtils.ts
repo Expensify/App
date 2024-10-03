@@ -109,7 +109,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}`,
+                        text: ownerDisplayName,
                         type: 'strong',
                         clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
@@ -132,7 +132,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}`,
+                        text: ownerDisplayName,
                         type: 'strong',
                         clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
@@ -175,7 +175,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     };
 
                     if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
+                        harvestingSuffix = harvestingSuffixes[autoReportingFrequency];
                     }
                 }
 

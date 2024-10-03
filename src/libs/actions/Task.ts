@@ -329,7 +329,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
  */
 function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const taskReportID = taskReport?.reportID ?? '-1';
-    const message = `marked as complete`;
+    const message = 'marked as complete';
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
     const optimisticData: OnyxUpdate[] = [
@@ -415,7 +415,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
  */
 function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const taskReportID = taskReport?.reportID ?? '-1';
-    const message = `marked as incomplete`;
+    const message = 'marked as incomplete';
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
     const parentReport = getParentReport(taskReport);
     const hasOutstandingChildTask = taskReport?.managerID === currentUserAccountID ? true : parentReport?.hasOutstandingChildTask;

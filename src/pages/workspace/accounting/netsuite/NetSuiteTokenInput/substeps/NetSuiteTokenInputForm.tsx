@@ -49,7 +49,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
 
     return (
         <View style={[styles.flexGrow1, styles.ph5]}>
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('workspace.netsuite.tokenInput.formSteps.enterCredentials.title')}</Text>
 
             <FormProvider
                 formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}

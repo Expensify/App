@@ -36,7 +36,7 @@ const allReports = createCollection<Report>(
 );
 
 const reportActions = createCollection<ReportAction>(
-    (item) => `${item.reportActionID}`,
+    (item) => item.reportActionID,
     (index) => createRandomReportAction(index),
 );
 

@@ -13,7 +13,7 @@ function ChooseCustomListStep({policy}: CustomFieldSubStepWithPolicy) {
 
     return (
         <>
-            <Text style={[styles.mb3, styles.ph5, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.listNameTitle`)}</Text>
+            <Text style={[styles.mb3, styles.ph5, styles.textHeadlineLineHeightXXL]}>{translate('workspace.netsuite.import.importCustomFields.customLists.addForm.listNameTitle')}</Text>
             <InputWrapper
                 InputComponent={NetSuiteCustomListPicker}
                 inputID={INPUT_IDS.LIST_NAME}

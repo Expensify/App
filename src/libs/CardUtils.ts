@@ -70,7 +70,7 @@ function getCardDescription(cardID?: number) {
         return '';
     }
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    return cardDescriptor ? `${card.bank} - ${cardDescriptor}` : `${card.bank}`;
+    return cardDescriptor ? `${card.bank} - ${cardDescriptor}` : card.bank;
 }
 
 /**

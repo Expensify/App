@@ -202,8 +202,8 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             const systemMenu = Menu.getApplicationMenu();
-            const updateMenuItem = systemMenu?.getMenuItemById(`update`);
-            const checkForUpdatesMenuItem = systemMenu?.getMenuItemById(`checkForUpdates`);
+            const updateMenuItem = systemMenu?.getMenuItemById('update');
+            const checkForUpdatesMenuItem = systemMenu?.getMenuItemById('checkForUpdates');
 
             downloadedVersion = info.version;
 
@@ -343,14 +343,14 @@ const mainWindow = (): Promise<void> => {
                 const initialMenuTemplate: MenuItemConstructorOptions[] = [
                     {
                         id: 'mainMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
+                        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.mainMenu'),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: Localize.translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
-                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {id: 'update', label: Localize.translate(preferredLocale, 'desktopApplicationMenu.update'), click: quitAndInstallWithUpdate, visible: false},
+                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, 'desktopApplicationMenu.checkForUpdates'), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
+                                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.viewShortcuts'),
                                 accelerator: 'CmdOrCtrl+J',
                                 click: () => {
                                     showKeyboardShortcutsPage(browserWindow);
@@ -368,12 +368,12 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'fileMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
+                        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.fileMenu'),
                         submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
                         id: 'editMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.editMenu`),
+                        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.editMenu'),
                         submenu: [
                             {id: 'undo', role: 'undo'},
                             {id: 'redo', role: 'redo'},
@@ -396,7 +396,7 @@ const mainWindow = (): Promise<void> => {
                             {type: 'separator'},
                             {
                                 id: 'speechSubmenu',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
+                                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.speechSubmenu'),
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
                                     {id: 'stopSpeaking', role: 'stopSpeaking'},
@@ -406,7 +406,7 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'viewMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
+                        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.viewMenu'),
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
@@ -421,7 +421,7 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'historyMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
+                        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.historyMenu'),
                         submenu: [
                             {
                                 id: 'back',
@@ -462,33 +462,33 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'helpMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
+                        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.helpMenu'),
                         role: 'help',
                         submenu: [
                             {
                                 id: 'learnMore',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`),
+                                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.learnMore'),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
                                 },
                             },
                             {
                                 id: 'documentation',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`),
+                                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.documentation'),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
                                 },
                             },
                             {
                                 id: 'communityDiscussions',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
+                                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.communityDiscussions'),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
                                 },
                             },
                             {
                                 id: 'searchIssues',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
+                                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.searchIssues'),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
                                 },

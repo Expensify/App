@@ -348,7 +348,7 @@ function Composer(
                     numberOfLines={1}
                     ref={textRef}
                 >
-                    {`${caretContent}`}
+                    {caretContent}
                 </Text>
             </Text>
         </View>

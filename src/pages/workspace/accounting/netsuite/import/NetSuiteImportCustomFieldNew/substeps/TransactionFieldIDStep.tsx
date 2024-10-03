@@ -16,11 +16,11 @@ function TransactionFieldIDStep() {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`);
+    const fieldLabel = translate('workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID');
 
     return (
         <View style={styles.ph5}>
-            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDTitle`)}</Text>
+            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate('workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDTitle')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.TRANSACTION_FIELD_ID}
@@ -31,7 +31,7 @@ function TransactionFieldIDStep() {
                 ref={inputCallbackRef}
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
-                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDFooter`))}</comment>`} />
+                <RenderHTML html={`<comment>${Parser.replace(translate('workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDFooter'))}</comment>`} />
             </View>
         </View>
     );

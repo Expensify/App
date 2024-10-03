@@ -45,7 +45,7 @@ function TermsAndConditionsLabel() {
     return (
         <Text>
             {translate('common.iAcceptThe')}
-            <TextLink href={CONST.ACH_TERMS_URL}>{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
+            <TextLink href={CONST.ACH_TERMS_URL}>{translate('completeVerificationStep.termsAndConditions')}</TextLink>
         </Text>
     );
 }

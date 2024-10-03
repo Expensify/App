@@ -66,7 +66,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     const secondaryColor = colorStyles?.color;
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
     const transactionMCCGroup = transactionDetails?.mccGroup;
-    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
+    const MCCIcon = transactionMCCGroup ? MCCIcons[transactionMCCGroup] : undefined;
     const tripIcon = TripReservationUtils.getTripEReceiptIcon(transaction);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;

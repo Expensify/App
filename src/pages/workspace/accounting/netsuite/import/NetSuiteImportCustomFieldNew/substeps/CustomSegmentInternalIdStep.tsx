@@ -19,12 +19,12 @@ function CustomSegmentInternalIdStep({customSegmentType}: CustomFieldSubStepWith
 
     const customSegmentRecordType = customSegmentType ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
 
-    const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.internalID`);
+    const fieldLabel = translate('workspace.netsuite.import.importCustomFields.customSegments.fields.internalID');
 
     return (
         <View style={styles.ph5}>
             <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.customSegmentInternalIDTitle`)}
+                {translate('workspace.netsuite.import.importCustomFields.customSegments.addForm.customSegmentInternalIDTitle')}
             </Text>
             <InputWrapper
                 InputComponent={TextInput}

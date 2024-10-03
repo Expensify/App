@@ -614,7 +614,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
                 const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
-                return `${value}`;
+                return value;
             }
 
             if (

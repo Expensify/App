@@ -315,8 +315,8 @@ describe('ValidationUtils', () => {
     describe('ValidatePersonName', () => {
         test('Valid person name', () => {
             expect(ValidationUtils.isValidPersonName('test name')).toBe(true);
-            expect(ValidationUtils.isValidPersonName(`X Æ A test`)).toBe(true);
-            expect(ValidationUtils.isValidPersonName(`a hyphenated-name`)).toBe(true);
+            expect(ValidationUtils.isValidPersonName('X Æ A test')).toBe(true);
+            expect(ValidationUtils.isValidPersonName('a hyphenated-name')).toBe(true);
         });
 
         test('Invalid person name', () => {
@@ -329,11 +329,11 @@ describe('ValidationUtils', () => {
     describe('ValidateLegalName', () => {
         test('Valid legal name', () => {
             expect(ValidationUtils.isValidLegalName('test name')).toBe(true);
-            expect(ValidationUtils.isValidLegalName(`X Æ A test`)).toBe(true);
+            expect(ValidationUtils.isValidLegalName('X Æ A test')).toBe(true);
         });
 
         test('Invalid legal name', () => {
-            expect(ValidationUtils.isValidLegalName(`a hyphenated-name`)).toBe(false);
+            expect(ValidationUtils.isValidLegalName('a hyphenated-name')).toBe(false);
             expect(ValidationUtils.isValidLegalName('άλφα')).toBe(false);
         });
     });

@@ -282,7 +282,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
                             <MenuItem
-                                title={`${translate('privateNotes.title')}`}
+                                title={translate('privateNotes.title')}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
                                 onPress={() => ReportUtils.navigateToPrivateNotes(report, session, navigateBackTo)}

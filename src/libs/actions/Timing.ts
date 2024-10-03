@@ -66,7 +66,7 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
         const parameters: SendPerformanceTimingParams = {
             name: grafanaEventName,
             value: eventTime,
-            platform: `${getPlatform()}`,
+            platform: getPlatform(),
         };
 
         API.read(READ_COMMANDS.SEND_PERFORMANCE_TIMING, parameters, {});

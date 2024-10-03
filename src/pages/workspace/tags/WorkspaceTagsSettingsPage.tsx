@@ -81,7 +81,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                 >
                     <MenuItemWithTopDescription
                         title={policyTagLists.at(0)?.name ?? ''}
-                        description={translate(`workspace.tags.customTagName`)}
+                        description={translate('workspace.tags.customTagName')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0))}
                         shouldShowRightIcon
                     />

@@ -424,13 +424,11 @@ describe('GithubUtils', () => {
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput =
-            `${baseExpectedOutput}` +
-            `${closedCheckbox}${basePRList.at(2)}` +
+            `${baseExpectedOutput}${closedCheckbox}${basePRList.at(2)}` +
             `${lineBreak}${closedCheckbox}${basePRList.at(0)}` +
             `${lineBreak}${closedCheckbox}${basePRList.at(1)}` +
             `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-            `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-            `${lineBreak}`;
+            `${lineBreak}${closedCheckbox}${basePRList.at(5)}${lineBreak}`;
 
         test('Test no verified PRs', () => {
             githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
@@ -438,8 +436,7 @@ describe('GithubUtils', () => {
                     return;
                 }
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
+                    `${baseExpectedOutput}${openCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
@@ -461,8 +458,7 @@ describe('GithubUtils', () => {
                 }
 
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
+                    `${baseExpectedOutput}${openCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
@@ -484,8 +480,7 @@ describe('GithubUtils', () => {
                 }
 
                 expect(issue.issueBody).toBe(
-                    `${allVerifiedExpectedOutput}` +
-                        `${lineBreak}${deployerVerificationsHeader}` +
+                    `${allVerifiedExpectedOutput}${lineBreak}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -502,8 +497,7 @@ describe('GithubUtils', () => {
                 }
 
                 expect(issue.issueBody).toBe(
-                    `${allVerifiedExpectedOutput}` +
-                        `${lineBreak}${deployBlockerHeader}` +
+                    `${allVerifiedExpectedOutput}${lineBreak}${deployBlockerHeader}` +
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(0)}` +
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(1)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
@@ -523,8 +517,7 @@ describe('GithubUtils', () => {
                 }
 
                 expect(issue.issueBody).toBe(
-                    `${allVerifiedExpectedOutput}` +
-                        `${lineBreak}${deployBlockerHeader}` +
+                    `${allVerifiedExpectedOutput}${lineBreak}${deployBlockerHeader}` +
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(0)}` +
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(1)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
@@ -543,8 +536,7 @@ describe('GithubUtils', () => {
                     return;
                 }
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${closedCheckbox}${basePRList.at(2)}` +
+                    `${baseExpectedOutput}${closedCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
@@ -569,8 +561,7 @@ describe('GithubUtils', () => {
                 }
 
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
+                    `${baseExpectedOutput}${openCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
@@ -595,8 +586,7 @@ describe('GithubUtils', () => {
                 }
 
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
+                    `${baseExpectedOutput}${openCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +

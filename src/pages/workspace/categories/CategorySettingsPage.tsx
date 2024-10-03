@@ -298,7 +298,7 @@ function CategorySettingsPage({
                                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmountNoReceipt}>
                                         <MenuItemWithTopDescription
                                             title={requireReceiptsOverText}
-                                            description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
+                                            description={translate('workspace.rules.categoryRules.requireReceiptsOver')}
                                             onPress={() => {
                                                 Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
                                             }}

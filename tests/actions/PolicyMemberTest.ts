@@ -102,7 +102,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
             Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();

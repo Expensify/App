@@ -64,7 +64,7 @@ async function run() {
         if (date) {
             message += `on ${date}`;
         }
-        message += `🚀`;
+        message += '🚀';
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
 

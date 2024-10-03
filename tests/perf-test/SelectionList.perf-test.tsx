@@ -33,7 +33,7 @@ jest.mock('@components/withLocalize', <TProps extends WithLocalizeProps>() => (C
             />
         );
     }
-    WrappedComponent.displayName = `WrappedComponent`;
+    WrappedComponent.displayName = 'WrappedComponent';
     return WrappedComponent;
 });
 
@@ -53,7 +53,7 @@ jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateCo
             />
         );
     }
-    WrappedComponent.displayName = `WrappedComponent`;
+    WrappedComponent.displayName = 'WrappedComponent';
     return WrappedComponent;
 });
 

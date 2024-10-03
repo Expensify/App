@@ -327,7 +327,7 @@ const tests = [
 ];
 
 describe('search parser', () => {
-    test.each(tests)(`parsing: $query`, ({query, expected}) => {
+    test.each(tests)('parsing: $query', ({query, expected}) => {
         const result = searchParser.parse(query) as SearchQueryJSON;
         expect(result).toEqual(expected);
     });

@@ -309,7 +309,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     if (message === '') {
         return Localize.translateLocal('iou.changedTheExpense');
     }
-    return `${message.substring(1, message.length)}`;
+    return message.substring(1, message.length);
 }
 
 export default {

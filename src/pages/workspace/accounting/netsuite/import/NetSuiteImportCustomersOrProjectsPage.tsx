@@ -68,7 +68,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
             <View style={[styles.ph5, styles.flexRow, styles.pb5]}>
-                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</comment>`} />
+                <RenderHTML html={`<comment>${Parser.replace(translate('workspace.netsuite.import.customersOrJobs.subtitle' as TranslationPaths))}</comment>`} />
             </View>
 
             <ToggleSettingOptionRow

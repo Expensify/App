@@ -27,7 +27,7 @@ const formatMetricChange = (value: number, unit: string): string => {
         return `+${formatMetric(value, unit)}`;
     }
     if (value < 0) {
-        return `${formatMetric(value, unit)}`;
+        return formatMetric(value, unit);
     }
     return `0 ${unit}`;
 };

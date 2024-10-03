@@ -642,7 +642,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
                 break;
             }
             default: {
-                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+                lastMessageTextFromReport = Localize.translate(preferredLocale, 'reportArchiveReasons.default');
             }
         }
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {

@@ -55,7 +55,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
         );
     }
 
-    WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading`;
+    WithPolicyAndFullscreenLoading.displayName = 'WithPolicyAndFullscreenLoading';
 
     return withPolicy(forwardRef(WithPolicyAndFullscreenLoading));
 }

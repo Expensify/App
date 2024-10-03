@@ -11,7 +11,7 @@ export default function parsePushNotificationPayload(payload: JsonValue | undefi
         try {
             data = JSON.parse(payload) as JsonObject;
         } catch {
-            Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
+            Log.hmmm('[PushNotification] Failed to parse the payload', payload);
             data = undefined;
         }
     }

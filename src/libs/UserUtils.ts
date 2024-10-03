@@ -137,7 +137,7 @@ function getDefaultAvatarURL(accountID: string | number = ''): string {
 
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
     const accountIDHashBucket = (Number(accountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
-    const avatarPrefix = `default-avatar`;
+    const avatarPrefix = 'default-avatar';
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
 }

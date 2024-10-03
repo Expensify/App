@@ -62,7 +62,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [expensifyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [allCardsList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
@@ -275,7 +275,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={translate(`workspace.common.roleName`, {role: member?.role})}
+                                        title={translate('workspace.common.roleName', {role: member?.role})}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}

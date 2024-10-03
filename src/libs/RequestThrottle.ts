@@ -9,7 +9,7 @@ let requestRetryCount = 0;
 function clear() {
     requestWaitTime = 0;
     requestRetryCount = 0;
-    Log.info(`[RequestThrottle] in clear()`);
+    Log.info('[RequestThrottle] in clear()');
 }
 
 function getRequestWaitTime() {

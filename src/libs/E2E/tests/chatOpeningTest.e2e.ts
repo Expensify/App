@@ -30,14 +30,14 @@ const test = (config: NativeConfig) => {
         const [chatTTIPromise, chatTTIResolve] = getPromiseWithResolve();
 
         Promise.all([renderChatPromise, chatTTIPromise]).then(() => {
-            console.debug(`[E2E] Submitting!`);
+            console.debug('[E2E] Submitting!');
 
             E2EClient.submitTestDone();
         });
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug(`[E2E] Sidebar loaded, navigating to report…`);
+                console.debug('[E2E] Sidebar loaded, navigating to report…');
                 Performance.markStart(CONST.TIMING.OPEN_REPORT);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;

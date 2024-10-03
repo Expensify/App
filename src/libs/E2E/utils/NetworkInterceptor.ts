@@ -2,7 +2,7 @@
 import {DeviceEventEmitter} from 'react-native';
 import type {NetworkCacheEntry, NetworkCacheMap} from '@libs/E2E/types';
 
-const LOG_TAG = `[E2E][NetworkInterceptor]`;
+const LOG_TAG = '[E2E][NetworkInterceptor]';
 // Requests with these headers will be ignored:
 const IGNORE_REQUEST_HEADERS = ['X-E2E-Server-Request'];
 

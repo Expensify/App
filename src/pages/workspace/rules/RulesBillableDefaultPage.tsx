@@ -32,15 +32,15 @@ function RulesBillableDefaultPage({
     const billableModes = [
         {
             value: true,
-            text: translate(`workspace.rules.individualExpenseRules.billable`),
-            alternateText: translate(`workspace.rules.individualExpenseRules.billableDescription`),
+            text: translate('workspace.rules.individualExpenseRules.billable'),
+            alternateText: translate('workspace.rules.individualExpenseRules.billableDescription'),
             keyForList: CONST.POLICY_BILLABLE_MODES.BILLABLE,
             isSelected: policy?.defaultBillable,
         },
         {
             value: false,
-            text: translate(`workspace.rules.individualExpenseRules.nonBillable`),
-            alternateText: translate(`workspace.rules.individualExpenseRules.nonBillableDescription`),
+            text: translate('workspace.rules.individualExpenseRules.nonBillable'),
+            alternateText: translate('workspace.rules.individualExpenseRules.nonBillableDescription'),
             keyForList: CONST.POLICY_BILLABLE_MODES.NON_BILLABLE,
             isSelected: !policy?.defaultBillable,
         },

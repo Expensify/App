@@ -50,7 +50,7 @@ function CategoryRequireReceiptsOverPage({
     const requireReceiptsOverListData = [
         {
             value: null,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
+            text: translate('workspace.rules.categoryRules.requireReceiptsOverList.default', {
                 defaultAmount: CurrencyUtils.convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
             }),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
@@ -58,13 +58,13 @@ function CategoryRequireReceiptsOverPage({
         },
         {
             value: CONST.DISABLED_MAX_EXPENSE_VALUE,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`),
+            text: translate('workspace.rules.categoryRules.requireReceiptsOverList.never'),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER,
             isSelected: isNeverSelected,
         },
         {
             value: 0,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`),
+            text: translate('workspace.rules.categoryRules.requireReceiptsOverList.always'),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS,
             isSelected: isAlwaysSelected,
         },

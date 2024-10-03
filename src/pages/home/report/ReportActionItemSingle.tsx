@@ -279,7 +279,9 @@ function ReportActionItemSingle({
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${status?.emojiCode}`}</Text>
+                                >
+                                    {status?.emojiCode}
+                                </Text>
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />

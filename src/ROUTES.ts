@@ -234,7 +234,7 @@ const ROUTES = {
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/troubleshoot/console', backTo),
     },
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
@@ -580,7 +580,7 @@ const ROUTES = {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'settings/workspaces/:policyID',
-        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo) as const,
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
@@ -1129,19 +1129,19 @@ const ROUTES = {
     TRACK_TRAINING_MODAL: 'track-training',
     ONBOARDING_ROOT: {
         route: 'onboarding',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding', backTo),
     },
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/personal-details', backTo),
     },
     ONBOARDING_WORK: {
         route: 'onboarding/work',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work`, backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/work', backTo),
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/purpose', backTo),
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',

@@ -109,7 +109,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     ];
 
     const getActionToFlag = useCallback((): OnyxTypes.ReportAction | null => {
-        let reportAction = reportActions?.[`${route.params.reportActionID.toString()}`];
+        let reportAction = reportActions?.[route.params.reportActionID.toString()];
 
         // Handle threads if needed
         if (reportAction?.reportActionID === undefined && parentReportAction) {
@@ -141,7 +141,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
 
     const severityMenuItems = severities.map((item) => (
         <MenuItem
-            key={`${item.severity}`}
+            key={item.severity}
             shouldShowRightIcon
             title={item.name}
             description={item.description}

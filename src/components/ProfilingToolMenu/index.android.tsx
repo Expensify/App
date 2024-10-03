@@ -7,7 +7,7 @@ function ProfilingToolMenu() {
     return (
         <BaseProfilingToolMenu
             pathToBeUsed={RNFS.DownloadDirectoryPath}
-            displayPath={`${CONST.DOWNLOADS_PATH}`}
+            displayPath={CONST.DOWNLOADS_PATH}
             showShareButton
         />
     );

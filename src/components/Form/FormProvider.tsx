@@ -84,7 +84,7 @@ function FormProvider(
     forwardedRef: ForwardedRef<FormRef>,
 ) {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [formState] = useOnyx<OnyxFormKey, Form>(formID);
     const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});

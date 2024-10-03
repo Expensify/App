@@ -136,7 +136,7 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
                 console.log('code: ', code);
-                return reject(new Error(`${stderr}`));
+                return reject(new Error(stderr));
             }
 
             resolve(stdout);

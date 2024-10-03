@@ -21,7 +21,7 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     } else if (taxID === foreignTaxDefault) {
         suffix = translate('workspace.taxes.foreignDefault');
     }
-    return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
+    return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ''}`;
 }
 
 function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxExpenseAmountNoReceipt?: number | null) {
@@ -29,16 +29,16 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     const isNeverSelected = categoryMaxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
     if (isAlwaysSelected) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`);
+        return translate('workspace.rules.categoryRules.requireReceiptsOverList.always');
     }
 
     if (isNeverSelected) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
+        return translate('workspace.rules.categoryRules.requireReceiptsOverList.never');
     }
 
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmount;
 
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
+    return translate('workspace.rules.categoryRules.requireReceiptsOverList.default', {
         defaultAmount: CurrencyUtils.convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
     });
 }

@@ -28,7 +28,7 @@ function ConfirmCustomListStep({onMove, customSegmentType}: CustomFieldSubStepWi
                         `workspace.netsuite.import.importCustomFields.customSegments.fields.${
                             fieldName === INPUT_IDS.SCRIPT_ID && customSegmentType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD
                                 ? `${CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD}ScriptID`
-                                : `${fieldName}`
+                                : fieldName
                         }` as TranslationPaths,
                     )}
                     shouldShowRightIcon

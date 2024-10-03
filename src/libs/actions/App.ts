@@ -301,7 +301,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
  */
 function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
-    console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
+    console.debug('[OnyxUpdates] Executing last reconnect app with promise');
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = {...policyParams};
 

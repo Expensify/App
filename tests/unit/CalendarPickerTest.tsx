@@ -26,7 +26,7 @@ jest.mock('../../src/components/withLocalize', () => (Component: ComponentType<W
             />
         );
     }
-    WrappedComponent.displayName = `WrappedComponent`;
+    WrappedComponent.displayName = 'WrappedComponent';
     return WrappedComponent;
 });
 

@@ -1039,7 +1039,7 @@ describe('actions/IOU', () => {
             const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [carlosChatReport, julesChatReport, julesIOUReport], (item) => item.reportID);
 
             const carlosActionsCollectionDataSet = toCollectionDataSet(
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 [
                     {
                         [carlosCreatedAction.reportActionID]: carlosCreatedAction,
@@ -1049,7 +1049,7 @@ describe('actions/IOU', () => {
             );
 
             const julesActionsCollectionDataSet = toCollectionDataSet(
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 [
                     {
                         [julesCreatedAction.reportActionID]: julesCreatedAction,
@@ -1060,7 +1060,7 @@ describe('actions/IOU', () => {
             );
 
             const julesCreatedActionsCollectionDataSet = toCollectionDataSet(
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 [
                     {
                         [julesChatCreatedAction.reportActionID]: julesChatCreatedAction,

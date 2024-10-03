@@ -97,7 +97,7 @@ export default function <TProps extends WithPolicyProps, TRef>(
         );
     }
 
-    WithPolicy.displayName = `WithPolicy`;
+    WithPolicy.displayName = 'WithPolicy';
 
     return forwardRef(WithPolicy);
 }

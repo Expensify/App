@@ -137,7 +137,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
-                            description={translate(`common.name`)}
+                            description={translate('common.name')}
                             onPress={navigateToEditTag}
                             shouldShowRightIcon
                         />
@@ -145,7 +145,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
                         <MenuItemWithTopDescription
                             title={currentPolicyTag['GL Code']}
-                            description={translate(`workspace.tags.glCode`)}
+                            description={translate('workspace.tags.glCode')}
                             onPress={navigateToEditGlCode}
                             iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
                             interactive={!hasAccountingConnections}
@@ -160,7 +160,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             </View>
                             <MenuItemWithTopDescription
                                 title={tagApprover ?? ''}
-                                description={translate(`workspace.tags.approverDescription`)}
+                                description={translate('workspace.tags.approverDescription')}
                                 onPress={navigateToEditTagApprover}
                                 shouldShowRightIcon
                                 disabled={approverDisabled}

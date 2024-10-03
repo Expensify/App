@@ -6550,13 +6550,13 @@ function getReportFromHoldRequestsOnyxData(
         // update held reports with new parentReportActionID
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.REPORT}`,
+            key: ONYXKEYS.COLLECTION.REPORT,
             value: updateHeldReports,
         },
         // update transactions with new iouReportID
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
             value: updateHeldTransactions,
         },
     ];
@@ -6601,7 +6601,7 @@ function getReportFromHoldRequestsOnyxData(
         // add hold transactions back to old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
             value: bringHeldTransactionsBack,
         },
     ];
@@ -8105,7 +8105,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
 
 /** Save the preferred payment method for a policy */
 function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType) {
-    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
+    Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {[policyID]: paymentMethod});
 }
 
 /** Get report policy id of IOU request */

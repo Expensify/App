@@ -47,8 +47,8 @@ function IAcceptTheLabel() {
 
     return (
         <Text>
-            {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
+            {translate('common.iAcceptThe')}
+            <TextLink href={CONST.TERMS_URL}>{translate('common.addCardTermsOfService')}</TextLink> {translate('common.and')}
             <TextLink href={CONST.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
         </Text>
     );

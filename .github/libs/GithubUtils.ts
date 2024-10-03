@@ -330,7 +330,7 @@ class GithubUtils {
                             const merger = internalQAPRMap[URL];
                             const mergerMention = `@${merger}`;
                             issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
-                            issueBody += `${URL}`;
+                            issueBody += URL;
                             issueBody += ` - ${mergerMention}`;
                             issueBody += '\r\n';
                         });

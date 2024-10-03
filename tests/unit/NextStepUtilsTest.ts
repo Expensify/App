@@ -87,7 +87,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${currentUserEmail}`,
+                        text: currentUserEmail,
                         type: 'strong',
                     },
                     {
@@ -120,8 +120,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -155,8 +155,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -190,8 +190,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -225,8 +225,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -261,8 +261,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -299,8 +299,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -335,8 +335,8 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
+                            text: currentUserEmail,
+                            clickToCopyText: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -347,7 +347,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` at the end of their trip`,
+                            text: ' at the end of their trip',
                         },
                     ];
 
@@ -370,7 +370,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: currentUserEmail,
                             type: 'strong',
                         },
                         {
@@ -408,7 +408,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `an admin`,
+                        text: 'an admin',
                     },
                     {
                         text: ' to ',

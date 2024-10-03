@@ -36,7 +36,7 @@ const test = (config: NativeConfig) => {
         const [messageSentPromise, messageSentResolve] = getPromiseWithResolve();
 
         Promise.all([renderTimesPromise, messageSentPromise]).then(() => {
-            console.debug(`[E2E] Submitting!`);
+            console.debug('[E2E] Submitting!');
 
             E2EClient.submitTestDone();
         });
@@ -56,13 +56,13 @@ const test = (config: NativeConfig) => {
                 return;
             }
 
-            console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
+            console.debug('[E2E] Sidebar loaded, navigating to a report…');
             // Crowded Policy (Do Not Delete) Report, has a input bar available:
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
 
             // Wait until keyboard is visible (so we are focused on the input):
             waitForKeyboard().then(() => {
-                console.debug(`[E2E] Keyboard visible, typing…`);
+                console.debug('[E2E] Keyboard visible, typing…');
                 E2EClient.sendNativeCommand(NativeCommands.makeBackspaceCommand())
                     .then(() => {
                         resetRerenderCount();

@@ -257,7 +257,7 @@ function deletePaymentBankAccount(bankAccountID: number) {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
@@ -267,7 +267,7 @@ function deletePaymentBankAccount(bankAccountID: number) {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: {[bankAccountID]: null},
             },
         ],
