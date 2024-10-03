@@ -118,19 +118,19 @@ function makeTree(numericSearchValues: Uint8Array) {
         handleDescent(nodeCounter);
     }
 
-    function handleDescent(ts: number) {
-        currentNode = suffixLink[parent[ts - 2]];
-        currentPosition = rangeStart[ts - 2];
-        while (currentPosition <= rangeEnd[ts - 2]) {
+    function handleDescent(latestNodeIndex: number) {
+        currentNode = suffixLink[parent[latestNodeIndex - 2]];
+        currentPosition = rangeStart[latestNodeIndex - 2];
+        while (currentPosition <= rangeEnd[latestNodeIndex - 2]) {
             currentNode = transitionNodes[currentNode * ALPHABET_SIZE + numericSearchValues[currentPosition]];
             currentPosition += rangeEnd[currentNode] - rangeStart[currentNode] + 1;
         }
-        if (currentPosition === rangeEnd[ts - 2] + 1) {
-            suffixLink[ts - 2] = currentNode;
+        if (currentPosition === rangeEnd[latestNodeIndex - 2] + 1) {
+            suffixLink[latestNodeIndex - 2] = currentNode;
         } else {
-            suffixLink[ts - 2] = ts;
+            suffixLink[latestNodeIndex - 2] = latestNodeIndex;
         }
-        currentPosition = rangeEnd[currentNode] - (currentPosition - rangeEnd[ts - 2]) + 2;
+        currentPosition = rangeEnd[currentNode] - (currentPosition - rangeEnd[latestNodeIndex - 2]) + 2;
     }
 
     function build() {
@@ -162,7 +162,7 @@ function makeTree(numericSearchValues: Uint8Array) {
             const rangeLen = node === 1 ? 0 : rightRange - leftRange + 1;
 
             for (let i = 0; i < rangeLen && depth + i < searchValue.length && leftRange + i < numericSearchValues.length; i++) {
-                if (searchValue[depth + i] !== numericSearchValues[leftRange + i]) {
+                if (searchValue.at(depth + i) !== numericSearchValues[leftRange + i]) {
                     return;
                 }
             }
@@ -172,7 +172,7 @@ function makeTree(numericSearchValues: Uint8Array) {
                 const tNode = transitionNodes[node * ALPHABET_SIZE + i];
 
                 // Search speed optimization: don't go through the edge if it's different than the next char:
-                const correctChar = depth + rangeLen >= searchValue.length || i === searchValue[depth + rangeLen];
+                const correctChar = depth + rangeLen >= searchValue.length || i === searchValue.at(depth + rangeLen);
 
                 if (tNode !== 0 && tNode !== 1 && correctChar) {
                     isLeaf = false;
@@ -181,7 +181,7 @@ function makeTree(numericSearchValues: Uint8Array) {
             }
 
             if (isLeaf && depth + rangeLen >= searchValue.length) {
-                occurrences.push(numericSearchValues.length - (depth + rangeLen) + 1);
+                occurrences.at(push)(numericSearchValues.length - (depth + rangeLen) + 1);
             }
         }
 
