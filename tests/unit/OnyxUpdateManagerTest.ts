@@ -13,6 +13,12 @@ jest.mock('@libs/actions/App');
 jest.mock('@libs/actions/OnyxUpdateManager/utils');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
+
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;

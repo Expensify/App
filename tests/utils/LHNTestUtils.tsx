@@ -197,7 +197,7 @@ function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInT
         policyID: '08CE60F05A5D86E1',
         oldPolicyName: '',
         isOwnPolicyExpenseChat: false,
-        ownerAccountID: participantAccountIDs[0],
+        ownerAccountID: participantAccountIDs.at(0),
     };
 }
 
@@ -207,7 +207,7 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         name,
         isFromFullPolicy: false,
         role: 'admin',
-        type: 'free',
+        type: CONST.POLICY.TYPE.TEAM,
         owner: 'myuser@gmail.com',
         outputCurrency: 'BRL',
         avatarURL: '',

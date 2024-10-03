@@ -33,6 +33,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -774,7 +775,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
-        .map((value) => value.key.split('_')[1])
+        .map((value) => value.key.split('_').at(1))
         .find((reportKey) => reportKey === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
     if (!reportID) {
@@ -1327,6 +1328,17 @@ function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
+function subscribeToActiveGuides() {
+    const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
+    Pusher.subscribe(pusherChannelName).catch(() => {
+        Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
+    });
+}
+
+function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
+    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1365,5 +1377,7 @@ export {
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,
+    subscribeToActiveGuides,
     dismissGBRTooltip,
+    setIsDebugModeEnabled,
 };

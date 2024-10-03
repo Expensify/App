@@ -139,17 +139,28 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether button's content should be centered */
     isContentCentered?: boolean;
+
+    /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
+    isPressOnEnterActive?: boolean;
 };
 
-type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
+type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
 
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
-function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
+function KeyboardShortcutComponent({
+    isDisabled = false,
+    isLoading = false,
+    onPress = () => {},
+    pressOnEnter,
+    allowBubble,
+    enterKeyEventListenerPriority,
+    isPressOnEnterActive = false,
+}: KeyboardShortcutComponentProps) {
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? ''), [activeElementRole]);
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -163,7 +174,7 @@ function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPre
 
     const config = useMemo(
         () => ({
-            isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
+            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
             shouldBubble: allowBubble,
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
@@ -230,6 +241,7 @@ function Button(
         isSplitButton = false,
         link = false,
         isContentCentered = false,
+        isPressOnEnterActive,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -329,9 +341,13 @@ function Button(
                     onPress={onPress}
                     pressOnEnter={pressOnEnter}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    isPressOnEnterActive={isPressOnEnterActive}
                 />
             )}
             <PressableWithFeedback
+                dataSet={{
+                    listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
+                }}
                 ref={ref}
                 onLayout={onLayout}
                 onPress={(event) => {

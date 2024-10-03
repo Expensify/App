@@ -320,6 +320,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        bottomTabBarLabel: {
+            lineHeight: 14,
+            height: 16,
+        },
+
         webViewStyles: webViewStyles(theme),
 
         link: link(theme),
@@ -1595,10 +1600,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         selectedAvatarBorder: {
-            padding: 2,
+            padding: 1,
             borderWidth: 2,
             borderRadius: 20,
+            height: variables.sidebarAvatarSize + 6,
+            width: variables.sidebarAvatarSize + 6,
             borderColor: theme.success,
+            right: -3,
+            top: -3,
         },
 
         statusIndicator: (backgroundColor: string = theme.danger) =>
@@ -1621,8 +1630,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             borderWidth: 2,
             position: 'absolute',
-            right: -3,
-            top: -4,
+            right: -2,
+            top: -3,
             height: 12,
             width: 12,
             zIndex: 10,
@@ -2063,6 +2072,16 @@ const styles = (theme: ThemeColors) =>
         chatItemMessage: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        chatDelegateMessage: {
+            color: theme.textSupporting,
+            fontSize: 11,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
@@ -3220,6 +3239,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
+        moneyRequestLoadingHeight: {
+            height: 27,
+        },
+
         defaultCheckmarkWrapper: {
             marginLeft: 8,
             alignSelf: 'center',
@@ -3593,33 +3616,48 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchPressable: {
-            height: variables.componentSizeNormal,
-        },
-
-        searchContainer: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingHorizontal: 24,
-            backgroundColor: theme.hoverComponentBG,
-            borderRadius: variables.componentBorderRadiusRounded,
-            justifyContent: 'center',
-        },
-
-        searchContainerHovered: {
-            backgroundColor: theme.border,
-        },
-
         searchInputStyle: {
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
         },
 
+        searchRouterTextInputContainer: {
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderWidth: 1,
+            borderBottomWidth: 1,
+            paddingHorizontal: 8,
+        },
+
+        searchRouterInputResults: {
+            backgroundColor: theme.sidebarHover,
+            borderWidth: 1,
+            borderColor: theme.sidebarHover,
+        },
+
+        searchRouterInputResultsFocused: {
+            borderWidth: 1,
+            borderColor: theme.success,
+        },
+
         searchTableHeaderActive: {
             fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        zIndex10: {
+            zIndex: 10,
+        },
+
+        searchListContentContainerStyles: {
+            marginTop: variables.searchListContentMarginTop,
+        },
+
+        searchTopBarStyle: {
+            left: 0,
+            right: 0,
+            position: 'absolute',
+            zIndex: 9,
+            backgroundColor: theme.appBG,
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
@@ -4116,11 +4154,6 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
-        taskCheckboxWrapper: {
-            height: variables.fontSizeNormalHeight,
-            ...flex.justifyContentCenter,
-        },
-
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
@@ -4515,6 +4548,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: 20,
         },
+
+        sidebarStatusAvatarWithEmojiContainer: {
+            height: 28,
+            width: 28,
+            top: -2,
+        },
+
         sidebarStatusAvatar: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -4523,9 +4563,9 @@ const styles = (theme: ThemeColors) =>
             width: 20,
             borderRadius: 10,
             position: 'absolute',
-            right: -4,
-            bottom: -4,
-            borderColor: theme.highlightBG,
+            right: -6,
+            bottom: -6,
+            borderColor: theme.appBG,
             borderWidth: 2,
             overflow: 'hidden',
         },
@@ -4658,6 +4698,14 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        searchQueryListItemStyle: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            borderRadius: 8,
+        },
+
         selectionListStickyHeader: {
             backgroundColor: theme.appBG,
         },
@@ -4739,8 +4787,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletIllustration: {
-            width: 262,
-            height: 152,
+            height: 180,
         },
 
         walletCardLimit: {
@@ -5088,11 +5135,18 @@ const styles = (theme: ThemeColors) =>
 
         emptyStateCardIllustrationContainer: {
             height: 220,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
+        },
+
+        pendingStateCardIllustration: {
+            width: 233,
+            height: 162,
         },
 
         computerIllustrationContainer: {
@@ -5120,11 +5174,6 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
-        tripIllustrationSize: {
-            width: 190,
-            height: 172,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -5139,16 +5188,11 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        emptyStateScrollView: {
-            height: '100%',
-            flex: 1,
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            flex: 1,
+            flexGrow: 1,
         },
 
         emptyStateContent: {
@@ -5170,14 +5214,27 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.emptyFolderBG,
         },
 
+        emptyFolderDarkBG: {
+            backgroundColor: '#782c04',
+            height: 220,
+        },
+
         emptyStateVideo: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        emptyStateFolderIconSize: {
-            width: 184,
-            height: 112,
+        emptyStateFolderWithPaperIconSize: {
+            width: 160,
+            height: 100,
+        },
+
+        emptyStateFolderWebStyles: {
+            ...sizing.w100,
+            minWidth: 400,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
         },
 
         workflowApprovalVerticalLine: {
