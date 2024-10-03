@@ -40,33 +40,14 @@ import type {SearchQueryJSON} from './types';
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
     text: string;
     isCannedQuery: boolean;
+    onSubmit?: () => void;
+    onChange?: (input: string) => void;
 };
 
-function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, onChange}: HeaderWrapperProps) {
     const styles = useThemeStyles();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-
-    const [input, setInput] = useState(text);
-
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
-
-    const onSubmit = () => {
-        if (!input) {
-            return;
-        }
-        const queryJSON = SearchUtils.buildSearchQueryJSON(input);
-        if (queryJSON) {
-            const standardizedQuery = SearchUtils.standardizeQueryJSON(queryJSON, cardList, reports, taxRates);
-            const query = SearchUtils.buildSearchQueryString(standardizedQuery);
-            SearchActions.clearAllFilters();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-        } else {
-            // Handle query parsing error
-        }
-    };
 
     return (
         <View
@@ -95,7 +76,7 @@ function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps
                         defaultValue={text}
                         rightComponent={children}
                         onSubmit={onSubmit}
-                        onChange={setInput}
+                        onChange={onChange}
                     />
                 </View>
             )}
@@ -146,13 +127,14 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
     const {status, type} = queryJSON;
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+    const [input, setInput] = useState(headerText);
+
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const headerIcon = getHeaderContent(type).icon;
-    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {
@@ -339,12 +321,29 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
+    const onSubmit = () => {
+        if (!input) {
+            return;
+        }
+        const inputQueryJSON = SearchUtils.buildSearchQueryJSON(input);
+        if (inputQueryJSON) {
+            const standardizedQuery = SearchUtils.standardizeQueryJSON(inputQueryJSON, cardList, reports, taxRates);
+            const query = SearchUtils.buildSearchQueryString(standardizedQuery);
+            SearchActions.clearAllFilters();
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        } else {
+            // Handle query parsing error
+        }
+    };
+
     return (
         <>
             <HeaderWrapper
                 icon={headerIcon}
                 text={headerText}
                 isCannedQuery={isCannedQuery}
+                onSubmit={onSubmit}
+                onChange={setInput}
             >
                 {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu

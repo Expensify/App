@@ -892,7 +892,10 @@ function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.Ca
         node.right = findIDFromDisplayValue(node.left as string, node.right as string | string[], cardList, reports, taxRates);
     };
 
-    traverse(filters);
+    if (filters) {
+        traverse(filters);
+    }
+
     standardQuery.flatFilters = getFilters(standardQuery);
     return standardQuery;
 }
