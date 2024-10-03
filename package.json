@@ -223,6 +223,7 @@
     "@storybook/react": "^8.1.10",
     "@storybook/react-webpack5": "^8.1.6",
     "@storybook/theming": "^8.1.10",
+    "@stylistic/eslint-plugin-js": "^2.8.0",
     "@svgr/webpack": "^6.0.0",
     "@testing-library/jest-native": "5.4.1",
     "@testing-library/react-native": "11.5.1",
