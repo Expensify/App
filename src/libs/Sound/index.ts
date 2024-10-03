@@ -1,71 +1,79 @@
-import Onyx from 'react-native-onyx';
-import Sound from 'react-native-sound';
-import type {ValueOf} from 'type-fest';
-import ONYXKEYS from '@src/ONYXKEYS';
+
+import { Howl } from 'howler';
+import type { ValueOf } from 'type-fest';
 import config from './config';
+import { SOUNDS, isMuted, withMinimalExecutionTime } from './BaseSound'
 
-let isMuted = false;
-
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: (val) => (isMuted = !!val?.isMutedAllSounds),
-});
-
-const SOUNDS = {
-    DONE: 'done',
-    SUCCESS: 'success',
-    ATTENTION: 'attention',
-    RECEIVE: 'receive',
-} as const;
-
-/**
- * Creates a version of the given function that, when called, queues the execution and ensures that
- * calls are spaced out by at least the specified `minExecutionTime`, even if called more frequently. This allows
- * for throttling frequent calls to a function, ensuring each is executed with a minimum `minExecutionTime` between calls.
- * Each call returns a promise that resolves when the function call is executed, allowing for asynchronous handling.
- */
-function withMinimalExecutionTime<F extends (...args: Parameters<F>) => ReturnType<F>>(func: F, minExecutionTime: number) {
-    const queue: Array<[() => ReturnType<F>, (value?: unknown) => void]> = [];
-    let timerId: NodeJS.Timeout | null = null;
-
-    function processQueue() {
-        if (queue.length > 0) {
-            const next = queue.shift();
-
-            if (!next) {
-                return;
+async function cacheSoundAssets() {
+    if ('caches' in window) {
+        const cache = await caches.open('sound-assets');
+        const soundFiles = Object.values(SOUNDS).map(sound => `${config.prefix}${sound}.mp3`);
+        
+        const cachePromises = soundFiles.map(async (soundFile) => {
+            const response = await cache.match(soundFile);
+            if (!response) {
+                await cache.add(soundFile);
+                console.log('[wildebug] Sound asset cached:', soundFile);
+            } else {
+                console.log('[wildebug] Sound asset already cached:', soundFile);
             }
+        });
 
-            const [nextFunc, resolve] = next;
-            nextFunc();
-            resolve();
-            timerId = setTimeout(processQueue, minExecutionTime);
+        await Promise.all(cachePromises);
+        console.log('[wildebug] Sound assets caching completed');
+    }
+}
+const playSound = async (soundFile: ValueOf<typeof SOUNDS>) => {
+    if (isMuted) {
+        console.log('[wildebug] Sound is muted');
+        return;
+    }
+
+    const soundSrc = `${config.prefix}${soundFile}.mp3`;
+    console.log('[wildebug] Playing sound:', soundSrc);
+
+    if ('caches' in window) {
+        const cache = await caches.open('sound-assets');
+        const response = await cache.match(soundSrc);
+
+        if (response) {
+            const soundBlob = await response.blob();
+            const soundUrl = URL.createObjectURL(soundBlob);
+            console.log('[wildebug] Sound fetched from cache:', soundUrl);
+
+            const sound = new Howl({
+                src: [soundUrl],
+                format: ['mp3'],
+                onloaderror: (id, error) => {
+                    console.error('[wildebug] Load error:', error);
+                },
+                onplayerror: (id, error) => {
+                    console.error('[wildebug] Play error:', error);
+                },
+            });
+
+            sound.play();
+            return;
         } else {
-            timerId = null;
+            console.log('[wildebug] Sound not found in cache, fetching from network');
         }
     }
 
-    return function (...args: Parameters<F>) {
-        return new Promise((resolve) => {
-            queue.push([() => func(...args), resolve]);
-
-            if (!timerId) {
-                // If the timer isn't running, start processing the queue
-                processQueue();
-            }
-        });
-    };
-}
-
-const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
-    const sound = new Sound(`${config.prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
-        if (error || isMuted) {
-            return;
-        }
-
-        sound.play();
+    // Fallback to fetching from network if not in cache
+    const sound = new Howl({
+        src: [soundSrc],
+        onloaderror: (id, error) => {
+            console.error('[wildebug] Load error:', error);
+        },
+        onplayerror: (id, error) => {
+            console.error('[wildebug] Play error:', error);
+        },
     });
-};
 
-export {SOUNDS};
+    sound.play();
+};
+// Cache sound assets on load
+cacheSoundAssets();
+
+export { SOUNDS };
 export default withMinimalExecutionTime(playSound, 300);
