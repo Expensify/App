@@ -11,6 +11,7 @@ import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Download as OnyxDownload} from '@src/types/onyx';
@@ -31,7 +32,7 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps &
     };
 
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', download, onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
+    const finalSourceURL = FileUtils.isLocalFile(source) ? source : addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
     const {isOffline} = useNetwork();
@@ -49,7 +50,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(finalSourceURL, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
@@ -64,7 +65,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
-                        source={sourceURLWithAuth}
+                        source={finalSourceURL}
                         file={{name: displayName}}
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
