@@ -89,6 +89,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
+    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -294,6 +295,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 // Shows border if no buttons or banners are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown}
             >
+                {isDuplicate && !shouldUseNarrowLayout && (
+                    <Button
+                        text={translate('iou.reviewDuplicates')}
+                        style={[styles.p0, styles.mh2]}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                        }}
+                    />
+                )}
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <SettlementButton
@@ -349,6 +359,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             </HeaderWithBackButton>
             {isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
+                    {isDuplicate && shouldUseNarrowLayout && (
+                        <Button
+                            text={translate('iou.reviewDuplicates')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                            }}
+                        />
+                    )}
                     {shouldShowSettlementButton && shouldUseNarrowLayout && (
                         <SettlementButton
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
