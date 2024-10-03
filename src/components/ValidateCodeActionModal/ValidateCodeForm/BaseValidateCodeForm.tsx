@@ -127,8 +127,7 @@ function BaseValidateCodeForm({
 
     useEffect(() => {
         clearError();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [clearError]);
 
     useEffect(() => {
         if (!hasMagicCodeBeenSent) {
