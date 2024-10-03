@@ -14,6 +14,9 @@ type ValidateCodeActionModalProps = {
     /** Function to call when the user closes the modal */
     onClose: () => void;
 
+    /** Function to be called when the modal is closed */
+    onModalHide: () => void;
+
     /** The pending action for submitting form */
     validatePendingAction?: PendingAction | null;
 

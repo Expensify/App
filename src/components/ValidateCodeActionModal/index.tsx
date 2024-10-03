@@ -17,6 +17,7 @@ function ValidateCodeActionModal({
     title,
     description,
     onClose,
+    onModalHide,
     validatePendingAction,
     validateError,
     handleSubmitForm,
@@ -50,7 +51,7 @@ function ValidateCodeActionModal({
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
-            onModalHide={hide}
+            onModalHide={onModalHide ?? hide}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
