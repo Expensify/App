@@ -24,8 +24,8 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
+import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import linkTo from './newLinkTo';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute} from './types';
 
