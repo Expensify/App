@@ -1683,7 +1683,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is a payer of the expense
  */
 
-function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
+function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false) {
     const isApproved = isReportApproved(iouReport);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
@@ -1694,7 +1694,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
             const isReimburser = session?.email === policy?.achAccount?.reimburser;
             return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
         }
-        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin && (isApproved || isManager);
         }
         return false;
@@ -3755,11 +3755,12 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
+    shouldIncludePolicyName = false,
 ): string {
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
 
-    if (reportID) {
+    if (reportID && !isUserCreatedPolicyRoom(report) && !isDefaultRoom(report)) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
         if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName) {
@@ -3873,6 +3874,11 @@ function getReportName(
         formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
     }
 
+    if (shouldIncludePolicyName && (isUserCreatedPolicyRoom(report) || isDefaultRoom(report))) {
+        const policyName = getPolicyName(report, true);
+        formattedName = policyName ? `${policyName} • ${report?.reportName}` : report?.reportName;
+    }
+
     if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
@@ -3929,8 +3935,8 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
-    if (isChatThread(report)) {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, isTitleIncludePolicyName = false): string | undefined {
+    if (isChatThread(report) || ((isUserCreatedPolicyRoom(report) || isDefaultRoom(report)) && isTitleIncludePolicyName)) {
         return '';
     }
     if (isSelfDM(report)) {
@@ -8017,7 +8023,7 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
         return false;
     }
 
-    return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+    return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
 }
 
 function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {

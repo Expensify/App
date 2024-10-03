@@ -40,8 +40,8 @@ import type {SearchQueryJSON} from './types';
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
     text: string;
     isCannedQuery: boolean;
-    onSubmit?: () => void;
-    onChange?: (input: string) => void;
+    onSubmit: () => void;
+    onChange: (input: string) => void;
 };
 
 function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, onChange}: HeaderWrapperProps) {
@@ -70,13 +70,16 @@ function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, onChange}
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
+                        value={text}
+                        setValue={onChange}
+                        onSubmit={onSubmit}
+                        updateSearch={() => {}}
+                        disabled
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                         wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                        defaultValue={text}
                         rightComponent={children}
-                        onSubmit={onSubmit}
-                        onChange={onChange}
+                        routerListRef={undefined}
                     />
                 </View>
             )}

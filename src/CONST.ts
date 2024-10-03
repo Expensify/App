@@ -1840,6 +1840,7 @@ const CONST = {
             DATE_OF_BIRTH: 1,
             ADDRESS: 2,
             PHONE_NUMBER: 3,
+            CONFIRM: 4,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -4218,7 +4219,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,

@@ -1,24 +1,29 @@
 import React, {useState} from 'react';
-import type {ReactNode} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type SearchRouterInputProps = {
-    /** Callback triggered when the input text changes */
-    onChange?: (searchTerm: string) => void;
+    /** Value of TextInput */
+    value: string;
 
-    /** Callback invoked when the user submits the input */
-    onSubmit?: () => void;
+    /** Setter to TextInput value */
+    setValue: (searchTerm: string) => void;
+
+    /** Callback to update search in SearchRouter */
+    updateSearch: (searchTerm: string) => void;
+
+    /** SearchRouterList ref for managing TextInput and SearchRouterList focus */
+    routerListRef?: RefObject<SelectionListHandle>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;
-
-    /** Default value for text input */
-    defaultValue?: string;
 
     /** Whether the input is disabled */
     disabled?: boolean;
@@ -31,38 +36,59 @@ type SearchRouterInputProps = {
 
     /** Component to be displayed on the right */
     rightComponent?: ReactNode;
+
+    /** Whether the search reports API call is running  */
+    isSearchingForReports?: boolean;
 };
 
-function SearchRouterInput({isFullWidth, onChange, onSubmit, defaultValue = '', disabled = false, wrapperStyle, wrapperFocusedStyle, rightComponent}: SearchRouterInputProps) {
+function SearchRouterInput({
+    value,
+    setValue,
+    updateSearch,
+    routerListRef,
+    isFullWidth,
+    disabled = false,
+    wrapperStyle,
+    wrapperFocusedStyle,
+    rightComponent,
+    isSearchingForReports,
+}: SearchRouterInputProps) {
     const styles = useThemeStyles();
-
-    const [value, setValue] = useState(defaultValue);
+    const {translate} = useLocalize();
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const onChangeText = (text: string) => {
         setValue(text);
-        onChange?.(text);
+        updateSearch(text);
     };
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterInput, isFocused && wrapperFocusedStyle]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
             <View style={styles.flex1}>
                 <TextInput
-                    autoFocus
                     value={value}
                     onChangeText={onChangeText}
-                    onSubmitEditing={onSubmit}
+                    autoFocus
+                    loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                     role={CONST.ROLE.PRESENTATION}
+                    placeholder={translate('search.searchPlaceholder')}
                     autoCapitalize="none"
                     autoCorrect={false}
                     disabled={disabled}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={styles.borderNone}
                     inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
+                    onFocus={() => {
+                        setIsFocused(true);
+                        routerListRef?.current?.updateExternalTextInputFocus(true);
+                    }}
+                    onBlur={() => {
+                        setIsFocused(false);
+                        routerListRef?.current?.updateExternalTextInputFocus(false);
+                    }}
+                    isLoading={!!isSearchingForReports}
                 />
             </View>
             {rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
