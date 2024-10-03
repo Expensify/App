@@ -393,7 +393,7 @@ function ReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? ''}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
