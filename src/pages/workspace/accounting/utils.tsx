@@ -245,6 +245,24 @@ function getAccountingIntegrationData(
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return {
+                title: translate('workspace.accounting.qbd'),
+                icon: Expensicons.QBDSquare,
+                setupConnectionFlow: (
+                    <ConnectToQuickbooksOnlineFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onCardReconciliationPagePress: () => {},
+                onAdvancedPagePress: () => {},
+                subscribedImportSettings: [],
+                subscribedExportSettings: [],
+                subscribedAdvancedSettings: [],
+            };
         default:
             return undefined;
     }

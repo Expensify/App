@@ -3425,6 +3425,7 @@ const translations = {
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',

@@ -108,6 +108,7 @@ import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
@@ -402,4 +403,5 @@ export {
     SpreadsheetComputer,
     Bookmark,
     Star,
+    QBDSquare,
 };

@@ -2294,12 +2294,14 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                QBD: 'quickbooksDesktop',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
+                QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',

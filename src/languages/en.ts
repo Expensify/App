@@ -3421,6 +3421,7 @@ const translations = {
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
