@@ -1638,11 +1638,19 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 }
 
 /**
+ * Checks if a report has only transactions with same ownerID
+ */
+function isSingleActorMoneyReport(reportID: string): boolean {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    return !!ReportActionsUtils.hasSameActorForAllTransactions(reportID, reportActions);
+}
+
+/**
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-    return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
+    return !!ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions);
 }
 
 /*
@@ -2275,7 +2283,7 @@ function getIcons(
     if (isChatThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-        const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
+        const actorAccountID = getReportActionActorAccountID(parentReportAction);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
@@ -2370,7 +2378,7 @@ function getIcons(
         const isManager = currentUserAccountID === report?.managerID;
 
         // For one transaction IOUs, display a simplified report icon
-        if (isOneTransactionReport(report?.reportID ?? '-1')) {
+        if (isOneTransactionReport(report?.reportID ?? '-1') || isSingleActorMoneyReport(report?.reportID ?? '-1')) {
             return [ownerIcon];
         }
 
@@ -4924,9 +4932,9 @@ function buildOptimisticReportPreview(
             },
         ],
         created,
-        accountID: iouReport?.managerID ?? -1,
+        accountID: iouReport?.ownerAccountID ?? -1,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? -1,
+        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.ownerAccountID ?? -1,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
@@ -6850,7 +6858,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isExpenseReport(report) && isOneTransactionReport(report?.reportID ?? '-1')) {
+    if (isExpenseReport(report)) {
         return true;
     }
 
@@ -6862,7 +6870,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isInvoiceRoom(report)) {
+    if (isInvoiceRoom(report) || isInvoiceReport(report)) {
         return true;
     }
 
@@ -7754,10 +7762,10 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined): number | undefined {
+function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
-            return !isEmptyObject(iouReport) ? iouReport.managerID : reportAction?.childManagerAccountID;
+            return reportAction?.childOwnerAccountID ?? reportAction?.actorAccountID;
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
@@ -8340,6 +8348,7 @@ export {
     isIndividualInvoiceRoom,
     isAuditor,
     hasMissingInvoiceBankAccount,
+    isSingleActorMoneyReport,
 };
 
 export type {
