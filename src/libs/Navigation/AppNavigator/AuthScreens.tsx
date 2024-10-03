@@ -275,10 +275,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         let signupQualifier;
-        if (currentUrl.includes('signupQualifier')) {
-            signupQualifier = new URL(currentUrl).searchParams.get('signupQualifier');
-        }
-        if (signupQualifier) {
+        if (currentUrl.includes(CONST.QUALIFIER_PARAM)) {
+            signupQualifier = new URL(currentUrl).searchParams.get(CONST.QUALIFIER_PARAM);
+
             if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL) {
                 Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
             }

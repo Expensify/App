@@ -115,7 +115,7 @@ function startOnboardingFlow() {
 
 function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const showBusinessModal = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const showBusinessModal = onboardingValues && CONST.QUALIFIER_PARAM in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     if (showBusinessModal) {
         return `/${ROUTES.ONBOARDING_WORK.route}`;

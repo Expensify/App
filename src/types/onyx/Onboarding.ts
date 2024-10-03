@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 /** Model of onboarding */
 type Onboarding = {
     /** ID of the report used to display the onboarding checklist message */
@@ -7,7 +10,7 @@ type Onboarding = {
     hasCompletedGuidedSetupFlow: boolean;
 
     /** A string that informs which qualifier the user selected during sign up */
-    signupQualifier: string;
+    signupQualifier: ValueOf<typeof CONST.ONBOARDING_SIGNUP_QUALIFIERS>;
 };
 
 export default Onboarding;
