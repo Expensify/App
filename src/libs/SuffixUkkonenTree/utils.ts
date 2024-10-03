@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */ // .at() has a performance overhead we explicitly want to avoid here
 /* eslint-disable no-continue */
 
 const CHAR_CODE_A = 'a'.charCodeAt(0);
