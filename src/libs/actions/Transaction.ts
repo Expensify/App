@@ -144,7 +144,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         return Promise.resolve();
     }
 
-    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed.at(0) ?? {});
 
     // When there are only two waypoints we are adding empty waypoint back
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
@@ -312,7 +312,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions[index].reportActionID]: optimisticDissmidedViolationReportActions[index] as ReportAction,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -360,7 +360,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions[index].reportActionID]: null,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
         },
     }));
 
@@ -372,7 +372,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions[index].reportActionID]: {
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: {
                 pendingAction: null,
             },
         },
