@@ -173,7 +173,7 @@ function AddPlaidBankAccount({
     const {icon, iconSize, iconStyles} = getBankIcon({styles});
     const plaidErrors = plaidData?.errors;
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors)[0] as string) : '';
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
     const bankName = plaidData?.bankName;
 
     /**

@@ -55,7 +55,7 @@ function adaptStateIfNecessary(state: StackState, isLoadingReportData: OnyxEntry
             if (state.stale === true) {
                 state.routes.push({
                     name: SCREENS.WORKSPACE.PROFILE,
-                    params: state.routes[0]?.params,
+                    params: state.routes.at(0)?.params,
                 });
             }
         }

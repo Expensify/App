@@ -47,7 +47,7 @@ const environmentToLogoSuffixMap: Record<string, string> = {
 };
 
 function mapEnvironmentToLogoSuffix(environmentFile: string): string {
-    let environment = environmentFile.split('.')[2];
+    let environment = environmentFile.split('.').at(2);
     if (typeof environment === 'undefined') {
         environment = 'dev';
     }
