@@ -1,6 +1,7 @@
-/* eslint-disable no-continue */
-
 /* eslint-disable rulesdir/prefer-at */
+// .at() has a performance overhead we explicitly want to avoid here
+
+/* eslint-disable no-continue */
 import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, stringToNumeric} from './utils';
 
 /**
