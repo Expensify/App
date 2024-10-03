@@ -151,5 +151,5 @@ jobs:
       - name: Upload iOS sourcemaps
         uses: actions/upload-artifact@v4
         with:
-          name: ios-sourcemaps-artifact
+          name: ios-artifact-sourcemaps
           path: ./main.jsbundle.map

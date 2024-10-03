@@ -464,7 +464,7 @@ jobs:
   createPrerelease:
     runs-on: ubuntu-latest
     if: ${{ always() && github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    needs: [prep, checkDeploymentSuccess, buildAndroid, buildIOS]
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
@@ -491,12 +491,12 @@ jobs:
         continue-on-error: true
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
-            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./android-build-artifact/app-production-release.aab \
+            ./android-artifact-sourcemaps/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }} \
             ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
-            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./ios-build-artifact/NewExpensify.ipa \
+            ./ios-artifact-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./ios-artifact-ipa/${{ needs.buildIOS.outputs.IPA_FILE_NAME }} \
             ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
             ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip
