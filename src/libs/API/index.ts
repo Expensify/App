@@ -9,7 +9,7 @@ import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {PaginatedRequest, PaginationConfig} from '@src/types/onyx/Request';
+import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
@@ -45,7 +45,13 @@ type OnyxData = {
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
  */
-function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: ApiRequestType, params: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): OnyxRequest {
+function prepareRequest<TCommand extends ApiCommand>(
+    command: TCommand,
+    type: ApiRequestType,
+    params: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+    conflictResolver: RequestConflictResolver = {},
+): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
@@ -71,6 +77,7 @@ function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: Ap
         command,
         data,
         ...onyxDataWithoutOptimisticData,
+        ...conflictResolver,
     };
 
     if (isWriteRequest) {
@@ -116,9 +123,15 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): Promise<void | Response> {
+
+function write<TCommand extends WriteCommand>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+    conflictResolver: RequestConflictResolver = {},
+): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData);
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
