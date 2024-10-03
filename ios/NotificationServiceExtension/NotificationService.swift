@@ -8,18 +8,12 @@
 import AirshipServiceExtension
 import os.log
 import Intents
-import AppLogs
 
 class NotificationService: UANotificationServiceExtension {
   
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
   let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.expensify.chat.dev.NotificationServiceExtension", category: "NotificationService")
-  let appLogs: AppLogs = .init()
-  
-  deinit {
-    appLogs.forwardLogsTo(appGroup: "group.com.expensify.new")
-  }
   
   override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
     os_log("[NotificationService] didReceive() - received notification", log: log)
