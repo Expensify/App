@@ -174,7 +174,7 @@ function ReportActionItemMessageEdit(
                 ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
             }
             return () => {
-                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current){
+                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
                     return;
                 }
                 ReportActionComposeFocusManager.clear(true);
