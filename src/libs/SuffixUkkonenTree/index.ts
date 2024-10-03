@@ -40,7 +40,7 @@ function makeTree(numericSearchValues: Uint8Array) {
        So given an arbitrary letter such as 'd', then we can take the position of that letter in its alphabet (position 3 in our example)
        and check whether that index in the array is 0 or 1. If it's a 1, then there's an edge starting with the letter 'd'.
 
-       Note that for efficiency, all nodes are stored in a single flag array. That's how we end up with (maxNodes * alphabet_size).
+       Note that for efficiency, all nodes are stored in a single flat array. That's how we end up with (maxNodes * alphabet_size).
        In the example of a 4-character alphabet, we'd have an array like this:
 
           root       root.left     root.right              last possible node
