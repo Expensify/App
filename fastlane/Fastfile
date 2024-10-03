@@ -75,6 +75,23 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
+  desc "Generate a production HybridApp AAB"
+    lane :build_hybrid do
+      ENV["ENVFILE"]="../.env.production.hybridapp"
+      gradle(
+        project_dir: '../Android',
+        task: "bundleRelease",
+        flags: "--refresh-dependencies",
+        properties: {
+            "android.injected.signing.store.file" => './upload-key.keystore',
+            "android.injected.signing.store.password" => ENV["ANDROID_UPLOAD_KEYSTORE_PASSWORD"],
+            "android.injected.signing.key.alias" => ENV["ANDROID_UPLOAD_KEYSTORE_ALIAS"],
+            "android.injected.signing.key.password" => ENV["ANDROID_UPLOAD_KEY_PASSWORD"],
+        }
+      )
+      setGradleOutputsInEnv()
+    end
+
   desc "Generate a new local APK"
   lane :build_local do
     ENV["ENVFILE"]=".env.production"
@@ -86,6 +103,18 @@ platform :android do
     )
     setGradleOutputsInEnv()
   end
+
+  desc "Generate a new local HybridApp APK"
+    lane :build_local_hybrid do
+      ENV["ENVFILE"]=".env.production"
+      gradle(
+        project_dir: '../Android',
+        task: 'assemble',
+        flavor: 'Production',
+        build_type: 'Release',
+      )
+      setGradleOutputsInEnv()
+    end
 
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
@@ -232,6 +261,37 @@ platform :ios do
     setIOSBuildOutputsInEnv()
   end
 
+  desc "Build an iOS HybridApp production build"
+    lane :build_hybrid do
+      ENV["ENVFILE"]="../.env.production.hybridapp"
+
+      setupIOSSigningCertificate()
+
+      install_provisioning_profile(
+        path: "./OldApp_AppStore.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AppStore_Share_Extension.mobileprovision"
+      )
+
+      build_app(
+        workspace: "../iOS/Expensify.xcworkspace",
+        scheme: "Expensify",
+        output_name: "Expensify.ipa",
+        export_method: "app-store",
+        export_options: {
+          manageAppVersionAndBuildNumber: false,
+          provisioningProfiles: {
+              "com.expensify.expensifylite" => "(OldApp) AppStore",
+              "com.expensify.expensifylite.SmartScanExtension" => "(OldApp) AppStore: Share Extension"
+          }
+        }
+      )
+
+      setIOSBuildOutputsInEnv()
+    end
+
   desc "Build an unsigned iOS production build"
   lane :build_unsigned do
     ENV["ENVFILE"]=".env.production"
@@ -241,6 +301,16 @@ platform :ios do
     )
     setIOSBuildOutputsInEnv()
   end
+
+  desc "Build an unsigned iOS HybridApp production build"
+    lane :build_unsigned_hybrid do
+      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      build_app(
+          workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
+          scheme: "Expensify"
+      )
+      setIOSBuildOutputsInEnv()
+    end
 
   desc "Build AdHoc app for testing"
   lane :build_adhoc do
