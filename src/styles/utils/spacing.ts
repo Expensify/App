@@ -15,6 +15,10 @@ export default {
         margin: 8,
     },
 
+    m3: {
+        margin: 12,
+    },
+
     m4: {
         margin: 16,
     },
