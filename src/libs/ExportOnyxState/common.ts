@@ -22,7 +22,11 @@ const maskSessionDetails = (data: Record<string, unknown>): Record<string, unkno
     };
 };
 
-const maskFragileData = (data: Record<string, unknown> | unknown[], parentKey?: string): Record<string, unknown> | unknown[] => {
+const maskFragileData = (data: Record<string, unknown> | unknown[] | null, parentKey?: string): Record<string, unknown> | unknown[] | null => {
+    if (data === null) {
+        return data;
+    }
+
     if (Array.isArray(data)) {
         return data.map((item): unknown => (typeof item === 'object' ? maskFragileData(item as Record<string, unknown>, parentKey) : item));
     }
