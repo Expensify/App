@@ -139,8 +139,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
-    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
+    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID ?? '-1'}`);
+    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID ?? '-1'}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
