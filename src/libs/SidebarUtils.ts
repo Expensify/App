@@ -49,7 +49,12 @@ Onyx.connect({
             (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        const reportAction = reportActionsForDisplay.at(-1);
+        if (!reportAction) {
+            delete visibleReportActionItems[reportID];
+            return;
+        }
+        visibleReportActionItems[reportID] = reportAction;
     },
 });
 
@@ -300,7 +305,7 @@ function getOptionData({
     const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
-    const personalDetail = participantPersonalDetailList[0] ?? {};
+    const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
@@ -448,6 +453,8 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = ReportActionsUtils.getReportActionMessageText(lastAction) ?? '';
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
+            result.alternateText = ReportActionsUtils.getRemovedConnectionMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
@@ -476,18 +483,18 @@ function getOptionData({
     }
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail?.accountID;
-        result.login = personalDetail?.login;
-        result.phoneNumber = personalDetail?.phoneNumber;
+        result.accountID = personalDetail?.accountID ?? -1;
+        result.login = personalDetail?.login ?? '';
+        result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, true);
 
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy, invoiceReceiverPolicy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID ?? -1, policy, invoiceReceiverPolicy);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
