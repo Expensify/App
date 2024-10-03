@@ -19,6 +19,9 @@ type SearchRouterInputProps = {
     /** Callback to update search in SearchRouter */
     updateSearch: (searchTerm: string) => void;
 
+    /** Callback invoked when the user submits the input */
+    onSubmit?: () => void;
+
     /** SearchRouterList ref for managing TextInput and SearchRouterList focus */
     routerListRef?: RefObject<SelectionListHandle>;
 
@@ -45,6 +48,7 @@ function SearchRouterInput({
     value,
     setValue,
     updateSearch,
+    onSubmit = () => {},
     routerListRef,
     isFullWidth,
     disabled = false,
@@ -77,6 +81,7 @@ function SearchRouterInput({
                     autoCapitalize="none"
                     autoCorrect={false}
                     disabled={disabled}
+                    onSubmitEditing={onSubmit}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={styles.borderNone}
                     inputStyle={[styles.searchInputStyle, inputWidth, styles.pl3, styles.pr3]}

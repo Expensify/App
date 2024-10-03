@@ -74,7 +74,6 @@ function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, onChange}
                         setValue={onChange}
                         onSubmit={onSubmit}
                         updateSearch={() => {}}
-                        disabled
                         isFullWidth
                         wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                         wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
@@ -343,7 +342,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         <>
             <HeaderWrapper
                 icon={headerIcon}
-                text={headerText}
+                text={input}
                 isCannedQuery={isCannedQuery}
                 onSubmit={onSubmit}
                 onChange={setInput}

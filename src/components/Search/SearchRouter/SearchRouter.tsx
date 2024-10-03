@@ -42,7 +42,7 @@ function SearchRouter() {
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const listRef = useRef<SelectionListHandle>(null);
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportsList] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
@@ -151,7 +151,8 @@ function SearchRouter() {
                 return;
             }
             closeSearchRouter();
-            const queryString = SearchUtils.buildSearchQueryString(query);
+            const standardizedQuery = SearchUtils.standardizeQueryJSON(query, cardList, reportsList, taxRates);
+            const queryString = SearchUtils.buildSearchQueryString(standardizedQuery);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },
