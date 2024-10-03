@@ -92,8 +92,7 @@ function Composer(
         if (shouldCalculateCaretPosition && isRendered && sel) {
             const range = sel.getRangeAt(0).cloneRange();
             range.collapse(true);
-            const currentElement = (range.startContainer.nodeType === Node.TEXT_NODE ? range.startContainer.parentElement : range.startContainer) as HTMLElement;
-            const rect = currentElement.getClientRects()[0];
+            const rect = range.getClientRects()[0] || range.startContainer.parentElement?.getClientRects()[0];
             const containerRect = textInput.current?.getBoundingClientRect();
 
             let x = 0;
