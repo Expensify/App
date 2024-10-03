@@ -10,6 +10,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -18,7 +19,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAddDelegateErrors} from '@libs/actions/Delegate';
@@ -43,8 +43,9 @@ function SecuritySettingsPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
+    const personalDetails = usePersonalDetails();
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate>({});
@@ -82,12 +83,13 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates
-        .filter((d) => !d.optimisticAccountID)
-        .map(({email, role, pendingAction, errorFields}) => {
-            const personalDetail = getPersonalDetailByEmail(email);
-
-            const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
+    const delegateMenuItems: MenuItemProps[] = useMemo(
+        () =>
+            delegates
+                .filter((d) => !d.optimisticAccountID)
+                .map(({email, role, pendingAction, errorFields}) => {
+                    const personalDetail = getPersonalDetailByEmail(email);
+                    const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
             const onPress = () => {
                 if (isEmptyObject(pendingAction)) {
@@ -101,42 +103,52 @@ function SecuritySettingsPage() {
                 setSelectedDelegate({login: email, role});
             };
 
-            const formattedEmail = formatPhoneNumber(email);
-            return {
-                title: personalDetail?.displayName ?? formattedEmail,
-                description: personalDetail?.displayName ? formattedEmail : '',
-                badgeText: translate('delegate.role', role),
-                avatarID: personalDetail?.accountID ?? -1,
-                icon: personalDetail?.avatar ?? FallbackAvatar,
-                iconType: CONST.ICON_TYPE_AVATAR,
-                numberOfLinesDescription: 1,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
-                pendingAction,
-                shouldForceOpacity: !!pendingAction,
-                onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
-                error,
-                onPress,
-            };
-        });
+                    const formattedEmail = formatPhoneNumber(email);
+                    return {
+                        title: personalDetail?.displayName ?? formattedEmail,
+                        description: personalDetail?.displayName ? formattedEmail : '',
+                        badgeText: translate('delegate.role', {role}),
+                        avatarID: personalDetail?.accountID ?? -1,
+                        icon: personalDetail?.avatar ?? FallbackAvatar,
+                        iconType: CONST.ICON_TYPE_AVATAR,
+                        numberOfLinesDescription: 1,
+                        wrapperStyle: [styles.sectionMenuItemTopDescription],
+                        iconRight: Expensicons.ThreeDots,
+                        shouldShowRightIcon: true,
+                        pendingAction,
+                        shouldForceOpacity: !!pendingAction,
+                        onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
+                        error,
+                        onPress,
+                    };
+                }),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegates, translate, styles, personalDetails],
+    );
 
-    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
-        const formattedEmail = formatPhoneNumber(email);
+    const delegatorMenuItems: MenuItemProps[] = useMemo(
+        () =>
+            delegators.map(({email, role}) => {
+                const personalDetail = getPersonalDetailByEmail(email);
+                const formattedEmail = formatPhoneNumber(email);
 
-        return {
-            title: personalDetail?.displayName ?? formattedEmail,
-            description: personalDetail?.displayName ? formattedEmail : '',
-            badgeText: translate('delegate.role', role),
-            avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? FallbackAvatar,
-            iconType: CONST.ICON_TYPE_AVATAR,
-            numberOfLinesDescription: 1,
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            interactive: false,
-        };
-    });
+                return {
+                    title: personalDetail?.displayName ?? formattedEmail,
+                    description: personalDetail?.displayName ? formattedEmail : '',
+                    badgeText: translate('delegate.role', {role}),
+                    avatarID: personalDetail?.accountID ?? -1,
+                    icon: personalDetail?.avatar ?? FallbackAvatar,
+                    iconType: CONST.ICON_TYPE_AVATAR,
+                    numberOfLinesDescription: 1,
+                    wrapperStyle: [styles.sectionMenuItemTopDescription],
+                    interactive: false,
+                };
+            }),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegators, styles, translate, personalDetails],
+    );
 
     return (
         <ScreenWrapper
@@ -200,7 +212,6 @@ function SecuritySettingsPage() {
                                             <MenuItem
                                                 title={translate('delegate.addCopilot')}
                                                 icon={Expensicons.UserPlus}
-                                                iconFill={theme.iconSuccessFill}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                                 shouldShowRightIcon
                                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}

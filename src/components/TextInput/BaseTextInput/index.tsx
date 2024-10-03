@@ -66,11 +66,13 @@ function BaseTextInput(
         isMarkdownEnabled = false,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
         suffixStyle = [],
         contentWidth,
+        loadingSpinnerStyle,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -390,7 +392,7 @@ function BaseTextInput(
                                         : []),
 
                                     // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && styles.textInputDisabled,
+                                    inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
@@ -424,7 +426,7 @@ function BaseTextInput(
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1]}
+                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

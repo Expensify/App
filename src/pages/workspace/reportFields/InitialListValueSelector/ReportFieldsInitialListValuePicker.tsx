@@ -22,7 +22,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
         () => [
             {
                 data: Object.values(listValues ?? {})
-                    .filter((listValue, index) => !disabledOptions[index])
+                    .filter((listValue, index) => !disabledOptions.at(index))
                     .sort(localeCompare)
                     .map((listValue) => ({
                         keyForList: listValue,
@@ -40,7 +40,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
             sections={listValueSections}
             ListItem={RadioListItem}
             onSelectRow={(item) => onValueChange(item.value)}
-            initiallyFocusedOptionKey={listValueSections[0].data.find((listValue) => listValue.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={listValueSections.at(0)?.data?.find((listValue) => listValue.isSelected)?.keyForList}
         />
     );
 }
