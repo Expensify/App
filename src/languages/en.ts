@@ -4911,7 +4911,7 @@ const translations = {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
             pinnedByUser: 'Pinned by user',
-            isNonReimbursedIOU: 'Is non-reimbursed IOU',
+            hasIOUViolations: 'Has IOU violations',
             hasAddWorkspaceRoomErrors: 'Has add workspace room errors',
             isUnread: 'Is unread (focus mode)',
             isArchived: 'Is archived (most recent mode)',

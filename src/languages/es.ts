@@ -5422,11 +5422,11 @@ const translations = {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
             pinnedByUser: 'Fijado por el usuario',
-            isNonReimbursedIOU: 'Es un IOU no reembolsado',
+            hasIOUViolations: 'Tiene violaciones de IOU',
             hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
             isUnread: 'No leído (modo de enfoque)',
             isArchived: 'Archivado (modo más reciente)',
-            isSelfDM: 'Es un DM propio',
+            isSelfDM: 'Es un mensaje directo propio',
             isFocused: 'Está temporalmente enfocado',
         },
         reasonGBR: {

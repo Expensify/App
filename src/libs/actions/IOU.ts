@@ -6983,15 +6983,19 @@ function canIOUBePaid(
     );
 }
 
-function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): boolean {
+function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string) {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
-    return Object.values(chatReportActions).some((action) => {
+    return Object.values(chatReportActions).find((action) => {
         const iouReport = ReportUtils.getReportOrDraftReport(action.childReportID ?? '-1');
         const policy = PolicyUtils.getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
+}
+
+function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): boolean {
+    return !!getIOUReportActionToApproveOrPay(chatReport, excludedIOUReportID);
 }
 
 function isLastApprover(approvalChain: string[]): boolean {
@@ -8336,5 +8340,6 @@ export {
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
     mergeDuplicates,
+    getIOUReportActionToApproveOrPay,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

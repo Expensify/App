@@ -654,6 +654,13 @@ describe('DebugUtils', () => {
         });
     });
     describe('getReasonForShowingRowInLHN', () => {
+        const baseReport: Report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            reportName: 'My first chat',
+            lastMessageText: 'Hello World!',
+        };
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -668,14 +675,12 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report has a valid draft comment', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`, 'Hello world!');
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
-            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
         it('returns correct reason when report has GBR', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
+                ...baseReport,
                 lastMentionedTime: '2024-08-10 18:70:44.171',
                 lastReadTime: '2024-08-08 18:70:44.171',
             });
@@ -683,16 +688,27 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report is pinned', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
+                ...baseReport,
                 isPinned: true,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
-        it('returns correct reason when report is non reimbursed IOU', async () => {
+        it('returns correct reason when report has IOU violations', async () => {
+            const threadReport = {
+                ...baseReport,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                parentReportID: '0',
+                parentReportActionID: '0',
+            };
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    accountID: 1234,
+                },
                 [`${ONYXKEYS.COLLECTION.REPORT}0` as const]: {
                     reportID: '0',
                     type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: 1234,
                 },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0` as const]: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -701,25 +717,25 @@ describe('DebugUtils', () => {
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         message: {
                             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: '0',
+                            IOUReportID: '0',
                         },
                     },
                 },
-                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: {
-                    reportID: '1',
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: threadReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}0` as const]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                    },
+                ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                parentReportID: '0',
-                parentReportActionID: '0',
-            });
-            expect(reason).toBe('debug.reasonVisibleInLHN.isNonReimbursedIOU');
+            const reason = DebugUtils.getReasonForShowingRowInLHN(threadReport);
+            expect(reason).toBe('debug.reasonVisibleInLHN.hasIOUViolations');
         });
         it('returns correct reason when report has add workspace room errors', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
+                ...baseReport,
                 errorFields: {
                     addWorkspaceRoom: {
                         error: 'Something happened',
@@ -730,9 +746,11 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report is unread', async () => {
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: 1234});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID: 1234,
+            });
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
+                ...baseReport,
                 participants: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     1234: {
@@ -748,7 +766,7 @@ describe('DebugUtils', () => {
         it('returns correct reason when report is archived', async () => {
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
+                ...baseReport,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: 'true',
             });
@@ -756,15 +774,13 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report is self DM', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
+                ...baseReport,
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
         it('returns correct reason when report is temporarily focused', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({
-                reportID: '1',
-            });
+            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
     });
@@ -844,7 +860,7 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns undefined when report is not defined', () => {
-            const reportAction = DebugUtils.getGBRReportAction(undefined, undefined);
+            const reportAction = DebugUtils.getGBRReportAction(undefined);
             expect(reportAction).toBeUndefined();
         });
         it('return the report action which is a join request', async () => {
@@ -867,12 +883,9 @@ describe('DebugUtils', () => {
                 } as ReportAction<'ACTIONABLEJOINREQUEST'>,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
-            const reportAction = DebugUtils.getGBRReportAction(
-                {
-                    reportID: '1',
-                },
-                MOCK_REPORT_ACTIONS,
-            );
+            const reportAction = DebugUtils.getGBRReportAction({
+                reportID: '1',
+            });
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('return the report action which is awaiting action', async () => {
@@ -925,23 +938,13 @@ describe('DebugUtils', () => {
                 },
             });
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const reportAction = DebugUtils.getGBRReportAction(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report, MOCK_REPORT_ACTIONS);
+            const reportAction = DebugUtils.getGBRReportAction(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report);
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined when report has no GBR', () => {
-            const reportAction = DebugUtils.getGBRReportAction(
-                {
-                    reportID: '1',
-                },
-                {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '0': {
-                        reportActionID: '0',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                        created: '2024-08-08 18:70:44.171',
-                    },
-                },
-            );
+            const reportAction = DebugUtils.getGBRReportAction({
+                reportID: '1',
+            });
             expect(reportAction).toBeUndefined();
         });
     });

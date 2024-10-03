@@ -16,7 +16,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getAllReportErrors} from '@libs/OptionsListUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -24,7 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DebugReportActions from './DebugReportActions';
 
 type DebugReportPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
@@ -58,7 +57,7 @@ function DebugReportPage({
 
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report);
         const reasonGBR = DebugUtils.getReasonForShowingGreenDotInLHNRow(report);
-        const reportActionGBR = DebugUtils.getGBRReportAction(report, reportActions);
+        const reportActionGBR = DebugUtils.getGBRReportAction(report);
         const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
 
         return [
@@ -86,7 +85,7 @@ function DebugReportPage({
             },
             {
                 title: translate('debug.RBR'),
-                subtitle: translate(`debug.${!isEmptyObject(getAllReportErrors(report, reportActions))}`),
+                subtitle: translate(`debug.${OptionsListUtils.hasReportErrors(report, reportActions)}`),
                 action: reportActionRBR
                     ? {
                           name: translate('common.view'),
