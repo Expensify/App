@@ -719,7 +719,9 @@ const CONST = {
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
+    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
@@ -837,6 +839,7 @@ const CONST = {
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
+                SUBMITTED_AND_CLOSED: 'SUBMITTEDCLOSED',
                 TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
                 TASK_COMPLETED: 'TASKCOMPLETED',
@@ -1009,6 +1012,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
@@ -1836,6 +1840,7 @@ const CONST = {
             DATE_OF_BIRTH: 1,
             ADDRESS: 2,
             PHONE_NUMBER: 3,
+            CONFIRM: 4,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -2055,6 +2060,7 @@ const CONST = {
             INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
+            CREATE: 'create',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -2183,7 +2189,7 @@ const CONST = {
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
         AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
         AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
-        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 5,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.05,
 
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
@@ -2785,6 +2791,7 @@ const CONST = {
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+    STATE_CHARACTER_LIMIT: 32,
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -4200,7 +4207,7 @@ const CONST = {
         PADDING: 32,
         DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
-        DEFAULT_COORDINATE: [-122.4021, 37.7911],
+        DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
@@ -4212,7 +4219,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -4547,12 +4553,12 @@ const CONST = {
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Enable and disable default categories.\n' +
-                        '6. Click *Add categories* to make your own.\n' +
-                        '7. For more controls like requiring a category for every expense, click *Settings*.\n' +
+                        '5. Add or import your own categories.\n' +
+                        "6. Disable any default categories you don't need.\n" +
+                        '7. Require a category for every expense in *Settings*.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },

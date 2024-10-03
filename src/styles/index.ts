@@ -320,6 +320,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        bottomTabBarLabel: {
+            lineHeight: 14,
+            height: 16,
+        },
+
         webViewStyles: webViewStyles(theme),
 
         link: link(theme),
@@ -1595,10 +1600,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         selectedAvatarBorder: {
-            padding: 2,
+            padding: 1,
             borderWidth: 2,
             borderRadius: 20,
+            height: variables.sidebarAvatarSize + 6,
+            width: variables.sidebarAvatarSize + 6,
             borderColor: theme.success,
+            right: -3,
+            top: -3,
         },
 
         statusIndicator: (backgroundColor: string = theme.danger) =>
@@ -1621,8 +1630,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             borderWidth: 2,
             position: 'absolute',
-            right: -3,
-            top: -4,
+            right: -2,
+            top: -3,
             height: 12,
             width: 12,
             zIndex: 10,
@@ -2063,6 +2072,16 @@ const styles = (theme: ThemeColors) =>
         chatItemMessage: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        chatDelegateMessage: {
+            color: theme.textSupporting,
+            fontSize: 11,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
@@ -3603,15 +3622,42 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
-        searchRouterInputStyle: {
+        searchRouterTextInputContainer: {
             borderRadius: variables.componentBorderRadiusSmall,
-            borderWidth: 2,
-            borderColor: theme.borderFocus,
+            borderWidth: 1,
+            borderBottomWidth: 1,
             paddingHorizontal: 8,
+        },
+
+        searchRouterInputResults: {
+            backgroundColor: theme.sidebarHover,
+            borderWidth: 1,
+            borderColor: theme.sidebarHover,
+        },
+
+        searchRouterInputResultsFocused: {
+            borderWidth: 1,
+            borderColor: theme.success,
         },
 
         searchTableHeaderActive: {
             fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        zIndex10: {
+            zIndex: 10,
+        },
+
+        searchListContentContainerStyles: {
+            marginTop: variables.searchListContentMarginTop,
+        },
+
+        searchTopBarStyle: {
+            left: 0,
+            right: 0,
+            position: 'absolute',
+            zIndex: 9,
+            backgroundColor: theme.appBG,
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
@@ -4108,11 +4154,6 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
-        taskCheckboxWrapper: {
-            height: variables.fontSizeNormalHeight,
-            ...flex.justifyContentCenter,
-        },
-
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
@@ -4507,6 +4548,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: 20,
         },
+
+        sidebarStatusAvatarWithEmojiContainer: {
+            height: 28,
+            width: 28,
+            top: -2,
+        },
+
         sidebarStatusAvatar: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -4515,9 +4563,9 @@ const styles = (theme: ThemeColors) =>
             width: 20,
             borderRadius: 10,
             position: 'absolute',
-            right: -4,
-            bottom: -4,
-            borderColor: theme.highlightBG,
+            right: -6,
+            bottom: -6,
+            borderColor: theme.appBG,
             borderWidth: 2,
             overflow: 'hidden',
         },
@@ -4647,6 +4695,14 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 16,
             marginHorizontal: 20,
             backgroundColor: theme.highlightBG,
+            borderRadius: 8,
+        },
+
+        searchQueryListItemStyle: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 12,
+            paddingVertical: 12,
             borderRadius: 8,
         },
 

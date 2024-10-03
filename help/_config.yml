@@ -1,0 +1,10 @@
+title: New Expensify Help
+email: concierge@expensify.com
+description: Comprehensive help documentation for New Expensify.
+url: https://newhelp.expensify.com
+twitter_username: expensify
+github_username:  expensify
+
+# Ignore what's only used for the Github repo
+exclude:
+  - README.md
