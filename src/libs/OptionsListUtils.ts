@@ -317,10 +317,10 @@ Onyx.connect({
 
             const firstReportAction = sortedReportActions.at(0);
             if (!firstReportAction) {
-                return;
+                delete lastReportActions[reportID];
+            } else {
+                lastReportActions[reportID] = firstReportAction;
             }
-
-            lastReportActions[reportID] = firstReportAction;
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -334,6 +334,7 @@ Onyx.connect({
             );
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
+                delete lastVisibleReportActions[reportID];
                 return;
             }
             lastVisibleReportActions[reportID] = reportActionForDisplay;

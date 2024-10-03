@@ -4187,6 +4187,10 @@ const translations = {
             past: 'Anterior',
         },
         expenseType: 'Tipo de gasto',
+        recentSearches: 'Búsquedas recientes',
+        recentChats: 'Chats recientes',
+        searchIn: 'Buscar en',
+        searchPlaceholder: 'Busca algo',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
