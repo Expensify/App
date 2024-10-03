@@ -275,7 +275,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.uploadAndroid.result }}
           DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.iOS.result }}
+          IOS: ${{ needs.uploadIOS.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg

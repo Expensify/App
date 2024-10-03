@@ -249,7 +249,7 @@ jobs:
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildIOS.outputs.IPA_PATH }}"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildIOS.outputs.IPA_FILE_NAME }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
@@ -385,7 +385,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, buildIOS, uploadIOS, submitIOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -411,7 +411,7 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, buildIOS, uploadIOS, submitIOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
@@ -419,18 +419,19 @@ jobs:
         run: |
           isAtLeastOnePlatformDeployed="false"
           if [ ${{ github.ref }} == 'refs/heads/production' ]; then
-            if [ "${{ needs.submitAndroid.result }}" == "success" ]; then
+            if [ '${{ needs.submitAndroid.result }}' == 'success' ] || \
+               [ '${{ needs.submitIOS.result }}' == 'success' ]; then
               isAtLeastOnePlatformDeployed="true"
             fi
           else
-            if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
+            if [ '${{ needs.uploadAndroid.result }}' == 'success' ] || \
+               [ '${{ needs.uploadIOS.result }}' == 'success' ]; then
               isAtLeastOnePlatformDeployed="true"
             fi
           fi
-          
-          if [ "${{ needs.iOS.result }}" == "success" ] || \
-            [ "${{ needs.desktop.result }}" == "success" ] || \
-            [ "${{ needs.web.result }}" == "success" ]; then
+
+          if [ '${{ needs.desktop.result }}' == 'success' ] || \
+             [ '${{ needs.web.result }}' == 'success' ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
           echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
@@ -439,19 +440,20 @@ jobs:
       - name: Check deployment success on all platforms
         id: checkDeploymentSuccessOnAllPlatforms
         run: |
-          isAllPlatformsDeployed="false"
-          if [ "${{ needs.iOS.result }}" == "success" ] && \
-            [ "${{ needs.desktop.result }}" == "success" ] && \
-            [ "${{ needs.web.result }}" == "success" ]; then
+          isAllPlatformsDeployed='false'
+          if [ '${{ needs.desktop.result }}' == 'success' ] && \
+             [ '${{ needs.web.result }}' == 'success' ]; then
             isAllPlatformsDeployed="true"
           fi
 
           if [ ${{ github.ref }} == 'refs/heads/production' ]; then
-            if [ "${{ needs.submitAndroid.result }}" != "success" ]; then
+            if [ '${{ needs.submitAndroid.result }}' != 'success' ] || \
+               [ '${{ needs.submitIOS.result }}' != 'success' ]; then
               isAllPlatformsDeployed="false"
             fi
           else
-            if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
+            if [ '${{ needs.uploadAndroid.result }}' != 'success' ] || \
+               [ '${{ needs.uploadIOS.result }}' != 'success' ]; then
               isAllPlatformsDeployed="false"
             fi
           fi
@@ -575,7 +577,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, buildIOS, uploadIOS, submitIOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -629,11 +631,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, buildIOS, uploadIOS, submitIOS, desktop, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ github.ref == 'refs/heads/production' && needs.submitAndroid.result || needs.uploadAndroid.result }}
-      ios: ${{ needs.iOS.result }}
+      ios: ${{ github.ref == 'refs/heads/production' && needs.submitIOS.result || needs.uploadIOS.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}
