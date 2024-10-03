@@ -4,22 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.css">
+    <style>
+        /* Container for the two-column layout */
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+        }
+
+        /* Sidebar for the TOC */
+        .sidebar {
+            width: 250px; /* Adjust this to your desired width */
+            background-color: #f8f9fa; /* Light background for TOC */
+            padding: 20px;
+            position: fixed; /* Fixed sidebar */
+            height: 100%; /* Full height */
+            overflow-y: auto; /* Scrollable TOC */
+            border-right: 1px solid #ddd; /* Add a border on the right */
+        }
+
+        /* Main content area */
+        .content {
+            margin-left: 270px; /* Same as sidebar width + padding */
+            padding: 20px;
+            overflow-y: auto; /* Scrollable content */
+            flex-grow: 1;
+        }
+
+        /* Basic styling for the TOC links */
+        .toc-link {
+            display: block;
+            margin-bottom: 10px;
+            color: #007bff; /* Link color */
+            text-decoration: none;
+        }
+        .toc-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Basic styling for headers */
+        h1, h2, h3, h4 {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <!-- Navigation links, logo, etc. -->
-        </nav>
-    </header>
+    <div class="sidebar">
+        <div class="js-toc"></div>
+    </div>
 
-    <!-- This is where the content from product.html or any other layout will be inserted -->
-    <main>
-        {{ content }}
-    </main>
+    <div class="content">
+        <header>
+            <nav>
+                <!-- Navigation links, logo, etc. -->
+            </nav>
+        </header>
 
-    <footer>
-        <p>&copy; 2024 Your Website</p>
-    </footer>
+        <main class="js-toc-content">
+            {{ content }}
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Your Website</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
+    <script>
+        tocbot.init({
+          tocSelector: '.js-toc',
+          contentSelector: '.js-toc-content',
+          headingSelector: 'h1, h2, h3, h4',
+        });
+    </script>
 </body>
 </html>
 
