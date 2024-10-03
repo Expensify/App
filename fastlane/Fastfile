@@ -216,7 +216,7 @@ platform :ios do
     build_app(
       workspace: "./ios/NewExpensify.xcworkspace",
       scheme: "New Expensify",
-      output_name: "New Expensify.ipa",
+      output_name: "NewExpensify.ipa",
       export_options: {
         provisioningProfiles: {
           "com.chat.expensify.chat" => "(NewApp) AppStore",
@@ -257,6 +257,7 @@ platform :ios do
       workspace: "./ios/NewExpensify.xcworkspace",
       skip_profile_detection: true,
       scheme: "New Expensify AdHoc",
+      output_name: "NewExpensify_AdHoc.ipa"
       export_method: "ad-hoc",
       export_options: {
         method: "ad-hoc",
