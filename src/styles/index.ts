@@ -3622,10 +3622,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
-        searchRouterInput: {
+        searchRouterTextInputContainer: {
             borderRadius: variables.componentBorderRadiusSmall,
-            borderWidth: 2,
-            borderColor: theme.borderFocus,
+            borderWidth: 1,
+            borderBottomWidth: 1,
+            paddingHorizontal: 8,
         },
 
         searchRouterInputResults: {
@@ -4694,6 +4695,14 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 16,
             marginHorizontal: 20,
             backgroundColor: theme.highlightBG,
+            borderRadius: 8,
+        },
+
+        searchQueryListItemStyle: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 12,
+            paddingVertical: 12,
             borderRadius: 8,
         },
 

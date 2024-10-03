@@ -423,6 +423,9 @@ const ONYXKEYS = {
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
 
+    /** Stores the information about the recent searches */
+    RECENT_SEARCHES: 'nvp_recentSearches',
+
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
@@ -850,6 +853,7 @@ type OnyxValuesMapping = {
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
+    [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
