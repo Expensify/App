@@ -2363,6 +2363,9 @@ const translations = {
                 }
             },
         },
+        qbd: {
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
+        },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
             classes: 'Clases',
