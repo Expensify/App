@@ -18,7 +18,7 @@ on:
         default: ''
       pull_request_number:
         description: The pull request number associated with this build, if relevant.
-        type: number
+        type: string
         required: false
     outputs:
       AAB_FILE_NAME:
