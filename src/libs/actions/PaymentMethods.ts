@@ -418,7 +418,11 @@ function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: O
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);
 }
 
-type PaymentListKey = typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST | typeof ONYXKEYS.CARD_LIST;
+type PaymentListKey =
+    | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+    | typeof ONYXKEYS.FUND_LIST
+    | typeof ONYXKEYS.CARD_LIST
+    | `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}_${typeof CONST.EXPENSIFY_CARD.BANK}`;
 
 /**
  * Clears the error for the specified payment item
