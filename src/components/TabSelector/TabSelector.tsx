@@ -45,6 +45,10 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
             return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
         case CONST.TAB_REQUEST.DISTANCE:
             return {icon: Expensicons.Car, title: translate('common.distance')};
+        case CONST.TAB.SHARE.SHARE:
+            return {icon: Expensicons.UploadAlt, title: translate('common.share')};
+        case CONST.TAB.SHARE.SUBMIT:
+            return {icon: Expensicons.Receipt, title: translate('common.submit')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }

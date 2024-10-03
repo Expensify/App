@@ -1022,6 +1022,9 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         justTrackIt: 'Just track it (don’t submit it)',
+        shareRoot: {
+            shareToExpensify: 'Share to expensify',
+        },
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
