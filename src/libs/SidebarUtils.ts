@@ -613,7 +613,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     } else {
         // Message for user created rooms or other room types.
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo', {displayName: ReportUtils.getPolicyName(report)});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
     welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
 
