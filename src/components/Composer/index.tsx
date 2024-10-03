@@ -99,7 +99,7 @@ function Composer(
             let y = 0;
             if (rect && containerRect) {
                 x = rect.left - containerRect.left;
-                y = rect.top - containerRect.top - rect.height / 2;
+                y = rect.top - containerRect.top - rect.height / 2 + (textInput?.current?.scrollTop ?? 0);
             }
 
             const selectionValue = {
