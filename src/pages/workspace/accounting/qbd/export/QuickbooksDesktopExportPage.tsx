@@ -105,7 +105,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                     onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
                     style={[styles.mutedNormalTextLabel, styles.link]}
                 >
-                    {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
+                    {` ${translate('workspace.qbo.deepDiveExpensifyCardIntegration')}`}
                 </TextLink>
             </Text>
         </ConnectionLayout>
