@@ -16,6 +16,10 @@ on:
         type: string
         required: false
         default: ''
+      pull_request_number:
+        description: The pull request number associated with this build, if relevant.
+        type: number
+        required: false
     outputs:
       AAB_FILE_NAME:
         value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
@@ -37,6 +41,11 @@ on:
         description: Git ref to checkout and build
         required: true
         type: string
+
+      pull_request_number:
+        description: The pull request number associated with this build, if relevant.
+        type: number
+        required: false
 
 jobs:
   build:
@@ -94,7 +103,7 @@ jobs:
           if [ '${{ inputs.type }}' == 'adhoc' ]; then
             cp .env.staging .env.adhoc
             sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-            echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+            echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
           else
             envFile=''
             if [ '${{ inputs.type }}' == 'e2e' ]; then
