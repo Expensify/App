@@ -92,11 +92,14 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         let newIndex = newAttachments.findIndex(compareImage);
         const index = attachments.findIndex(compareImage);
 
-        // If no matching attachment with the same index, dismiss the modal
+        // If newAttachments includes an attachment with the same index, update newIndex to that index.
+        // Previously, uploading an attachment offline would dismiss the modal when the image was previewed and the connection was restored.
+        // Now, instead of dismissing the modal, we replace it with the new attachment that has the same index.
         if (newIndex === -1 && index !== -1 && newAttachments.at(index)) {
             newIndex = index;
         }
 
+        // If no matching attachment with the same index, dismiss the modal
         if (newIndex === -1 && index !== -1 && attachments.at(index)) {
             Navigation.dismissModal();
         } else {
