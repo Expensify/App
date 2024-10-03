@@ -8,18 +8,12 @@
 import AirshipServiceExtension
 import os.log
 import Intents
-import AppLogs
 
 class NotificationService: UANotificationServiceExtension {
   
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
   let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.expensify.chat.dev.NotificationServiceExtension", category: "NotificationService")
-  let appLogs: AppLogs = .init()
-  
-  deinit {
-    appLogs.forwardLogsTo(appGroup: "group.com.expensify.new")
-  }
   
   override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
     os_log("[NotificationService] didReceive() - received notification", log: log)
@@ -48,7 +42,7 @@ class NotificationService: UANotificationServiceExtension {
     do {
       notificationData = try parsePayload(notificationContent: notificationContent)
     } catch ExpError.runtimeError(let errorMessage) {
-      os_log("[NotificationService] configureCommunicationNotification() - couldn't parse the payload '%{public}@'", log: log, type: .error, errorMessage)
+      os_log("[NotificationService] configureCommunicationNotification() - couldn't parse the payload '%@'", log: log, type: .error, errorMessage)
       contentHandler(notificationContent)
       return
     } catch {
@@ -218,7 +212,7 @@ class NotificationService: UANotificationServiceExtension {
       let data = try Data(contentsOf: url)
       return INImage(imageData: data)
     } catch {
-      os_log("[NotificationService] fetchINImage() - failed to fetch avatar. reportActionID: %{public}@", log: self.log, type: .error, reportActionID)
+      os_log("[NotificationService] fetchINImage() - failed to fetch avatar. reportActionID: %@", log: self.log, type: .error, reportActionID)
       return nil
     }
   }
