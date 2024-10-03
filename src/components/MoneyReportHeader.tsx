@@ -359,34 +359,37 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             </HeaderWithBackButton>
             {isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
-                    {isDuplicate && shouldUseNarrowLayout && (
-                        <Button
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
-                            }}
-                        />
-                    )}
-                    {shouldShowSettlementButton && shouldUseNarrowLayout && (
-                        <SettlementButton
-                            onlyShowPayElsewhere={onlyShowPayElsewhere}
-                            currency={moneyRequestReport?.currency}
-                            confirmApproval={confirmApproval}
-                            policyID={moneyRequestReport?.policyID}
-                            chatReportID={moneyRequestReport?.chatReportID}
-                            iouReport={moneyRequestReport}
-                            onPress={confirmPayment}
-                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
-                            shouldHidePaymentOptions={!shouldShowPayButton}
-                            shouldShowApproveButton={shouldShowApproveButton}
-                            formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
-                            shouldDisableApproveButton={shouldDisableApproveButton}
-                            isDisabled={isOffline && !canAllowSettlement}
-                            isLoading={!isOffline && !canAllowSettlement}
-                        />
-                    )}
+                    <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
+                        {isDuplicate && shouldUseNarrowLayout && (
+                            <Button
+                                text={translate('iou.reviewDuplicates')}
+                                style={[styles.flex1, styles.pr0]}
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                }}
+                            />
+                        )}
+                        {shouldShowSettlementButton && shouldUseNarrowLayout && (
+                            <SettlementButton
+                                wrapperStyle={[styles.flex1]}
+                                onlyShowPayElsewhere={onlyShowPayElsewhere}
+                                currency={moneyRequestReport?.currency}
+                                confirmApproval={confirmApproval}
+                                policyID={moneyRequestReport?.policyID}
+                                chatReportID={moneyRequestReport?.chatReportID}
+                                iouReport={moneyRequestReport}
+                                onPress={confirmPayment}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                addBankAccountRoute={bankAccountRoute}
+                                shouldHidePaymentOptions={!shouldShowPayButton}
+                                shouldShowApproveButton={shouldShowApproveButton}
+                                formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
+                                shouldDisableApproveButton={shouldDisableApproveButton}
+                                isDisabled={isOffline && !canAllowSettlement}
+                                isLoading={!isOffline && !canAllowSettlement}
+                            />
+                        )}
+                    </View>
                     {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                         <ExportWithDropdownMenu
                             policy={policy}
