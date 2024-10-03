@@ -22,7 +22,7 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
 
     # Count the number of commits behind
     UPSTREAM=${1:-'@{u}'}
-    COMMITS_BEHIND=$(git rev-list --count HEAD..$UPSTREAM)
+    COMMITS_BEHIND=$(git rev-list --count HEAD.."$UPSTREAM")
 
     if [[ $COMMITS_BEHIND -eq 0 ]]; then
         echo -e "\n${GREEN}OldDot repository is up to date!${NC}"
