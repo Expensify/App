@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BaseOnboardingWork from './BaseOnboardingWork';
 import type {OnboardingWorkProps} from './types';
 
-function OnboardingWork({...rest}: Omit<OnboardingWorkProps, 'shouldUseNativeStyles'>) {
+function OnboardingWork(props: OnboardingWorkProps) {
     const styles = useThemeStyles();
     return (
         <FocusTrapForScreens>
@@ -13,7 +13,7 @@ function OnboardingWork({...rest}: Omit<OnboardingWorkProps, 'shouldUseNativeSty
                 <BaseOnboardingWork
                     shouldUseNativeStyles={false}
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
+                    {...props}
                 />
             </View>
         </FocusTrapForScreens>

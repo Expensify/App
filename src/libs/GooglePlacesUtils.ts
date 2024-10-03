@@ -43,7 +43,7 @@ function getPlaceAutocompleteTerms(addressTerms: AddressTerm[]): GetPlaceAutocom
     const result: GetPlaceAutocompleteTermsResult = {};
     fieldsToExtract.forEach((fieldToExtract, index) => {
         const fieldTermIndex = addressTerms.length - (index + 1);
-        result[fieldToExtract] = fieldTermIndex >= 0 ? addressTerms[fieldTermIndex].value : '';
+        result[fieldToExtract] = fieldTermIndex >= 0 ? addressTerms.at(fieldTermIndex)?.value : '';
     });
     return result;
 }

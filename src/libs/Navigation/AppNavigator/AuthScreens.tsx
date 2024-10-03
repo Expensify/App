@@ -1,7 +1,7 @@
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
@@ -9,6 +9,7 @@ import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -50,7 +51,6 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
@@ -65,6 +65,17 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
+
+type AuthScreensProps = {
+    /** Session of currently logged in user */
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: OnyxEntry<string>;
+
+    /** The last Onyx update ID was applied to the client */
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
+};
 
 const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -127,6 +138,7 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val hasn't accountID
         if (!(value && 'accountID' in value)) {
+            currentAccountID = -1;
             timezone = null;
             return;
         }
@@ -213,10 +225,7 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens() {
-    const [session, sessionStatus] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -230,7 +239,7 @@ function AuthScreens() {
     );
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
-
+    const {isOnboardingCompleted} = useOnboardingFlowRouter();
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
     if (isInitialRender.current) {
@@ -398,9 +407,6 @@ function AuthScreens() {
         // Prevent unnecessary scrolling
         cardStyle: styles.cardStyleNavigator,
     };
-    if (isLoadingOnyxValue(sessionStatus, lastOpenedPublicRoomIDStatus, initialLastUpdateIDAppliedToClientStatus)) {
-        return;
-    }
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
@@ -522,17 +528,19 @@ function AuthScreens() {
                         options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
                     />
-                    <RootStack.Screen
-                        name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                        options={onboardingScreenOptions}
-                        component={OnboardingModalNavigator}
-                        listeners={{
-                            focus: () => {
-                                Modal.setDisableDismissOnEscape(true);
-                            },
-                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
-                        }}
-                    />
+                    {isOnboardingCompleted === false && (
+                        <RootStack.Screen
+                            name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                            options={onboardingScreenOptions}
+                            component={OnboardingModalNavigator}
+                            listeners={{
+                                focus: () => {
+                                    Modal.setDisableDismissOnEscape(true);
+                                },
+                                beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                            }}
+                        />
+                    )}
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
@@ -579,4 +587,16 @@ function AuthScreens() {
 
 AuthScreens.displayName = 'AuthScreens';
 
-export default memo(AuthScreens, () => true);
+const AuthScreensMemoized = memo(AuthScreens, () => true);
+
+export default withOnyx<AuthScreensProps, AuthScreensProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    },
+    initialLastUpdateIDAppliedToClient: {
+        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    },
+})(AuthScreensMemoized);

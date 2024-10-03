@@ -87,6 +87,9 @@ type SettlementButtonProps = {
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
+
+    /** Whether we only show pay elsewhere button */
+    onlyShowPayElsewhere?: boolean;
 };
 
 export default SettlementButtonProps;

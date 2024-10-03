@@ -87,11 +87,11 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     }, []);
 
     useEffect(() => {
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || !welcomeNote) {
             return;
         }
         setWelcomeNote(getDefaultWelcomeNote());
-    }, [getDefaultWelcomeNote, invitedEmailsToAccountIDsDraft]);
+    }, [getDefaultWelcomeNote, invitedEmailsToAccountIDsDraft, welcomeNote]);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
