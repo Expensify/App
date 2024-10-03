@@ -30,14 +30,14 @@ type PredefinedPlace = Place & {
 type LocationBias = {
     rectangle: {
         low: {
-            latitude: number,
-            longitude: number,
-        },
+            latitude: number;
+            longitude: number;
+        };
         high: {
-            latitude: number,
-            longitude: number,
-        }
-    }
+            latitude: number;
+            longitude: number;
+        };
+    };
 };
 
 type AddressSearchProps = {

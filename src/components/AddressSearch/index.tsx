@@ -135,27 +135,27 @@ function AddressSearch(
             country: countryPrimary,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            street_number: 'long_name',
-            route: 'long_name',
-            subpremise: 'long_name',
-            locality: 'long_name',
-            sublocality: 'long_name',
+            street_number: 'longText',
+            route: 'longText',
+            subpremise: 'longText',
+            locality: 'longText',
+            sublocality: 'longText',
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            postal_town: 'long_name',
+            postal_town: 'longText',
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            postal_code: 'long_name',
+            postal_code: 'longText',
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            administrative_area_level_1: 'short_name',
+            administrative_area_level_1: 'shortText',
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            administrative_area_level_2: 'long_name',
-            country: 'short_name',
+            administrative_area_level_2: 'longText',
+            country: 'shortText',
         });
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
-        // need the state's full name (long_name) when we render the state in a TextInput.
+        // need the state's full name (longText) when we render the state in a TextInput.
         const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            administrative_area_level_1: 'long_name',
+            administrative_area_level_1: 'longText',
         });
 
         // Make sure that the order of keys remains such that the country is always set above the state.

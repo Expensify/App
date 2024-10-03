@@ -48,7 +48,7 @@ export default function useLocationBias(allWaypoints: WaypointCollection, userLo
         const north = maxLat < 90 ? maxLat : 90;
         const east = maxLng < 180 ? maxLng : 180;
 
-        if(latitudes.length === 0 || longitudes.length === 0) {
+        if (latitudes.length === 0 || longitudes.length === 0) {
             return undefined;
         }
         const rectangularBoundary = {
@@ -60,8 +60,8 @@ export default function useLocationBias(allWaypoints: WaypointCollection, userLo
                 high: {
                     latitude: north,
                     longitude: east,
-                }
-            }
+                },
+            },
         };
         return rectangularBoundary;
     }, [userLocation, allWaypoints]);
