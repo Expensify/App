@@ -1362,25 +1362,25 @@ type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
 
     /** Record of public policy details, indexed by policy ID */
-    policyDetailsForNonMembers: Record<
-        string,
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
-            /** Name of the policy */
-            name: string;
+    policyDetailsForNonMembers: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>;
+};
 
-            /** Policy owner account ID */
-            ownerAccountID: number;
+/** Details of public policy */
+type PolicyDetailsForNonMembers = {
+    /** Name of the policy */
+    name: string;
 
-            /** Policy owner e-mail */
-            ownerEmail: string;
+    /** Policy owner account ID */
+    ownerAccountID: number;
 
-            /** Policy type */
-            type: ValueOf<typeof CONST.POLICY.TYPE>;
+    /** Policy owner e-mail */
+    ownerEmail: string;
 
-            /** Policy avatar */
-            avatar?: string;
-        }>
-    >;
+    /** Policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Policy avatar */
+    avatar?: string;
 };
 
 /** Data informing when a given rule should be applied */
@@ -1734,6 +1734,7 @@ export type {
     CompanyAddress,
     IntegrationEntityMap,
     PolicyFeatureName,
+    PolicyDetailsForNonMembers,
     PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,

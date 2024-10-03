@@ -67,6 +67,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -1085,6 +1086,8 @@ const translations = {
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
+        featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
+        validateAccount: 'Valida tu cuenta',
         helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
@@ -1190,8 +1193,13 @@ const translations = {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
+            resetToOriginalState: 'Restablecer al estado original',
+            usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
             debugMode: 'Modo depuración',
+            invalidFile: 'Archivo inválido',
+            invalidFileDescription: 'El archivo que estás intentando importar no es válido. Por favor, inténtalo de nuevo.',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1214,7 +1222,6 @@ const translations = {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
-        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -2812,6 +2819,7 @@ const translations = {
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Importados como ${importedTypes.join(' y ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Por favor, introduzca el ${fieldName}`,
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
@@ -4068,11 +4076,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
             }
             return {
                 one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
@@ -4188,6 +4196,10 @@ const translations = {
             past: 'Anterior',
         },
         expenseType: 'Tipo de gasto',
+        recentSearches: 'Búsquedas recientes',
+        recentChats: 'Chats recientes',
+        searchIn: 'Buscar en',
+        searchPlaceholder: 'Busca algo',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
