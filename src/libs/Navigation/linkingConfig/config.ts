@@ -161,6 +161,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_CLOSE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
                             exact: true,
@@ -1111,7 +1115,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
                     screens: {
-                        [SCREENS.EDIT_REQUEST.REPORT_FIELD]: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
+                        [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
+                            path: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
+                            parse: {
+                                fieldID: (fieldID: string) => decodeURIComponent(fieldID),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SIGN_IN]: {
@@ -1173,7 +1182,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
-                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS.route,
+                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {

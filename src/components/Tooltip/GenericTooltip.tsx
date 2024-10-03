@@ -35,7 +35,7 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
-    onPressOverlay: onPressOverlayProp = () => {},
+    onHideTooltip = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -150,8 +150,8 @@ function GenericTooltip({
         }
         setShouldUseOverlay(false);
         hideTooltip();
-        onPressOverlayProp();
-    }, [shouldUseOverlay, onPressOverlayProp, hideTooltip]);
+        onHideTooltip();
+    }, [shouldUseOverlay, onHideTooltip, hideTooltip]);
 
     useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
 
@@ -183,7 +183,7 @@ function GenericTooltip({
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
-                    onPressOverlay={onPressOverlay}
+                    onHideTooltip={onPressOverlay}
                 />
             )}
 

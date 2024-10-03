@@ -50,7 +50,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                         height={variables.restrictedActionIllustrationHeight}
                     />
                     <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
-                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name})}
+                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name ?? ''})}
                     </Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.textAlignCenter, styles.lh20, styles.mt2]}>
                         {translate('workspace.restrictedAction.pleaseReachOutToYourWorkspaceAdmin')}

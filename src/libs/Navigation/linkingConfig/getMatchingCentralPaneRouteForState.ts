@@ -53,7 +53,10 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
         return;
     }
 
-    const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name][0];
+    const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name].at(0);
+    if (!centralPaneName) {
+        return;
+    }
 
     if (topmostBottomTabRoute.name === SCREENS.SETTINGS.ROOT) {
         // When we go back to the settings tab without switching the workspace id, we want to return to the previously opened screen

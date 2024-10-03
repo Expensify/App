@@ -25,7 +25,7 @@ const fileDownload: FileDownload = (url, fileName, successMessage, shouldOpenExt
         }, CONST.DOWNLOADS_TIMEOUT);
 
         const handleDownloadStatus = (...args: unknown[]) => {
-            const arg = Array.isArray(args) ? args[0] : null;
+            const arg = Array.isArray(args) ? args.at(0) : null;
             const eventUrl = arg && typeof arg === 'object' && 'url' in arg ? arg.url : null;
 
             if (eventUrl === url) {
