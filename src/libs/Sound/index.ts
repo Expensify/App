@@ -22,6 +22,21 @@ function cacheSoundAssets() {
     }
 }
 
+const initializeAndPlaySound = (src: string) => {
+    const sound = new Howl({
+        src: [src],
+        format: ['mp3'],
+        onloaderror: (id, error) => {
+            Log.hmmm('[sound] Load error:', { message: (error as Error).message });
+        },
+        onplayerror: (id, error) => {
+            Log.hmmm('[sound] Play error:', { message: (error as Error).message });
+        },
+    });
+
+    sound.play();
+};
+
 const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     if (isMuted) {
         return;
@@ -35,51 +50,18 @@ const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
                 if (response) {
                     response.blob().then(soundBlob => {
                         const soundUrl = URL.createObjectURL(soundBlob);
-
-                        const sound = new Howl({
-                            src: [soundUrl],
-                            format: ['mp3'],
-                            onloaderror: (id, error) => {
-                                Log.hmmm('[sound] Load error:', { message: (error as Error).message });
-                            },
-                            onplayerror: (id, error) => {
-                                Log.hmmm('[sound] Play error:', { message: (error as Error).message });
-                            },
-                        });
-
-                        sound.play();
+                        initializeAndPlaySound(soundUrl);
                     });
                 } else {
-                    const sound = new Howl({
-                        src: [soundSrc],
-                        onloaderror: (id, error) => {
-                            Log.hmmm('[sound] Load error:', { message: (error as Error).message });
-                        },
-                        onplayerror: (id, error) => {
-                            Log.hmmm('[sound] Play error:', { message: (error as Error).message });
-                        },
-                    });
-
-                    sound.play();
+                    initializeAndPlaySound(soundSrc);
                 }
             });
         });
     } else {
         // Fallback to fetching from network if not in cache
-        const sound = new Howl({
-            src: [soundSrc],
-            onloaderror: (id, error) => {
-                Log.hmmm('[sound] Load error:', { message: (error as Error).message });
-            },
-            onplayerror: (id, error) => {
-                Log.hmmm('[sound] Play error:', { message: (error as Error).message });
-            },
-        });
-
-        sound.play();
+        initializeAndPlaySound(soundSrc);
     }
 };
-
 // Cache sound assets on load
 cacheSoundAssets();
 
