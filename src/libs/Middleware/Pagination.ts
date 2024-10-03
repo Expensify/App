@@ -17,7 +17,6 @@ type PaginationCommonConfig<TResourceKey extends OnyxCollectionKey = OnyxCollect
     pageCollectionKey: TPageKey;
     sortItems: (items: OnyxValues[TResourceKey]) => Array<PagedResource<TResourceKey>>;
     getItemID: (item: PagedResource<TResourceKey>) => string;
-    isLastItem: (item: PagedResource<TResourceKey>) => boolean;
 };
 
 type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = PaginationCommonConfig<TResourceKey, TPageKey> & {
@@ -85,8 +84,8 @@ const Pagination: Middleware = (requestResponse, request) => {
         return requestResponse;
     }
 
-    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, isLastItem, type} = paginationConfig;
-    const {resourceID, cursorID} = request;
+    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID} = paginationConfig;
+    const {resourceID} = request;
     return requestResponse.then((response) => {
         if (!response?.onyxData) {
             return Promise.resolve(response);
@@ -106,13 +105,10 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        // Detect if we are at the start of the list. This will always be the case for the initial request with no cursor.
-        // For previous requests we check that no new data is returned. Ideally the server would return that info.
-        if ((type === 'initial' && !cursorID) || (type === 'next' && newPage.length === 1 && newPage.at(0) === cursorID)) {
+        if (response.hasNewerActions === false) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
-        const pageItem = sortedPageItems.at(-1);
-        if (pageItem && isLastItem(pageItem)) {
+        if (response.hasOlderActions === false) {
             newPage.push(CONST.PAGINATION_END_ID);
         }
 

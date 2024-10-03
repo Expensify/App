@@ -68,6 +68,12 @@ type Response = {
     /** Base64 key to decrypt messages from Pusher encrypted channels */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     shared_secret?: string;
+
+    /** If there is older data to load for pagination commands */
+    hasOlderActions?: boolean;
+
+    /** If there is newer data to load for pagination commands */
+    hasNewerActions?: boolean;
 };
 
 export default Response;
