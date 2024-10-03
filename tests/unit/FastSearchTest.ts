@@ -102,4 +102,17 @@ describe('FastSearch', () => {
             expect(search(word)).toEqual([expect.arrayContaining([word])]);
         });
     });
+
+    it('should find email addresses without dots', () => {
+        const {search} = FastSearch.createFastSearch([
+            {
+                data: ['test.user@example.com', 'unrelated'],
+                toSearchableString: (data) => data,
+            },
+        ]);
+
+        expect(search('testuser')).toEqual([['test.user@example.com']]);
+        expect(search('test.user')).toEqual([['test.user@example.com']]);
+        expect(search('examplecom')).toEqual([['test.user@example.com']]);
+    });
 });
