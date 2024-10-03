@@ -2039,6 +2039,7 @@ const CONST = {
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
+        LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',

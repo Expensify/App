@@ -586,7 +586,8 @@ function IOURequestStepConfirmation({
         if (gpsRequired) {
             const shouldStartLocationPermissionFlow =
                 !lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') && DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > 7);
+                (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
+                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
 
             if (shouldStartLocationPermissionFlow) {
                 setStartLocationPermissionFlow(true);
@@ -625,9 +626,7 @@ function IOURequestStepConfirmation({
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                            onGrant={() => {
-                                createTransaction(selectedParticipantList, true);
-                            }}
+                            onGrant={() => createTransaction(selectedParticipantList, true)}
                             onDeny={() => {
                                 IOU.updateLastLocationPermissionPrompt();
                                 createTransaction(selectedParticipantList, false);
