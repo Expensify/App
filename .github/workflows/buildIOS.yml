@@ -45,6 +45,9 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+    outputs:
+      IPA_FILE_NAME: ${{ steps.build.outputs.IPA_FILE_NAME }}
+      DSYM_FILE_NAME: ${{ steps.build.outputs.DSYM_FILE_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
