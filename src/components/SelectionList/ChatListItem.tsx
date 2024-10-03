@@ -85,7 +85,7 @@ function ChatListItem<TItem extends ListItem>({
             {(hovered) => (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <AttachmentContext.Provider value={attachmentContextValue}>
-                        <View style={{maxWidth: '100%'}}>
+                        <View style={styles.webViewStyles.tagStyles.ol}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb2]}>
                                 <Text style={styles.chatItemMessageHeaderPolicy}>In </Text>
                                 <TextLink
