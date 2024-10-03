@@ -70,8 +70,8 @@ function SuggestionEmoji(
     const insertSelectedEmoji = useCallback(
         (highlightedEmojiIndexInner: number) => {
             const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
-            const emojiObject = suggestionValues.suggestedEmojis[highlightedEmojiIndexInner];
-            const emojiCode = emojiObject.types?.[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
+            const emojiObject = highlightedEmojiIndexInner !== -1 ? suggestionValues.suggestedEmojis.at(highlightedEmojiIndexInner) : undefined;
+            const emojiCode = emojiObject?.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject?.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
             updateComment(`${commentBeforeColon}${emojiCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
@@ -82,8 +82,8 @@ function SuggestionEmoji(
             resetKeyboardInput?.();
 
             setSelection({
-                start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-                end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                start: suggestionValues.colonIndex + (emojiCode?.length ?? 0) + CONST.SPACE_LENGTH,
+                end: suggestionValues.colonIndex + (emojiCode?.length ?? 0) + CONST.SPACE_LENGTH,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
         },

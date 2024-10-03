@@ -10,7 +10,7 @@ type Props = {
     borderRadius: number;
 
     /** Height of the item that is to be faded */
-    height: number;
+    height?: number;
 
     /** Delay before the highlighted item enters */
     itemEnterDelay?: number;
@@ -32,6 +32,15 @@ type Props = {
 
     /** Whether the item should be highlighted */
     shouldHighlight: boolean;
+
+    /** The base backgroundColor used for the highlight animation, defaults to theme.appBG
+     * @default theme.appBG
+     */
+    backgroundColor?: string;
+    /** The base highlightColor used for the highlight animation, defaults to theme.border
+     * @default theme.border
+     */
+    highlightColor?: string;
 };
 
 /**
@@ -47,6 +56,8 @@ export default function useAnimatedHighlightStyle({
     highlightEndDelay = CONST.ANIMATED_HIGHLIGHT_END_DELAY,
     highlightEndDuration = CONST.ANIMATED_HIGHLIGHT_END_DURATION,
     height,
+    highlightColor,
+    backgroundColor,
 }: Props) {
     const [startHighlight, setStartHighlight] = useState(false);
     const repeatableProgress = useSharedValue(0);
@@ -55,8 +66,8 @@ export default function useAnimatedHighlightStyle({
     const theme = useTheme();
 
     const highlightBackgroundStyle = useAnimatedStyle(() => ({
-        backgroundColor: interpolateColor(repeatableProgress.value, [0, 1], [theme.appBG, theme.border]),
-        height: interpolate(nonRepeatableProgress.value, [0, 1], [0, height]),
+        backgroundColor: interpolateColor(repeatableProgress.value, [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
+        height: height ? interpolate(nonRepeatableProgress.value, [0, 1], [0, height]) : 'auto',
         opacity: interpolate(nonRepeatableProgress.value, [0, 1], [0, 1]),
         borderRadius,
     }));
