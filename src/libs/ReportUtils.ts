@@ -8023,7 +8023,7 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
         return false;
     }
 
-    return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+    return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
 }
 
 function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
