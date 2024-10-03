@@ -1089,6 +1089,8 @@ const translations = {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        featureRequiresValidate: 'This feature requires you to validate your account.',
+        validateAccount: 'Validate your account',
         helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
         helpTextAfterEmail: ' from multiple email addresses.',
         pleaseVerify: 'Please verify this contact method',
@@ -4142,6 +4144,10 @@ const translations = {
             past: 'Past',
         },
         expenseType: 'Expense type',
+        recentSearches: 'Recent searches',
+        recentChats: 'Recent chats',
+        searchIn: 'Search in',
+        searchPlaceholder: 'Search for something',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

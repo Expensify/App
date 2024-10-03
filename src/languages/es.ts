@@ -1084,6 +1084,8 @@ const translations = {
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
+        featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
+        validateAccount: 'Valida tu cuenta',
         helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
@@ -4187,6 +4189,10 @@ const translations = {
             past: 'Anterior',
         },
         expenseType: 'Tipo de gasto',
+        recentSearches: 'Búsquedas recientes',
+        recentChats: 'Chats recientes',
+        searchIn: 'Buscar en',
+        searchPlaceholder: 'Busca algo',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
