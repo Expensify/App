@@ -190,7 +190,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     useEffect(() => {
         const newTransactionList: SelectedTransactions = {};
         data.forEach((report) => {
-            report?.transactions?.forEach((transaction) => {
+            const transactions: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
+            transactions.forEach((transaction) => {
                 if (Object.keys(selectedTransactions).includes(transaction.transactionID)) {
                     newTransactionList[transaction.transactionID] = {
                         action: transaction.action,
@@ -198,13 +199,14 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                         canUnhold: transaction.canUnhold,
                         isSelected: selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
-                    }
+                    };
                 }
-            })
-        })
+            });
+        });
         setSelectedTransactions(newTransactionList, data);
-    }, [data])
-    
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [data, setSelectedTransactions]);
+
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
             return;
