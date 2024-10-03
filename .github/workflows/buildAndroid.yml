@@ -83,11 +83,9 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Decrypt keystore and json key
-        run: |
-          cd android/app
-          gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output my-upload-key.keystore my-upload-key.keystore.gpg
-          gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+      - name: Decrypt keystore to sign the APK/AAB
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output my-upload-key.keystore my-upload-key.keystore.gpg
+        working-directory: android/app
 
       - name: Get package version
         id: getPackageVersion
