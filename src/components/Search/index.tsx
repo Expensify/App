@@ -190,17 +190,18 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     useEffect(() => {
         const newTransactionList: SelectedTransactions = {};
         data.forEach((report) => {
-            const transactions: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
-            transactions.forEach((transaction) => {
-                if (Object.keys(selectedTransactions).includes(transaction.transactionID)) {
-                    newTransactionList[transaction.transactionID] = {
-                        action: transaction.action,
-                        canHold: transaction.canHold,
-                        canUnhold: transaction.canUnhold,
-                        isSelected: selectedTransactions[transaction.transactionID].isSelected,
-                        canDelete: transaction.canDelete,
-                    };
+            const transactionsData: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
+            transactionsData.forEach((transaction) => {
+                if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
+                    return;
                 }
+                newTransactionList[transaction.transactionID] = {
+                    action: transaction.action,
+                    canHold: transaction.canHold,
+                    canUnhold: transaction.canUnhold,
+                    isSelected: selectedTransactions[transaction.transactionID].isSelected,
+                    canDelete: transaction.canDelete,
+                };
             });
         });
         setSelectedTransactions(newTransactionList, data);
