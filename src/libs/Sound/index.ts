@@ -1,77 +1,85 @@
-
 import { Howl } from 'howler';
 import type { ValueOf } from 'type-fest';
 import config from './config';
 import { SOUNDS, isMuted, withMinimalExecutionTime } from './BaseSound'
+import Log from '@libs/Log';
 
-async function cacheSoundAssets() {
+function cacheSoundAssets() {
     if ('caches' in window) {
-        const cache = await caches.open('sound-assets');
-        const soundFiles = Object.values(SOUNDS).map(sound => `${config.prefix}${sound}.mp3`);
-        
-        const cachePromises = soundFiles.map(async (soundFile) => {
-            const response = await cache.match(soundFile);
-            if (!response) {
-                await cache.add(soundFile);
-                console.log('[wildebug] Sound asset cached:', soundFile);
-            } else {
-                console.log('[wildebug] Sound asset already cached:', soundFile);
-            }
-        });
+        caches.open('sound-assets').then(cache => {
+            const soundFiles = Object.values(SOUNDS).map(sound => `${config.prefix}${sound}.mp3`);
+            
+            const cachePromises = soundFiles.map(soundFile => {
+                return cache.match(soundFile).then(response => {
+                    if (!response) {
+                        return cache.add(soundFile);
+                    }
+                });
+            });
 
-        await Promise.all(cachePromises);
-        console.log('[wildebug] Sound assets caching completed');
+            return Promise.all(cachePromises);
+        });
     }
 }
-const playSound = async (soundFile: ValueOf<typeof SOUNDS>) => {
+
+const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     if (isMuted) {
-        console.log('[wildebug] Sound is muted');
         return;
     }
 
     const soundSrc = `${config.prefix}${soundFile}.mp3`;
-    console.log('[wildebug] Playing sound:', soundSrc);
 
     if ('caches' in window) {
-        const cache = await caches.open('sound-assets');
-        const response = await cache.match(soundSrc);
+        caches.open('sound-assets').then(cache => {
+            cache.match(soundSrc).then(response => {
+                if (response) {
+                    response.blob().then(soundBlob => {
+                        const soundUrl = URL.createObjectURL(soundBlob);
 
-        if (response) {
-            const soundBlob = await response.blob();
-            const soundUrl = URL.createObjectURL(soundBlob);
-            console.log('[wildebug] Sound fetched from cache:', soundUrl);
+                        const sound = new Howl({
+                            src: [soundUrl],
+                            format: ['mp3'],
+                            onloaderror: (id, error) => {
+                                Log.hmmm('[sound] Load error:', { message: (error as Error).message });
+                            },
+                            onplayerror: (id, error) => {
+                                Log.hmmm('[sound] Play error:', { message: (error as Error).message });
+                            },
+                        });
 
-            const sound = new Howl({
-                src: [soundUrl],
-                format: ['mp3'],
-                onloaderror: (id, error) => {
-                    console.error('[wildebug] Load error:', error);
-                },
-                onplayerror: (id, error) => {
-                    console.error('[wildebug] Play error:', error);
-                },
+                        sound.play();
+                    });
+                } else {
+                    const sound = new Howl({
+                        src: [soundSrc],
+                        onloaderror: (id, error) => {
+                            Log.hmmm('[sound] Load error:', { message: (error as Error).message });
+                        },
+                        onplayerror: (id, error) => {
+                            Log.hmmm('[sound] Play error:', { message: (error as Error).message });
+                        },
+                    });
+
+                    sound.play();
+                }
             });
+        });
+    } else {
+        // Fallback to fetching from network if not in cache
+        const sound = new Howl({
+            src: [soundSrc],
+            onloaderror: (id, error) => {
+                Log.hmmm('[sound] Load error:', { message: (error as Error).message });
+            },
+            onplayerror: (id, error) => {
+                Log.hmmm('[sound] Play error:', { message: (error as Error).message });
+            },
+        });
 
-            sound.play();
-            return;
-        } else {
-            console.log('[wildebug] Sound not found in cache, fetching from network');
-        }
+        sound.play();
     }
-
-    // Fallback to fetching from network if not in cache
-    const sound = new Howl({
-        src: [soundSrc],
-        onloaderror: (id, error) => {
-            console.error('[wildebug] Load error:', error);
-        },
-        onplayerror: (id, error) => {
-            console.error('[wildebug] Play error:', error);
-        },
-    });
-
-    sound.play();
 };
+
 // Cache sound assets on load
 cacheSoundAssets();
 
