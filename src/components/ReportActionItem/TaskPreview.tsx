@@ -128,7 +128,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                     <Text style={titleStyle}>{taskTitle}</Text>
                 </View>
                 {shouldShowGreenDotIndicator && (
-                    <View style={styles.ml2}>
+                    <View style={[styles.ml2, iconWrapperStyle]}>
                         <Icon
                             src={Expensicons.DotIndicator}
                             fill={theme.success}
