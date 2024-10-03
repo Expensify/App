@@ -283,7 +283,7 @@ platform :ios do
     )
     puts "Saving S3 outputs in env..."
     exportEnvVars({
-      KEY_S3_IPA_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH].
+      KEY_S3_IPA_PATH => lane_context[SharedValues::S3_HTML_OUTPUT_PATH],
     })
   end
 
