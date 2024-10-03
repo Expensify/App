@@ -102,6 +102,10 @@ jobs:
       - name: Log downloaded artifact paths
         run: ls -R /tmp/artifacts
 
+      - name: Decrypt json w/ Google Play credentials
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        working-directory: android/app
+
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android upload_google_play_internal
         env:
