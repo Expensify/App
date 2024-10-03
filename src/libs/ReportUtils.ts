@@ -2634,13 +2634,15 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
     return !!('isUnreadWithMention' in reportOrOption && reportOrOption.isUnreadWithMention) || lastReadTime < lastMentionedTime;
 }
 
+type ReasonAndReportActionThatRequiresAttention = {
+    reason: ValueOf<typeof CONST.REQUIRES_ATTENTION_REASONS>;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     parentReportAction?: OnyxEntry<ReportAction>,
-): {
-    reason: ValueOf<typeof CONST.REQUIRES_ATTENTION_REASONS>;
-    reportAction?: OnyxEntry<ReportAction>;
-} | null {
+): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
     }

@@ -480,13 +480,12 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
-    report: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-): {
+type ReportErrorsAndReportActionThatRequiresAttention = {
     errors: OnyxCommon.ErrorFields;
     reportAction?: OnyxEntry<ReportAction>;
-} {
+};
+
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {});
     const reportActionErrors: OnyxCommon.ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
