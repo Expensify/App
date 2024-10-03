@@ -257,7 +257,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
                 <ValidateCodeActionModal
                     title={formattedContactMethod}
-                    onModalHide={() => { }}
+                    onModalHide={() => {}}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     isVisible={isValidateCodeActionModalVisible}
                     validatePendingAction={loginData.pendingFields?.validateCodeSent}
@@ -265,11 +265,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                     clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onClose={() => {
-                        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))
-                        setIsValidateCodeActionModalVisible(false)
+                        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        setIsValidateCodeActionModalVisible(false);
                     }}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                    description={translate('contacts.enterMagicCode', { contactMethod })}
+                    description={translate('contacts.enterMagicCode', {contactMethod})}
                     footer={() => getMenuItems()}
                 />
 

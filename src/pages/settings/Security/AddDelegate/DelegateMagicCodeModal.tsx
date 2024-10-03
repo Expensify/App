@@ -12,9 +12,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type DelegateMagicCodeModalProps = {
-    login: string,
-    role: ValueOf<typeof CONST.DELEGATE_ROLE>
-}
+    login: string;
+    role: ValueOf<typeof CONST.DELEGATE_ROLE>;
+};
 
 function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
