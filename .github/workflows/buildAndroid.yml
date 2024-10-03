@@ -136,7 +136,7 @@ jobs:
           esac
           bundle exec fastlane android "$lane"
 
-          # Reload environment variables from GITHUB_ENV
+          # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
           # shellcheck disable=SC1090
           source "$GITHUB_ENV"
 
