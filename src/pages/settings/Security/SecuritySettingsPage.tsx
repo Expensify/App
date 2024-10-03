@@ -91,17 +91,17 @@ function SecuritySettingsPage() {
                     const personalDetail = getPersonalDetailByEmail(email);
                     const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
-            const onPress = () => {
-                if (isEmptyObject(pendingAction)) {
-                    return;
-                }
-                if (!role) {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
-                    return;
-                }
+                    const onPress = () => {
+                        if (isEmptyObject(pendingAction)) {
+                            return;
+                        }
+                        if (!role) {
+                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
+                            return;
+                        }
 
-                setSelectedDelegate({login: email, role});
-            };
+                        setSelectedDelegate({login: email, role});
+                    };
 
                     const formattedEmail = formatPhoneNumber(email);
                     return {
