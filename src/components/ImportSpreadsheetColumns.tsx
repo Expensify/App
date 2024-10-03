@@ -40,7 +40,7 @@ type ImportSpreadsheetColumnsProps = {
     learnMoreLink?: string;
 };
 
-function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
+function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -70,9 +70,9 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
                     {spreadsheetColumns.map((column, index) => {
                         return (
                             <ImportColumn
-                                key={columnNames[index]}
+                                key={columnNames.at(index)}
                                 column={column}
-                                columnName={columnNames[index]}
+                                columnName={columnNames.at(index) ?? ''}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                             />
@@ -101,6 +101,6 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
     );
 }
 
-ImportSpreeadsheetColumns.displayName = 'ImportSpreeadsheetColumns';
+ImportSpreadsheetColumns.displayName = 'ImportSpreadsheetColumns';
 
-export default ImportSpreeadsheetColumns;
+export default ImportSpreadsheetColumns;

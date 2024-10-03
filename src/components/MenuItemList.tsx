@@ -49,20 +49,9 @@ type MenuItemListProps = {
 
     /** Icon Height */
     iconHeight?: number;
-
-    /** Is this in the Pane */
-    isPaneMenu?: boolean;
 };
 
-function MenuItemList({
-    menuItems = [],
-    shouldUseSingleExecution = false,
-    wrapperStyle = {},
-    icon = undefined,
-    iconWidth = undefined,
-    iconHeight = undefined,
-    isPaneMenu = false,
-}: MenuItemListProps) {
+function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
 
@@ -82,16 +71,16 @@ function MenuItemList({
 
     return (
         <>
-            {menuItems.map((menuItemProps) => (
+            {menuItems.map(({key, ...menuItemProps}) => (
                 <OfflineWithFeedback
-                    key={menuItemProps.key ?? menuItemProps.title}
+                    key={key ?? menuItemProps.title}
                     pendingAction={menuItemProps.pendingAction}
                     onClose={menuItemProps.onPendingActionDismiss}
                     errors={menuItemProps.error}
                     shouldForceOpacity={menuItemProps.shouldForceOpacity}
                 >
                     <MenuItem
-                        key={menuItemProps.key ?? menuItemProps.title}
+                        key={key ?? menuItemProps.title}
                         wrapperStyle={wrapperStyle}
                         onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                         ref={popoverAnchor}
@@ -99,7 +88,6 @@ function MenuItemList({
                         icon={icon}
                         iconWidth={iconWidth}
                         iconHeight={iconHeight}
-                        isPaneMenu={isPaneMenu}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...menuItemProps}
                         disabled={!!menuItemProps.disabled || isExecuting}

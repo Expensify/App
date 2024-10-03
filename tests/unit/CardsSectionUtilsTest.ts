@@ -1,15 +1,14 @@
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
-function translateMock<TKey extends TranslationPaths>(key: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
-    return key;
+function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
+    return path;
 }
 
 const AMOUNT_OWED = 100;
