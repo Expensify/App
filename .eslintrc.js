@@ -173,6 +173,7 @@ module.exports = {
             },
         ],
         '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
+        '@typescript-eslint/no-unnecessary-template-expression': 'error',
 
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
