@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -13,7 +14,7 @@ import TransactionStartDateStep from './TransactionStartDateStep';
 type AssignCardFeedPageProps = {
     route: {
         params: {
-            feed: string;
+            feed: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
         };
     };
 } & WithPolicyAndFullscreenLoadingProps;

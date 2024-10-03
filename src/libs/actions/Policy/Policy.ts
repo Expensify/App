@@ -93,7 +93,6 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
