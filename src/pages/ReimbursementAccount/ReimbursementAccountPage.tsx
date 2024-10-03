@@ -141,7 +141,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef(null);
-    const prevIsReimbursementAccountLoading = usePrevious(reimbursementAccount?.isLoading);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
 
@@ -221,13 +220,6 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
-
-    useEffect(() => {
-        if (typeof reimbursementAccount?.isLoading !== 'boolean' || reimbursementAccount.isLoading === prevIsReimbursementAccountLoading) {
-            return;
-        }
-        setHasACHDataBeenLoaded(true);
-    }, [prevIsReimbursementAccountLoading, reimbursementAccount?.isLoading]);
 
     useEffect(
         () => {
