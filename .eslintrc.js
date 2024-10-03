@@ -109,6 +109,7 @@ module.exports = {
         'plugin:prettier/recommended',
     ],
     plugins: [
+        '@stylistic/js',
         '@typescript-eslint',
         'jsdoc',
         'you-dont-need-lodash-underscore',
@@ -118,7 +119,6 @@ module.exports = {
         'eslint-plugin-react-compiler',
         'lodash',
         'deprecation',
-        '@stylistic/js',
     ],
     ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
@@ -184,8 +184,9 @@ module.exports = {
             },
         ],
         '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
+        // Add rules related to quotes
+        '@stylistic/js/quotes': ['error', 'single', {avoidEscape: true}],
         '@typescript-eslint/no-unnecessary-template-expression': 'error',
-        '@stylistic/js/quotes': ['error', 'single'],
 
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
