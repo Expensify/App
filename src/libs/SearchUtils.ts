@@ -602,7 +602,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         const sanitizedPolicyID = sanitizeString(policyID);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
-
+    console.log('over here', otherFilters)
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
             if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
@@ -626,6 +626,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.NO ||
                     filterKey === FILTER_KEYS.IN) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0

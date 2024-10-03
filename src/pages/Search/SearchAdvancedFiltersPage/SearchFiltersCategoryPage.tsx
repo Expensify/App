@@ -26,12 +26,18 @@ function SearchFiltersCategoryPage() {
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-            return Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName}));
+            return [{name: 'No category', value: 'no:category'}, ...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName}))];
         }
-        return Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name}));
+        return [{name: 'No category', value: 'no:category'}, ...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name}))];
     }, [allPolicyIDCategories, singlePolicyCategories]);
 
-    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
+    const onSaveSelection = useCallback((values: string[]) => {
+        if (values.at(0) === 'no:category') {
+            SearchActions.updateAdvancedFilters({no: ['category']});
+            return;
+        }
+        SearchActions.updateAdvancedFilters({category: values});
+    }, []);
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     return (
