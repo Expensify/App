@@ -620,34 +620,26 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
     return `debug.reasonVisibleInLHN.${reason}`;
 }
 
+type GBRReasonAndReportAction = {
+    reason: TranslationPaths;
+    reportAction: OnyxEntry<ReportAction>;
+};
+
 /**
- * Gets the reason that is causing the GBR to show up in LHN row
+ * Gets the reason and report action that is causing the GBR to show up in LHN row
  */
-function getReasonForShowingGreenDotInLHNRow(report: OnyxEntry<Report>, parentReportAction?: ReportAction): TranslationPaths | null {
+function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason} = ReportUtils.getReasonAndReportActionThatRequiresAttention(report, parentReportAction) ?? {};
+    const {reason, reportAction} = ReportUtils.getReasonAndReportActionThatRequiresAttention(report) ?? {};
 
     if (reason) {
-        return `debug.reasonGBR.${reason}`;
+        return {reason: `debug.reasonGBR.${reason}`, reportAction};
     }
 
     return null;
-}
-
-/**
- * Gets the report action that is causing the GBR to show up in LHN
- */
-function getGBRReportAction(report: OnyxEntry<Report>): OnyxEntry<ReportAction> {
-    if (!report) {
-        return undefined;
-    }
-
-    const {reportAction} = ReportUtils.getReasonAndReportActionThatRequiresAttention(report) ?? {};
-
-    return reportAction;
 }
 
 /**
@@ -677,8 +669,7 @@ const DebugUtils = {
     validateReportActionDraftProperty,
     validateReportActionJSON,
     getReasonForShowingRowInLHN,
-    getReasonForShowingGreenDotInLHNRow,
-    getGBRReportAction,
+    getReasonAndReportActionForGBRInLHNRow,
     getRBRReportAction,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,

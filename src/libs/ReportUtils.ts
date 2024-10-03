@@ -2698,9 +2698,7 @@ function getReasonAndReportActionThatRequiresAttention(
         return reportAction
             ? {
                   reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
-                  reportAction: Object.values(reportActions).find(
-                      (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && action.childReportID && hasMissingInvoiceBankAccount(action.childReportID),
-                  ),
+                  reportAction,
               }
             : null;
     }

@@ -16,7 +16,8 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -49,6 +50,7 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -56,10 +58,12 @@ function DebugReportPage({
         }
 
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report);
-        const reasonGBR = DebugUtils.getReasonForShowingGreenDotInLHNRow(report);
-        const reportActionGBR = DebugUtils.getGBRReportAction(report);
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
         const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
-        const hasRBR = OptionsListUtils.hasReportErrors(report, reportActions);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, undefined);
+        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
+        const hasRBR = SidebarUtils.isRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
+        const hasGBR = !hasRBR && !!reasonGBR;
 
         return [
             {
@@ -69,10 +73,10 @@ function DebugReportPage({
             },
             {
                 title: translate('debug.GBR'),
-                subtitle: translate(`debug.${!hasRBR && !!reasonGBR}`),
-                message: !hasRBR && reasonGBR ? translate(reasonGBR) : undefined,
+                subtitle: translate(`debug.${hasGBR}`),
+                message: hasGBR ? translate(reasonGBR) : undefined,
                 action:
-                    !hasRBR && reportActionGBR
+                    hasGBR && reportActionGBR
                         ? {
                               name: translate('common.view'),
                               callback: () =>
@@ -102,7 +106,7 @@ function DebugReportPage({
                     : undefined,
             },
         ];
-    }, [report, reportActions, translate]);
+    }, [report, reportActions, reportID, transactionViolations, translate]);
 
     return (
         <ScreenWrapper

@@ -784,7 +784,7 @@ describe('DebugUtils', () => {
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
     });
-    describe('getReasonForShowingGreenDotInLHNRow', () => {
+    describe('getReasonAndReportActionForGBRInLHNRow', () => {
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -793,9 +793,9 @@ describe('DebugUtils', () => {
         beforeEach(() => {
             Onyx.clear();
         });
-        it('returns null when report is not defined', () => {
-            const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow(undefined);
-            expect(reason).toBeNull();
+        it('returns undefined reason when report is not defined', () => {
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            expect(reason).toBeUndefined();
         });
         it('returns correct reason when report has a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
@@ -811,59 +811,54 @@ describe('DebugUtils', () => {
                 } as ReportAction<'ACTIONABLEJOINREQUEST'>,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
-            const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow({
-                reportID: '1',
-            });
+            const {reason} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                }) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasJoinRequest');
         });
         it('returns correct reason when report is unread with mention', () => {
-            const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow({
-                reportID: '1',
-                lastMentionedTime: '2024-08-10 18:70:44.171',
-                lastReadTime: '2024-08-08 18:70:44.171',
-            });
+            const {reason} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                    lastMentionedTime: '2024-08-10 18:70:44.171',
+                    lastReadTime: '2024-08-08 18:70:44.171',
+                }) ?? {};
             expect(reason).toBe('debug.reasonGBR.isUnreadWithMention');
         });
         it('returns correct reason when report has a task which is waiting for assignee to complete it', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
-            const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow({
-                reportID: '1',
-                type: CONST.REPORT.TYPE.TASK,
-                hasParentAccess: false,
-                managerID: 12345,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            });
+            const {reason} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.TASK,
+                    hasParentAccess: false,
+                    managerID: 12345,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                }) ?? {};
             expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteAction');
         });
         it('returns correct reason when report has a child report awaiting action from the user', () => {
-            const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow({
-                reportID: '1',
-                hasOutstandingChildRequest: true,
-            });
+            const {reason} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                    hasOutstandingChildRequest: true,
+                }) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasChildReportAwaitingAction');
         });
-        it('returns null when report has no GBR', () => {
-            const reason = DebugUtils.getReasonForShowingGreenDotInLHNRow({
-                reportID: '1',
-            });
-            expect(reason).toBeNull();
+        it('returns undefined reason when report has no GBR', () => {
+            const {reason} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                }) ?? {};
+            expect(reason).toBeUndefined();
         });
-    });
-    describe('getGBRReportAction', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-            });
-        });
-        beforeEach(() => {
-            Onyx.clear();
-        });
-        it('returns undefined when report is not defined', () => {
-            const reportAction = DebugUtils.getGBRReportAction(undefined);
+        it('returns undefined reportAction when report is not defined', () => {
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
             expect(reportAction).toBeUndefined();
         });
-        it('return the report action which is a join request', async () => {
+        it('returns the report action which is a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '0': {
@@ -883,12 +878,13 @@ describe('DebugUtils', () => {
                 } as ReportAction<'ACTIONABLEJOINREQUEST'>,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
-            const reportAction = DebugUtils.getGBRReportAction({
-                reportID: '1',
-            });
+            const {reportAction} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                }) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
-        it('return the report action which is awaiting action', async () => {
+        it('returns the report action which is awaiting action', async () => {
             const MOCK_REPORTS: ReportCollectionDataSet = {
                 // Chat report
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
@@ -938,13 +934,14 @@ describe('DebugUtils', () => {
                 },
             });
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const reportAction = DebugUtils.getGBRReportAction(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report);
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
-        it('returns undefined when report has no GBR', () => {
-            const reportAction = DebugUtils.getGBRReportAction({
-                reportID: '1',
-            });
+        it('returns undefined report action when report has no GBR', () => {
+            const {reportAction} =
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
+                    reportID: '1',
+                }) ?? {};
             expect(reportAction).toBeUndefined();
         });
     });
