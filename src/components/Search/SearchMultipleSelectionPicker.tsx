@@ -52,10 +52,16 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 value: item.value,
             }));
         const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+        console.log('over here', selectedItemsSection)
         return {
             sections: isEmpty
                 ? []
                 : [
+                      {
+                          title: undefined,
+                          data: [{text: 'No category', keyForList: 'No category', value: 'no:category', isSelected: false}],
+                          shouldShow: selectedItemsSection.length === 0,
+                      },
                       {
                           title: undefined,
                           data: selectedItemsSection,
