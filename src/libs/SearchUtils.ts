@@ -602,7 +602,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         const sanitizedPolicyID = sanitizeString(policyID);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
-    console.log('over here', otherFilters)
+
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
             if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
