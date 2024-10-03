@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
+import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
 
 /** Types of join workspace resolutions */
@@ -38,6 +39,9 @@ type OriginalMessageIOU = {
 
     /** How much was transactioned */
     amount: number;
+
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
 
     /** Optional comment */
     comment?: string;
@@ -271,6 +275,9 @@ type OriginalMessageChangeLog = {
 
     /** Old role of user */
     oldValue?: string;
+
+    /** Name of connection */
+    connectionName?: AllConnectionName;
 };
 
 /** Model of `join policy changelog` report action */
@@ -590,6 +597,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]: OriginalMessageSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;

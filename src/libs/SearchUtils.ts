@@ -369,7 +369,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 }
 
 function getReportNewestTransactionDate(report: ReportListItemType) {
-    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > max.created ? curr : max), report.transactions[0])?.created;
+    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > (max?.created ?? '') ? curr : max), report.transactions.at(0))?.created;
 }
 
 function getSortedReportData(data: ReportListItemType[]) {
@@ -585,7 +585,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, ...otherFilters} = filterValues;
+    const {type, status, policyID, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     if (type) {
@@ -596,6 +596,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (status) {
         const sanitizedStatus = sanitizeString(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    if (policyID) {
+        const sanitizedPolicyID = sanitizeString(policyID);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -694,6 +699,9 @@ function buildFilterFormValuesFromQuery(queryJSON: SearchQueryJSON) {
 
     filtersForm[FILTER_KEYS.TYPE] = queryJSON.type;
     filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
+    if (queryJSON.policyID) {
+        filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
+    }
 
     return filtersForm;
 }
@@ -735,7 +743,10 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[], deli
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
+        if (
+            index !== 0 &&
+            ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
+        ) {
             filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
@@ -766,7 +777,7 @@ function getSearchHeaderTitle(
                 .filter(([, taxRateKeys]) => taxRateKeys.some((taxID) => taxRateIDs.includes(taxID)))
                 .map(([taxRate]) => taxRate);
             displayQueryFilters = taxRateNames.map((taxRate) => ({
-                operator: queryFilter[0].operator,
+                operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 value: taxRate,
             }));
         } else {
@@ -781,8 +792,18 @@ function getSearchHeaderTitle(
     return title;
 }
 
-function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
-    return normalizeQuery(`type:${type} status:${status}`);
+function buildCannedSearchQuery({
+    type = CONST.SEARCH.DATA_TYPES.EXPENSE,
+    status = CONST.SEARCH.STATUS.EXPENSE.ALL,
+    policyID,
+}: {
+    type?: SearchDataTypes;
+    status?: SearchStatus;
+    policyID?: string;
+} = {}): SearchQueryString {
+    const queryString = policyID ? `type:${type} status:${status} policyID:${policyID}` : `type:${type} status:${status}`;
+
+    return normalizeQuery(queryString);
 }
 
 function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {

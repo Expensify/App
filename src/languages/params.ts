@@ -1,6 +1,6 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type AddressLineParams = {
@@ -338,7 +338,7 @@ type ApprovalWorkflowErrorParams = {
 };
 
 type ConnectionNameParams = {
-    connectionName: ConnectionName;
+    connectionName: AllConnectionName;
 };
 
 type LastSyncDateParams = {
@@ -531,6 +531,10 @@ type ImportMembersSuccessfullDescriptionParams = {
 
 type AuthenticationErrorParams = {
     connectionName: string;
+};
+
+type ImportedTypesParams = {
+    importedTypes: string[];
 };
 
 export type {
@@ -730,4 +734,5 @@ export type {
     CharacterLengthLimitParams,
     OptionalParam,
     AssignCardParams,
+    ImportedTypesParams,
 };

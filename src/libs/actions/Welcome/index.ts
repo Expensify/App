@@ -4,12 +4,8 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import * as OnboardingFlow from './OnboardingFlow';
@@ -26,11 +22,6 @@ type HasCompletedOnboardingFlowProps = {
     onCanceled?: () => void;
 };
 
-type HasOpenedForTheFirstTimeFromHybridAppProps = {
-    onFirstTimeInHybridApp?: () => void;
-    onSubsequentRuns?: () => void;
-};
-
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -42,9 +33,6 @@ let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
 });
 
 let resolveTryNewDotStatus: (value?: Promise<void>) => void | undefined;
-const tryNewDotStatusPromise = new Promise<void>((resolve) => {
-    resolveTryNewDotStatus = resolve;
-});
 
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
@@ -65,49 +53,6 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
             isOnboardingInProgress = true;
             onNotCompleted?.();
         }
-    });
-}
-
-/**
- * Determines whether the application is being launched for the first time by a hybrid app user,
- * and executes corresponding callback functions.
- */
-function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRuns}: HasOpenedForTheFirstTimeFromHybridAppProps) {
-    tryNewDotStatusPromise.then(() => {
-        let completedHybridAppOnboarding = tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
-        // Backend might return strings instead of booleans
-        if (typeof completedHybridAppOnboarding === 'string') {
-            completedHybridAppOnboarding = completedHybridAppOnboarding === 'true';
-        }
-
-        if (NativeModules.HybridAppModule && !completedHybridAppOnboarding) {
-            onFirstTimeInHybridApp?.();
-            return;
-        }
-
-        onSubsequentRuns?.();
-    });
-}
-
-/**
- * Handles HybridApp onboarding flow if it's possible and necessary.
- */
-function handleHybridAppOnboarding() {
-    if (!NativeModules.HybridAppModule) {
-        return;
-    }
-
-    isFirstTimeHybridAppUser({
-        // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
-        onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
-        // In other scenarios we need to check if onboarding was completed.
-        onSubsequentRuns: () =>
-            isOnboardingFlowCompleted({
-                onNotCompleted: () =>
-                    setTimeout(() => {
-                        OnboardingFlow.startOnboardingFlow();
-                    }, variables.explanationModalDelay),
-            }),
     });
 }
 
@@ -165,6 +110,10 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
+    if (!NativeModules.HybridAppModule) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -177,27 +126,15 @@ function completeHybridAppOnboarding() {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
-            value: {
-                classicRedirect: {
-                    completedHybridAppOnboarding: false,
-                },
-            },
-        },
-    ];
-
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData}).then((response) => {
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData}).then((response) => {
         if (!response) {
             return;
         }
 
-        // if the call succeeded HybridApp onboarding is finished, otherwise it's not
-        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding: response?.jsonCode === CONST.JSON_CODE.SUCCESS});
-        NativeModules.HybridAppModule.completeOnboarding(response?.jsonCode === CONST.JSON_CODE.SUCCESS);
+        // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
+        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
+        NativeModules.HybridAppModule.completeOnboarding(true);
     });
 }
 
@@ -247,6 +184,5 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
-    handleHybridAppOnboarding,
     setOnboardingErrorMessage,
 };

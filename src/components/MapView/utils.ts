@@ -18,10 +18,10 @@ function getBounds(waypoints: Array<[number, number]>, directionCoordinates: und
 function haversineDistance(coordinate1: number[], coordinate2: number[]) {
     // Radius of the Earth in meters
     const R = 6371e3;
-    const lat1 = (coordinate1[0] * Math.PI) / 180;
-    const lat2 = (coordinate2[0] * Math.PI) / 180;
-    const deltaLat = ((coordinate2[0] - coordinate1[0]) * Math.PI) / 180;
-    const deltaLon = ((coordinate2[1] - coordinate1[1]) * Math.PI) / 180;
+    const lat1 = ((coordinate1.at(0) ?? 0) * Math.PI) / 180;
+    const lat2 = ((coordinate2.at(0) ?? 0) * Math.PI) / 180;
+    const deltaLat = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
+    const deltaLon = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
 
     // The square of half the chord length between the points
     const halfChordLengthSq = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
