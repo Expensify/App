@@ -92,14 +92,15 @@ function Composer(
         if (shouldCalculateCaretPosition && isRendered && sel) {
             const range = sel.getRangeAt(0).cloneRange();
             range.collapse(true);
-            const rect = range.getClientRects()[0];
+            const currentElement = (range.startContainer.nodeType === Node.TEXT_NODE ? range.startContainer.parentElement : range.startContainer) as HTMLElement;
+            const rect = currentElement.getClientRects()[0];
             const containerRect = textInput.current?.getBoundingClientRect();
 
             let x = 0;
             let y = 0;
             if (rect && containerRect) {
                 x = rect.left - containerRect.left;
-                y = rect.top - containerRect.top - rect.height / 2 + (textInput?.current?.scrollTop ?? 0);
+                y = rect.top - containerRect.top + (textInput?.current?.scrollTop ?? 0) - rect.height / 2;
             }
 
             const selectionValue = {
