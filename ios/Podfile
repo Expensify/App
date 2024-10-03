@@ -119,7 +119,6 @@ end
 
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
-  pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
 pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz'

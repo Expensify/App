@@ -5,11 +5,14 @@ import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ActionCell from './ActionCell';
@@ -62,9 +65,17 @@ function ReportListItem<TItem extends ListItem>({
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
 
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
 
     if (reportItem.transactions.length === 0) {
         return;
@@ -75,10 +86,10 @@ function ReportListItem<TItem extends ListItem>({
         styles.pv1half,
         styles.ph0,
         styles.overflowHidden,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
-        // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
-        {backgroundColor: 'unset'},
         styles.mh0,
     ];
 
@@ -143,7 +154,7 @@ function ReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            hasAnimateInHighlightStyle
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (
