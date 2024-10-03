@@ -257,7 +257,7 @@ platform :ios do
       workspace: "./ios/NewExpensify.xcworkspace",
       skip_profile_detection: true,
       scheme: "New Expensify AdHoc",
-      output_name: "NewExpensify_AdHoc.ipa"
+      output_name: "NewExpensify_AdHoc.ipa",
       export_method: "ad-hoc",
       export_options: {
         method: "ad-hoc",
