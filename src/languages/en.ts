@@ -4146,6 +4146,8 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
+            noCategory: 'No category',
+            noTag: 'No tag',
         },
         expenseType: 'Expense type',
         recentSearches: 'Recent searches',

@@ -5588,6 +5588,10 @@ const CONST = {
             IN: 'in',
             NO: 'no',
         },
+        FILTER_NO: {
+            CATEGORY: 'no:category',
+            TAG: 'no:tag',
+        },
     },
 
     REFERRER: {

@@ -180,12 +180,14 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters['no']) {
-        return 'No category';
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.NO]) {
+        return translate('search.filters.noCategory');
     }
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters['no']) {
-        return 'No tag';
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.NO]) {
+        return translate('search.filters.noTag');
     }
+
     if (
         (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
         filters[fieldName]

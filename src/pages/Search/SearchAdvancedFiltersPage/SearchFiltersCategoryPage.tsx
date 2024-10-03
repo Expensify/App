@@ -9,6 +9,7 @@ import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -26,14 +27,20 @@ function SearchFiltersCategoryPage() {
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-            return [{name: 'No category', value: 'no:category'}, ...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName}))];
+            return [
+                {name: translate('search.filters.noCategory'), value: CONST.SEARCH.FILTER_NO.CATEGORY},
+                ...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})),
+            ];
         }
-        return [{name: 'No category', value: 'no:category'}, ...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name}))];
-    }, [allPolicyIDCategories, singlePolicyCategories]);
+        return [
+            {name: translate('search.filters.noCategory'), value: CONST.SEARCH.FILTER_NO.CATEGORY},
+            ...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})),
+        ];
+    }, [allPolicyIDCategories, singlePolicyCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => {
-        if (values.at(0) === 'no:category') {
-            SearchActions.updateAdvancedFilters({no: ['category']});
+        if (values.at(0) === CONST.SEARCH.FILTER_NO.CATEGORY) {
+            SearchActions.updateAdvancedFilters({no: [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]});
             return;
         }
         SearchActions.updateAdvancedFilters({category: values});
