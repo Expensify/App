@@ -18,6 +18,8 @@ import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
+import type exampleWorker from '@libs/worker/exampleWorker';
+import {createWorkerFactory, useWorkerMemo} from '@libs/worker/index.web';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -51,6 +53,8 @@ const setPerformanceTimersEnd = () => {
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
+const workerFactory = createWorkerFactory<typeof exampleWorker>(() => new Worker(new URL('../../libs/worker/exampleWorker.ts', import.meta.url)));
+
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
@@ -76,6 +80,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         Report.searchInServer(debouncedSearchValueInServer.trim());
     }, [debouncedSearchValueInServer]);
 
+    // TODO: We also want to offload OptionsListUtils.getSearchOptions to another worker as thats quite intense as
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return {
@@ -94,8 +99,15 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
+    const newOptionsData = useWorkerMemo(
+        workerFactory,
+        useMemo(() => [searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true}] as const, [debouncedSearchValue, searchOptions]),
+    );
+    const isSearchingForNewOptionsLocally = newOptionsData.state === 'loading';
+    const newOptions = newOptionsData.state === 'data' ? newOptionsData.result : undefined;
+
     const filteredOptions = useMemo(() => {
-        if (debouncedSearchValue.trim() === '') {
+        if (debouncedSearchValue.trim() === '' || newOptions === undefined) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -104,10 +116,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
-        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
@@ -115,7 +123,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             userToInvite: newOptions.userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions]);
+    }, [debouncedSearchValue, newOptions]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
@@ -189,7 +197,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 shouldSingleExecuteRowSelect
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
-                isLoadingNewOptions={!!isSearchingForReports}
+                isLoadingNewOptions={!!isSearchingForReports || isSearchingForNewOptionsLocally}
                 shouldDelayFocus={false}
             />
         </ScreenWrapper>
