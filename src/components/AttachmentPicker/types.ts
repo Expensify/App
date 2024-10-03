@@ -42,6 +42,9 @@ type AttachmentPickerProps = {
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 
     acceptedFileTypes?: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
+
+    /** Whether to validate the image and show the alert or not. */
+    shouldValidateImage?: boolean;
 };
 
 export default AttachmentPickerProps;
