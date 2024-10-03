@@ -4143,6 +4143,10 @@ const translations = {
             past: 'Past',
         },
         expenseType: 'Expense type',
+        recentSearches: 'Recent searches',
+        recentChats: 'Recent chats',
+        searchIn: 'Search in',
+        searchPlaceholder: 'Search for something',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
