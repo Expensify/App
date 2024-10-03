@@ -1,38 +1,40 @@
-import { Howl } from 'howler';
-import type { ValueOf } from 'type-fest';
-import config from './config';
-import { SOUNDS, isMuted, withMinimalExecutionTime } from './BaseSound'
+import {Howl} from 'howler';
+import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
+import config from './config';
 
 function cacheSoundAssets() {
+    // Exit early if the Cache API is not available in the current browser.
     if (!('caches' in window)) {
         return;
     }
 
-    caches.open('sound-assets').then(cache => {
-        const soundFiles = Object.values(SOUNDS).map(sound => `${config.prefix}${sound}.mp3`);
-        
-        const cachePromises = soundFiles.map(soundFile => {
-            return cache.match(soundFile).then(response => {
-                if (!response) {
-                    return cache.add(soundFile);
+    caches.open('sound-assets').then((cache) => {
+        const soundFiles = Object.values(SOUNDS).map((sound) => `${config.prefix}${sound}.mp3`);
+
+        // Cache each sound file if it's not already cached.
+        const cachePromises = soundFiles.map((soundFile) => {
+            return cache.match(soundFile).then((response) => {
+                if (response) {
+                    return;
                 }
+                return cache.add(soundFile);
             });
         });
 
         return Promise.all(cachePromises);
     });
 }
-
 const initializeAndPlaySound = (src: string) => {
     const sound = new Howl({
         src: [src],
         format: ['mp3'],
         onloaderror: (id, error) => {
-            Log.hmmm('[sound] Load error:', { message: (error as Error).message });
+            Log.hmmm('[sound] Load error:', {message: (error as Error).message});
         },
         onplayerror: (id, error) => {
-            Log.hmmm('[sound] Play error:', { message: (error as Error).message });
+            Log.hmmm('[sound] Play error:', {message: (error as Error).message});
         },
     });
 
@@ -40,7 +42,7 @@ const initializeAndPlaySound = (src: string) => {
 };
 
 const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
-    if (isMuted) {
+    if (getIsMuted()) {
         return;
     }
 
@@ -52,10 +54,10 @@ const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
         return;
     }
 
-    caches.open('sound-assets').then(cache => {
-        cache.match(soundSrc).then(response => {
+    caches.open('sound-assets').then((cache) => {
+        cache.match(soundSrc).then((response) => {
             if (response) {
-                response.blob().then(soundBlob => {
+                response.blob().then((soundBlob) => {
                     const soundUrl = URL.createObjectURL(soundBlob);
                     initializeAndPlaySound(soundUrl);
                 });
@@ -69,5 +71,5 @@ const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
 // Cache sound assets on load
 cacheSoundAssets();
 
-export { SOUNDS };
+export {SOUNDS};
 export default withMinimalExecutionTime(playSound, 300);

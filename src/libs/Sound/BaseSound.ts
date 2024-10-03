@@ -1,8 +1,5 @@
 import Onyx from 'react-native-onyx';
-import Sound from 'react-native-sound';
-import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-import config from './config';
 
 let isMuted = false;
 
@@ -17,6 +14,8 @@ const SOUNDS = {
     ATTENTION: 'attention',
     RECEIVE: 'receive',
 } as const;
+
+const getIsMuted = () => isMuted;
 
 /**
  * Creates a version of the given function that, when called, queues the execution and ensures that
@@ -57,4 +56,4 @@ function withMinimalExecutionTime<F extends (...args: Parameters<F>) => ReturnTy
     };
 }
 
-export {SOUNDS, withMinimalExecutionTime, isMuted};
+export {SOUNDS, withMinimalExecutionTime, getIsMuted};

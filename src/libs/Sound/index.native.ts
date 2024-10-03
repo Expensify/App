@@ -1,13 +1,11 @@
-import Onyx from 'react-native-onyx';
 import Sound from 'react-native-sound';
 import type {ValueOf} from 'type-fest';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 import config from './config';
-import { SOUNDS, isMuted, withMinimalExecutionTime } from './BaseSound'
 
 const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     const sound = new Sound(`${config.prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
-        if (error || isMuted) {
+        if (error || getIsMuted()) {
             return;
         }
 
