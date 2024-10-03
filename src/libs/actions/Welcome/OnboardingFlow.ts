@@ -10,7 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import Onboarding from '@src/types/onyx/Onboarding';
+import type Onboarding from '@src/types/onyx/Onboarding';
 
 let selectedPurpose: string | undefined = '';
 Onyx.connect({
@@ -36,9 +36,10 @@ let onboardingValues: Onboarding;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
-        if (value !== undefined) {
-            onboardingValues = value as Onboarding;
+        if (value === undefined) {
+            return;
         }
+        onboardingValues = value as Onboarding;
     },
 });
 
