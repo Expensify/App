@@ -102,11 +102,11 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo))}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
-            <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}
                 bounces={false}
             >
+                <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
                 {privateNotes.map((item) => getMenuItem(item))}
             </ScrollView>
         </ScreenWrapper>
