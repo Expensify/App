@@ -296,13 +296,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowBorderBottom={!isMoreContentShown}
             >
                 {isDuplicate && !shouldUseNarrowLayout && (
-                    <Button
-                        text={translate('iou.reviewDuplicates')}
-                        style={[styles.p0, styles.mh2]}
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
-                        }}
-                    />
+                    <View style={[styles.mh2]}>
+                        <Button
+                            text={translate('iou.reviewDuplicates')}
+                            style={styles.p0}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID ?? '', Navigation.getReportRHPActiveRoute()));
+                            }}
+                        />
+                    </View>
                 )}
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
