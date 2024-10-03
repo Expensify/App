@@ -1191,8 +1191,13 @@ const translations = {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
+            resetToOriginalState: 'Restablecer al estado original',
+            usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
             debugMode: 'Modo depuración',
+            invalidFile: 'Archivo inválido',
+            invalidFileDescription: 'El archivo que estás intentando importar no es válido. Por favor, inténtalo de nuevo.',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
