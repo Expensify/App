@@ -3755,12 +3755,11 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    shouldIncludePolicyName = false,
 ): string {
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
 
-    if (reportID && !isUserCreatedPolicyRoom(report) && !isDefaultRoom(report)) {
+    if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
         if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName && reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -3874,11 +3873,6 @@ function getReportName(
         formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
     }
 
-    if (shouldIncludePolicyName && (isUserCreatedPolicyRoom(report) || isDefaultRoom(report))) {
-        const policyName = getPolicyName(report, true);
-        formattedName = policyName ? `${policyName} • ${report?.reportName}` : report?.reportName;
-    }
-
     if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
@@ -3935,8 +3929,8 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, isTitleIncludePolicyName = false): string | undefined {
-    if (isChatThread(report) || ((isUserCreatedPolicyRoom(report) || isDefaultRoom(report)) && isTitleIncludePolicyName)) {
+function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
+    if (isChatThread(report)) {
         return '';
     }
     if (isSelfDM(report)) {
