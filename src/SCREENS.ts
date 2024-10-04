@@ -374,6 +374,7 @@ const SCREENS = {
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             QUICKBOOKS_DESKTOP_SETUP_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Modal',
             QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Required_Device_Modal',
+            QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: 'Policy_Accouting_Quickbooks_Desktop_Trigger_First_Sync',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
         },
