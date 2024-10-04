@@ -55,7 +55,7 @@ const getMockedSortedReportActions = (length = 100): ReportAction[] =>
 const getMockedReportActionsMap = (length = 100): ReportActions => {
     const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
         const reportID = index + 1;
-        const actionName: ReportActionName = index === 0 ? 'CREATED' : actionNames[index % actionNames.length];
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : actionNames.at(index % actionNames.length) ?? 'CREATED';
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,

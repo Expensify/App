@@ -186,6 +186,7 @@ function PaymentMethodList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -237,9 +238,12 @@ function PaymentMethodList({
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
                 if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
-                    assignedCardsGrouped[domainGroupIndex].errors = {...assignedCardsGrouped[domainGroupIndex].errors, ...card.errors};
-                    if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
-                        assignedCardsGrouped[domainGroupIndex].brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
+                    if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
+                        assignedCardsGroupedItem.errors = {...assignedCardsGrouped.at(domainGroupIndex)?.errors, ...card.errors};
+                        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                            assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        }
                     }
                     return;
                 }
@@ -316,6 +320,14 @@ function PaymentMethodList({
      */
     const renderListEmptyComponent = () => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
 
+    const onPressItem = useCallback(() => {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            return;
+        }
+        onPress();
+    }, [isUserValidated, onPress]);
+
     const renderListFooterComponent = useCallback(
         () =>
             shouldShowAddBankAccountButton ? (
@@ -330,16 +342,15 @@ function PaymentMethodList({
                 />
             ) : (
                 <MenuItem
-                    onPress={onPress}
+                    onPress={onPressItem}
                     title={translate('walletPage.addBankAccount')}
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     ref={buttonRef}
-                    disabled={!isUserValidated}
                 />
             ),
 
-        [shouldShowAddBankAccountButton, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
+        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
     );
 
     /**

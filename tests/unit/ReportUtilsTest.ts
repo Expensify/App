@@ -80,15 +80,15 @@ describe('ReportUtils', () => {
             const participants = ReportUtils.getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
             expect(participants).toHaveLength(5);
 
-            expect(participants[0].source).toBeInstanceOf(Function);
-            expect(participants[0].name).toBe('(833) 240-3627');
-            expect(participants[0].id).toBe(4);
-            expect(participants[0].type).toBe('avatar');
+            expect(participants.at(0)?.source).toBeInstanceOf(Function);
+            expect(participants.at(0)?.name).toBe('(833) 240-3627');
+            expect(participants.at(0)?.id).toBe(4);
+            expect(participants.at(0)?.type).toBe('avatar');
 
-            expect(participants[1].source).toBeInstanceOf(Function);
-            expect(participants[1].name).toBe('floki@vikings.net');
-            expect(participants[1].id).toBe(2);
-            expect(participants[1].type).toBe('avatar');
+            expect(participants.at(1)?.source).toBeInstanceOf(Function);
+            expect(participants.at(1)?.name).toBe('floki@vikings.net');
+            expect(participants.at(1)?.id).toBe(2);
+            expect(participants.at(1)?.type).toBe('avatar');
         });
     });
 
@@ -97,18 +97,18 @@ describe('ReportUtils', () => {
             const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);
             expect(participants).toHaveLength(5);
 
-            expect(participants[0].displayName).toBe('(833) 240-3627');
-            expect(participants[0].login).toBe('+18332403627@expensify.sms');
+            expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
+            expect(participants.at(0)?.login).toBe('+18332403627@expensify.sms');
 
-            expect(participants[2].displayName).toBe('Lagertha Lothbrok');
-            expect(participants[2].login).toBe('lagertha@vikings.net');
-            expect(participants[2].accountID).toBe(3);
-            expect(participants[2].pronouns).toBe('She/her');
+            expect(participants.at(2)?.displayName).toBe('Lagertha Lothbrok');
+            expect(participants.at(2)?.login).toBe('lagertha@vikings.net');
+            expect(participants.at(2)?.accountID).toBe(3);
+            expect(participants.at(2)?.pronouns).toBe('She/her');
 
-            expect(participants[4].displayName).toBe('Ragnar Lothbrok');
-            expect(participants[4].login).toBe('ragnar@vikings.net');
-            expect(participants[4].accountID).toBe(1);
-            expect(participants[4].pronouns).toBeUndefined();
+            expect(participants.at(4)?.displayName).toBe('Ragnar Lothbrok');
+            expect(participants.at(4)?.login).toBe('ragnar@vikings.net');
+            expect(participants.at(4)?.accountID).toBe(1);
+            expect(participants.at(4)?.pronouns).toBeUndefined();
         });
     });
 
@@ -503,7 +503,7 @@ describe('ReportUtils', () => {
                         parentReportID: '101',
                         policyID: paidPolicy.id,
                     };
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
@@ -516,7 +516,7 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,
                     };
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                     return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                 });
                 expect(onlyHaveSplitOption).toBe(true);
@@ -563,7 +563,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -576,7 +576,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -625,7 +625,7 @@ describe('ReportUtils', () => {
                         outputCurrency: '',
                         isPolicyExpenseChatEnabled: false,
                     } as const;
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -640,7 +640,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -653,7 +653,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -687,7 +687,7 @@ describe('ReportUtils', () => {
                         policyID: paidPolicy.id,
                         managerID: currentUserAccountID,
                     };
-                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
+                    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -701,7 +701,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                 expect(moneyRequestOptions.length).toBe(3);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -851,7 +851,7 @@ describe('ReportUtils', () => {
             const reportActionCollectionDataSet = toCollectionDataSet(
                 ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions)[0].reportActionID,
+                (actions) => Object.values(actions).at(0)?.reportActionID ?? '',
             );
             Onyx.multiSet({
                 ...reportCollectionDataSet,
@@ -864,13 +864,13 @@ describe('ReportUtils', () => {
 
         it('should return correctly all ancestors of a thread report', () => {
             const resultAncestors = [
-                {report: reports[0], reportAction: reportActions[0], shouldDisplayNewMarker: false},
-                {report: reports[1], reportAction: reportActions[1], shouldDisplayNewMarker: false},
-                {report: reports[2], reportAction: reportActions[2], shouldDisplayNewMarker: false},
-                {report: reports[3], reportAction: reportActions[3], shouldDisplayNewMarker: false},
+                {report: reports.at(0), reportAction: reportActions.at(0), shouldDisplayNewMarker: false},
+                {report: reports.at(1), reportAction: reportActions.at(1), shouldDisplayNewMarker: false},
+                {report: reports.at(2), reportAction: reportActions.at(2), shouldDisplayNewMarker: false},
+                {report: reports.at(3), reportAction: reportActions.at(3), shouldDisplayNewMarker: false},
             ];
 
-            expect(ReportUtils.getAllAncestorReportActions(reports[4])).toEqual(resultAncestors);
+            expect(ReportUtils.getAllAncestorReportActions(reports.at(4))).toEqual(resultAncestors);
         });
     });
 
