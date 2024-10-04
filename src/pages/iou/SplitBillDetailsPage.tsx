@@ -37,7 +37,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const reportID = report?.reportID ?? '-1';
     const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
-    const IOUTransactionID = originalMessage?.IOUTransactionID || '-1';
+    const IOUTransactionID = originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : '-1';
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`);
