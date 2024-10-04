@@ -488,7 +488,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, true);
+    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
 
     result.text = reportName;
     result.subtitle = subtitle;
