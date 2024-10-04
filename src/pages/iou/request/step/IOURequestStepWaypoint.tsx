@@ -3,7 +3,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -37,26 +37,36 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepWaypointOnyxProps = {
-    /** List of recent waypoints */
-    recentWaypoints: OnyxEntry<Place[]>;
-
-    userLocation: OnyxEntry<OnyxTypes.UserLocation>;
+type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-type IOURequestStepWaypointProps = IOURequestStepWaypointOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
-    };
+const recentWaypointsSelector = (waypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>): OnyxEntry<Place[]> =>
+    // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+    // that the google autocomplete component expects for it's "predefined places" feature.
+    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : [])
+        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+        .map((waypoint) => ({
+            name: waypoint.name,
+            description: waypoint.address ?? '',
+            geometry: {
+                location: {
+                    lat: waypoint.lat ?? 0,
+                    lng: waypoint.lng ?? 0,
+                    latitude: waypoint.lat ?? 0,
+                    longitude: waypoint.lng ?? 0,
+                },
+            },
+        })) as OnyxEntry<Place[]>;
 
 function IOURequestStepWaypoint({
     route: {
         params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
-    recentWaypoints = [],
-    userLocation,
 }: IOURequestStepWaypointProps) {
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -247,34 +257,4 @@ function IOURequestStepWaypoint({
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
-            userLocation: {
-                key: ONYXKEYS.USER_LOCATION,
-            },
-            recentWaypoints: {
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-
-                // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-                // that the google autocomplete component expects for it's "predefined places" feature.
-                selector: (waypoints) =>
-                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : [])
-                        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
-                        .map((waypoint) => ({
-                            name: waypoint.name,
-                            description: waypoint.address ?? '',
-                            geometry: {
-                                location: {
-                                    lat: waypoint.lat ?? 0,
-                                    lng: waypoint.lng ?? 0,
-                                    latitude: waypoint.lat ?? 0,
-                                    longitude: waypoint.lng ?? 0,
-                                },
-                            },
-                        })),
-            },
-        })(IOURequestStepWaypoint),
-    ),
-    true,
-);
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint));
