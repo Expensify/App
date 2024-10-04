@@ -13,6 +13,7 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -354,6 +355,8 @@ function Composer(
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
+            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
+            imagePreviewAuthRequiredURLs={[CONST.EXPENSIFY_URL, CONST.STAGING_EXPENSIFY_URL]}
         />
     );
 }
