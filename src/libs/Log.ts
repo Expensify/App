@@ -3,7 +3,6 @@
 
 /* eslint-disable rulesdir/no-api-in-views */
 import {Logger} from 'expensify-common';
-import AppLogs from 'react-native-app-logs';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
@@ -82,22 +81,5 @@ const Log = new Logger({
     isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-
-AppLogs.configureAppGroupName('group.com.expensify.new');
-AppLogs.registerHandler({
-    filter: '[NotificationService]',
-    handler: ({filter, logs}) => {
-        logs.forEach((log) => {
-            // Both native and JS logs are captured by the filter so we replace the filter before logging to avoid an infinite loop
-            const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService -')}`;
-
-            if (log.level === 'error') {
-                Log.hmmm(message);
-            } else {
-                Log.info(message);
-            }
-        });
-    },
-});
 
 export default Log;
