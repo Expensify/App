@@ -26,18 +26,18 @@ function cacheSoundAssets() {
         return Promise.all(cachePromises);
     });
 }
+
 const initializeAndPlaySound = (src: string) => {
     const sound = new Howl({
         src: [src],
         format: ['mp3'],
-        onloaderror: (id, error) => {
+        onloaderror: (_id: number, error: unknown) => {
             Log.alert('[sound] Load error:', {message: (error as Error).message});
         },
-        onplayerror: (id, error) => {
+        onplayerror: (_id: number, error: unknown) => {
             Log.alert('[sound] Play error:', {message: (error as Error).message});
         },
     });
-
     sound.play();
 };
 
