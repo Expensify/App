@@ -254,7 +254,7 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth),
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -342,8 +342,8 @@ function BaseTextInput(
                                 placeholderTextColor={theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    styles.flex1,
-                                    styles.w100,
+                                    !autoGrow && styles.flex1,
+                                    !autoGrow && styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,

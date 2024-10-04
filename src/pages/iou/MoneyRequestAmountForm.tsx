@@ -105,7 +105,7 @@ function MoneyRequestAmountForm(
     const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
-    const isFocused = useIsFocused();
+    const isFocused = true; // useIsFocused();
     const wasFocused = usePrevious(isFocused);
 
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), currency);
@@ -280,7 +280,7 @@ function MoneyRequestAmountForm(
                     }}
                     shouldKeepUserInput={shouldKeepUserInput}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
-                    inputStyle={[styles.iouAmountTextInput]}
+                    inputStyle={[styles.iouAmountTextInput, {backgroundColor: 'orange'}]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
                 />
                 {!!formError && (

@@ -137,6 +137,8 @@ function MoneyRequestAmountInput(
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
+    console.log('amount', amount);
+    console.log('selectedAmountAsString', selectedAmountAsString);
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
@@ -165,6 +167,7 @@ function MoneyRequestAmountInput(
             // More info: https://github.com/Expensify/App/issues/16385
             if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
                 setSelection((prevSelection) => ({...prevSelection}));
+                console.debug('Invalid amount');
                 return;
             }
 
@@ -271,7 +274,9 @@ function MoneyRequestAmountInput(
         });
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
+    console.log('currentAmount', currentAmount);
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+    console.log('formattedAmount', currentAmount);
 
     const {setMouseDown, setMouseUp} = useMouseContext();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -283,6 +288,7 @@ function MoneyRequestAmountInput(
         setMouseUp();
     };
 
+    console.debug('MoneyRequestAmountInput render', formattedAmount);
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}

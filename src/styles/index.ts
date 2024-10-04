@@ -3162,7 +3162,7 @@ const styles = (theme: ThemeColors) =>
             {
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
-                color: theme.heading,
+                color: 'white',
                 lineHeight: undefined,
                 paddingHorizontal: 0,
                 paddingVertical: 0,
