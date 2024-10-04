@@ -3,15 +3,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function setSpreadsheetData(data: string[][]): Promise<void | void[]> {
-    if (!Array.isArray(data) || !Array.isArray(data[0])) {
+    if (!Array.isArray(data) || !Array.isArray(data.at(0))) {
         return Promise.reject(new Error('Invalid data format'));
     }
 
-    const transposedData = data[0].map((_, colIndex) => data.map((row) => row[colIndex]));
-    const columnNames: Record<number, string> = data[0].reduce((acc: Record<number, string>, _, colIndex) => {
-        acc[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
-        return acc;
-    }, {});
+    const transposedData = data.at(0)?.map((_, colIndex) => data.map((row) => row.at(colIndex) ?? ''));
+    const columnNames: Record<number, string> =
+        data.at(0)?.reduce((acc: Record<number, string>, _, colIndex) => {
+            acc[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
+            return acc;
+        }, {}) ?? {};
 
     return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames});
 }

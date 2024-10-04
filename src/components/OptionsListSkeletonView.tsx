@@ -28,7 +28,7 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
-            itemViewStyle={shouldStyleAsTable && [styles.highlightBG, styles.mb3, styles.mh5, styles.br2]}
+            itemViewStyle={shouldStyleAsTable && [styles.highlightBG, styles.mb2, styles.mh5, styles.br2]}
             gradientOpacityEnabled={gradientOpacityEnabled}
             renderSkeletonItem={({itemIndex}) => {
                 const lineWidth = getLinedWidth(itemIndex);
