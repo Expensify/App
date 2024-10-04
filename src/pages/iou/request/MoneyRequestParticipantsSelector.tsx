@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -41,6 +43,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
 
+    /** Callback to navigate to Track Expense confirmation flow  */
+    onTrackExpensePress?: () => void;
+
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
@@ -52,9 +57,21 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether we should display the Track Expense button at the top of the participants list */
+    shouldDisplayTrackExpenseButton?: boolean;
 };
 
-function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    onTrackExpensePress,
+    onFinish,
+    onParticipantsAdded,
+    iouType,
+    iouRequestType,
+    action,
+    shouldDisplayTrackExpenseButton,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -105,9 +122,9 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             participants as Participant[],
             CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
@@ -364,6 +381,22 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
+    const headerContent = useMemo(() => {
+        if (!shouldDisplayTrackExpenseButton) {
+            return;
+        }
+
+        // We only display the track expense button if the user is coming from the combined submit/track flow.
+        return (
+            <MenuItem
+                title={translate('iou.justTrackIt')}
+                shouldShowRightIcon
+                icon={Expensicons.Coins}
+                onPress={onTrackExpensePress}
+            />
+        );
+    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -449,6 +482,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
+            headerContent={headerContent}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}

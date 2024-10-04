@@ -6,6 +6,7 @@ import {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlow
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -13,14 +14,18 @@ import ROUTES from '@src/ROUTES';
  * Warning: This hook should be used only once in the app
  */
 function useOnboardingFlowRouter() {
-    const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [isHybridAppOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [isHybridAppOnboardingCompleted, isHybridAppOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
         selector: hasCompletedHybridAppOnboardingFlowSelector,
     });
 
     useEffect(() => {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata)) {
+            return;
+        }
+
         if (NativeModules.HybridAppModule) {
             // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
             if (isHybridAppOnboardingCompleted === false) {
@@ -38,7 +43,7 @@ function useOnboardingFlowRouter() {
         if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
             OnboardingFlow.startOnboardingFlow();
         }
-    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted]);
+    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted, isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
 }
