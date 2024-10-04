@@ -112,6 +112,7 @@ const SCREENS = {
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
 
         EXIT_SURVEY: {
