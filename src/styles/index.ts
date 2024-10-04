@@ -5267,6 +5267,11 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+        qbdSetupLinkBox: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
