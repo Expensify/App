@@ -146,4 +146,41 @@ describe('Session', () => {
 
         expect(PersistedRequests.getAll().length).toBe(0);
     });
+
+    test('OpenApp should push request to the queue', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        App.openApp();
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(0);
+    });
+
+    test('ReconnectApp should replace same requests from the queue', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        App.openApp();
+        App.openApp();
+        App.openApp();
+        App.openApp();
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        expect(PersistedRequests.getAll().length).toBe(0);
+    });
 });
