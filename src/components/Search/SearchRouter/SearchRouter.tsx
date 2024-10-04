@@ -4,9 +4,7 @@ import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -218,48 +216,37 @@ function SearchRouter() {
         clearUserQuery();
     });
 
-    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.POPOVER;
     const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
-        <Modal
-            type={modalType}
-            fullscreen
-            isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={{right: 20, top: 20}}
-            onClose={closeSearchRouter}
-        >
-            <FocusTrapForModal active={isSearchRouterDisplayed}>
-                <View style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}>
-                    {isSmallScreenWidth && (
-                        <HeaderWithBackButton
-                            title={translate('common.search')}
-                            onBackButtonPress={() => closeSearchRouter()}
-                        />
-                    )}
-                    <SearchRouterInput
-                        value={textInputValue}
-                        setValue={setTextInputValue}
-                        isFullWidth={isSmallScreenWidth}
-                        updateSearch={onSearchChange}
-                        routerListRef={listRef}
-                        wrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2, styles.border]}
-                        wrapperFocusedStyle={[styles.borderColorFocus]}
-                        isSearchingForReports={isSearchingForReports}
-                    />
-                    <SearchRouterList
-                        currentQuery={userSearchQuery}
-                        reportForContextualSearch={contextualReportData}
-                        recentSearches={sortedRecentSearches?.slice(0, 5)}
-                        recentReports={recentReports}
-                        onSearchSubmit={onSearchSubmit}
-                        updateUserSearchQuery={updateUserSearchQuery}
-                        closeAndClearRouter={closeAndClearRouter}
-                        ref={listRef}
-                    />
-                </View>
-            </FocusTrapForModal>
-        </Modal>
+        <View style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}>
+            {isSmallScreenWidth && (
+                <HeaderWithBackButton
+                    title={translate('common.search')}
+                    onBackButtonPress={() => closeSearchRouter()}
+                />
+            )}
+            <SearchRouterInput
+                value={textInputValue}
+                setValue={setTextInputValue}
+                isFullWidth={isSmallScreenWidth}
+                updateSearch={onSearchChange}
+                routerListRef={listRef}
+                wrapperStyle={[isSmallScreenWidth ? styles.mv3 : styles.mv2, isSmallScreenWidth ? styles.mh5 : styles.mh2, styles.border]}
+                wrapperFocusedStyle={[styles.borderColorFocus]}
+                isSearchingForReports={isSearchingForReports}
+            />
+            <SearchRouterList
+                currentQuery={userSearchQuery}
+                reportForContextualSearch={contextualReportData}
+                recentSearches={sortedRecentSearches?.slice(0, 5)}
+                recentReports={recentReports}
+                onSearchSubmit={onSearchSubmit}
+                updateUserSearchQuery={updateUserSearchQuery}
+                closeAndClearRouter={closeAndClearRouter}
+                ref={listRef}
+            />
+        </View>
     );
 }
 
