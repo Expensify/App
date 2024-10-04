@@ -1212,6 +1212,67 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/**
+ * Data imported from QuickBooks Desktop.
+ */
+type QBDConnectionData = {
+    /** Collection of cash accounts */
+    cashAccounts: Account[];
+
+    /** Collection of credit cards */
+    creditCardAccounts: Account[];
+
+    /** Collection of journal entry accounts  */
+    journalEntryAccounts: Account[];
+
+    /** Collection of payable accounts */
+    payableAccounts: Account[];
+
+    /** Collection of bank accounts */
+    bankAccounts: Account[];
+
+    /** Collections of vendors */
+    vendors: Vendor[];
+
+    /** Collection of export destination accounts */
+    accountPayable: Account[];
+};
+
+/**
+ * User configuration for the QuickBooks Desktop accounting integration.
+ */
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** API provider */
+    apiProvider: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+    autoSync: {
+        /** TODO: Will be handled in another issue */
+        jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    /** Whether a check to be printed */
+    markChecksToBePrinted: boolean;
+
+    /** Whether Quickbooks Desktop locations should be imported */
+    syncLocations: IntegrationEntityMap;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursableExpensesExportDestination: QBDReimbursableExportAccountType;
+
+    /** Whether the taxes should be synchronized */
+    syncTax: boolean;
+
+    /** Account that receives the reimbursable expenses */
+    reimbursableExpensesAccount?: Account;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -1226,7 +1287,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 /** Available integration connections */
 type Connections = {
-    /** QuickBooks integration connection */
+    /** QuickBooks Online integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
@@ -1237,6 +1298,9 @@ type Connections = {
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+
+    /** QuickBooks Desktop integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
