@@ -18,7 +18,6 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
-import createAddListenerMock from '../utils/createAddListenerMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';

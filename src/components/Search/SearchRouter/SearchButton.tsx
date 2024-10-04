@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
-import Permissions from '@libs/Permissions';
 import * as Session from '@userActions/Session';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -17,10 +16,6 @@ function SearchButton() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
-
-    if (!Permissions.canUseNewSearchRouter()) {
-        return;
-    }
 
     return (
         <PressableWithoutFeedback
