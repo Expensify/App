@@ -1,6 +1,6 @@
 <div id="search-container">
   <!-- Search Input styled as button -->
-  <input type="text" id="search-input-box" placeholder="Search..." />
+  <input type="text" id="search-input-box" autocomplete="off" placeholder="Search..." />
 
   <!-- Search Modal -->
   <div id="search-modal" style="display:none;">
@@ -10,7 +10,7 @@
       <button id="search-submit">Search</button>
       
       <!-- Search results container -->
-      <div id="search-results"></div>
+      <div id="search-results" tabindex="0"></div>
     </div>
   </div>
 </div>
@@ -94,6 +94,11 @@
     font-size: 14px;
     color: #586069;
   }
+
+  /* Highlighted search result */
+  .highlight {
+    background-color: #eaecef;
+  }
 </style>
 
 <!-- FlexSearch CDN -->
@@ -101,11 +106,14 @@
 
 <!-- JavaScript for modal and search -->
 <script>
+  let currentSelectionIndex = -1;
+
   // Open and close modal
   const searchInputBox = document.getElementById('search-input-box');
   const searchModal = document.getElementById('search-modal');
   const closeModal = document.getElementById('close-modal');
   const searchResults = document.getElementById('search-results');
+  let searchResultsArray = [];
 
   // Open modal when search input is clicked or when pressing Command + K
   searchInputBox.addEventListener('click', function() {
@@ -132,11 +140,62 @@
     }
   });
 
+  // Handle keyboard navigation (arrow keys and enter)
+  document.addEventListener('keydown', function(event) {
+    if (searchModal.style.display === 'flex' && searchResultsArray.length > 0) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        selectNextResult();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        selectPreviousResult();
+      } else if (event.key === 'Enter' && currentSelectionIndex >= 0) {
+        event.preventDefault();
+        navigateToSelectedResult();
+      }
+    }
+  });
+
+  function selectNextResult() {
+    if (currentSelectionIndex < searchResultsArray.length - 1) {
+      currentSelectionIndex++;
+      updateSelectedResult();
+    }
+  }
+
+  function selectPreviousResult() {
+    if (currentSelectionIndex > 0) {
+      currentSelectionIndex--;
+      updateSelectedResult();
+    }
+  }
+
+  function updateSelectedResult() {
+    searchResultsArray.forEach((result, index) => {
+      if (index === currentSelectionIndex) {
+        result.classList.add('highlight');
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        result.classList.remove('highlight');
+      }
+    });
+  }
+
+  function navigateToSelectedResult() {
+    const selectedResult = searchResultsArray[currentSelectionIndex];
+    const link = selectedResult.querySelector('a');
+    if (link) {
+      link.click();
+    }
+  }
+
   // Execute search when pressing "Enter" in the input field
   const searchInput = document.getElementById('search-input');
   searchInput.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
+      event.preventDefault();
       searchSubmit.click();
+      searchResults.focus();  // Focus on search results after Enter is pressed
     }
   });
 
@@ -146,6 +205,7 @@
   searchSubmit.addEventListener('click', async function() {
     const query = document.getElementById('search-input').value.trim().toLowerCase();
     searchResults.innerHTML = '';
+    currentSelectionIndex = -1;
 
     if (query.length === 0) {
       searchResults.innerHTML = '<p>Please enter a search term.</p>';
@@ -177,6 +237,7 @@
     });
 
     if (results.length > 0) {
+      searchResultsArray = [];
       results.forEach(result => {
         result.result.forEach(docId => {
           const doc = index.store[docId];
@@ -190,7 +251,16 @@
                 <div class="search-result-context">...${contextBefore}<strong>${query}</strong>${contextAfter}...</div>
               </div>
             `;
-            searchResults.innerHTML += searchResultHtml;
+            const resultElement = document.createElement('div');
+            resultElement.innerHTML = searchResultHtml;
+            searchResults.appendChild(resultElement);
+            searchResultsArray.push(resultElement);
+
+            // Automatically select the first result
+            if (searchResultsArray.length === 1) {
+              currentSelectionIndex = 0;
+              updateSelectedResult();
+            }
           }
         });
       });
