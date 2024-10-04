@@ -34,14 +34,14 @@ Copilots **cannot** add additional Copilots.
 
 1. Click your profile icon in the bottom left corner to open Settings
 2. Click **Security**
-3. Under Copilot: Delegated Access, click the three vertical dots next to the Copilot you'd like to remove, then click *Remove Copilot*
+3. Under Copilot: Delegated Access, click the three vertical dots next to the Copilot you'd like to remove, then click **Remove Copilot**
 4. Click the red **Remove Copilot** button to confirm removal
 
 **To change a Copilot's access level:**
 
 1. Click your profile icon in the bottom left corner to open Settings
 2. Click **Security**
-3. Under Copilot: Delegated Access, click the three vertical dots next to the Copilot you'd like to remove, then click *Change access level*
+3. Under Copilot: Delegated Access, click the three vertical dots next to the Copilot you'd like to remove, then click **Change access level**
 4. Select **Full** or **Limited** access
     a. **Full Access**: Grants access to take any actions in your account that you can take. This includes chat, submissions, approvals, payments, and settings. All Copilots (both Full and Limited access) are prevented from adding additional Copilots.
     b. **Limited Access**: Limited access excludes approvals, payments, rejections, and holds.
