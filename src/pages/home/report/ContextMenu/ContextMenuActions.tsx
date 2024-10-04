@@ -443,7 +443,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
                 ) {
-                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
+                    const wasSubmittedViaHarvesting = ReportActionsUtils.getOriginalMessage(reportAction)?.harvesting ?? false;
+                    const displayMessage = wasSubmittedViaHarvesting ? ReportUtils.getReportAutomaticallySubmittedMessage(reportAction) : ReportUtils.getIOUSubmittedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
                     const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);

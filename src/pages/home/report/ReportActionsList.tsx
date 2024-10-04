@@ -11,6 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import ReportActionHighlightProvider from '@components/ReportActionHighlightProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -170,7 +171,6 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
@@ -626,7 +626,7 @@ function ReportActionsList({
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
     const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
     return (
-        <>
+        <ReportActionHighlightProvider>
             <FloatingMessageCounter
                 isActive={(isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
@@ -658,7 +658,7 @@ function ReportActionsList({
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
             </View>
-        </>
+        </ReportActionHighlightProvider>
     );
 }
 
