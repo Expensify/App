@@ -70,6 +70,8 @@ react {
     bundleCommand = "export:embed"
 }
 
+project.ext.REACT_NATIVE_NODE_MODULES_DIR = "${rootDir}/../node_modules/react-native"
+
 project.ext.envConfigFiles = [
     productionDebug: ".env.production",
     productionRelease: ".env.production",
