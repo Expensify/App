@@ -285,7 +285,9 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const firstTaxID = Object.keys(policyTaxRates ?? {}).sort((a, b) => a.localeCompare(b))[0];
+    const firstTaxID = Object.keys(policyTaxRates ?? {})
+        .sort((a, b) => a.localeCompare(b))
+        .at(0);
 
     if (!policyTaxRates) {
         console.debug('Policy or tax rates not found');

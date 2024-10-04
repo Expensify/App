@@ -74,7 +74,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 )
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
-                .sort((a, b) => a[0].localeCompare(b[0])),
+                .sort((a, b) => (a.at(0) ?? '').localeCompare(b.at(0) ?? '')),
         [data],
     );
     const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_DATETIME_FIELDS.includes(key as DetailsDatetimeFieldsKeys)) as Array<[string, string]>, [data]);
@@ -158,6 +158,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                                 multiline={numberOfLines > 1}
                                 defaultValue={value}
                                 disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                                shouldInterceptSwipe
                             />
                         );
                     })}
@@ -175,6 +176,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             label={key}
                             defaultValue={String(value)}
                             disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                            shouldInterceptSwipe
                         />
                     ))}
                     {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>None</Text>}
