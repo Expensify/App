@@ -182,7 +182,7 @@ function IOURequestStepCategory({
                     )}
                 </View>
             )}
-            {!shouldShowEmptyState && !isLoading && (
+            {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
                     <CategoryPicker
