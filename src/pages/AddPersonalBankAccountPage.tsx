@@ -45,7 +45,7 @@ function AddPersonalBankAccountPage() {
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack();
+                Navigation.navigate(ROUTES.SETTINGS_WALLET);
             }
         },
         [personalBankAccount],
