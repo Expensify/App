@@ -3,6 +3,7 @@ import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@rea
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -313,34 +314,19 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 }
 
 /**
- * Close the current screen and navigate to the route.
- * If the current screen is the first screen in the navigator, we force using the fallback route to replace the current screen.
- * It's useful in a case where we want to close an RHP and navigate to another RHP to prevent any blink effect.
- */
-function closeAndNavigate(route: Route) {
-    if (!navigationRef.current) {
-        return;
-    }
-
-    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
-    if (isFirstRouteInNavigator) {
-        goBack(route, true);
-        return;
-    }
-    goBack();
-    navigate(route);
-}
-
-/**
  * Reset the navigation state to Home page
  */
 function resetToHome() {
+    const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();
-    const bottomTabKey = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state?.key;
-    if (bottomTabKey) {
-        navigationRef.dispatch({...StackActions.popToTop(), target: bottomTabKey});
-    }
     navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
+    const splitNavigatorMainScreen = !isNarrowLayout
+        ? {
+              name: SCREENS.REPORT,
+          }
+        : undefined;
+    const payload = createSplitNavigator({name: SCREENS.HOME}, splitNavigatorMainScreen);
+    navigationRef.dispatch({payload, type: 'REPLACE', target: rootState.key});
 }
 
 /**
@@ -508,7 +494,6 @@ export default {
     getActiveRoute,
     getActiveRouteWithoutParams,
     getReportRHPActiveRoute,
-    closeAndNavigate,
     goBack,
     isNavigationReady,
     setIsNavigationReady,
