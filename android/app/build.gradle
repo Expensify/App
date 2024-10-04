@@ -13,7 +13,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 /* Fullstory settings */
 fullstory {
     org 'o-1WN56P-na1'
-    enabledVariants 'all'
+    enabledVariants 'production'
     logcatLevel 'debug'
     recordOnStart false
 }
