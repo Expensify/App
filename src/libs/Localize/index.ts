@@ -1,7 +1,7 @@
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -46,28 +46,6 @@ function init() {
 }
 
 /**
- * Map to store translated values for each locale.
- * This is used to avoid translating the same phrase multiple times.
- *
- * The data is stored in the following format:
- *
- * {
- *  "en": {
- *   "name": "Name",
- * }
- *
- * Note: We are not storing any translated values for phrases with variables,
- * as they have higher chance of being unique, so we'll end up wasting space
- * in our cache.
- */
-const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
-    Object.values(CONST.LOCALES).reduce((cache, locale) => {
-        cache.push([locale, new Map<TranslationPaths, string>()]);
-        return cache;
-    }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
-);
-
-/**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
  * duplicate code in getTranslatedPhrase and translate functions.
@@ -86,18 +64,6 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     fallbackLanguage: 'en' | 'es' | null,
     ...parameters: TranslationParameters<TKey>
 ): string | null {
-    // Get the cache for the above locale
-    const cacheForLocale = translationCache.get(language);
-
-    // Directly access and assign the translated value from the cache, instead of
-    // going through map.has() and map.get() to avoid multiple lookups.
-    const valueFromCache = cacheForLocale?.get(phraseKey);
-
-    // If the phrase is already translated, return the translated value
-    if (valueFromCache) {
-        return valueFromCache;
-    }
-
     const translatedPhrase = translations?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
@@ -138,8 +104,6 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
             return translateResult.other(phraseObject.count);
         }
 
-        // We set the translated value in the cache only for the phrases without parameters.
-        cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
     }
 
@@ -162,6 +126,11 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...parameters);
 }
 
+const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
+    monitoringName: 'getTranslatedPhrase',
+    transformKey: ([language, phraseKey, fallbackLanguage, ...parameters]) => `${language}-${phraseKey}-${fallbackLanguage}-${parameters.length > 0 ? JSON.stringify(parameters.at(0)) : ''}`,
+});
+
 /**
  * Return translated string for given locale and phrase
  *
@@ -174,7 +143,7 @@ function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' 
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
-    const translatedPhrase = getTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
+    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
