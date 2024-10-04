@@ -1,0 +1,176 @@
+<div id="search-container">
+  <!-- Search Button -->
+  <button id="search-button">Search</button>
+
+  <!-- Search Modal -->
+  <div id="search-modal" style="display:none;">
+    <div id="modal-content">
+      <span id="close-modal">&times;</span>
+      <input type="text" id="search-input" placeholder="Search..." />
+      <button id="search-submit">Search</button>
+      
+      <!-- Search results container -->
+      <div id="search-results"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal and Search Styling -->
+<style>
+  /* Style for search button */
+  #search-button {
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* Modal background */
+  #search-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Modal content */
+  #modal-content {
+    background: white;
+    padding: 20px;
+    width: 60%;
+    max-width: 600px;
+    position: relative;
+  }
+
+  /* Close button */
+  #close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+  }
+
+  /* Search results */
+  #search-results {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    padding: 10px;
+  }
+
+  .search-result {
+    margin-bottom: 15px;
+  }
+
+  .search-result-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .search-result-context {
+    font-size: 14px;
+    color: gray;
+  }
+</style>
+
+<!-- Include FlexSearch from a CDN -->
+<script src="https://cdn.jsdelivr.net/npm/flexsearch@0.7.31/dist/flexsearch.bundle.js"></script>
+
+<!-- JavaScript for modal and search -->
+<script>
+  // Open and close modal
+  const searchButton = document.getElementById('search-button');
+  const searchModal = document.getElementById('search-modal');
+  const closeModal = document.getElementById('close-modal');
+
+  searchButton.addEventListener('click', function() {
+    searchModal.style.display = 'block';
+  });
+
+  closeModal.addEventListener('click', function() {
+    searchModal.style.display = 'none';
+  });
+
+  window.onclick = function(event) {
+    if (event.target == searchModal) {
+      searchModal.style.display = 'none';
+    }
+  };
+
+  // Perform search when search button is clicked
+  const searchSubmit = document.getElementById('search-submit');
+  const searchResults = document.getElementById('search-results');
+
+  searchSubmit.addEventListener('click', async function() {
+    const query = document.getElementById('search-input').value.trim().toLowerCase();
+    searchResults.innerHTML = '';
+
+    if (query.length === 0) {
+      searchResults.innerHTML = '<p>Please enter a search term.</p>';
+      return;
+    }
+
+    // Load the JSON search index file
+    console.log('Loading search index from:', '/searchIndex.json');
+    const response = await fetch('/searchIndex.json');
+    const indexData = await response.json();
+
+    // Log the number of elements in the index and the total size
+    if (indexData && Object.keys(indexData).length > 0) {
+        const elementCount = Object.keys(indexData).length;
+        const indexSize = JSON.stringify(indexData).length;
+        console.log(`Loaded search index successfully. Number of elements: ${elementCount}, Index size: ${indexSize} characters.`);
+    } else {
+        console.warn('Warning: Loaded search index, but it appears to be empty.');
+        return;
+    }
+
+    const index = new FlexSearch.Document({
+      document: {
+        id: 'id',
+        index: ['content'],
+        store: ['title', 'url', 'content']
+      }
+    });
+
+    // Import the index
+    for (const [key, data] of Object.entries(indexData)) {
+      await index.import(key, data);
+    }
+
+    // Perform search
+    const results = await index.search({
+      query,
+      field: 'content'
+    });
+
+    if (results.length > 0) {
+      results.forEach(result => {
+        result.result.forEach(docId => {
+          const doc = index.store[docId];
+          if (doc && doc.content) {
+            const searchTermIndex = doc.content.toLowerCase().indexOf(query);
+            const contextBefore = doc.content.substring(Math.max(0, searchTermIndex - 30), searchTermIndex);
+            const contextAfter = doc.content.substring(searchTermIndex + query.length, Math.min(doc.content.length, searchTermIndex + query.length + 30));
+            const searchResultHtml = `
+              <div class="search-result">
+                <a href="${doc.url}" class="search-result-title">${doc.title}</a>
+                <div class="search-result-context">...${contextBefore}<strong>${query}</strong>${contextAfter}...</div>
+              </div>
+            `;
+            searchResults.innerHTML += searchResultHtml;
+          }
+        });
+      });
+    } else {
+      searchResults.innerHTML = '<p>No results found.</p>';
+    }
+  });
+</script>
+

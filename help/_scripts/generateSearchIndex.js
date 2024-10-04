@@ -75,8 +75,8 @@ async function createIndex() {
     }
   });
 
-  // Export the index manually
-  console.log("Exporting search index manually...");
+  // Export the index as a JSON file
+  console.log("Exporting search index as JSON...");
   let exportedIndex = {};
   try {
     await index.export((key, data) => {
@@ -88,15 +88,15 @@ async function createIndex() {
       console.warn("Warning: Exported index is empty.");
       process.exit(1);
     } else {
-      console.log("Manually exported index successfully.");
+      console.log("Index exported successfully.");
 
-      // Write the exported index to a file
-      const outputPath = path.join(dir, 'searchIndex.js');
-      console.log("Writing manually exported index to file:", outputPath);
-      const outputContent = `module.exports = ${JSON.stringify(exportedIndex, null, 2)};`;
+      // Write the exported index to a JSON file
+      const outputPath = path.join(dir, 'searchIndex.json');
+      console.log("Writing search index to JSON file:", outputPath);
+      const outputContent = JSON.stringify(exportedIndex, null, 2);
 
       fs.writeFileSync(outputPath, outputContent);
-      console.log("Search index written to file successfully.");
+      console.log("Search index written to JSON file successfully.");
     }
   } catch (error) {
     console.error("Error exporting search index:", error);
@@ -107,12 +107,13 @@ async function createIndex() {
 // Function to read and search the index with context and section title
 async function searchIndex() {
   console.log("\n--- Running Search Test ---");
-  const indexPath = path.join(__dirname, '../_site', 'searchIndex.js');
+  const indexPath = path.join(__dirname, '../_site', 'searchIndex.json');
   console.log("Loading search index from file:", indexPath);
   let searchIndex;
   try {
-    searchIndex = require(indexPath);
-    console.log("Search index loaded successfully. Number of characters loaded:", JSON.stringify(searchIndex).length);
+    const indexFile = fs.readFileSync(indexPath, 'utf8');
+    searchIndex = JSON.parse(indexFile);
+    console.log("Search index loaded successfully. Number of entries:", Object.keys(searchIndex).length);
   } catch (error) {
     console.error("Error loading search index from file:", error);
     process.exit(1);

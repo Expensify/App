@@ -64,33 +64,12 @@
 
     <!-- Main Content -->
     <main class="js-toc-content">
+        <!-- Include the search functionality -->
+        {% include search.html %}
+
         {{ content }}
 
         <footer>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
             <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
         </footer>
     </main>
@@ -100,32 +79,8 @@
         tocbot.init({
           tocSelector: '.js-toc',
           contentSelector: '.js-toc-content',
-          headingSelector: 'h1, h2, h3, h4, h5, h6', // Include all levels
-          collapseDepth: 3  // This ensures all levels are visible, without collapsing.
-        });
-    </script>
-
-    <script>
-        window.addEventListener('scroll', function() {
-          const headings = document.querySelectorAll('h2, h3, h4');
-          let currentHeading = null;
-
-          for (const heading of headings) {
-            const rect = heading.getBoundingClientRect();
-            if (rect.top <= 10 && rect.bottom > 0) {
-              currentHeading = heading;
-              break;
-            }
-          }
-
-          if (currentHeading) {
-            const id = currentHeading.id;
-            if (history.pushState) {
-              history.replaceState(null, null, '#' + id);
-            } else {
-              location.hash = '#' + id;
-            }
-          }
+          headingSelector: 'h1, h2, h3, h4, h5, h6',
+          collapseDepth: 3
         });
     </script>
 </body>
