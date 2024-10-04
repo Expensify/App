@@ -30,7 +30,7 @@ Expensify’s integration with Sage Intacct allows you to connect using either r
 10. Configure integration sync options
 
 # Step 1a: Create a web services user (Connecting with User-based permissions)
-Note: If the steps in this section look different from your Sage Intacct instance, you likely use role-based permissions. If that’s the case, start with [Step 1b](https://github.com/Expensify/App/edit/main/docs/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct.md#step-1b-create-a-web-services-user-connecting-with-role-based-permissions).
+Note: If the steps in this section look different from your Sage Intacct instance, you likely use role-based permissions. If that’s the case, start with [Step 1b](https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct#step-1b-create-a-web-services-user-connecting-with-role-based-permissions).
 
 To connect to Sage Intacct, you’ll need to create a special web services user (please note that Sage Intacct does not charge extra for web services users).
 
@@ -60,7 +60,7 @@ These are the permissions required for this integration when exporting out-of-po
 - **Accounts Payable (All)** - Only required if exporting any expenses expenses as vendor bills
 
 # Step 1b: Create a web services user (Connecting with Role-based permissions)
-Note: If the steps in this section look different in your Sage Intacct instance, you likely use role-based permissions. If that’s the case, start with [Step 1a](https://github.com/Expensify/App/edit/main/docs/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct.md#step-1a-create-a-web-services-user-connecting-with-user-based-permissions).
+Note: If the steps in this section look different in your Sage Intacct instance, you likely use role-based permissions. If that’s the case, start with [Step 1a](https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct#step-1a-create-a-web-services-user-connecting-with-user-based-permissions).
 
 **First, you'll need to create the new role:**
 
