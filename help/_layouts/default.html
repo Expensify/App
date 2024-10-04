@@ -9,6 +9,9 @@
         body {
             display: flex;
             margin: 0;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+            background-color: #f9fafb;
+            color: #333;
         }
 
         /* Sidebar navigation for TOC */
@@ -18,16 +21,19 @@
             top: 0;
             bottom: 0;
             left: 0;
-            background-color: #f8f9fa;
+            background-color: #fff;
             padding: 20px;
             overflow-y: auto;
-            border-right: 1px solid #ddd;
+            border-right: 1px solid #eaecef;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
         /* Styling the TOC list */
         .toc-sidebar ul {
-            list-style: none; /* Remove bullet points */
+            list-style: none;
             padding-left: 0;
+            line-height: 1.8;
+            font-size: 15px;
         }
 
         .toc-sidebar li {
@@ -36,7 +42,7 @@
 
         .toc-sidebar a {
             text-decoration: none;
-            color: #007bff;
+            color: #0366d6;
         }
 
         .toc-sidebar a:hover {
@@ -45,13 +51,43 @@
 
         /* Main content area */
         main {
-            margin-left: 270px; /* Make room for the TOC sidebar */
+            margin-left: 270px;
             padding: 20px;
             flex-grow: 1;
+            max-width: 900px;
+        }
+
+        main h1 {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        main h2 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        main h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        main p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
 
         .is-active-link {
             font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #586069;
         }
     </style>
 </head>
@@ -68,31 +104,7 @@
         {{ content }}
 
         <footer>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
-            <p>Footer content; should be at least one page to make sure TocBot can highlight the top header.</p>
+            <p>&copy; {{ site.time | date: "%Y" }} Your Company. All rights reserved.</p>
         </footer>
     </main>
 
@@ -101,8 +113,8 @@
         tocbot.init({
           tocSelector: '.js-toc',
           contentSelector: '.js-toc-content',
-          headingSelector: 'h1, h2, h3, h4, h5, h6', // Include all levels
-          collapseDepth: 3  // This ensures all levels are visible, without collapsing.
+          headingSelector: 'h1, h2, h3, h4, h5, h6',
+          collapseDepth: 3
         });
     </script>
 
