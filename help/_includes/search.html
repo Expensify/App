@@ -1,6 +1,6 @@
 <div id="search-container">
   <!-- Search Input styled as button -->
-  <input type="text" id="search-input-box" autocomplete="off" placeholder="Search..." />
+  <input type="text" id="search-input-box" placeholder="Search..." />
 
   <!-- Search Modal -->
   <div id="search-modal" style="display:none;">
@@ -9,7 +9,7 @@
       <input type="text" id="search-input" placeholder="Search..." />
       <button id="search-submit">Search</button>
       
-      <!-- Search results container -->
+      <!-- Search results container with tabindex to make it focusable -->
       <div id="search-results" tabindex="0"></div>
     </div>
   </div>
@@ -71,6 +71,7 @@
     overflow-y: auto;
     border-top: 1px solid #eaecef;
     padding-top: 10px;
+    outline: none; /* Disable the strong outline */
   }
 
   .search-result {
@@ -99,6 +100,18 @@
   .highlight {
     background-color: #eaecef;
   }
+
+  /* Softer focus style for search results */
+  #search-results:focus {
+    border: 2px solid #ddd; /* Softer border on focus */
+    outline: none;
+  }
+
+  /* Soft yellow highlight for selected section */
+  .highlight-section {
+    background-color: #fffbcc;
+    transition: background-color 0.3s ease;
+  }
 </style>
 
 <!-- FlexSearch CDN -->
@@ -107,6 +120,7 @@
 <!-- JavaScript for modal and search -->
 <script>
   let currentSelectionIndex = -1;
+  let highlightedSection = null;
 
   // Open and close modal
   const searchInputBox = document.getElementById('search-input-box');
@@ -276,7 +290,23 @@
 
     if (tocLink) {
       tocLink.click(); // Simulate a click on the TOC link for smooth scroll
+      highlightSelectedSection(elementId); // Highlight the section in yellow
       closeModalAfterClick();
+    }
+  }
+
+  // Highlight the selected section
+  function highlightSelectedSection(sectionId) {
+    // Remove the previous highlight, if any
+    if (highlightedSection) {
+      highlightedSection.classList.remove('highlight-section');
+    }
+
+    // Highlight the new section
+    const sectionElement = document.getElementById(sectionId);
+    if (sectionElement) {
+      sectionElement.classList.add('highlight-section');
+      highlightedSection = sectionElement;
     }
   }
 
