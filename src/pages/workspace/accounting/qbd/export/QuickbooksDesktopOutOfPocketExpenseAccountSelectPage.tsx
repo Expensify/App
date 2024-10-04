@@ -120,7 +120,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             onSelectRow={selectExportAccount}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title={title}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
