@@ -260,7 +260,7 @@ function getSynchronizationErrorMessage(
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <TextLink
                         style={[styles?.link, styles?.fontSizeLabel]}
@@ -273,17 +273,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
-    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (
-            !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
-        ) {
-            return syncError;
-        }
-        return;
-    }
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
