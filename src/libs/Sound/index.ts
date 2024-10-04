@@ -34,7 +34,7 @@ const initializeAndPlaySound = (src: string) => {
             Log.alert('[sound] Load error:', {message: (error as Error).message});
         },
         onplayerror: (id, error) => {
-            Log.hmmm('[sound] Play error:', {message: (error as Error).message});
+            Log.alert('[sound] Play error:', {message: (error as Error).message});
         },
     });
 
