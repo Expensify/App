@@ -339,7 +339,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             acc[taxID] = {
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
-                                isDisabled: policyTaxRates?.[taxID].isDisabled,
+                                isDisabled: policyTaxRates?.[taxID]?.isDisabled,
                             };
                             return acc;
                         }, {}),

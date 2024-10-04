@@ -391,7 +391,7 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
                                 acc[tagName] = {
                                     pendingAction: null,
                                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.deleteFailureMessage'),
-                                    enabled: policyTag?.tags[tagName].enabled,
+                                    enabled: policyTag?.tags[tagName]?.enabled,
                                 };
                                 return acc;
                             }, {}),
