@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import Computer from '@assets/images/computer.svg';
+import Computer from '@assets/images/laptop-with-monitor-lines.svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,15 +34,16 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
             <View style={[styles.flex1]}>
-                <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
-                    <ImageSVG src={Computer} />
+                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                    <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
+                        <ImageSVG src={Computer} />
+                    </View>
+
+                    <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.ph6]}>{translate('workspace.qbd.requiredSetupDevice.title')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.p4]}>{translate('workspace.qbd.requiredSetupDevice.body1')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.p4]}>{translate('workspace.qbd.requiredSetupDevice.body2')}</Text>
                 </View>
-
-                <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.ph6]}>{translate('workspace.qbd.requiredSetupDevice.title')}</Text>
-                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.p4]}>{translate('workspace.qbd.requiredSetupDevice.body1')}</Text>
-                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.p4]}>{translate('workspace.qbd.requiredSetupDevice.body2')}</Text>
-
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter>
                     <Button
                         success
                         text={translate('common.buttonConfirm')}
