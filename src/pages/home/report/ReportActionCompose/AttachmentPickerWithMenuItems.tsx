@@ -12,6 +12,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -120,6 +121,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -168,10 +170,58 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        let list: PopoverMenuItem[] = ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
+
+        if (canUseCombinedTrackSubmit) {
+            const trackOnlyCreateExpense = {
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
+            };
+
+            const submitOnlyCreateExpense = {
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
+            };
+
+            if (list.some((option) => options[CONST.IOU.TYPE.TRACK].text === option.text) && list.some((option) => options[CONST.IOU.TYPE.SUBMIT].text === option.text)) {
+                list = list.reduce((acc, item) => {
+                    if (item.text === translate('iou.submitExpense')) {
+                        acc.push(submitOnlyCreateExpense);
+                    } else if (item.text !== translate('iou.trackExpense')) {
+                        acc.push(item);
+                    }
+
+                    return acc;
+                }, [] as PopoverMenuItem[]);
+            } else if (list.some((option) => options[CONST.IOU.TYPE.TRACK].text === option.text)) {
+                list = list.reduce((acc, item) => {
+                    if (item.text === translate('iou.trackExpense')) {
+                        acc.push(trackOnlyCreateExpense);
+                    } else {
+                        acc.push(item);
+                    }
+
+                    return acc;
+                }, [] as PopoverMenuItem[]);
+            } else if (list.some((option) => options[CONST.IOU.TYPE.SUBMIT].text === option.text)) {
+                list = list.reduce((acc, item) => {
+                    if (item.text === translate('iou.submitExpense')) {
+                        acc.push(submitOnlyCreateExpense);
+                    } else {
+                        acc.push(item);
+                    }
+
+                    return acc;
+                }, [] as PopoverMenuItem[]);
+            }
+        }
+
+        return list;
+    }, [translate, canUseCombinedTrackSubmit, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
      * Determines if we can show the task option
