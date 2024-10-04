@@ -83,6 +83,11 @@
             font-weight: bold;
         }
 
+        /* Spacer at the bottom for scrolling */
+        .scroll-spacer {
+            height: 300px; /* Adjust this value if more space is needed */
+        }
+
         /* Footer */
         footer {
             margin-top: 40px;
@@ -102,6 +107,9 @@
     <!-- Main Content -->
     <main class="js-toc-content">
         {{ content }}
+
+        <!-- Spacer div for scrolling -->
+        <div class="scroll-spacer"></div>
 
         <footer>
             <p>&copy; {{ site.time | date: "%Y" }} Your Company. All rights reserved.</p>
