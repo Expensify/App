@@ -43,8 +43,8 @@ Copilots **cannot** add additional Copilots.
 2. Click **Security**
 3. Under Copilot: Delegated Access, click the three vertical dots next to the Copilot you'd like to change, then click **Change access level**
 4. Select **Full** or **Limited** access
-    a. **Full Access**: Grants access to take any actions in your account that you can take. This includes chat, submissions, approvals, payments, and settings. All Copilots (both Full and Limited access) are prevented from adding additional Copilots.
-    b. **Limited Access**: Limited access excludes approvals, payments, rejections, and holds.
+    - **Full Access**: Grants access to take any actions in your account that you can take. This includes chat, submissions, approvals, payments, and settings. All Copilots (both Full and Limited access) are prevented from adding additional Copilots.
+    - **Limited Access**: Limited access excludes approvals, payments, rejections, and holds.
 
 # Act as a Copilot
 
