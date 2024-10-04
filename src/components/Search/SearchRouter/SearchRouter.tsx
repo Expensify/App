@@ -23,13 +23,16 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
 
 const SEARCH_DEBOUNCE_DELAY = 150;
 
-function SearchRouter() {
+type SearchRouterProps = {
+    onRouterClose: () => void;
+};
+
+function SearchRouter({onRouterClose}: SearchRouterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -37,7 +40,6 @@ function SearchRouter() {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const listRef = useRef<SelectionListHandle>(null);
 
     const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
@@ -90,15 +92,6 @@ function SearchRouter() {
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
 
-    useEffect(() => {
-        if (!textInputValue && isSearchRouterDisplayed) {
-            return;
-        }
-        listRef.current?.updateAndScrollToFocusedIndex(0);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSearchRouterDisplayed]);
-
     const contextualReportData = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
 
     const clearUserQuery = () => {
@@ -135,40 +128,43 @@ function SearchRouter() {
     };
 
     const closeAndClearRouter = useCallback(() => {
-        closeSearchRouter();
+        onRouterClose();
         clearUserQuery();
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [closeSearchRouter]);
+    }, [onRouterClose]);
 
     const onSearchSubmit = useCallback(
         (query: SearchQueryJSON | undefined) => {
             if (!query) {
                 return;
             }
-            closeSearchRouter();
+            onRouterClose();
             const queryString = SearchUtils.buildSearchQueryString(query);
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: queryString}));
             clearUserQuery();
         },
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [closeSearchRouter],
+        [onRouterClose],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
-        closeSearchRouter();
+        onRouterClose();
         clearUserQuery();
     });
 
     const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
 
     return (
-        <View style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}>
+        <View
+            style={[styles.flex1, modalWidth, styles.h100, !isSmallScreenWidth && styles.mh85vh]}
+            testID={SearchRouter.displayName}
+        >
             {isSmallScreenWidth && (
                 <HeaderWithBackButton
                     title={translate('common.search')}
-                    onBackButtonPress={() => closeSearchRouter()}
+                    onBackButtonPress={() => onRouterClose()}
                 />
             )}
             <SearchRouterInput

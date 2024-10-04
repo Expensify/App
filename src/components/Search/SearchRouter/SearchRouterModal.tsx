@@ -20,7 +20,7 @@ function SearchRouterModal() {
             popoverAnchorPosition={{right: 20, top: 20}}
             onClose={closeSearchRouter}
         >
-            <FocusTrapForModal active={isSearchRouterDisplayed}>{isSearchRouterDisplayed && <SearchRouter />}</FocusTrapForModal>
+            <FocusTrapForModal active={isSearchRouterDisplayed}>{isSearchRouterDisplayed && <SearchRouter onRouterClose={closeSearchRouter} />}</FocusTrapForModal>
         </Modal>
     );
 }
