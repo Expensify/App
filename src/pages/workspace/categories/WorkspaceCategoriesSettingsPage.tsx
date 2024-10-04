@@ -73,7 +73,9 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         if (!selectedCategory.keyForList || !groupID) {
             return;
         }
-        Policy.setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
+        if (categoryID !== selectedCategory.keyForList) {
+            Policy.setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
+        }
         setIsSelectorModalVisible(false);
     };
 
