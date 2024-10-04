@@ -55,10 +55,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.15.1'
+          working-directory: ./help
 
       # Wil install the _help/package.js
       - name: Install Node.js Dependencies
         run: npm install
+        with:
+          working-directory: ./help
 
       # Manually run Jekyll, bypassing Github Pages
       - name: Build Jekyll site
