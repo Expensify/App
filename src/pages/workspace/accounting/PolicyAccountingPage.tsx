@@ -223,26 +223,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
                           },
                       };
-            // case CONST.POLICY.CONNECTIONS.NAME.QBD:
-            //     return !sageIntacctEntityList.length
-            //         ? {}
-            //         : {
-            //                 description: translate('workspace.intacct.entity'),
-            //                 iconRight: Expensicons.ArrowRight,
-            //                 title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
-            //                 wrapperStyle: [styles.sectionMenuItemTopDescription],
-            //                 titleStyle: styles.fontWeightNormal,
-            //                 shouldShowRightIcon: true,
-            //                 shouldShowDescriptionOnTop: true,
-            //                 pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
-            //                 brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            //                 onPress: () => {
-            //                     if (!sageIntacctEntityList.length) {
-            //                         return;
-            //                     }
-            //                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
-            //                 },
-            //             };
             default:
                 return undefined;
         }

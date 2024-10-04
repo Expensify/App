@@ -51,7 +51,7 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NET_DOT_QBD) || canUseAllBetas(betas);
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
 }
 
 /**

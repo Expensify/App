@@ -474,7 +474,7 @@ const CONST = {
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
-        NET_DOT_QBD: 'quickbooksDesktopOnNewDot',
+        NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
