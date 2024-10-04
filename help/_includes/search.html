@@ -1,6 +1,6 @@
 <div id="search-container">
-  <!-- Search Button -->
-  <button id="search-button">Search</button>
+  <!-- Search Input styled as button -->
+  <input type="text" id="search-input-box" placeholder="Search..." />
 
   <!-- Search Modal -->
   <div id="search-modal" style="display:none;">
@@ -17,11 +17,14 @@
 
 <!-- Modal and Search Styling -->
 <style>
-  /* Style for search button */
-  #search-button {
+  /* Style for search input box (replaces button) */
+  #search-input-box {
     padding: 8px 16px;
     font-size: 16px;
     cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 250px;
   }
 
   /* Modal background */
@@ -45,6 +48,7 @@
     width: 60%;
     max-width: 600px;
     position: relative;
+    border-radius: 5px;
   }
 
   /* Close button */
@@ -53,6 +57,8 @@
     top: 10px;
     right: 10px;
     cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
   }
 
   /* Search results */
@@ -79,34 +85,37 @@
   }
 </style>
 
-<!-- Include FlexSearch from a CDN -->
+<!-- FlexSearch CDN -->
 <script src="https://cdn.jsdelivr.net/npm/flexsearch@0.7.31/dist/flexsearch.bundle.js"></script>
 
 <!-- JavaScript for modal and search -->
 <script>
   // Open and close modal
-  const searchButton = document.getElementById('search-button');
+  const searchInputBox = document.getElementById('search-input-box');
   const searchModal = document.getElementById('search-modal');
   const closeModal = document.getElementById('close-modal');
+  const searchResults = document.getElementById('search-results');
 
-  searchButton.addEventListener('click', function() {
-    searchModal.style.display = 'block';
+  // Open modal when search input is clicked
+  searchInputBox.addEventListener('click', function() {
+    searchModal.style.display = 'flex';
   });
 
+  // Close modal when close button is clicked
   closeModal.addEventListener('click', function() {
     searchModal.style.display = 'none';
   });
 
-  window.onclick = function(event) {
+  // Close modal when clicking outside of modal content
+  window.addEventListener('click', function(event) {
     if (event.target == searchModal) {
       searchModal.style.display = 'none';
     }
-  };
+  });
 
   // Perform search when search button is clicked
   const searchSubmit = document.getElementById('search-submit');
-  const searchResults = document.getElementById('search-results');
-
+  
   searchSubmit.addEventListener('click', async function() {
     const query = document.getElementById('search-input').value.trim().toLowerCase();
     searchResults.innerHTML = '';
@@ -120,16 +129,6 @@
     console.log('Loading search index from:', '/searchIndex.json');
     const response = await fetch('/searchIndex.json');
     const indexData = await response.json();
-
-    // Log the number of elements in the index and the total size
-    if (indexData && Object.keys(indexData).length > 0) {
-        const elementCount = Object.keys(indexData).length;
-        const indexSize = JSON.stringify(indexData).length;
-        console.log(`Loaded search index successfully. Number of elements: ${elementCount}, Index size: ${indexSize} characters.`);
-    } else {
-        console.warn('Warning: Loaded search index, but it appears to be empty.');
-        return;
-    }
 
     const index = new FlexSearch.Document({
       document: {
@@ -160,7 +159,7 @@
             const contextAfter = doc.content.substring(searchTermIndex + query.length, Math.min(doc.content.length, searchTermIndex + query.length + 30));
             const searchResultHtml = `
               <div class="search-result">
-                <a href="${doc.url}" class="search-result-title">${doc.title}</a>
+                <a href="${doc.url}" class="search-result-title" onclick="closeModalAfterClick()">${doc.title}</a>
                 <div class="search-result-context">...${contextBefore}<strong>${query}</strong>${contextAfter}...</div>
               </div>
             `;
@@ -172,5 +171,10 @@
       searchResults.innerHTML = '<p>No results found.</p>';
     }
   });
+
+  // Close modal after clicking a search result
+  function closeModalAfterClick() {
+    searchModal.style.display = 'none';
+  }
 </script>
 
