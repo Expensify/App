@@ -618,6 +618,39 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
+/**
+ * Checks if a given report action corresponds to an actionable mention whisper.
+ * @param reportAction
+ */
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
+}
+
+/**
+ * Checks if a given report action corresponds to an actionable report mention whisper.
+ * @param reportAction
+ */
+function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER);
+}
+
+/**
+ * Checks whether an action is actionable track expense.
+ */
+function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
+}
+
+function isActionableWhisper(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER
+> {
+    return isActionableMentionWhisper(reportAction) || isActionableTrackExpense(reportAction) || isActionableReportMentionWhisper(reportAction);
+}
+
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
 const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
@@ -662,6 +695,11 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return true;
     }
 
+    // If action is actionable whisper and resolved by user, then we don't want to render anything
+    if (isActionableWhisper(reportAction) && getOriginalMessage(reportAction)?.resolution) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
@@ -677,24 +715,6 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
     return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
- * Checks whether an action is actionable track expense.
- *
- */
-function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
-}
-
-/**
- * Checks whether an action is actionable track expense and resolved.
- *
- */
-function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const originalMessage = getOriginalMessage(reportAction);
-    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
-    return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
 /**
@@ -715,8 +735,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
-        !isResolvedActionTrackExpense(reportAction)
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
 
@@ -1397,22 +1416,6 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
 }
 
 /**
- * Checks if a given report action corresponds to an actionable mention whisper.
- * @param reportAction
- */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
-}
-
-/**
- * Checks if a given report action corresponds to an actionable report mention whisper.
- * @param reportAction
- */
-function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER);
-}
-
-/**
  * Constructs a message for an actionable mention whisper report action.
  * @param reportAction
  * @returns the actionable mention whisper message.
@@ -1802,6 +1805,7 @@ export {
     getWhisperedTo,
     hasRequestFromCurrentAccount,
     isActionOfType,
+    isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
@@ -1834,7 +1838,6 @@ export {
     isReportActionAttachment,
     isReportActionDeprecated,
     isReportPreviewAction,
-    isResolvedActionTrackExpense,
     isReversedTransaction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
