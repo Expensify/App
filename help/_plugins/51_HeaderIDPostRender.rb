@@ -1,5 +1,5 @@
 require 'nokogiri'
-require 'cgi'  # Use CGI for URL encoding
+require 'cgi'
 
 module Jekyll
   class HeaderIDPostRender
@@ -20,32 +20,29 @@ module Jekyll
 
       # Parse the page's content for header elements
       doc = Nokogiri::HTML(page.output)
-      h1_id = ""
-      h2_id = ""
-      h3_id = ""
 
-      # Process all <h2>, <h3>, and <h4> elements
-      (2..4).each do |level|
-        doc.css("h#{level}").each do |header|
-          header_text = header.text.strip.downcase
-          header_id = CGI.escape(header_text.gsub(/\s+/, '-').gsub(/[^\w\-]/, ''))
+      # Create an array to store the prefix for each level of header (h2, h3, h4, etc.)
+      prefix = {}
 
-          puts "    Found h#{level}: '#{header_text}' -> ID: '#{header_id}'"
+      # Process all <h2>, <h3>, and <h4> elements in order
+      doc.css('h2, h3, h4').each do |header|
+        # Determine the level of the header (h2, h3, or h4)
+        level = header.name[1].to_i  # 'h2' -> 2, 'h3' -> 3, etc.
 
-          # Create hierarchical IDs by appending to the parent header IDs
-          if level == 2
-            h2_id = header_id
-            header['id'] = h2_id
-          elsif level == 3
-            h3_id = "#{h2_id}:#{header_id}"
-            header['id'] = h3_id
-          elsif level == 4
-            h4_id = "#{h3_id}:#{header_id}"
-            header['id'] = h4_id
-          end
+        # Generate the ID for the current header based on its text
+        header_text = header.text.strip.downcase
+        header_id = CGI.escape(header_text.gsub(/\s+/, '-').gsub(/[^\w\-]/, ''))
 
-          puts "    Assigned ID: #{header['id']}"
-        end
+        # Store the current header's ID in the prefix array
+        prefix[level] = header_id
+
+        # Construct the full hierarchical ID by concatenating IDs for all levels up to the current level
+        full_id = (2..level).map { |l| prefix[l] }.join(':')
+
+        # Assign the generated ID to the header element
+        header['id'] = full_id
+
+        puts "    Found h#{level}: '#{header_text}' -> ID: '#{full_id}'"
       end
 
       # Log the final output being written
