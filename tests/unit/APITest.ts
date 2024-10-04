@@ -43,6 +43,7 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
+
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
@@ -170,36 +171,38 @@ describe('APITests', () => {
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then requests should remain persisted until the xhr call is resolved
-                    expect(PersistedRequests.getAll().length).toEqual(2);
+                    expect(PersistedRequests.getAll().length).toEqual(1);
 
                     xhrCalls.at(0)?.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                     return waitForBatchedUpdates();
                 })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
+                    expect(PersistedRequests.getAll().length).toEqual(0);
+                    expect(PersistedRequests.getOngoingRequest()).toEqual(expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}));
 
                     // When a request fails it should be retried
                     xhrCalls.at(1)?.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
+                    // The ongoingRequest it is moving back to the persistedRequests queue
                     expect(PersistedRequests.getAll().length).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
-
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
                     return new Promise((resolve) => {
                         setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
                     }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
+                    // A new promise is created after the back off timer
                     // Finally, after it succeeds the queue should be empty
                     xhrCalls.at(2)?.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     expect(PersistedRequests.getAll().length).toEqual(0);
+                    expect(PersistedRequests.getOngoingRequest()).toBeNull();
                 })
         );
     });
@@ -555,7 +558,6 @@ describe('APITests', () => {
                 // THEN the queue should be stopped and there should be no more requests to run
                 expect(SequentialQueue.isRunning()).toBe(false);
                 expect(PersistedRequests.getAll().length).toBe(0);
-
                 // And our Write request should run before our non persistable one in a blocking way
                 const firstRequest = xhr.mock.calls.at(0);
                 const [firstRequestCommandName] = firstRequest ?? [];

@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
 import '@shopify/flash-list/jestSetup';
-import type * as RNAppLogs from 'react-native-app-logs';
 import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
@@ -75,8 +74,6 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
-
-jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
