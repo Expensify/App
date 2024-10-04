@@ -41,10 +41,10 @@ type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> &
     text: string;
     isCannedQuery: boolean;
     onSubmit: () => void;
-    onChange: (input: string) => void;
+    setValue: (input: string) => void;
 };
 
-function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, onChange}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, setValue}: HeaderWrapperProps) {
     const styles = useThemeStyles();
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
@@ -71,7 +71,7 @@ function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, onChange}
                 <View style={styles.pr5}>
                     <SearchRouterInput
                         value={text}
-                        setValue={onChange}
+                        setValue={setValue}
                         onSubmit={onSubmit}
                         updateSearch={() => {}}
                         isFullWidth
@@ -132,7 +132,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const {status, type} = queryJSON;
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
-    const [input, setInput] = useState(headerText);
+    const [inputValue, setInputValue] = useState(headerText);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -324,10 +324,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     };
 
     const onSubmit = () => {
-        if (!input) {
+        if (!inputValue) {
             return;
         }
-        const inputQueryJSON = SearchUtils.buildSearchQueryJSON(input);
+        const inputQueryJSON = SearchUtils.buildSearchQueryJSON(inputValue);
         if (inputQueryJSON) {
             const standardizedQuery = SearchUtils.standardizeQueryJSON(inputQueryJSON, cardList, reports, taxRates);
             const query = SearchUtils.buildSearchQueryString(standardizedQuery);
@@ -342,10 +342,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         <>
             <HeaderWrapper
                 icon={headerIcon}
-                text={input}
+                text={inputValue}
                 isCannedQuery={isCannedQuery}
                 onSubmit={onSubmit}
-                onChange={setInput}
+                setValue={setInputValue}
             >
                 {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu

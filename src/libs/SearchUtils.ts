@@ -749,6 +749,8 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[], deli
             ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
         ) {
             filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
