@@ -551,6 +551,7 @@ const SCREENS = {
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
         ROOT: 'Share_Root',
+        SHARE_DETAILS: 'Share_Details',
     },
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',

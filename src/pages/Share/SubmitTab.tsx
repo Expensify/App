@@ -13,10 +13,10 @@ import type {Participant} from '@src/types/onyx/IOU';
 // type ShareTabProps = ShareTabOnyxProps;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function SubmitTab({transaction}: {transaction: OnyxEntry<Transaction>}) {
+function SubmitTab() {
     const optimisticReportID = ReportUtils.generateReportID();
     const selectedReportID = useRef(optimisticReportID);
-    const numberOfParticipants = useRef(transaction?.participants?.length);
+    // const numberOfParticipants = useRef(transaction?.participants?.length);
 
     // const goToNextStep = useCallback(() => {
     //     const nextStepIOUType = numberOfParticipants.current === 1 ? CONST.IOU.TYPE.REQUEST : CONST.IOU.TYPE.SPLIT;
@@ -47,7 +47,7 @@ function SubmitTab({transaction}: {transaction: OnyxEntry<Transaction>}) {
 
     return (
         <MoneyRequestParticipantsSelector
-            participants={transaction?.participants ?? []}
+            // participants={transaction?.participants ?? []}
             iouType={CONST.IOU.TYPE.SUBMIT}
             onFinish={function (value?: string | undefined): void {
                 throw new Error('Function not implemented.');

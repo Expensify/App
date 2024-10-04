@@ -504,6 +504,9 @@ const ONYXKEYS = {
 
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
+
+        /** Temporary files to be shared from outside the app */
+        TEMP_SHARE_FILES: 'tempShareFiles_',
     },
 
     /** List of Form ids */
@@ -837,6 +840,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: string;
+    [ONYXKEYS.COLLECTION.TEMP_SHARE_FILES]: OnyxTypes.TempShareFile;
 };
 
 type OnyxValuesMapping = {

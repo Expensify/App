@@ -18,7 +18,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 // type ShareTabProps = ShareTabOnyxProps;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function ShareTab({transaction}: {transaction: OnyxEntry<Transaction>}) {
+function ShareTab() {
     const optimisticReportID = ReportUtils.generateReportID();
     const selectedReportID = useRef(optimisticReportID);
     // const transactionID = route.params.transactionID ?? 0;
@@ -51,17 +51,12 @@ function ShareTab({transaction}: {transaction: OnyxEntry<Transaction>}) {
     //     [optimisticReportID, transactionID],
     // );
 
-    console.log('PARTICIPANTS ', transaction);
     return (
         <MoneyRequestParticipantsSelector
-            participants={transaction?.participants ?? []}
+            // participants={transaction?.participants ?? []}
             iouType={CONST.IOU.TYPE.SUBMIT}
-            onFinish={function (value?: string | undefined): void {
-                throw new Error('Function not implemented.');
-            }}
-            onParticipantsAdded={function (value: Participant[]): void {
-                throw new Error('Function not implemented.');
-            }}
+            onFinish={() => console.warn('TEST')}
+            onParticipantsAdded={() => console.warn('ADDED')}
             iouRequestType="manual"
             action="create" // isScanRequest
         />
