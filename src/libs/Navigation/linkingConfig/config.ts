@@ -926,6 +926,32 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: {
+                    screens: {
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
+                            path: ROUTES.EXPENSIFY_CARD_DETAILS.route,
+                        },
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME]: {
+                            path: ROUTES.EXPENSIFY_CARD_NAME.route,
+                        },
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT]: {
+                            path: ROUTES.EXPENSIFY_CARD_LIMIT.route,
+                        },
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
+                            path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: {
+                    screens: {
+                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: {
+                            path: ROUTES.SETTINGS_DOMAINCARD_DETAIL.route,
+                        },
+                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
+                            path: ROUTES.SETTINGS_DOMAINCARD_REPORT_FRAUD.route,
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
                     screens: {
                         [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
