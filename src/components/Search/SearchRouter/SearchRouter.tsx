@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/prefer-at */
 import {useNavigationState} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
