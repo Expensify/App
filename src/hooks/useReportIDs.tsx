@@ -43,7 +43,8 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
         Object.values(reportActions)
             .filter(Boolean)
             .map((reportAction) => {
-                const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
+                const {reportActionID, actionName, errors = []} = reportAction;
+                const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
                 const message = ReportActionsUtils.getReportActionMessage(reportAction);
                 const decision = message?.moderationDecision?.decision;
 
