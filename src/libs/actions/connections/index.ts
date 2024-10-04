@@ -3,7 +3,7 @@ import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, SyncConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -163,6 +163,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.QBD: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
+        }
         default:
             return undefined;
     }
@@ -173,8 +176,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
  *
  * @param policyID - ID of the policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
+ * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
-function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined) {
+function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
     if (!connectionName) {
         return;
     }
@@ -203,17 +207,19 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    API.read(
-        syncConnectionData.readCommand,
-        {
-            policyID,
-            idempotencyKey: policyID,
-        },
-        {
-            optimisticData,
-            failureData,
-        },
-    );
+    const parameters: SyncConnectionParams = {
+        policyID,
+        idempotencyKey: policyID,
+    };
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
+        parameters.forceDataRefresh = forceDataRefresh;
+    }
+
+    API.read(syncConnectionData.readCommand, parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
