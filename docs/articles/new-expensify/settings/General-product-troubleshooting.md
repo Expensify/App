@@ -5,7 +5,7 @@ description: How to troubleshoot a website issue
 <!-- The lines above are required by Jekyll to process the .md file -->
 
 # Issues with a specific feature
-If you're having issues with a specific feature, please reffer to the corresponding section of the help docs for detailed explinations of common errors and troubleshooting steps. If you cannot find an answer to your question, please reach out to Concierge via the app or by emailing us at concierge@expensify.com.
+If you're having issues with a specific feature, please reffer to the corresponding section of the help docs for detailed explinations of common errors and troubleshooting steps. If you cannot find an answer to your question, please reach out to Concierge via in-product chat or by emailing us at concierge@expensify.com.
 
 # Troubleshooting local issues
 Is your webpage not loading? Try these steps:
