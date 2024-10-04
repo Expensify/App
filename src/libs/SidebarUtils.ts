@@ -51,6 +51,7 @@ Onyx.connect({
 
         const reportAction = reportActionsForDisplay.at(-1);
         if (!reportAction) {
+            delete visibleReportActionItems[reportID];
             return;
         }
         visibleReportActionItems[reportID] = reportAction;
