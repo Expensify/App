@@ -41,6 +41,7 @@ on:
         description: Git ref to checkout and build
         required: true
         type: string
+
       pull_request_number:
         description: The pull request number associated with this build, if relevant.
         type: number
