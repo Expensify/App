@@ -5268,8 +5268,9 @@ const styles = (theme: ThemeColors) =>
             left: 12,
         },
         qbdSetupLinkBox: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.hoverComponentBG,
+            borderRadius: variables.componentBorderRadiusMedium,
+            borderColor: theme.border,
             padding: 16,
         },
     } satisfies Styles);

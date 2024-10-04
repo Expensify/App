@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Computer from '@assets/images/computer.svg';
+import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
@@ -56,8 +56,8 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
-            <View style={[styles.flex1, styles.ph6]}>
-                <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
+            <View style={[styles.flex1, styles.ph5]}>
+                <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
                     <ImageSVG src={Computer} />
                 </View>
 
@@ -66,7 +66,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                     <CopyTextToClipboard
                         text={codatSetupLink}
-                        textStyles={[styles.colorMuted]}
+                        textStyles={[styles.textSupporting]}
                     />
                 </View>
                 <FixedFooter style={[styles.mtAuto]}>

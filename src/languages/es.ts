@@ -2963,7 +2963,7 @@ const translations = {
             },
             setupPage: {
                 title: 'Open this link to connect',
-                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running',
+                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
             },
         },
         type: {
