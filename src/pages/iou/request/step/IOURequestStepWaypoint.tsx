@@ -269,7 +269,7 @@ export default withWritableReportOrNotFound(
                                     lat: waypoint.lat ?? 0,
                                     lng: waypoint.lng ?? 0,
                                     latitude: waypoint.lat ?? 0,
-                                    longtitude: waypoint.lng ?? 0,
+                                    longitude: waypoint.lng ?? 0,
                                 },
                             },
                         })),
