@@ -5,7 +5,6 @@ import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickBooksDesktop from '@libs/actions/connections/QuickBooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import LoadingPage from '@pages/LoadingPage';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -42,7 +42,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     }, []);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator />;
+        return <LoadingPage title={translate('workspace.qbd.qbdSetup')} />;
     }
 
     return (
