@@ -289,9 +289,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(
-                    ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction),
-                ).toBe('submitted $1.69');
+                expect(ReportUtils.getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
             });
         });
     });
