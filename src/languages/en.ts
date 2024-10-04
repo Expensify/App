@@ -2342,6 +2342,10 @@ const translations = {
                 }
             },
         },
+        qbd: {
+            exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
+            exportOutOfPocketExpensesCheckToogle: 'Mark checks as “print later”',
+        },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
             classes: 'Classes',
