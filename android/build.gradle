@@ -16,8 +16,6 @@ buildscript {
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
-
-        REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
     }
     repositories {
         google()
@@ -44,10 +42,6 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
-
-            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
-            force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
-
             //Fix Investigate App Crash MainActivity.onCreate #35655
             force "com.facebook.soloader:soloader:0.10.4+"
 
