@@ -3556,6 +3556,8 @@ const translations = {
                             return 'Importando datos desde Xero';
                         case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
+                        case 'startingImportQBD':
+                            return 'Importing QuickBooks Desktop data';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncLoadData':
