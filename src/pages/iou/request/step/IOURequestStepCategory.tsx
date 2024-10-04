@@ -93,7 +93,8 @@ function IOURequestStepCategory({
     };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
-    const shouldShowEmptyState = !isLoading && !shouldShowCategory;
+    const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
+    const shouldShowOfflineView = policyCategories === undefined && isOffline;
 
     useEffect(() => {
         fetchData();
@@ -150,37 +151,36 @@ function IOURequestStepCategory({
                     color={theme.spinner}
                 />
             )}
+            {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
             {shouldShowEmptyState && (
-                <FullPageOfflineBlockingView>
-                    <View style={[styles.flex1]}>
-                        <WorkspaceEmptyStateSection
-                            shouldStyleAsCard={false}
-                            icon={Illustrations.EmptyStateExpenses}
-                            title={translate('workspace.categories.emptyCategories.title')}
-                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
-                        />
-                        {PolicyUtils.isPolicyAdmin(policy) && (
-                            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                                <Button
-                                    large
-                                    success
-                                    style={[styles.w100]}
-                                    onPress={() =>
-                                        Navigation.navigate(
-                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                                policy?.id ?? '-1',
-                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                            ),
-                                        )
-                                    }
-                                    text={translate('workspace.categories.editCategories')}
-                                    pressOnEnter
-                                />
-                            </FixedFooter>
-                        )}
-                    </View>
-                </FullPageOfflineBlockingView>
+                <View style={[styles.flex1]}>
+                    <WorkspaceEmptyStateSection
+                        shouldStyleAsCard={false}
+                        icon={Illustrations.EmptyStateExpenses}
+                        title={translate('workspace.categories.emptyCategories.title')}
+                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                    />
+                    {PolicyUtils.isPolicyAdmin(policy) && (
+                        <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                            <Button
+                                large
+                                success
+                                style={[styles.w100]}
+                                onPress={() =>
+                                    Navigation.navigate(
+                                        ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                            policy?.id ?? '-1',
+                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                        ),
+                                    )
+                                }
+                                text={translate('workspace.categories.editCategories')}
+                                pressOnEnter
+                            />
+                        </FixedFooter>
+                    )}
+                </View>
             )}
             {!shouldShowEmptyState && !isLoading && (
                 <>
