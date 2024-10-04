@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,7 +14,6 @@ import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 import SignInPage from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
-import { waitForIdle } from '@libs/Network/SequentialQueue';
 
 type SignInModalOnyxProps = {
     session: OnyxEntry<Session>;
@@ -33,7 +33,7 @@ function SignInModal({session}: SignInModalProps) {
             Navigation.isNavigationReady().then(() => Navigation.dismissModal());
             waitForIdle().then(() => {
                 App.openApp();
-            })
+            });
         }
     }, [session?.authTokenType]);
 
