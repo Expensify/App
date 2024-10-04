@@ -203,61 +203,73 @@ jobs:
           name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
-  iOS:
-    name: Build and deploy iOS
+  buildIOS:
+    name: Build iOS app
+    uses: ./.github/workflows/buildIOS.yml
+    if: ${{ github.ref == 'refs/heads/staging' }}
     needs: prep
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    runs-on: macos-13-xlarge
+    secrets: inherit
+    with:
+      type: release
+      ref: staging
+
+  uploadIOS:
+    name: Upload iOS App to TestFlight
+    needs: buildIOS
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
 
-      - name: Cache Pod dependencies
-        uses: actions/cache@v4
-        id: pods-cache
+      - name: Decrypt App Store Connect API key
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Download iOS build artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+          path: /tmp/artifacts
+          pattern: ios-artifact-*
+          merge-multiple: true
 
-      - name: Compare Podfile.lock and Manifest.lock
-        id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+      - name: Log downloaded artifact paths
+        run: ls -R /tmp/artifacts
 
-      - name: Install cocoapods
-        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
+      - name: Upload iOS app to TestFlight
+        run: bundle exec fastlane ios upload_testflight
+        env:
+          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
+          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
+          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
+          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+          ipaPath: /tmp/artifacts/${{ needs.buildIOS.outputs.IPA_FILE_NAME }}
+          dsymPath: /tmp/artifacts/${{ needs.buildIOS.outputs.DSYM_FILE_NAME }}
+
+      - name: Upload iOS build to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildIOS.outputs.IPA_FILE_NAME }}"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+  submitIOS:
+    name: Submit iOS app for Apple review
+    needs: prep
+    if: ${{ github.ref == 'refs/heads/production' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: scripts/pod-install.sh
-
-      - name: Decrypt AppStore profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt AppStore Notification Service profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt certificate
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          bundler-cache: true
 
       - name: Decrypt App Store Connect API key
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
@@ -268,47 +280,13 @@ jobs:
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
 
-      - name: Build iOS release app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios build
-
-      - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_testflight
-        env:
-          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
-
       - name: Submit build for App Store review
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios submit_for_review
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
 
-      - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload iOS sourcemaps artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-sourcemaps-artifact
-          path: ./main.jsbundle.map
-
-      - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build-artifact
-          path: /Users/runner/work/App/App/New\ Expensify.ipa
-
       - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ failure() }}
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -411,7 +389,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, buildIOS, uploadIOS, submitIOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -437,7 +415,7 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web]
+    needs: [buildAndroid, uploadAndroid, submitAndroid, desktop, buildIOS, uploadIOS, submitIOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
@@ -445,18 +423,19 @@ jobs:
         run: |
           isAtLeastOnePlatformDeployed="false"
           if [ ${{ github.ref }} == 'refs/heads/production' ]; then
-            if [ "${{ needs.submitAndroid.result }}" == "success" ]; then
+            if [ '${{ needs.submitAndroid.result }}' == 'success' ] || \
+               [ '${{ needs.submitIOS.result }}' == 'success' ]; then
               isAtLeastOnePlatformDeployed="true"
             fi
           else
-            if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
+            if [ '${{ needs.uploadAndroid.result }}' == 'success' ] || \
+               [ '${{ needs.uploadIOS.result }}' == 'success' ]; then
               isAtLeastOnePlatformDeployed="true"
             fi
           fi
-          
-          if [ "${{ needs.iOS.result }}" == "success" ] || \
-            [ "${{ needs.desktop.result }}" == "success" ] || \
-            [ "${{ needs.web.result }}" == "success" ]; then
+
+          if [ '${{ needs.desktop.result }}' == 'success' ] || \
+             [ '${{ needs.web.result }}' == 'success' ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
           echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
@@ -465,19 +444,20 @@ jobs:
       - name: Check deployment success on all platforms
         id: checkDeploymentSuccessOnAllPlatforms
         run: |
-          isAllPlatformsDeployed="false"
-          if [ "${{ needs.iOS.result }}" == "success" ] && \
-            [ "${{ needs.desktop.result }}" == "success" ] && \
-            [ "${{ needs.web.result }}" == "success" ]; then
+          isAllPlatformsDeployed='false'
+          if [ '${{ needs.desktop.result }}' == 'success' ] && \
+             [ '${{ needs.web.result }}' == 'success' ]; then
             isAllPlatformsDeployed="true"
           fi
 
           if [ ${{ github.ref }} == 'refs/heads/production' ]; then
-            if [ "${{ needs.submitAndroid.result }}" != "success" ]; then
+            if [ '${{ needs.submitAndroid.result }}' != 'success' ] || \
+               [ '${{ needs.submitIOS.result }}' != 'success' ]; then
               isAllPlatformsDeployed="false"
             fi
           else
-            if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
+            if [ '${{ needs.uploadAndroid.result }}' != 'success' ] || \
+               [ '${{ needs.uploadIOS.result }}' != 'success' ]; then
               isAllPlatformsDeployed="false"
             fi
           fi
@@ -488,7 +468,7 @@ jobs:
   createPrerelease:
     runs-on: ubuntu-latest
     if: ${{ always() && github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    needs: [prep, checkDeploymentSuccess, buildAndroid, buildIOS]
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
@@ -515,12 +495,12 @@ jobs:
         continue-on-error: true
         run: |
           gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber \
-            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./android-build-artifact/app-production-release.aab \
+            ./android-artifact-sourcemaps/index.android.bundle.map#android-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./android-artifact-aab/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }} \
             ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./desktop-staging-build-artifact/NewExpensify.dmg#NewExpensifyStaging.dmg \
-            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
-            ./ios-build-artifact/New\ Expensify.ipa \
+            ./ios-artifact-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
+            ./ios-artifact-ipa/${{ needs.buildIOS.outputs.IPA_FILE_NAME }} \
             ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap-${{ needs.prep.outputs.APP_VERSION }} \
             ./web-staging-build-tar-gz-artifact/webBuild.tar.gz#stagingWebBuild.tar.gz \
             ./web-staging-build-zip-artifact/webBuild.zip#stagingWebBuild.zip
@@ -601,7 +581,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, buildIOS, uploadIOS, submitIOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -655,11 +635,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, buildIOS, uploadIOS, submitIOS, desktop, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ github.ref == 'refs/heads/production' && needs.submitAndroid.result || needs.uploadAndroid.result }}
-      ios: ${{ needs.iOS.result }}
+      ios: ${{ github.ref == 'refs/heads/production' && needs.submitIOS.result || needs.uploadIOS.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}
