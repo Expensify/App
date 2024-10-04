@@ -330,6 +330,9 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding customized choices to display to the user based on their profile when signing up */
+    ONBOARDING_CUSTOM_CHOICES: 'onboardingCustomChoices',
+
     /** Onboarding error message to be displayed to the user */
     ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
 
@@ -419,6 +422,9 @@ const ONYXKEYS = {
 
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
+
+    /** Stores the information if user loaded the Onyx state through Import feature  */
+    IS_USING_IMPORTED_STATE: 'isUsingImportedState',
 
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
@@ -953,6 +959,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: OnboardingPurposeType;
+    [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnboardingPurposeType[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
@@ -993,9 +1000,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY]: boolean | undefined;
+    [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
 };
-
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 
 type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;

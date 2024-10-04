@@ -319,7 +319,6 @@ function BaseTextInput(
                 to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
-                                    isLabelActive={isLabelActive.current}
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
