@@ -1,0 +1,186 @@
+name: Build Android app
+
+on:
+  workflow_call:
+    inputs:
+      type:
+        description: 'What type of build to run. Must be one of ["release", "adhoc", "e2e", "e2eDelta"]'
+        type: string
+        required: true
+      ref:
+        description: Git ref to checkout and build
+        type: string
+        required: true
+      artifact-prefix:
+        description: 'The prefix for build artifact names. This is useful if you need to call multiple builds from the same workflow'
+        type: string
+        required: false
+        default: ''
+      pull_request_number:
+        description: The pull request number associated with this build, if relevant.
+        type: string
+        required: false
+    outputs:
+      AAB_FILE_NAME:
+        value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
+      APK_FILE_NAME:
+        value: ${{ jobs.build.outputs.APK_FILE_NAME }}
+
+  workflow_dispatch:
+    inputs:
+      type:
+        description: What type of build do you want to run?
+        required: true
+        type: choice
+        options:
+          - release
+          - adhoc
+          - e2e
+          - e2eDelta
+      ref:
+        description: Git ref to checkout and build
+        required: true
+        type: string
+
+      pull_request_number:
+        description: The pull request number associated with this build, if relevant.
+        type: number
+        required: false
+
+jobs:
+  build:
+    name: Build Android app
+    runs-on: ubuntu-latest-xl
+    env:
+      RUBYOPT: '-rostruct'
+    outputs:
+      AAB_FILE_NAME: ${{ steps.build.outputs.AAB_FILE_NAME }}
+      APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: oracle
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Decrypt keystore to sign the APK/AAB
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output my-upload-key.keystore my-upload-key.keystore.gpg
+        working-directory: android/app
+
+      - name: Get package version
+        id: getPackageVersion
+        run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Get Android native version
+        id: getAndroidVersion
+        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+
+      - name: Setup DotEnv
+        if: ${{ inputs.type != 'release' }}
+        run: |
+          if [ '${{ inputs.type }}' == 'adhoc' ]; then
+            cp .env.staging .env.adhoc
+            sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+            echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
+          else
+            envFile=''
+            if [ '${{ inputs.type }}' == 'e2e' ]; then
+              envFile='tests/e2e/.env.e2e'
+            else
+              envFile=tests/e2e/.env.e2edelta
+            fi
+            {
+              echo "EXPENSIFY_PARTNER_NAME=${{ secrets.EXPENSIFY_PARTNER_NAME }}"
+              echo "EXPENSIFY_PARTNER_PASSWORD=${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}"
+              echo "EXPENSIFY_PARTNER_USER_ID=${{ secrets.EXPENSIFY_PARTNER_USER_ID }}"
+              echo "EXPENSIFY_PARTNER_USER_SECRET=${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}"
+              echo "EXPENSIFY_PARTNER_PASSWORD_EMAIL=${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}"
+            } >> "$envFile"
+          fi
+
+      - name: Build Android app
+        id: build
+        run: |
+          lane=''
+          case '${{ inputs.type }}' in
+            'release')
+              lane='build';;
+            'adhoc')
+              lane='build_adhoc';;
+            'e2e')
+              lane='build_e2e';;
+            'e2eDelta')
+              lane='build_e2eDelta';;
+          esac
+          bundle exec fastlane android "$lane"
+
+          # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
+          # shellcheck disable=SC1090
+          source "$GITHUB_ENV"
+
+          SHOULD_UPLOAD_SOURCEMAPS='false'
+          if [ -f ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map ]; then
+            SHOULD_UPLOAD_SOURCEMAPS='true'
+          fi
+
+          {
+            # aabPath and apkPath are environment varibles set within the Fastfile
+            echo "AAB_PATH=$aabPath"
+            echo "AAB_FILE_NAME=$(basename "$aabPath")"
+            echo "APK_PATH=$apkPath"
+            echo "APK_FILE_NAME=$(basename "$apkPath")"
+            echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+
+      - name: Upload Android AAB artifact
+        if: ${{ steps.build.outputs.AAB_PATH != '' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-prefix }}android-artifact-aab
+          path: ${{ steps.build.outputs.AAB_PATH }}
+
+      - name: Upload Android APK artifact
+        if: ${{ steps.build.outputs.APK_PATH != '' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-prefix }}android-artifact-apk
+          path: ${{ steps.build.outputs.APK_PATH }}
+
+      - name: Upload Android sourcemaps artifact
+        if: ${{ steps.build.outputs.SHOULD_UPLOAD_SOURCEMAPS == 'true' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-prefix }}android-artifact-sourcemaps
+          path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
+
+      - name: Announce failure in slack
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

@@ -13,6 +13,7 @@ import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -122,6 +123,7 @@ function ReportActionCompose({
     const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -539,6 +541,11 @@ function ReportActionCompose({
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
                 </OfflineWithFeedback>
+                {!isSmallScreenWidth && (
+                    <View style={[styles.mln5, styles.mrn5]}>
+                        <ImportedStateIndicator />
+                    </View>
+                )}
             </View>
         </View>
     );
