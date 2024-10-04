@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -39,12 +39,13 @@ import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
     text: string;
+    value: string;
     isCannedQuery: boolean;
     onSubmit: () => void;
     setValue: (input: string) => void;
 };
 
-function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, setValue}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, text, value, isCannedQuery, onSubmit, setValue}: HeaderWrapperProps) {
     const styles = useThemeStyles();
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
@@ -70,7 +71,7 @@ function HeaderWrapper({icon, children, text, isCannedQuery, onSubmit, setValue}
             ) : (
                 <View style={styles.pr5}>
                     <SearchRouterInput
-                        value={text}
+                        value={value}
                         setValue={setValue}
                         onSubmit={onSubmit}
                         updateSearch={() => {}}
@@ -133,6 +134,10 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
     const [inputValue, setInputValue] = useState(headerText);
+
+    useEffect(() => {
+        setInputValue(headerText);
+    }, [headerText]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -342,7 +347,8 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         <>
             <HeaderWrapper
                 icon={headerIcon}
-                text={inputValue}
+                text={headerText}
+                value={inputValue}
                 isCannedQuery={isCannedQuery}
                 onSubmit={onSubmit}
                 setValue={setInputValue}
