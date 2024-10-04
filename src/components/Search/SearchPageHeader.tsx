@@ -20,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -334,12 +335,12 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
         const inputQueryJSON = SearchUtils.buildSearchQueryJSON(inputValue);
         if (inputQueryJSON) {
-            const standardizedQuery = SearchUtils.standardizeQueryJSON(inputQueryJSON, cardList, reports, taxRates);
+            const standardizedQuery = SearchUtils.standardizeQueryJSON(inputQueryJSON, cardList, taxRates);
             const query = SearchUtils.buildSearchQueryString(standardizedQuery);
             SearchActions.clearAllFilters();
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
         } else {
-            // Handle query parsing error
+            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, inputValue, false);
         }
     };
 

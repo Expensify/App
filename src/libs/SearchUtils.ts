@@ -740,7 +740,8 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
     return filter;
 }
 
-function buildFilterString(filterName: string, queryFilters: QueryFilter[], delimiter = ',') {
+function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
+    const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
@@ -750,7 +751,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[], deli
         ) {
             filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
@@ -795,7 +796,7 @@ function getSearchHeaderTitle(
                 value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
             }));
         }
-        title += buildFilterString(key, displayQueryFilters, key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',');
+        title += buildFilterString(key, displayQueryFilters);
     });
 
     return title;
@@ -842,7 +843,11 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
     ];
 }
 
-function findIDFromDisplayValue(filterName: string, filter: string | string[], cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>, taxRates: Record<string, string[]>) {
+/**
+ * @private
+ * Given a filter name and its value, this function will try to find the corresponding ID.
+ */
+function findIDFromDisplayValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[], cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         if (typeof filter === 'string') {
             const email = filter;
@@ -877,7 +882,10 @@ function findIDFromDisplayValue(filterName: string, filter: string | string[], c
     return filter;
 }
 
-function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>, taxRates: Record<string, string[]>) {
+/**
+ *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
+ */
+function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
     const standardQuery = cloneDeep(queryJSON);
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
@@ -890,8 +898,11 @@ function standardizeQueryJSON(queryJSON: SearchQueryJSON, cardList: OnyxTypes.Ca
         if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
-        // eslint-disable-next-line no-param-reassign
-        node.right = findIDFromDisplayValue(node.left as string, node.right as string | string[], cardList, reports, taxRates);
+
+        if (typeof node.left !== 'object') {
+            // eslint-disable-next-line no-param-reassign
+            node.right = findIDFromDisplayValue(node.left, node.right as string | string[], cardList, taxRates);
+        }
     };
 
     if (filters) {
