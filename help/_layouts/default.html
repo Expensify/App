@@ -97,12 +97,36 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
     <script>
-    tocbot.init({
-      tocSelector: '.js-toc',
-      contentSelector: '.js-toc-content',
-      headingSelector: 'h1, h2, h3, h4, h5, h6', // Include all levels
-      collapseDepth: 3  // This ensures all levels are visible, without collapsing.
-    });
+        tocbot.init({
+          tocSelector: '.js-toc',
+          contentSelector: '.js-toc-content',
+          headingSelector: 'h1, h2, h3, h4, h5, h6', // Include all levels
+          collapseDepth: 3  // This ensures all levels are visible, without collapsing.
+        });
+    </script>
+
+    <script>
+        window.addEventListener('scroll', function() {
+          const headings = document.querySelectorAll('h2, h3, h4');
+          let currentHeading = null;
+
+          for (const heading of headings) {
+            const rect = heading.getBoundingClientRect();
+            if (rect.top <= 10 && rect.bottom > 0) {
+              currentHeading = heading;
+              break;
+            }
+          }
+
+          if (currentHeading) {
+            const id = currentHeading.id;
+            if (history.pushState) {
+              history.replaceState(null, null, '#' + id);
+            } else {
+              location.hash = '#' + id;
+            }
+          }
+        });
     </script>
 </body>
 </html>
