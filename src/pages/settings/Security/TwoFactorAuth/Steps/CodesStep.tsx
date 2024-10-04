@@ -32,7 +32,7 @@ import type SCREENS from '@src/SCREENS';
 type CodesStepProps = BackToParams;
 
 function CodesStep({backTo}: CodesStepProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT)
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
