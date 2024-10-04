@@ -1234,6 +1234,15 @@ type QBDConnectionData = {
 type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** API provider */
     apiProvider: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+    autoSync: {
+        /** TODO: Will be handled in another issue */
+        jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
 }>;
 
 /** State of integration connection */

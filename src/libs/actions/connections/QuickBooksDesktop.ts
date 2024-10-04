@@ -9,4 +9,6 @@ function getQuickbooksDesktopCodatSetupLink(policyID: string) {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP, params);
 }
 
+// Disable because we will have more utils will be added in this file
+// eslint-disable-next-line import/prefer-default-export
 export {getQuickbooksDesktopCodatSetupLink};
