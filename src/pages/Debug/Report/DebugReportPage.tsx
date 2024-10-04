@@ -64,7 +64,7 @@ function DebugReportPage({
         const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
         const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
-        const hasRBR = SidebarUtils.isRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
+        const hasRBR = SidebarUtils.shouldShowRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
         const hasGBR = !hasRBR && !!reasonGBR;
 
         return [
