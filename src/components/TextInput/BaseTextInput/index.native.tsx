@@ -345,11 +345,11 @@ function BaseTextInput(
                                     !autoGrow && styles.flex1,
                                     !autoGrow && styles.w100,
                                     inputStyle,
-                                    (!hasLabel || isMultiline) && styles.pv0,
-                                    inputPaddingLeft,
+                                    // (!hasLabel || isMultiline) && styles.pv0,
+                                    // inputPaddingLeft,
                                     inputProps.secureTextEntry && styles.secureInput,
 
-                                    !isMultiline && {height, lineHeight: undefined},
+                                    // !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight
@@ -357,7 +357,7 @@ function BaseTextInput(
                                         : []),
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
-                                    styles.pointerEventsAuto,
+                                    // styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={maxLength}

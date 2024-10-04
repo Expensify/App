@@ -280,7 +280,7 @@ function MoneyRequestAmountForm(
                     }}
                     shouldKeepUserInput={shouldKeepUserInput}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
-                    inputStyle={[styles.iouAmountTextInput, {backgroundColor: 'orange'}]}
+                    inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
                 />
                 {!!formError && (
