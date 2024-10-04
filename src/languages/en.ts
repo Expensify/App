@@ -3464,6 +3464,7 @@ const translations = {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
+            reinstall: 'Reinstall connector',
             disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
