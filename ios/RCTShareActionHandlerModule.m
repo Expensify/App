@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import "RCTShareActionHandlerModule.h"
 #import <React/RCTLog.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 NSString *const ShareExtensionGroupIdentifier = @"group.com.expensify.new";
 NSString *const ShareExtensionFilesKey = @"sharedImages";
@@ -69,14 +70,26 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
     [imageFinalPaths addObject:srcImageAbsolutePath];
   }
   
-//   // Delete shared image folder
-//   if (![[NSFileManager defaultManager] removeItemAtPath:sharedImagesFolderPath error:&error]) {
-//       NSLog(@"Failed to delete shared image folder: %@, error: %@", sharedImagesFolderPath, error);
-//   }
+  NSMutableArray *imageObjectsArray = [[NSMutableArray alloc] init];
 
-  NSLog(@"handleShareAction TEST THREE %@", imageFinalPaths);
+  for (NSString *imagePath in imageFinalPaths) {
+      NSString *extension = [imagePath pathExtension];
 
-  callback(@[imageFinalPaths]);
+      UTType *type = [UTType typeWithFilenameExtension:extension conformingToType:UTTypeData];
+      NSString *mimeType = type.preferredMIMEType;
+
+      // If MIME type can't be inferred, set "application/octet-stream" as default
+      mimeType = mimeType ? mimeType : @"application/octet-stream";
+
+      NSDictionary *dict = @{
+        @"content" : imagePath,
+        @"mimeType" : mimeType
+      };
+
+      [imageObjectsArray addObject:dict];
+  }
+
+  callback(@[imageObjectsArray]);
 }
 
 @end

@@ -37,7 +37,7 @@ function ShareRootPage() {
         ShareActionHandlerModule.processFiles((processedFiles) => {
             // eslint-disable-next-line no-console
             console.log('PROCESSED FILES ', processedFiles);
-            setImageURIs(processedFiles);
+            // setImageURIs(processedFiles);
         });
     };
 
