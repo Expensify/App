@@ -51,6 +51,8 @@ function DebugReportPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`);
+    const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID ?? '-1'] : undefined;
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -60,7 +62,7 @@ function DebugReportPage({
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report);
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
         const reportActionRBR = DebugUtils.getRBRReportAction(report, reportActions);
-        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, undefined);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
         const hasRBR = SidebarUtils.isRedBrickRoad(report, reportActions, !!shouldDisplayViolations || shouldDisplayReportViolations, transactionViolations);
         const hasGBR = !hasRBR && !!reasonGBR;
@@ -92,21 +94,22 @@ function DebugReportPage({
             {
                 title: translate('debug.RBR'),
                 subtitle: translate(`debug.${hasRBR}`),
-                action: reportActionRBR
-                    ? {
-                          name: translate('common.view'),
-                          callback: () =>
-                              Navigation.navigate(
-                                  ROUTES.REPORT_WITH_ID.getRoute(
-                                      reportActionRBR.childReportID ?? reportActionRBR.parentReportID ?? report.reportID,
-                                      reportActionRBR.childReportID ? undefined : reportActionRBR.reportActionID,
+                action:
+                    hasRBR && reportActionRBR
+                        ? {
+                              name: translate('common.view'),
+                              callback: () =>
+                                  Navigation.navigate(
+                                      ROUTES.REPORT_WITH_ID.getRoute(
+                                          reportActionRBR.childReportID ?? reportActionRBR.parentReportID ?? report.reportID,
+                                          reportActionRBR.childReportID ? undefined : reportActionRBR.reportActionID,
+                                      ),
                                   ),
-                              ),
-                      }
-                    : undefined,
+                          }
+                        : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate]);
+    }, [parentReportAction, report, reportActions, reportID, transactionViolations, translate]);
 
     return (
         <ScreenWrapper
