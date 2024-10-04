@@ -213,7 +213,6 @@ function ReportActionItem({
         setHighlight(linkedReportActionID);
     }, [isReportActionLinked, linkedReportActionID, setHighlight]);
 
-
     useEffect(() => {
         if (!isReportActionLinked || !contextlinkedReportActionID) {
             return;
@@ -940,7 +939,7 @@ function ReportActionItem({
                 isDisabled={draftMessage !== undefined}
             >
                 {(hovered) => (
-                    <View style={(contextlinkedReportActionID && action.reportActionID && contextlinkedReportActionID === action.reportActionID) ? highlightedBackgroundColorIfNeeded : {}}>
+                    <View style={contextlinkedReportActionID && action.reportActionID && contextlinkedReportActionID === action.reportActionID ? highlightedBackgroundColorIfNeeded : {}}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         {shouldDisplayContextMenu && (
                             <MiniReportActionContextMenu
