@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -22,7 +22,6 @@ import localFileDownload from '@libs/localFileDownload';
 import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import type {BaseTwoFactorAuthFormOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
@@ -30,15 +29,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
+type CodesStepProps = BackToParams;
 
-function CodesStep({account, user, backTo}: CodesStepProps) {
+function CodesStep({backTo}: CodesStepProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT)
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
-    const isUserValidated = user?.validated;
+    const isUserValidated = account?.validated;
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const {setStep} = useTwoFactorAuthContext();
@@ -160,9 +160,4 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
 
 CodesStep.displayName = 'CodesStep';
 
-export default withOnyx<CodesStepProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(CodesStep);
+export default CodesStep;
