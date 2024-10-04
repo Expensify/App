@@ -237,7 +237,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight));
+        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0));
     };
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;

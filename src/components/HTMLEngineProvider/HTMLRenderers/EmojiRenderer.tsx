@@ -3,15 +3,15 @@ import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-ht
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function EmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
+function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const style = useMemo(() => {
         if ('islarge' in tnode.attributes) {
-            return styles.onlyEmojisText;
+            return [styleProp, styles.onlyEmojisText];
         }
 
         if ('ismedium' in tnode.attributes) {
-            return [styles.emojisWithTextFontSize, styles.verticalAlignTopText];
+            return [styleProp, styles.emojisWithTextFontSize, styles.verticalAlignTopText];
         }
 
         return null;

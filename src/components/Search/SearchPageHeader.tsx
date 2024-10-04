@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -35,59 +34,53 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import SearchButton from './SearchRouter/SearchButton';
+import SearchRouterInput from './SearchRouter/SearchRouterInput';
 import type {SearchQueryJSON} from './types';
 
-type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
-    subtitleStyles?: StyleProp<TextStyle>;
+type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'icon' | 'children'> & {
+    text: string;
+    isCannedQuery: boolean;
 };
 
-function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: HeaderWrapperProps) {
+function HeaderWrapper({icon, children, text, isCannedQuery}: HeaderWrapperProps) {
     const styles = useThemeStyles();
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
-
-    const middleContent = useMemo(() => {
-        return (
-            <Header
-                title={
-                    <Text
-                        style={[styles.mutedTextLabel, styles.pre]}
-                        numberOfLines={1}
-                    >
-                        {title}
-                    </Text>
-                }
-                subtitle={
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textLarge, subtitleStyles]}
-                    >
-                        {subtitle}
-                    </Text>
-                }
-            />
-        );
-    }, [styles.mutedTextLabel, styles.pre, styles.textLarge, subtitle, subtitleStyles, title]);
 
     return (
         <View
             dataSet={{dragArea: false}}
             style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                {icon && (
-                    <Icon
-                        src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+            {isCannedQuery ? (
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                    {icon && (
+                        <Icon
+                            src={icon}
+                            width={variables.iconHeader}
+                            height={variables.iconHeader}
+                            additionalStyles={[styles.mr2]}
+                        />
+                    )}
+                    <Header subtitle={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{text}</Text>} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
+                </View>
+            ) : (
+                <View style={styles.pr5}>
+                    <SearchRouterInput
+                        value={text}
+                        setValue={() => {}}
+                        updateSearch={() => {}}
+                        disabled
+                        isFullWidth
+                        wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                        wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
+                        rightComponent={children}
+                        routerListRef={undefined}
                     />
-                )}
-
-                {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
-            </View>
+                </View>
+            )}
         </View>
     );
 }
@@ -140,19 +133,22 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const {status, type} = queryJSON;
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
 
-    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
-    const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
-    const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
+    const headerIcon = getHeaderContent(type).icon;
+    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
-    const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
 
-        clearSelectedTransactions();
         setIsDeleteExpensesConfirmModalVisible(false);
         SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+
+        // Translations copy for delete modal depends on amount of selected items,
+        // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
     };
 
     const headerButtonsOptions = useMemo(() => {
@@ -325,37 +321,34 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const displaySearchRouter = SearchUtils.isCannedSearchQuery(queryJSON);
-
     return (
         <>
             <HeaderWrapper
-                title={headerTitle}
-                subtitle={headerSubtitle}
                 icon={headerIcon}
-                subtitleStyles={subtitleStyles}
+                text={headerText}
+                isCannedQuery={isCannedQuery}
             >
-                <>
-                    {headerButtonsOptions.length > 0 ? (
-                        <ButtonWithDropdownMenu
-                            onPress={() => null}
-                            shouldAlwaysShowDropdownMenu
-                            pressOnEnter
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                            options={headerButtonsOptions}
-                            isSplitButton={false}
-                            shouldUseStyleUtilityForAnchorPosition
-                        />
-                    ) : (
-                        <Button
-                            text={translate('search.filtersHeader')}
-                            icon={Expensicons.Filters}
-                            onPress={onPress}
-                        />
-                    )}
-                    {displaySearchRouter && <SearchButton />}
-                </>
+                {headerButtonsOptions.length > 0 ? (
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        shouldAlwaysShowDropdownMenu
+                        pressOnEnter
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
+                        options={headerButtonsOptions}
+                        isSplitButton={false}
+                        shouldUseStyleUtilityForAnchorPosition
+                    />
+                ) : (
+                    <Button
+                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                        text={translate('search.filtersHeader')}
+                        textStyles={!isCannedQuery && styles.textSupporting}
+                        icon={Expensicons.Filters}
+                        onPress={onPress}
+                    />
+                )}
+                {isCannedQuery && <SearchButton />}
             </HeaderWrapper>
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}
