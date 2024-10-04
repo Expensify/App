@@ -7,7 +7,7 @@ function useCustomState({state}: CustomStateHookProps) {
 
     // We need to render at least one HOME screen to make sure everything load properly. This may be not necessary after changing how IS_SIDEBAR_LOADED is handled.
     // Currently this value will be switched only after the first HOME screen is rendered.
-    if (routesToRender[0].name !== SCREENS.HOME) {
+    if (routesToRender.at(0)?.name !== SCREENS.HOME) {
         const routeToRender = state.routes.find((route) => route.name === SCREENS.HOME);
         if (routeToRender) {
             routesToRender.unshift(routeToRender);
