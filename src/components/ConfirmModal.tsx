@@ -164,6 +164,7 @@ function ConfirmModal({
                 prompt={prompt}
                 success={success}
                 danger={danger}
+                isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}
                 shouldCenterContent={shouldCenterContent}
