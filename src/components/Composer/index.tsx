@@ -24,6 +24,7 @@ import type {ComposerProps} from './types';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
+const imagePreviewAuthRequiredURLs = [CONST.EXPENSIFY_URL, CONST.STAGING_EXPENSIFY_URL];
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -356,7 +357,7 @@ function Composer(
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
             addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
-            imagePreviewAuthRequiredURLs={[CONST.EXPENSIFY_URL, CONST.STAGING_EXPENSIFY_URL]}
+            imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
         />
     );
 }
