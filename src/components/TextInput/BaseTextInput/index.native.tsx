@@ -439,35 +439,6 @@ function BaseTextInput(
                     </Text>
                 </View>
             )}
-            {/*
-                 Text input component doesn't support auto grow by default.
-                 We're using a hidden text input to achieve that.
-                 This text view is used to calculate width or height of the input value given textStyle in this component.
-                 This Text component is intentionally positioned out of the screen.
-             */}
-            {(!!autoGrow || autoGrowHeight) && (
-                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // https://github.com/Expensify/App/issues/8158
-                // https://github.com/Expensify/App/issues/26628
-                <Text
-                    style={[
-                        inputStyle,
-                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        styles.hiddenElementOutsideOfWindow,
-                        styles.visibilityHidden,
-                    ]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        setTextInputWidth(e.nativeEvent.layout.width);
-                        setTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                    {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                </Text>
-            )}
         </>
     );
 }
