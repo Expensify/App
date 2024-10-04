@@ -12,7 +12,7 @@
     "startAndroidEmulator": "./scripts/start-android.sh",
     "preinstall": "./scripts/preinstall.sh",
     "postinstall": "./scripts/postInstall.sh",
-    "clean": "npx react-native clean-project-auto",
+    "clean": "./scripts/clean.sh",
     "android": "./scripts/set-pusher-suffix.sh && scripts/run-build.sh --android",
     "ios": "./scripts/set-pusher-suffix.sh && scripts/run-build.sh --ios",
     "pod-install": "./scripts/pod-install.sh",

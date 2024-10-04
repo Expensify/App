@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
 # Go to NewDot project root
 ROOT_DIR=$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")
 cd "$ROOT_DIR" || exit 1
@@ -18,5 +21,5 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
     git pull
     npm i
 else
-    echo "We're in standalone NewDot. Nothing to pull"
+    echo -e "${YELLOW}[WARNING] We're not in Mobile-Expensify repo, nothing to pull. Are you sure you should be here?${NC}"
 fi

@@ -3,6 +3,9 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
+BLUE='\033[1;34m'
+NC='\033[0m'
+
 # Go to NewDot project root
 ROOT_DIR=$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")
 cd "$ROOT_DIR" || exit 1
@@ -13,7 +16,7 @@ scripts/applyPatches.sh
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app-repo.sh)
 
 if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
-    echo "Applying patches to OldDot..."
+    echo -e "${BLUE}Applying patches to OldDot...${NC}"
 
     # Apply HybridApp-specific patches to NewDot
     npx patch-package --patch-dir '../patches/new-dot'

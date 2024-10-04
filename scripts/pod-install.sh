@@ -8,6 +8,9 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
+BLUE='\033[1;34m'
+NC='\033[0m'
+
 # Go to NewDot project root
 START_DIR="$(pwd)"
 ROOT_DIR="$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")"
@@ -28,6 +31,7 @@ done
 
 
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+    echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"
     cd ../ios
     if [ "$SHOULD_CLEAN" == "true" ]; then
         bundle exec pod deintegrate
@@ -36,6 +40,9 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     bundle exec pod install
     exit 0
 fi
+
+echo -e "${BLUE}Executing npm run pod-install for standalone NewDot...${NC}"
+
 
 # Cleanup and exit
 # param - status code
