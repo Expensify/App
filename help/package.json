@@ -1,0 +1,16 @@
+{
+  "name": "help",
+  "version": "1.0.0",
+  "description": "Here are some instructions on how to get started with New Help...",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "flexsearch": "^0.7.43"
+  }
+}
