@@ -107,9 +107,17 @@
   const closeModal = document.getElementById('close-modal');
   const searchResults = document.getElementById('search-results');
 
-  // Open modal when search input is clicked
+  // Open modal when search input is clicked or when pressing Command + K
   searchInputBox.addEventListener('click', function() {
     searchModal.style.display = 'flex';
+  });
+
+  document.addEventListener('keydown', function(event) {
+    if (event.metaKey && event.key === 'k') {
+      event.preventDefault();
+      searchModal.style.display = 'flex';
+      document.getElementById('search-input').focus();
+    }
   });
 
   // Close modal when close button is clicked
@@ -121,6 +129,14 @@
   window.addEventListener('click', function(event) {
     if (event.target == searchModal) {
       searchModal.style.display = 'none';
+    }
+  });
+
+  // Execute search when pressing "Enter" in the input field
+  const searchInput = document.getElementById('search-input');
+  searchInput.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      searchSubmit.click();
     }
   });
 
@@ -170,7 +186,7 @@
             const contextAfter = doc.content.substring(searchTermIndex + query.length, Math.min(doc.content.length, searchTermIndex + query.length + 30));
             const searchResultHtml = `
               <div class="search-result">
-                <a href="${doc.url}" class="search-result-title" onclick="closeModalAfterClick()">${doc.title}</a>
+                <a href="${doc.url}" class="search-result-title" onclick="scrollToTOC('${doc.url}')">${doc.title}</a>
                 <div class="search-result-context">...${contextBefore}<strong>${query}</strong>${contextAfter}...</div>
               </div>
             `;
@@ -182,6 +198,17 @@
       searchResults.innerHTML = '<p>No results found.</p>';
     }
   });
+
+  // Trigger the TOC link click to use TocBot's smooth scrolling behavior
+  function scrollToTOC(url) {
+    const elementId = url.split('#')[1];
+    const tocLink = document.querySelector(`.toc-sidebar a[href="#${elementId}"]`);
+
+    if (tocLink) {
+      tocLink.click(); // Simulate a click on the TOC link for smooth scroll
+      closeModalAfterClick();
+    }
+  }
 
   // Close modal after clicking a search result
   function closeModalAfterClick() {
