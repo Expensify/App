@@ -685,7 +685,6 @@ const translations = {
             submit: 'submit an expense',
             track: 'track an expense',
             invoice: 'invoice an expense',
-            create: 'create an expense',
         },
     },
     adminOnlyCanPost: 'Only admins can send messages in this room.',
