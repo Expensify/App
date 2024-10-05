@@ -69,6 +69,12 @@ type Response = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     shared_secret?: string;
 
+    /** The accountID of the user */
+    accountID?: number;
+
+    /** The email of the user */
+    email?: string;
+
     /** If there is older data to load for pagination commands */
     hasOlderActions?: boolean;
 
