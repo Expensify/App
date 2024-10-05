@@ -127,18 +127,26 @@
   const searchModal = document.getElementById('search-modal');
   const closeModal = document.getElementById('close-modal');
   const searchResults = document.getElementById('search-results');
+  const searchInput = document.getElementById('search-input');
   let searchResultsArray = [];
 
-  // Open modal when search input is clicked or when pressing Command + K
-  searchInputBox.addEventListener('click', function() {
+  // Show and initialize the search modal
+  function showSearchModal() {
     searchModal.style.display = 'flex';
-  });
+    if (searchResultsArray.length > 0) {
+      searchResults.focus(); // Focus on search results if they exist
+    } else {
+      searchInput.focus();
+    }
+  }
+
+  // Open modal when search input is clicked or when pressing Command + K
+  searchInputBox.addEventListener('click', showSearchModal);
 
   document.addEventListener('keydown', function(event) {
     if (event.metaKey && event.key === 'k') {
       event.preventDefault();
-      searchModal.style.display = 'flex';
-      document.getElementById('search-input').focus();
+      showSearchModal();
     }
   });
 
@@ -166,6 +174,8 @@
       } else if (event.key === 'Enter' && currentSelectionIndex >= 0) {
         event.preventDefault();
         navigateToSelectedResult();
+      } else if (!['Tab', 'Shift'].includes(event.key)) {
+        searchInput.focus(); // Focus back on input if typing occurs
       }
     }
   });
@@ -204,20 +214,22 @@
   }
 
   // Execute search when pressing "Enter" in the input field
-  const searchInput = document.getElementById('search-input');
   searchInput.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
       event.preventDefault();
       searchSubmit.click();
-      searchResults.focus();  // Focus on search results after Enter is pressed
     }
   });
 
   // Perform search when search button is clicked
   const searchSubmit = document.getElementById('search-submit');
   
+  // Declare the index variable globally so it can be reused
+  let index = null;
+
+  // Handle submitting the search query
   searchSubmit.addEventListener('click', async function() {
-    const query = document.getElementById('search-input').value.trim().toLowerCase();
+    const query = searchInput.value.trim().toLowerCase();
     searchResults.innerHTML = '';
     currentSelectionIndex = -1;
 
@@ -226,22 +238,25 @@
       return;
     }
 
-    // Load the JSON search index file
-    console.log('Loading search index from:', '/searchIndex.json');
-    const response = await fetch('/searchIndex.json');
-    const indexData = await response.json();
+    // Load the JSON search index file, if not already defined
+    if (index === null) {
+        console.log('Loading search index from:', '/searchIndex.json');
+        const response = await fetch('/searchIndex.json');
+        const indexData = await response.json();
+        index = new FlexSearch.Document({
+          document: {
+            id: 'id',
+            index: ['content'],
+            store: ['title', 'url', 'content']
+          }
+        });
 
-    const index = new FlexSearch.Document({
-      document: {
-        id: 'id',
-        index: ['content'],
-        store: ['title', 'url', 'content']
-      }
-    });
-
-    // Import the index
-    for (const [key, data] of Object.entries(indexData)) {
-      await index.import(key, data);
+        // Import the index
+        for (const [key, data] of Object.entries(indexData)) {
+          await index.import(key, data);
+        }
+    } else {
+        console.log('Reusing existing search index');
     }
 
     // Perform search
@@ -278,6 +293,7 @@
           }
         });
       });
+      searchResults.focus();  // Focus on search results whenever there are results`
     } else {
       searchResults.innerHTML = '<p>No results found.</p>';
     }
