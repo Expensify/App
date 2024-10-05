@@ -143,7 +143,7 @@ async function searchIndex() {
   }
 
   // Perform a search test
-  let testKeyword = "super";
+  let testKeyword = "superapp";
   console.log(`Searching for the term '${testKeyword}' in the index...`);
   try {
     const results = await index.search({
