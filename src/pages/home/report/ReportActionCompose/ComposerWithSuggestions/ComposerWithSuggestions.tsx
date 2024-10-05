@@ -285,6 +285,8 @@ function ComposerWithSuggestions(
 
     const [composerHeight, setComposerHeight] = useState(0);
 
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
+
     const textInputRef = useRef<TextInput | null>(null);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
@@ -772,6 +774,19 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
+                    showSoftInputOnFocus={showSoftInputOnFocus}
+                    onTouchStart={() => {
+                        if (showSoftInputOnFocus) {
+                            return;
+                        }
+                        if (Browser.isMobileSafari()) {
+                            setTimeout(() => {
+                                setShowSoftInputOnFocus(true);
+                            }, CONST.ANIMATED_TRANSITION);
+                            return;
+                        }
+                        setShowSoftInputOnFocus(true);
+                    }}
                 />
             </View>
 

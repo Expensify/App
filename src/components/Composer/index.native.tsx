@@ -38,6 +38,7 @@ function Composer(
         selection,
         value,
         isGroupPolicyReport = false,
+        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -49,7 +50,6 @@ function Composer(
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const [contextMenuHidden, setContextMenuHidden] = useState(true);
 
@@ -150,12 +150,6 @@ function Composer(
             onClear={onClear}
             showSoftInputOnFocus={showSoftInputOnFocus}
             contextMenuHidden={contextMenuHidden}
-            onTouchStart={() => {
-                if (showSoftInputOnFocus) {
-                    return;
-                }
-                setShowSoftInputOnFocus(true);
-            }}
         />
     );
 }

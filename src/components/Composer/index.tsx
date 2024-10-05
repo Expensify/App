@@ -73,6 +73,7 @@ function Composer(
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
+        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
@@ -103,7 +104,6 @@ function Composer(
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
-    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     useEffect(() => {
         if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
@@ -399,18 +399,6 @@ function Composer(
                 }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
-                onTouchStart={() => {
-                    if (showSoftInputOnFocus) {
-                        return;
-                    }
-                    if (Browser.isMobileSafari()) {
-                        setTimeout(() => {
-                            setShowSoftInputOnFocus(true);
-                        }, CONST.ANIMATED_TRANSITION);
-                        return;
-                    }
-                    setShowSoftInputOnFocus(true);
-                }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>
