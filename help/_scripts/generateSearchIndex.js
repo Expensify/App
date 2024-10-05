@@ -12,7 +12,7 @@ async function createIndex() {
       document: {
         id: 'id',
         index: ['content'], // Index on the content field
-        store: ['title', 'url', 'content'] // Store title, URL, and content
+        store: ['title', 'url', 'content'], // Store title, URL, and content
       }
     });
     console.log("FlexSearch index initialized successfully.");
@@ -34,6 +34,7 @@ async function createIndex() {
   }
 
   // Process each HTML file and add sections to the index
+  let indexId = 0;
   htmlFiles.forEach((file, id) => {
     console.log("Processing file:", file);
     try {
@@ -62,7 +63,7 @@ async function createIndex() {
 
         // Add the section to the index with the section's URL, title, and content
         index.add({
-          id: `${file}-${i}`,
+          id: indexId++, // Give each a unique numerical index (see FlexSearch "best practices")
           title,
           url: sectionUrl,
           content: fullContent
@@ -126,7 +127,7 @@ async function searchIndex() {
       document: {
         id: 'id',
         index: ['content'],
-        store: ['title', 'url', 'content']
+        store: ['title', 'url', 'content'],
       }
     });
 
@@ -142,10 +143,11 @@ async function searchIndex() {
   }
 
   // Perform a search test
-  console.log("Searching for the term 'superapp' in the index...");
+  let testKeyword = "super";
+  console.log(`Searching for the term '${testKeyword}' in the index...`);
   try {
     const results = await index.search({
-      query: 'superapp',
+      query: testKeyword, // Do a partial case insensitive search
       field: 'content'
     });
     if (results && results.length > 0) {
@@ -154,20 +156,20 @@ async function searchIndex() {
           const doc = index.store[docId];
           if (doc && doc.content) {  // Ensure doc and doc.content are defined
             const content = doc.content;
-            const searchTermIndex = content.toLowerCase().indexOf('superapp');
+            const searchTermIndex = content.toLowerCase().indexOf(testKeyword);
 
             if (searchTermIndex !== -1) {
               // Extract context around the search term (30 characters before and after)
               const contextBefore = content.substring(Math.max(0, searchTermIndex - 30), searchTermIndex);
-              const contextAfter = content.substring(searchTermIndex + 'superapp'.length, Math.min(content.length, searchTermIndex + 'superapp'.length + 30));
+              const contextAfter = content.substring(searchTermIndex + testKeyword.length, Math.min(content.length, searchTermIndex + testKeyword.length + 30));
 
               // Print the section title, URL, and context
               console.log(`Section Title: ${doc.title}`);
               console.log(`URL: ${doc.url}`);
-              console.log(`Context: ...${contextBefore}superapp${contextAfter}...`);
+              console.log(`Context: ...${contextBefore}${testKeyword}${contextAfter}...`);
               console.log();  // Add an empty line for better readability
             } else {
-              console.warn(`Warning: Search term 'superapp' not found in document ID: ${docId}`);
+              console.warn(`Warning: Search term '${testKeyword}' not found in document ID: ${docId}`);
             }
           } else {
             console.warn(`Warning: Document content not found for ID: ${docId}`);

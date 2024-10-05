@@ -249,8 +249,8 @@
         g_index = new FlexSearch.Document({
           document: {
             id: 'id',
-            index: ['content'],
-            store: ['title', 'url', 'content']
+            index: ['content'], // Index on the content field
+            store: ['title', 'url', 'content'], // Store title, URL, and content
           }
         });
 
