@@ -73,6 +73,7 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
+import * as Task from '@userActions/Task';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -5684,6 +5685,51 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     };
 }
 
+function getUrlToNavigateBackForTask(report: OnyxEntry<OnyxTypes.Report>): string | undefined {
+    const parentReport = Task.getParentReport(report);
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1');
+    if (shouldDeleteTaskReport) {
+        return ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? '');
+    }
+    return undefined;
+}
+function getUrlToNavigateBackForMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView: boolean): string | undefined {
+    const {
+        shouldDeleteTransactionThread,
+        shouldDeleteIOUReport,
+        iouReport,
+        chatReport,
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+
+    let reportIDToNavigateBack: string | undefined;
+    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
+        reportIDToNavigateBack = iouReport.chatReportID;
+    }
+
+    if (iouReport?.chatReportID && shouldDeleteIOUReport) {
+        reportIDToNavigateBack = iouReport.chatReportID;
+    }
+
+    return reportIDToNavigateBack ? ROUTES.REPORT_WITH_ID.getRoute(reportIDToNavigateBack) : undefined;
+}
+function getUrlToNavigateBackForTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView: boolean): string | undefined {
+    const chatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+    if (!ReportUtils.isSelfDM(chatReport)) {
+        return getUrlToNavigateBackForMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+    }
+
+    const { shouldDeleteTransactionThread } = getDeleteTrackExpenseInformation(
+        chatReportID,
+        transactionID,
+        reportAction,
+    );
+
+    if (shouldDeleteTransactionThread) {
+        return ROUTES.REPORT_WITH_ID.getRoute(chatReportID);
+    }
+
+    return undefined;
+}
 /**
  *
  * @param transactionID  - The transactionID of IOU
@@ -8476,5 +8522,9 @@ export {
     updateMoneyRequestTaxRate,
     mergeDuplicates,
     resolveDuplicates,
+    getUrlToNavigateBackForTask,
+    getUrlToNavigateBackForMoneyRequest,
+    getUrlToNavigateBackForTrackExpense,
+
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

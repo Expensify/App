@@ -718,24 +718,46 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const deleteTransaction = useCallback(() => {
         setIsDeleteModalVisible(false);
-
+    
+        let urlToNavigateBack: string | undefined;
+    
         if (caseID === CASES.DEFAULT) {
-            navigateBackToAfterDelete.current = Task.deleteTask(report);
+            urlToNavigateBack = IOU.getUrlToNavigateBackForTask(report);
+            if (urlToNavigateBack) {
+                Navigation.goBack(urlToNavigateBack as Route);
+            } else {
+                Navigation.dismissModal();
+            }
+            Task.deleteTask(report);
             return;
         }
-
+    
         if (!requestParentReportAction) {
             return;
         }
-
-        if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+    
+        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+        if (isTrackExpense) {
+            urlToNavigateBack = IOU.getUrlToNavigateBackForTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
-            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            urlToNavigateBack = IOU.getUrlToNavigateBackForMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
-
+    
+        if (!urlToNavigateBack) {
+            Navigation.dismissModal();
+        } else {
+            ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
+        }
+    
+        if (isTrackExpense) {
+            IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        } else {
+            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        }
+    
         isTransactionDeleted.current = true;
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
+    
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -826,23 +848,23 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     onModalHide={() => {
-                        // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
-                        if (!isTransactionDeleted.current) {
-                            if (caseID === CASES.DEFAULT) {
-                                if (navigateBackToAfterDelete.current) {
-                                    Navigation.goBack(navigateBackToAfterDelete.current);
-                                } else {
-                                    Navigation.dismissModal();
-                                }
-                            }
-                            return;
-                        }
+                        // // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
+                        // if (!isTransactionDeleted.current) {
+                        //     if (caseID === CASES.DEFAULT) {
+                        //         if (navigateBackToAfterDelete.current) {
+                        //             Navigation.goBack(navigateBackToAfterDelete.current);
+                        //         } else {
+                        //             Navigation.dismissModal();
+                        //         }
+                        //     }
+                        //     return;
+                        // }
 
-                        if (!navigateBackToAfterDelete.current) {
-                            Navigation.dismissModal();
-                        } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
-                        }
+                        // if (!navigateBackToAfterDelete.current) {
+                        //     Navigation.dismissModal();
+                        // } else {
+                        //     ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
+                        // }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}

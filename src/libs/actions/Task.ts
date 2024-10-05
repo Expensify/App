@@ -1207,6 +1207,7 @@ export {
     canModifyTask,
     canActionTask,
     setNewOptimisticAssignee,
+    getParentReport,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
