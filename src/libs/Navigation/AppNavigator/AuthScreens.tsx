@@ -391,9 +391,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
             debugShortcutConfig.shortcutKey,
-            () => {
-                toggleTestToolsModal();
-            },
+            () => Modal.close(toggleTestToolsModal),
             debugShortcutConfig.descriptionKey,
             debugShortcutConfig.modifiers,
             true,
