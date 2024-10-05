@@ -119,29 +119,33 @@
 
 <!-- JavaScript for modal and search -->
 <script>
-  let currentSelectionIndex = -1;
-  let highlightedSection = null;
+  // Global variables with g_ prefix
+  let g_currentSelectionIndex = -1;
+  let g_highlightedSection = null;
+  
+  // Declare the index variable globally so it can be reused
+  let g_index = null;
 
   // Open and close modal
-  const searchInputBox = document.getElementById('search-input-box');
-  const searchModal = document.getElementById('search-modal');
-  const closeModal = document.getElementById('close-modal');
-  const searchResults = document.getElementById('search-results');
-  const searchInput = document.getElementById('search-input');
-  let searchResultsArray = [];
+  const g_searchInputBox = document.getElementById('search-input-box');
+  const g_searchModal = document.getElementById('search-modal');
+  const g_closeModal = document.getElementById('close-modal');
+  const g_searchResults = document.getElementById('search-results');
+  const g_searchInput = document.getElementById('search-input');
+  let g_searchResultsArray = [];
 
   // Show and initialize the search modal
   function showSearchModal() {
-    searchModal.style.display = 'flex';
-    if (searchResultsArray.length > 0) {
-      searchResults.focus(); // Focus on search results if they exist
+    g_searchModal.style.display = 'flex';
+    if (g_searchResultsArray.length > 0) {
+      g_searchResults.focus(); // Focus on search results if they exist
     } else {
-      searchInput.focus();
+      g_searchInput.focus();
     }
   }
 
   // Open modal when search input is clicked or when pressing Command + K
-  searchInputBox.addEventListener('click', showSearchModal);
+  g_searchInputBox.addEventListener('click', showSearchModal);
 
   document.addEventListener('keydown', function(event) {
     if (event.metaKey && event.key === 'k') {
@@ -151,52 +155,52 @@
   });
 
   // Close modal when close button is clicked
-  closeModal.addEventListener('click', function() {
-    searchModal.style.display = 'none';
+  g_closeModal.addEventListener('click', function() {
+    g_searchModal.style.display = 'none';
   });
 
   // Close modal when clicking outside of modal content
   window.addEventListener('click', function(event) {
-    if (event.target == searchModal) {
-      searchModal.style.display = 'none';
+    if (event.target == g_searchModal) {
+      g_searchModal.style.display = 'none';
     }
   });
 
   // Handle keyboard navigation (arrow keys and enter)
   document.addEventListener('keydown', function(event) {
-    if (searchModal.style.display === 'flex' && searchResultsArray.length > 0) {
+    if (g_searchModal.style.display === 'flex' && g_searchResultsArray.length > 0) {
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         selectNextResult();
       } else if (event.key === 'ArrowUp') {
         event.preventDefault();
         selectPreviousResult();
-      } else if (event.key === 'Enter' && currentSelectionIndex >= 0) {
+      } else if (event.key === 'Enter' && g_currentSelectionIndex >= 0 && document.activeElement === g_searchResults) {
         event.preventDefault();
         navigateToSelectedResult();
       } else if (!['Tab', 'Shift'].includes(event.key)) {
-        searchInput.focus(); // Focus back on input if typing occurs
+        g_searchInput.focus(); // Focus back on input if typing occurs
       }
     }
   });
 
   function selectNextResult() {
-    if (currentSelectionIndex < searchResultsArray.length - 1) {
-      currentSelectionIndex++;
+    if (g_currentSelectionIndex < g_searchResultsArray.length - 1) {
+      g_currentSelectionIndex++;
       updateSelectedResult();
     }
   }
 
   function selectPreviousResult() {
-    if (currentSelectionIndex > 0) {
-      currentSelectionIndex--;
+    if (g_currentSelectionIndex > 0) {
+      g_currentSelectionIndex--;
       updateSelectedResult();
     }
   }
 
   function updateSelectedResult() {
-    searchResultsArray.forEach((result, index) => {
-      if (index === currentSelectionIndex) {
+    g_searchResultsArray.forEach((result, index) => {
+      if (index === g_currentSelectionIndex) {
         result.classList.add('highlight');
         result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
@@ -206,7 +210,7 @@
   }
 
   function navigateToSelectedResult() {
-    const selectedResult = searchResultsArray[currentSelectionIndex];
+    const selectedResult = g_searchResultsArray[g_currentSelectionIndex];
     const link = selectedResult.querySelector('a');
     if (link) {
       link.click();
@@ -214,36 +218,33 @@
   }
 
   // Execute search when pressing "Enter" in the input field
-  searchInput.addEventListener('keydown', function(event) {
+  g_searchInput.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      searchSubmit.click();
+      g_searchSubmit.click();
     }
   });
 
   // Perform search when search button is clicked
-  const searchSubmit = document.getElementById('search-submit');
-  
-  // Declare the index variable globally so it can be reused
-  let index = null;
+  const g_searchSubmit = document.getElementById('search-submit');
 
   // Handle submitting the search query
-  searchSubmit.addEventListener('click', async function() {
-    const query = searchInput.value.trim().toLowerCase();
-    searchResults.innerHTML = '';
-    currentSelectionIndex = -1;
+  g_searchSubmit.addEventListener('click', async function() {
+    const query = g_searchInput.value.trim().toLowerCase();
+    g_searchResults.innerHTML = '';
+    g_currentSelectionIndex = -1;
 
     if (query.length === 0) {
-      searchResults.innerHTML = '<p>Please enter a search term.</p>';
+      g_searchResults.innerHTML = '<p>Please enter a search term.</p>';
       return;
     }
 
     // Load the JSON search index file, if not already defined
-    if (index === null) {
+    if (g_index === null) {
         console.log('Loading search index from:', '/searchIndex.json');
         const response = await fetch('/searchIndex.json');
         const indexData = await response.json();
-        index = new FlexSearch.Document({
+        g_index = new FlexSearch.Document({
           document: {
             id: 'id',
             index: ['content'],
@@ -253,23 +254,23 @@
 
         // Import the index
         for (const [key, data] of Object.entries(indexData)) {
-          await index.import(key, data);
+          await g_index.import(key, data);
         }
     } else {
         console.log('Reusing existing search index');
     }
 
     // Perform search
-    const results = await index.search({
+    const results = await g_index.search({
       query,
       field: 'content'
     });
 
     if (results.length > 0) {
-      searchResultsArray = [];
+      g_searchResultsArray = [];
       results.forEach(result => {
         result.result.forEach(docId => {
-          const doc = index.store[docId];
+          const doc = g_index.store[docId];
           if (doc && doc.content) {
             const searchTermIndex = doc.content.toLowerCase().indexOf(query);
             const contextBefore = doc.content.substring(Math.max(0, searchTermIndex - 30), searchTermIndex);
@@ -282,20 +283,20 @@
             `;
             const resultElement = document.createElement('div');
             resultElement.innerHTML = searchResultHtml;
-            searchResults.appendChild(resultElement);
-            searchResultsArray.push(resultElement);
+            g_searchResults.appendChild(resultElement);
+            g_searchResultsArray.push(resultElement);
 
             // Automatically select the first result
-            if (searchResultsArray.length === 1) {
-              currentSelectionIndex = 0;
+            if (g_searchResultsArray.length === 1) {
+              g_currentSelectionIndex = 0;
               updateSelectedResult();
             }
           }
         });
       });
-      searchResults.focus();  // Focus on search results whenever there are results`
+      g_searchResults.focus();  // Focus on search results whenever there are results`
     } else {
-      searchResults.innerHTML = '<p>No results found.</p>';
+      g_searchResults.innerHTML = '<p>No results found.</p>';
     }
   });
 
@@ -314,21 +315,21 @@
   // Highlight the selected section
   function highlightSelectedSection(sectionId) {
     // Remove the previous highlight, if any
-    if (highlightedSection) {
-      highlightedSection.classList.remove('highlight-section');
+    if (g_highlightedSection) {
+      g_highlightedSection.classList.remove('highlight-section');
     }
 
     // Highlight the new section
     const sectionElement = document.getElementById(sectionId);
     if (sectionElement) {
       sectionElement.classList.add('highlight-section');
-      highlightedSection = sectionElement;
+      g_highlightedSection = sectionElement;
     }
   }
 
   // Close modal after clicking a search result
   function closeModalAfterClick() {
-    searchModal.style.display = 'none';
+    g_searchModal.style.display = 'none';
   }
 </script>
 
