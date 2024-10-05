@@ -878,7 +878,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                     acc[categoryName] = {
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.deleteFailureMessage'),
-                        enabled: policyCategories?.[categoryName]?.enabled,
+                        enabled: !!policyCategories?.[categoryName]?.enabled,
                     };
                     return acc;
                 }, {}),
