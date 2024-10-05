@@ -119,20 +119,20 @@
 
 <!-- JavaScript for modal and search -->
 <script>
-  // Global variables with g_ prefix
+  // Keep track of the search results
+  let g_searchResultsArray = [];
   let g_currentSelectionIndex = -1;
   let g_highlightedSection = null;
   
   // Declare the index variable globally so it can be reused
   let g_index = null;
 
-  // Open and close modal
+  // Look up some commonly used elements once
   const g_searchInputBox = document.getElementById('search-input-box');
   const g_searchModal = document.getElementById('search-modal');
   const g_closeModal = document.getElementById('close-modal');
   const g_searchResults = document.getElementById('search-results');
   const g_searchInput = document.getElementById('search-input');
-  let g_searchResultsArray = [];
 
   // Show and initialize the search modal
   function showSearchModal() {
@@ -144,9 +144,10 @@
     }
   }
 
-  // Open modal when search input is clicked or when pressing Command + K
+  // Open modal when search input is clicked
   g_searchInputBox.addEventListener('click', showSearchModal);
 
+  // Open modal when Cmd+K is pressed
   document.addEventListener('keydown', function(event) {
     if (event.metaKey && event.key === 'k') {
       event.preventDefault();
@@ -167,7 +168,8 @@
   });
 
   // Handle keyboard navigation (arrow keys and enter)
-  document.addEventListener('keydown', function(event) {
+  g_searchResults.addEventListener('keydown', function(event) {
+    // If the modal is being shown and has active search results, capture keydown
     if (g_searchModal.style.display === 'flex' && g_searchResultsArray.length > 0) {
       if (event.key === 'ArrowDown') {
         event.preventDefault();
