@@ -12,7 +12,7 @@ function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFl
         if (isSmallScreenWidth) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID));
         } else {
-            // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+            // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
             PolicyAction.enablePolicyTaxes(policyID, false);
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID));
         }
