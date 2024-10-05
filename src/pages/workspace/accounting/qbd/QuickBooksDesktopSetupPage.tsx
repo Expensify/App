@@ -69,7 +69,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         textStyles={[styles.textSupporting]}
                     />
                 </View>
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter style={[styles.mtAuto, styles.ph0]}>
                     <Button
                         success
                         text={translate('common.done')}
