@@ -1542,6 +1542,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
+    },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
         getRoute: (reportID: string) => `debug/report/${reportID}` as const,

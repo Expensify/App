@@ -1243,6 +1243,18 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
         enabled: boolean;
     };
+
+    /** Whether Quickbooks Desktop classes should be imported */
+    syncClasses: IntegrationEntityMap;
+
+    /** Whether Quickbooks Desktop customers should be imported */
+    syncCustomers: IntegrationEntityMap;
+
+    /** Whether Quickbooks Desktop items should be imported */
+    syncItems: IntegrationEntityMap;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** State of integration connection */
