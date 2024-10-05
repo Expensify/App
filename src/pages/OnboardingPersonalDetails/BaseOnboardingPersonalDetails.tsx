@@ -81,8 +81,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             Navigation.dismissModal();
 
+            // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
+            // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
+            // so we need to specifically navigate to the last accessed report.
+            if (!isSmallScreenWidth) {
+                return;
+            }
             const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
-
             if (!lastAccessedReportID) {
                 return;
             }
