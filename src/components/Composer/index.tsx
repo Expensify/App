@@ -103,6 +103,7 @@ function Composer(
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     useEffect(() => {
         if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
@@ -388,6 +389,7 @@ function Composer(
                 value={value}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
+                inputMode={!showSoftInputOnFocus ? 'none' : 'text'}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
@@ -397,6 +399,18 @@ function Composer(
                 }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
+                onTouchStart={() => {
+                    if (showSoftInputOnFocus) {
+                        return;
+                    }
+                    if (Browser.isMobileSafari()) {
+                        setTimeout(() => {
+                            setShowSoftInputOnFocus(true);
+                        }, CONST.ANIMATED_TRANSITION);
+                        return;
+                    }
+                    setShowSoftInputOnFocus(true);
+                }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>

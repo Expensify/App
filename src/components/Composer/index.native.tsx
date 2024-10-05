@@ -1,13 +1,14 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -48,8 +49,13 @@ function Composer(
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
+
+    const [contextMenuHidden, setContextMenuHidden] = useState(true);
 
     const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+    const keyboardState = useKeyboardState();
+    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
 
     useEffect(() => {
         if (autoFocus === !!autoFocusInputRef.current) {
@@ -109,6 +115,13 @@ function Composer(
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
+    useEffect(() => {
+        if (!showSoftInputOnFocus || !isKeyboardShown) {
+            return;
+        }
+        setContextMenuHidden(false);
+    }, [showSoftInputOnFocus, isKeyboardShown]);
+
     return (
         <RNMarkdownTextInput
             multiline
@@ -135,6 +148,14 @@ function Composer(
                 props?.onBlur?.(e);
             }}
             onClear={onClear}
+            showSoftInputOnFocus={showSoftInputOnFocus}
+            contextMenuHidden={contextMenuHidden}
+            onTouchStart={() => {
+                if (showSoftInputOnFocus) {
+                    return;
+                }
+                setShowSoftInputOnFocus(true);
+            }}
         />
     );
 }
