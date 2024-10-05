@@ -43,8 +43,10 @@ Which of our officially supported platforms is this issue occurring on?
 
 ## Screenshots/Videos
 
-Add any screenshot/video evidence
+<details>
+  <summary>Add any screenshot/video evidence</summary>
 
+  
 </details>
 
 [View all open jobs on GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22)
