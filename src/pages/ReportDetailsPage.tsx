@@ -10,6 +10,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -736,6 +737,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
         isTransactionDeleted.current = true;
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
+
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -755,17 +759,19 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                interactive
-                                title={report.description}
-                                shouldRenderAsHTML
-                                shouldTruncateTitle
-                                characterLimit={100}
-                                shouldCheckActionAllowedOnPress={false}
-                                description={translate('reportDescriptionPage.roomDescription')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
-                            />
+                            <MentionReportContext.Provider value={mentionReportContextValue}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    interactive
+                                    title={report.description}
+                                    shouldRenderAsHTML
+                                    shouldTruncateTitle
+                                    characterLimit={100}
+                                    shouldCheckActionAllowedOnPress={false}
+                                    description={translate('reportDescriptionPage.roomDescription')}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
+                                />
+                            </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}
 
