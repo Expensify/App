@@ -22,6 +22,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -89,11 +90,6 @@ const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
-
-function shouldOpenOnAdminRoom() {
-    const url = getCurrentUrl();
-    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
 
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {

@@ -18,8 +18,8 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -32,12 +32,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
-function shouldOpenOnAdminRoom() {
-    const url = getCurrentUrl();
-    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
-
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, navi}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -94,7 +89,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
             Navigation.navigate(lastAccessedReportRoute);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
