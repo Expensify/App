@@ -1,23 +1,14 @@
 import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import type CONST from '@src/CONST';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 type UpdatePageProps = {
     viewableItems: ViewToken[];
 };
 
-type AttachmentCaraouselOnyxProps = {
-    /** Object of report actions for this report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /** The report actions of the parent report */
-    parentReportActions: OnyxEntry<ReportActions>;
-};
-
-type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
+type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
     source: AttachmentSource;
 
@@ -40,4 +31,4 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
     onClose: () => void;
 };
 
-export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};
+export type {AttachmentCarouselProps, UpdatePageProps};
