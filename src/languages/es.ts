@@ -2955,15 +2955,15 @@ const translations = {
             },
         },
         qbd: {
-            qbdSetup: 'QuickBooks Desktop configuración',
+            qbdSetup: 'Configuración de QuickBooks Desktop',
             requiredSetupDevice: {
-                title: "Can't connect from this device",
-                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
-                body2: "Once you're connected, you'll be able to sync and export from anywhere.",
+                title: 'No se puede conectar desde este dispositivo',
+                body1: 'Deberás configurar esta conexión desde la computadora que hospeda tu archivo de empresa de QuickBooks Desktop.',
+                body2: 'Una vez que estés conectado, podrás sincronizar y exportar desde cualquier lugar.',
             },
             setupPage: {
-                title: 'Open this link to connect',
-                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+                title: 'Abre este enlace para conectar',
+                body: 'Para completar la configuración, abre el siguiente enlace en la computadora donde se está ejecutando QuickBooks Desktop.',
             },
         },
         type: {
