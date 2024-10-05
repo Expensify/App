@@ -177,7 +177,7 @@
       } else if (event.key === 'ArrowUp') {
         event.preventDefault();
         selectPreviousResult();
-      } else if (event.key === 'Enter' && g_currentSelectionIndex >= 0 && document.activeElement === g_searchResults) {
+      } else if (event.key === 'Enter' && g_currentSelectionIndex >= 0) {
         event.preventDefault();
         navigateToSelectedResult();
       } else if (!['Tab', 'Shift'].includes(event.key)) {
