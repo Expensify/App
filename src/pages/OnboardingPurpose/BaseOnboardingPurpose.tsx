@@ -49,7 +49,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const menuItems: MenuItemProps[] = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).map((choice) => {
+    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
+
+    const onboardingChoices =
+        customChoices.length > 0 ? Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).filter((choice) => customChoices.includes(choice)) : Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
+
+    const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
         return {
             key: translationKey,

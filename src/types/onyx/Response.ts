@@ -71,6 +71,12 @@ type Response = {
 
     /** Setup Url */
     setupUrl?: string;
+
+    /** The accountID of the user */
+    accountID?: number;
+
+    /** The email of the user */
+    email?: string;
 };
 
 export default Response;

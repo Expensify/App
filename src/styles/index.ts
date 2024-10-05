@@ -1196,6 +1196,7 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
             zIndex: 1,
+            transformOrigin: 'left center',
         },
 
         textInputLabelBackground: {
@@ -1206,13 +1207,9 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelDesktop: {
-            transformOrigin: 'left center',
-        },
-
-        textInputLabelTransformation: (translateY: AnimatableNumericValue, translateX: AnimatableNumericValue, scale: AnimatableNumericValue) =>
+        textInputLabelTransformation: (translateY: AnimatableNumericValue, scale: AnimatableNumericValue) =>
             ({
-                transform: [{translateY}, {translateX}, {scale}],
+                transform: [{translateY}, {scale}],
             } satisfies TextStyle),
 
         baseTextInput: {
@@ -4154,6 +4151,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
+        },
+
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
@@ -4696,6 +4698,7 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
+            minHeight: variables.optionRowHeight,
         },
 
         searchQueryListItemStyle: {
