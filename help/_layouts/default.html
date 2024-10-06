@@ -41,7 +41,7 @@
         .nav-links {
             display: flex;
             gap: 15px;
-            padding-right: 20px;  /* Add padding to the right to prevent cutoff */
+            padding-right: 20px;
         }
 
         .nav-links a {
@@ -57,7 +57,6 @@
             background-color: #f1f8ff;
         }
 
-        /* Highlight the active page */
         .nav-links a.active {
             background-color: #eaf5ff;
             color: #0366d6;
@@ -68,7 +67,7 @@
         .toc-sidebar {
             width: 250px;
             position: fixed;
-            top: 80px;  /* Adjust for the fixed header */
+            top: 80px;
             bottom: 0;
             left: 0;
             background-color: #fff;
@@ -78,26 +77,22 @@
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
-        /* Styling the TOC list */
         .toc-sidebar ul {
-            list-style: none;  /* Removes numbers and bullets */
+            list-style: none;
             padding-left: 0;
             line-height: 1.0;
             font-size: 15px;
         }
 
-        /* Add indentation for nested headings */
         .toc-sidebar li {
             margin-left: 0;
-            padding-left: 10px; /* Increase indentation */
+            padding-left: 10px;
         }
 
-        /* Add extra space between groups (e.g., Introduction, Concepts, etc.) */
         .js-toc > ul > li > ul > li {
             margin-top: 25px;
         }
 
-        /* Style for links in TOC */
         .toc-sidebar a {
             word-wrap: break-word;
             display: block;
@@ -113,9 +108,8 @@
             text-decoration: none;
         }
 
-        /* Highlight active link */
         .toc-sidebar .is-active-link {
-            background-color: #eaf5ff;  /* Light blue background */
+            background-color: #eaf5ff;
             color: #0366d6;
             font-weight: bold;
             border-radius: 6px;
@@ -123,9 +117,9 @@
 
         /* Main content area */
         main {
-            margin-left: 300px; /* Make room for the table of contents */
+            margin-left: 300px;
             padding: 20px;
-            margin-top: 80px;  /* Adjust for the fixed header */
+            margin-top: 80px;
             flex-grow: 1;
             max-width: 900px;
         }
@@ -161,16 +155,54 @@
             font-weight: bold;
         }
 
-        /* Spacer at the bottom for scrolling */
-        .scroll-spacer {
-            height: 200px; /* Adjust this value if more space is needed */
-        }
-
         /* Footer */
         footer {
-            margin-top: 40px;
+            margin-left: 300px;
+            color: #0366d6;
+            background-color: #f9fafb;
+            padding: 40px 20px;
             font-size: 14px;
-            color: #586069;
+            max-width: 900px;
+        }
+
+        footer h3 {
+            color: #0366d6;
+        }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer ul li a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        footer ul li a:hover {
+            text-decoration: underline;
+        }
+
+        footer .social-icons a img {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-column {
+            flex: 1;
+            max-width: 300px; /* Set a max-width for each column */
+            padding: 0 20px;  /* Add padding for some space between the columns */                  
+        }
+
+        .scroll-spacer {
+            height: 200px;
         }
     </style>
 </head>
@@ -203,78 +235,71 @@
 
         <!-- Spacer div for scrolling -->
         <div class="scroll-spacer"></div>
-
     </main>
 
-    <footer style="background-color: #f9fafb; padding: 40px 20px;">
-        <div style="display: flex; justify-content: space-around; max-width: 1200px; margin: 0 auto;">
-
-            <!-- Features Column -->
-            <div style="flex: 1;">
-                <h3 style="color: #2c6a4f;">Features</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="https://use.expensify.com/expense-management" style="color: #2c6a4f; text-decoration: none;">Expense Management</a></li>
-                    <li><a href="https://use.expensify.com/spend-management" style="color: #2c6a4f; text-decoration: none;">Spend Management</a></li>
-                    <li><a href="https://use.expensify.com/expense-reports" style="color: #2c6a4f; text-decoration: none;">Expense Reports</a></li>
-                    <li><a href="https://use.expensify.com/company-credit-card" style="color: #2c6a4f; text-decoration: none;">Company Card</a></li>
-                    <li><a href="https://use.expensify.com/receipt-scanning-app" style="color: #2c6a4f; text-decoration: none;">Receipt Scanning App</a></li>
-                    <li><a href="https://use.expensify.com/payments" style="color: #2c6a4f; text-decoration: none;">Payments</a></li>
-                    <li><a href="https://use.expensify.com/bill-pay-app" style="color: #2c6a4f; text-decoration: none;">Bill Pay</a></li>
-                    <li><a href="https://use.expensify.com/invoicing-software" style="color: #2c6a4f; text-decoration: none;">Invoicing</a></li>
-                    <li><a href="https://use.expensify.com/travel" style="color: #2c6a4f; text-decoration: none;">Travel</a></li>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>Features</h3>
+                <ul>
+                    <li><a href="https://use.expensify.com/expense-management">Expense Management</a></li>
+                    <li><a href="https://use.expensify.com/spend-management">Spend Management</a></li>
+                    <li><a href="https://use.expensify.com/expense-reports">Expense Reports</a></li>
+                    <li><a href="https://use.expensify.com/company-credit-card">Company Card</a></li>
+                    <li><a href="https://use.expensify.com/receipt-scanning-app">Receipt Scanning App</a></li>
+                    <li><a href="https://use.expensify.com/payments">Payments</a></li>
+                    <li><a href="https://use.expensify.com/bill-pay-app">Bill Pay</a></li>
+                    <li><a href="https://use.expensify.com/invoicing-software">Invoicing</a></li>
+                    <li><a href="https://use.expensify.com/travel">Travel</a></li>
                 </ul>
             </div>
-
-            <!-- Resources Column -->
-            <div style="flex: 1;">
-                <h3 style="color: #2c6a4f;">Resources</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="https://use.expensify.com/accountants" style="color: #2c6a4f; text-decoration: none;">ExpensifyApproved!</a></li>
-                    <li><a href="https://use.expensify.com/press-kit" style="color: #2c6a4f; text-decoration: none;">Press Kit</a></li>
-                    <li><a href="https://use.expensify.com/support" style="color: #2c6a4f; text-decoration: none;">Support</a></li>
-                    <li><a href="https://help.expensify.com/" style="color: #2c6a4f; text-decoration: none;">ExpensifyHelp</a></li>
-                    <li><a href="https://community.expensify.com/" style="color: #2c6a4f; text-decoration: none;">Community</a></li>
-                    <li><a href="https://use.expensify.com/privacy" style="color: #2c6a4f; text-decoration: none;">Privacy</a></li>
-                    <li><a href="https://use.expensify.com/download" style="color: #2c6a4f; text-decoration: none;">Expensify App</a></li>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="https://use.expensify.com/accountants">ExpensifyApproved!</a></li>
+                    <li><a href="https://use.expensify.com/press-kit">Press Kit</a></li>
+                    <li><a href="https://use.expensify.com/support">Support</a></li>
+                    <li><a href="https://help.expensify.com/">ExpensifyHelp</a></li>
+                    <li><a href="https://community.expensify.com/">Community</a></li>
+                    <li><a href="https://use.expensify.com/privacy">Privacy</a></li>
+                    <li><a href="https://use.expensify.com/download">Expensify App</a></li>
                 </ul>
             </div>
+            <div class="footer-column">
+                <hIt looks like the response was cut off. I will continue from where it left off and complete the footer with appropriate styling based on your previous requests.
 
-            <!-- Learn More Column -->
-            <div style="flex: 1;">
-                <h3 style="color: #2c6a4f;">Learn more</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="https://we.are.expensify.com/how-we-got-here" style="color: #2c6a4f; text-decoration: none;">About Expensify</a></li>
-                    <li><a href="https://use.expensify.com/blog" style="color: #2c6a4f; text-decoration: none;">Blog</a></li>
-                    <li><a href="https://we.are.expensify.com/" style="color: #2c6a4f; text-decoration: none;">Jobs</a></li>
-                    <li><a href="https://www.expensify.org" style="color: #2c6a4f; text-decoration: none;">Expensify.org</a></li>
-                    <li><a href="https://ir.expensify.com" style="color: #2c6a4f; text-decoration: none;">Investor Relations</a></li>
+```html
+            </div>
+            <div class="footer-column">
+                <h3>Learn more</h3>
+                <ul>
+                    <li><a href="https://we.are.expensify.com/how-we-got-here">About Expensify</a></li>
+                    <li><a href="https://use.expensify.com/blog">Blog</a></li>
+                    <li><a href="https://we.are.expensify.com/">Jobs</a></li>
+                    <li><a href="https://www.expensify.org">Expensify.org</a></li>
+                    <li><a href="https://ir.expensify.com">Investor Relations</a></li>
                 </ul>
-
-                <!-- Social Icons -->
-                <div>
-                    <a href="https://we.are.expensify.com/podcast" title="Expensify Podcast"><img src="podcast-icon.png" alt="Podcast" style="width: 20px;"></a>
-                    <a href="https://www.twitter.com/expensify" title="Twitter"><img src="twitter-icon.png" alt="Twitter" style="width: 20px;"></a>
-                    <a href="http://www.instagram.com/expensify" title="Instagram"><img src="instagram-icon.png" alt="Instagram" style="width: 20px;"></a>
-                    <a href="https://www.facebook.com/expensify" title="Facebook"><img src="facebook-icon.png" alt="Facebook" style="width: 20px;"></a>
-                    <a href="http://www.linkedin.com/company/expensify" title="LinkedIn"><img src="linkedin-icon.png" alt="LinkedIn" style="width: 20px;"></a>
+                <div class="social-icons">
+                    <a href="https://we.are.expensify.com/podcast" title="Expensify Podcast"><img src="podcast-icon.png" alt="Podcast"></a>
+                    <a href="https://www.twitter.com/expensify" title="Twitter"><img src="twitter-icon.png" alt="Twitter"></a>
+                    <a href="http://www.instagram.com/expensify" title="Instagram"><img src="instagram-icon.png" alt="Instagram"></a>
+                    <a href="https://www.facebook.com/expensify" title="Facebook"><img src="facebook-icon.png" alt="Facebook"></a>
+                    <a href="http://www.linkedin.com/company/expensify" title="LinkedIn"><img src="linkedin-icon.png" alt="LinkedIn"></a>
                 </div>
             </div>
-
-            <!-- Get Started Column -->
-            <div style="flex: 1;">
-                <h3 style="color: #2c6a4f;">Get Started</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li><a href="https://www.expensify.com" style="color: #2c6a4f; text-decoration: none;">Create a new account</a></li>
-                    <li><a href="https://www.expensify.com" style="color: #2c6a4f; text-decoration: none;">Log in</a></li>
-                    <li><a href="https://apps.apple.com/us/app/expensify-receipts-expenses/id471713959" target="_blank"><img src="/assets/img/download-ios.svg" width="100"></a></li>
-                    <li><a href="https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg" target="_blank"><img src="/assets/img/download-android.svg" width="100"></a></li>
+            <div class="footer-column">
+                <h3>Get Started</h3>
+                <ul>
+                    <li><a href="https://www.expensify.com">Create a new account</a></li>
+                    <li><a href="https://www.expensify.com">Log in</a></li>
+                    <li><a href="https://apps.apple.com/us/app/expensify-receipts-expenses/id471713959"><img src="/assets/img/download-ios.svg" width="100" alt="iOS App"></a></li>
+                    <li><a href="https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg"><img src="/assets/img/download-android.svg" width="100" alt="Android App"></a></li>
                 </ul>
-                <p style="color: #586069;">©2008-2024 Expensify, Inc.</p>
+                <p>©2008-2024 Expensify, Inc.</p>
             </div>
-
         </div>
     </footer>
-
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
     <script>
@@ -305,12 +330,12 @@
           contentSelector: '.js-toc-content',
           headingSelector: 'h1, h2, h3, h4, h5, h6',
           collapseDepth: 3,
-          orderedList: false,  // No numbers
-          scrollSmooth: true,  // Enable smooth scrolling
-          scrollToActive: true,  // Automatically scroll to the active heading in the ToC  
-          enableUrlHashUpdateOnScroll: false, // Disabling to handle it manually
-          headingsOffset: 80,  // Adjust this to match your header's height
-          scrollSmoothOffset: -80,  // Same value as headingsOffset but negative
+          orderedList: false,
+          scrollSmooth: true,
+          scrollToActive: true,
+          enableUrlHashUpdateOnScroll: false,
+          headingsOffset: 80,
+          scrollSmoothOffset: -80,
           headingObjectCallback: function(obj, element) {
             const tocTitle = element.getAttribute('data-toc-title');
             if (tocTitle) {
@@ -319,30 +344,27 @@
             return obj;
           },
           onClick: function(e) {
-              setTimeout(scrollActiveLinkIntoView, 300); // Ensure smooth behavior after click
+              setTimeout(scrollActiveLinkIntoView, 300);
           },
           scrollEndCallback: function() {
               updateURLHashOnScroll();
-              scrollActiveLinkIntoView(); // Ensure active link is visible when scrolling
+              scrollActiveLinkIntoView();
           }
         });
 
-        // Function to adjust scroll for anchor links
         function adjustAnchorOnLoad() {
             if (window.location.hash) {
                 const element = document.querySelector(window.location.hash);
                 if (element) {
                     window.scrollTo({
-                        top: element.getBoundingClientRect().top + window.pageYOffset - 80, // Adjust for the header
+                        top: element.getBoundingClientRect().top + window.pageYOffset - 80,
                         behavior: 'smooth'
                     });
                 }
             }
         }
 
-        // Call the function on page load
         window.addEventListener('load', adjustAnchorOnLoad);
-
     </script>
 
 </body>
