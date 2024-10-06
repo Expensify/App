@@ -87,8 +87,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, true);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, true);
+    const title = ReportUtils.getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
@@ -120,15 +120,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     );
 
     const renderAdditionalText = () => {
-        if (
-            shouldShowSubtitle() ||
-            isPersonalExpenseChat ||
-            !policyName ||
-            !isEmptyObject(parentNavigationSubtitleData) ||
-            isSelfDM ||
-            ReportUtils.isUserCreatedPolicyRoom(report) ||
-            ReportUtils.isDefaultRoom(report)
-        ) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
         }
         return (
