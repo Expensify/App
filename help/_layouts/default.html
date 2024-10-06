@@ -223,6 +223,16 @@
             }
         }
 
+        function scrollActiveLinkIntoView() {
+            const activeLink = document.querySelector('.toc-sidebar .is-active-link');
+            if (activeLink) {
+                activeLink.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest'
+                });
+            }
+        }
+
         tocbot.init({
           tocSelector: '.js-toc',
           contentSelector: '.js-toc-content',
@@ -242,17 +252,12 @@
             return obj;
           },
           onClick: function(e) {
-              setTimeout(function() {
-                  const activeLink = document.querySelector('.toc-sidebar .is-active-link');
-                  if (activeLink) {
-                      activeLink.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'nearest'
-                      });
-                  }
-              }, 300); // Add a slight delay to ensure smooth behavior
+              setTimeout(scrollActiveLinkIntoView, 300); // Ensure smooth behavior after click
           },
-          scrollEndCallback: updateURLHashOnScroll
+          scrollEndCallback: function() {
+              updateURLHashOnScroll();
+              scrollActiveLinkIntoView(); // Ensure active link is visible when scrolling
+          }
         });
     </script>
 
