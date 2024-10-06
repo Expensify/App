@@ -5703,7 +5703,7 @@ function getUrlToNavigateBackForMoneyRequest(transactionID: string, reportAction
 
     let reportIDToNavigateBack: string | undefined;
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-        reportIDToNavigateBack = iouReport.chatReportID;
+        reportIDToNavigateBack = iouReport.reportID;
     }
 
     if (iouReport?.chatReportID && shouldDeleteIOUReport) {
