@@ -5,7 +5,7 @@ title: Expensify Superapp
 ## Introduction
 The Expensify Superapp packs the full power of 6 world-class business, finance, and collaboration products into a single app that works identically on desktop and mobile, efficiently with your colleagues, and seamlessly with your customers, vendors, family, and friends.
 
-### When should I use Expensify?
+### [Main uses] When should I use Expensify?
 Expensify can do a lot. You should check us out whenever you need to:
 * **Track and manage expenses** - Whether you are reimbursing employee receipts, deducting personal expenses, or just splitting the bill, Expensify Expense is for you.
 * **Issue corporate cards** - Skip the reimbursement and capture receipts electronically in real-time by issuing the Expensify Card to yourself and your employees.
@@ -16,7 +16,7 @@ Expensify can do a lot. You should check us out whenever you need to:
 
 If you send, receive, or spend money – or even just talk to literally anyone, about literally anything – Expensify is the tool for you.
 
-### Who uses Expensify?
+### [Core users] Who uses Expensify?
 Expensify offers something for everyone. Some people who commonly use us include:
 * **Individuals** - Millions of individuals use Expensify to track personal expenses to maximize their tax deductions, stay within personal budgets, or just see where their money is going.
 * **Friends** - Expensify is a great way to split bills with friends, whether it's monthly rent and household expenses, a big-ticket bachelorette party, or just grabbing drinks with friends.
@@ -27,7 +27,7 @@ Expensify offers something for everyone. Some people who commonly use us include
 
 If you are a person online who does basically anything, you can probably do it with Expensify.
 
-### Why should I use Expensify?
+### [Key advantages] Why should I use Expensify?
 Though we do a lot, you've got a lot of options for everything we do. But you should use us because we are:
 * **Simple enough for individuals** - We've worked extremely hard to make a product that strips out all the complex jargon and enterprise baggage, and gives you a simple tool that doesn't overwhelm you with functionality and language you don't understand.
 * **Powerful enough for enterprises** - We've worked extremely hard to make a product that "scales up" to reveal increasingly sophisticated features, but only to those who need it, and only when they need it. Expensify is used by public companies, multinational companies, companies with tens of thousands of employees, non-profits, investment firms, accounting firms, manufacturers, and basically every industry in every currency and in every country around the world. If you are a company, we can support your needs, no matter how big or small.
@@ -41,7 +41,7 @@ You are in the driver's seat; we're here to earn your business. But we're going 
 ## Concepts
 The Expensify Superapp has a lot of moving pieces, so let's break them down one by one.
 
-### What makes Expensify a superapp?
+### [Superapp] What makes Expensify a superapp?
 A "superapp" is a single app that combines multiple products into one seamlessly interconnected experience. Expensify isn't a "suite" of separate products linked through a single account – Expensify is a single app with a single core design that can perform multiple product functions. The secret to making such a seamless experience is that we build all product functions atop the same common core:
 * **App** - The basis of the superapp experience is the actual app itself, which runs on your mobile phone or desktop computer.
 * **Chats** - Even if you don't plan on using Expensify Chat for enterprise-grade workspace collaboration, chat is infused through the entire product.
@@ -51,7 +51,7 @@ A "superapp" is a single app that combines multiple products into one seamlessly
 
 These are the foundational concepts you'll see again and again that underpin the superapp as a whole.
 
-### What is the Expensify app?
+### [App screens] What is the Expensify app?
 Just like your eyes are a window to your soul, the Expensify App is the doorway through which you experience the entire global world of interconnected chat-centric collaborative data that comprises the Expensify network. The main tools of this app consist of:
 * **Inbox** - The main screen of the app is the Inbox, which highlights exactly what you should do next, consolidated across all products.
 * **Search** - The next major screen is Search, which as you'd expect, lets you search everything across all products, from one convenient and powerful place.
@@ -60,7 +60,7 @@ Just like your eyes are a window to your soul, the Expensify App is the doorway 
 
 It's a deceptively simple app, with a few very familiar-looking screens and buttons that unlock an incredible range of sophisticated multi-product power.
 
-### Where can I use the Expensify app?
+### [Platforms] Where can I use the Expensify app?
 The Expensify app comes in three flavors:
 * **Expensify web app** - The Expensify web app is what you would access at new.expensify.com. You can access the web app via a mobile web browser or a desktop web browser – it's optimized to work on both.
 * **Expensify mobile app** - The Expensify mobile app works more or less identically to the Expensify web app (when opened in a mobile browser), but is more reliable, higher performance, has better support for notifications.
@@ -68,7 +68,7 @@ The Expensify app comes in three flavors:
 
 Whatever computer or phone you use, Expensify will work on it.
 
-### What is a workspace?
+### [Workspace] What is a workspace?
 A workspace groups members together to enable secure sharing and real-time collaboration. Every product adds features to the workspace, but all share the same common baseline:
 * **Name** - You can name your workspace anything. Names are not globally unique, but even if every other Alice has their own "Alice's Apples" workspace, yours is definitely the most special.
 * **Profile photo** - Give your workspace a great headshot (or logo), or just stick with the beautiful one it is randomly assigned.
@@ -84,7 +84,7 @@ A workspace groups members together to enable secure sharing and real-time colla
 
 Workspaces make up the backbone of Expensify's collaboration features.
 
-### What is a domain?
+### [Domain] What is a domain?
 A domain is a secondary way of grouping users, generally for more advanced security purposes. Unlike a workspace, which can contain anybody with any email address or SMS number, you join a domain by validating your email address and then optionally "claiming" it as your own.
 * **Name** - Each domain corresponds to the "domain name" of your email address (eg, cathy@croissants.com would have the domain of `croissants.com`). Unlike a workspace, you can't rename your domain.
 * **Members** - A domain is similar to a workspace in that it represents a group of users. Unlike a workspace, however, domain members are generally limited to those who have validated email contact methods on this domain.
@@ -92,7 +92,7 @@ A domain is a secondary way of grouping users, generally for more advanced secur
 
 Domains allow for more advanced management and top-down control of Expensify members.
 
-### What does the Inbox do?
+### [Inbox] What does the Inbox do?
 Given Expensify's chat-centric design, that makes Expensify in effect a superpowered chat app – and in any chat app, the most important page is the Inbox. The Inbox does a real-time search across all products to highlight exactly what you should do *right now*. A few key features of the Inbox include:
 * **Green dot** - Whenever someone is waiting on you to do something – such as an expense you need to reimburse or a booking you need to approve – that thing's chat will be put to the top of the list with a little green dot next to it.
 * **Red dot** - Anything you need to finish to accomplish something you started – such as fixing a violation before an expense can be submitted – will also be put to the top of the list with a little red dot next to it.
@@ -103,7 +103,7 @@ Given Expensify's chat-centric design, that makes Expensify in effect a superpow
 
 The Inbox is the most powerful page in the app, and where you will spend the bulk of your time.
 
-### What does Search do?
+### [Search] What does Search do?
 By and large, pretty much anything. Expensify has a "universal search" design that brings all data objects into a single place, and then lets you search all those objects using an incredibly flexible and powerful search engine. Search consists of the following main pieces:
 * **Query** - At the top of the search page is the "query," which formally describes what you are searching for.
 * **Datatype selector** - By default, we will search all datatypes simultaneously, but you can narrow the results to a single type.
@@ -120,7 +120,7 @@ Every product will generally have its own distinct settings, but all settings ar
 
 Every product adds its own layers of sophistication and power onto the common foundation of this shared superapp core.
 
-#### What are my account settings?
+#### [Account] What are my account settings?
 Your account contains the sum total of all data you own or shared with you, across all products. But all products rely upon the same common set of account properties:
 * **Profile** - Your profile allows you to introduce and uniquely identify yourself to everyone else.
 * **Wallet** - Your wallet organizes the various financial payment tools (such as the Expensify Card) and bank accounts associated with your account.
@@ -128,7 +128,7 @@ Your account contains the sum total of all data you own or shared with you, acro
 
 Your personal account contains all the details that make you, you.
 
-#### What are my profile settings?
+#### [Profile] What are my profile settings?
 Your "profile" is how you identify yourself, both publicly and privately:
 * **Your public details** - As the name implies, your public details can be seen by other users. These include:
     * **Profile photo** - Your profile photo is the image that is shown next to your name wherever you appear. You can customize this however you please, or a random "avatar" image will be picked for you.
@@ -147,7 +147,7 @@ Your "profile" is how you identify yourself, both publicly and privately:
 
 The combination of your public and private profile gives you the tools to introduce yourself to the world and to us.
 
-#### What are my wallet settings?
+#### [Wallet] What are my wallet settings?
 Your wallet is your one-stop shop for all things banking and payment card-related. The major items in your wallet include:
 * **Cash** - Just like a regular wallet that has a mix of cash and cards, your Expensify wallet is also able to hold electronic cash you receive from others.
 * **Cards** - This contains a central list of every card associated with your Expensify account:
@@ -160,7 +160,7 @@ Your wallet is your one-stop shop for all things banking and payment card-relate
 
 Just like your normal wallet, a lot can be stuffed into your Expensify wallet, and all of it is priceless.
 
-#### What are my preferences?
+#### [Preferences] What are my preferences?
 Your preferences are personal settings that affect how we display information to you:
 * **Training and marketing** - We, in general, like to occasionally reach out with new information about features, changes, or offers to help – but only if you like.
 * **App sounds** - We've worked hard to come up with some subtle audio cues that hint when certain actions happen in the app, but they are entirely optional.
@@ -171,7 +171,7 @@ Your preferences are personal settings that affect how we display information to
 
 Everybody likes things their own way, and preferences are how you make the Expensify app your own.
 
-#### What are my subscription settings?
+#### [Subscription] What are my subscription settings?
 Most of Expensify is completely free to use, and millions of members use Expensify without paying anything at all. To unlock our more powerful functionality, create a workspace and pick which products you need – each can be adopted independently, but all are included in the base price (though some products have slightly different nuances: Expensify Card cashback deducts from the bill, Expensify Travel booking fees add to the bill, etc). Regardless of which products you enable, all are billed together via the same subscription. Your subscription consists of the following:
 * **Billing card** - Pick a credit or debit card from your wallet to pay your subscription.
 * **Subscription length** - Expensify has options for everyone depending on your specific needs, allowing you to balance cost versus commitment:
@@ -183,7 +183,7 @@ Most of Expensify is completely free to use, and millions of members use Expensi
 
 Pick the plan that works for you, and feel free to change as you need.
 
-#### What is the price of Expensify?
+#### [Price] What is the price of Expensify?
 For most users, Expensify is completely free. For business users, the price of Expensify depends on which features are enabled – and with Expensify Card cashback, you can actually be paid to use Expensify! The major variables going into the price of Expensify for your specific needs include the following:
 * **Personal use** - Most users enjoy Expensify free of charge, as there is a huge range of free features designed for use by yourself and with your friends.
 * **Active seats** - Our paid functionality is largely contained within workspaces and billed on an "active seat" basis. This means at the end of the month, we look over the activity of each workspace member to determine if they used any paid functionality or merely free features:
@@ -199,12 +199,12 @@ For most users, Expensify is completely free. For business users, the price of E
 
 Long story short, depending upon which features you use, you might pay us, it might be free, or we might even pay you. There are a lot of variables involved, so please check out our savings calculator to understand how this will shake out for you.
 
-#### What the heck is "Save the world"?
+#### [Save the world] What the heck is "Save the world"?
 Expensify.org’s mission is to empower individuals and communities to eliminate injustice around the world by making giving and volunteering more convenient, meaningful, and collaborative. We simplify full transparency for all, allowing our donors and volunteers to connect and make positive permanent changes. The foundation of Expensify.org was built on applying our expertise in expense management to increase the transparency of how funds are used, the convenience of how donations are gathered, and — most importantly — the human connection between donors, volunteers, and recipients.
 
 Please note that our funding model is not in the form of a grant given to a nonprofit organization. Instead, we're looking to help amplify the work of individuals who are directly absorbing the costs.
 
-### What does the big green Create button do?
+### [Global create] What does the big green Create button do?
 Saving the best for last is the big green "global create" button. As the name suggests, this allows you to create basically anything your account is allowed to create. The exact options will depend on which products are configured in your workspace, but it can be any of the following:
 * **Start chat** - Begins a new chat with one or more users.
 * **Track expense** - Tracks an expense for personal use.
@@ -223,7 +223,7 @@ The Expensify superapp has a lot of moving parts, what specifically are you tryi
 
 ### Role
 
-#### How do I use Expensify as an individual?
+#### [Individual] How do I use Expensify as an individual?
 Expensify is designed to be flexible for a wide range of individual use cases. As an individual, you can:
 1. Track personal expenses
 2. Split bills with friends
@@ -232,13 +232,13 @@ Expensify is designed to be flexible for a wide range of individual use cases. A
 
 Simply log in, navigate to the expense section, and use the Create button to start organizing your expenses.
 
-#### How do I use Expensify with my friends?
+#### [Friends] How do I use Expensify with my friends?
 You can use Expensify to settle shared expenses between friends, such as splitting the bill at a restaurant. Here's how:
 1. Create an expense and enter the total amount.
 2. Choose **Split Expense** and add your friends by entering their email addresses.
 3. Expensify will calculate each person's share, and you can easily send a request to them to settle the balance.
 
-#### How do I use Expensify as an employee?
+#### [Employee] How do I use Expensify as an employee?
 As an employee, Expensify can help you:
 1. Submit expense reports for approval.
 2. Use the Expensify Card for company expenses.
@@ -247,7 +247,7 @@ As an employee, Expensify can help you:
 
 After logging in, create an expense report, attach receipts, and submit it for approval through your workspace.
 
-#### How do I use Expensify as a manager?
+#### [Manager] How do I use Expensify as a manager?
 Managers can use Expensify to:
 1. Approve or reject expense reports from their team.
 2. Monitor corporate spending in real-time.
@@ -256,7 +256,7 @@ Managers can use Expensify to:
 
 Use the Inbox and Workspace features to manage team expenses and approvals efficiently.
 
-#### How do I use Expensify as an accountant?
+#### [Accountant] How do I use Expensify as an accountant?
 Accountants can:
 1. Manage multiple clients’ expense workflows through different workspaces.
 2. Create invoices and collect payments.
@@ -265,7 +265,7 @@ Accountants can:
 
 You can use the Invoice and Bill Pay tools to manage clients' billing, and track expenses for tax reporting.
 
-#### How do I use Expensify as a travel manager?
+#### [Travel manager] How do I use Expensify as a travel manager?
 Travel managers can:
 1. Book and manage employee travel.
 2. Track expenses related to flights, hotels, and car rentals.
@@ -274,26 +274,26 @@ Travel managers can:
 
 Simply navigate to the Travel section, where you can manage travel bookings and expense submissions in one place.
 
-### App
+### Platforms
 
-#### How do I access Expensify on the web?
+#### [Web] How do I access Expensify on the web?
 To visit the Expensify website:
 1. Go to www.expensify.com, either on a desktop or mobile browser.
 
-#### How do I install the Expensify mobile app?
+#### [Mobile] How do I install the Expensify mobile app?
 To install the Expensify mobile app:
 1. Visit the Expensify for iOS or Expensify for Android app stores.
 2. Press **Install**.
 3. Follow the prompts to install.
 4. Press the Expensify icon in your phone's app list to start.
 
-#### How do I install the Expensify desktop app?
+#### [Desktop] How do I install the Expensify desktop app?
 To install the Expensify desktop app on MacOS:
 1. Download the Expensify for MacOS or Expensify for Windows installer.
 2. Double-click on the installer to open it.
 3. Click the Expensify icon on the taskbar to start.
 
-#### How do I sign up or sign in to my Expensify account?
+#### [Sign in] How do I sign up or sign in to my Expensify account?
 Signing up for a new account works the same as signing into an existing account, as follows:
 1. Install or access Expensify on any platform:
     * Access Expensify on the web.
@@ -307,24 +307,24 @@ Signing up for a new account works the same as signing into an existing account,
 3. If asked to validate your email address, check your email inbox for a magic link and press it.
 4. If asked to join, this means that this is the first time you are signing in with this email address or phone number; press **Join** to confirm you entered it correctly.
 
-#### How do I use a magic link?
+#### [Magic link] How do I use a magic link?
 Magic links are used for secure login without passwords. When prompted:
 1. Check your email for the Expensify Magic Link.
 2. Click the link in your email, and it will log you in to Expensify without needing to enter a password.
 
-#### How do I sign out?
+#### [Sign out] How do I sign out?
 To sign out of Expensify:
 1. Press **Settings** in the Expensify app.
 2. Scroll to the bottom and press **Sign Out**.
 
-#### How do I secure my account with two-factor authentication?
+#### [Two factor] How do I secure my account with two-factor authentication?
 To enable two-factor authentication:
 1. Press **Settings**.
 2. Press **Security**.
 3. Press **Two-factor authentication**.
 4. Follow the steps to link your mobile phone for 2FA.
 
-#### How do I close my account?
+#### [Close account] How do I close my account?
 To close your account:
 1. Press **Settings**.
 2. Press **Security**.
@@ -333,14 +333,14 @@ To close your account:
 
 ### Profile
 
-#### How do I set my profile photo?
+#### [Photo] How do I set my profile photo?
 To set your profile photo:
 1. Press **Settings**.
 2. Press the **pencil icon** next to your existing profile photo.
 3. Press **Upload** photo.
 4. Follow the prompts on your platform to select your photo from local storage.
 
-#### How do I change my display name?
+#### [Display name] How do I change my display name?
 To change your display name:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -348,25 +348,25 @@ To change your display name:
 4. Enter your first and last name.
 5. Press **Save**.
 
-#### How do I add a secondary contact method?
+#### [Secondary contact] How do I add a secondary contact method?
 To add a secondary contact method:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Scroll to **Contact Methods**.
 4. Press **Add Secondary Contact** and enter your additional email or phone number.
 
-#### How do I change my primary contact method?
+#### [Primary contact] How do I change my primary contact method?
 To change your primary contact method:
 1. Add a new secondary contact method.
 2. Press **Make primary** to make it the new primary contact method.
 
-#### How do I remove a contact method?
+#### [Remove contact] How do I remove a contact method?
 To remove a contact method:
 1. Press **Settings**.
 2. Go to **Profile** and navigate to **Contact Methods**.
 3. Select the contact method to remove and press **Remove**.
 
-#### How do I set my pronouns?
+#### [Pronouns] How do I set my pronouns?
 To change your pronouns:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -374,7 +374,7 @@ To change your pronouns:
 4. Start typing your preferred pronouns.
 5. Choose your preferred set from the list.
 
-#### How do I change my timezone?
+#### [Timezone] How do I change my timezone?
 By default, your timezone will be set automatically to match your system settings. To instead set it manually:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -383,7 +383,7 @@ By default, your timezone will be set automatically to match your system setting
 5. Press **Timezone**.
 6. Choose your preferred timezone from the list.
 
-#### How do I set my status?
+#### [Status] How do I set my status?
 To set your status:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -391,7 +391,7 @@ To set your status:
 4. Enter your custom status message and choose an emoji (optional).
 5. Press **Save**.
 
-#### How do I change my legal name?
+#### [Legal name] How do I change my legal name?
 To change your legal name:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -399,14 +399,14 @@ To change your legal name:
 4. Enter your updated legal name.
 5. Press **Save**.
 
-#### How do I change my date of birth?
+#### [Date of birth] How do I change my date of birth?
 To change your date of birth:
 1. Press **Settings**.
 2. Press **Profile**.
 3. Press **Date of Birth**.
 4. Update your birth date and press **Save**.
 
-#### How do I change my address?
+#### [Address] How do I change my address?
 To change your address:
 1. Press **Settings**.
 2. Press **Profile**.
@@ -415,49 +415,49 @@ To change your address:
 
 ### Workspace
 
-#### How do I create a workspace?
+#### [Create] How do I create a workspace?
 To create a workspace:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Press **Create Workspace**.
 4. Follow the steps to name and configure your new workspace.
 
-#### How do I rename my workspace?
+#### [Rename] How do I rename my workspace?
 To rename your workspace:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select your workspace and press **Edit**.
 4. Change the name and press **Save**.
 
-#### How do I change the profile photo of my workspace?
+#### [Photo] How do I change the profile photo of my workspace?
 To change your workspace's profile photo:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Profile Photo**.
 4. Upload a new photo and press **Save**.
 
-#### How do I change the description of my workspace?
+#### [Description] How do I change the description of my workspace?
 To update your workspace description:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Description**.
 4. Update the text and press **Save**.
 
-#### How do I change the currency of my workspace?
+#### [Currency] How do I change the currency of my workspace?
 To change your workspace currency:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Currency**.
 4. Choose a new default currency and press **Save**.
 
-#### How do I change the headquarters of my workspace?
+#### [Headquarters] How do I change the headquarters of my workspace?
 To change your workspace's headquarters location:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Headquarters**.
 4. Update the address and press **Save**.
 
-#### How do I add or invite someone to my workspace?
+#### [Invite member] How do I add or invite someone to my workspace?
 To invite a new member:
 1. Press **Settings**.
 2. Press **Workspaces**.
@@ -465,42 +465,42 @@ To invite a new member:
 4. Press **Add Member** and enter the email addresses of the new members.
 5. Press **Invite**.
 
-#### How do I remove someone from my workspace?
+#### [Remove member] How do I remove someone from my workspace?
 To remove a member from your workspace:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Members**.
 4. Choose the member to remove and press **Remove Member**.
 
-#### How do I make someone an admin of my workspace?
+#### [Add admin] How do I make someone an admin of my workspace?
 To promote a member to an admin:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Members**.
 4. Select the member and press **Make Admin**.
 
-#### How do I remove an admin from my workspace?
+#### [Remove admin] How do I remove an admin from my workspace?
 To remove admin privileges:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Members**.
 4. Choose the admin and press **Remove Admin**.
 
-#### How do I enable features on my workspace?
+#### [More features] How do I enable features on my workspace?
 To enable features:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select the workspace and press **Features**.
 4. Toggle on the desired features and press **Save**.
 
-#### How do I upgrade my workspace?
+#### [Upgrade plan] How do I upgrade my workspace?
 To upgrade a workspace to the Control plan:
 1. Press **Settings**.
 2. Press **Workspaces**.
 3. Select your workspace and press **Upgrade to Control**.
 4. Follow the steps to finalize the upgrade.
 
-#### How do I delete my workspace?
+#### [Delete] How do I delete my workspace?
 To delete a workspace:
 1. Press **Settings**.
 2. Press **Workspaces**.

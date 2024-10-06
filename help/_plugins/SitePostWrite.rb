@@ -1,7 +1,7 @@
 require 'open3'
 
 module Jekyll
-  class GenerateSearchIndexPostWrite
+  class SitePostWrite
     # Hook into Jekyll's post_write stage, which runs after all files have been written
     Jekyll::Hooks.register :site, :post_write do |site|
       process_site(site)

@@ -122,8 +122,17 @@
           tocSelector: '.js-toc',
           contentSelector: '.js-toc-content',
           headingSelector: 'h1, h2, h3, h4, h5, h6',
-          collapseDepth: 3
-        });
+          collapseDepth: 3,
+          headingObjectCallback: function(obj, element) {
+            // Check if the heading has a 'data-toc-title' attribute
+            const tocTitle = element.getAttribute('data-toc-title');
+            if (tocTitle) {
+                // Use the 'data-toc-title' for the TOC
+                obj.textContent = tocTitle;
+            }
+            // Return the modified (or original) object
+            return obj;
+        }        });
     </script>
 
     <script>

@@ -2,13 +2,13 @@ require 'nokogiri'
 require 'cgi'
 
 module Jekyll
-  class HeaderIDPostRender
+  class SitePostRender
     # Hook into Jekyll's post_render stage to ensure we work with the final HTML
-    Jekyll::Hooks.register :pages, :post_render, priority: 51 do |page|
+    Jekyll::Hooks.register :pages, :post_render do |page|
       process_page(page)
     end
 
-    Jekyll::Hooks.register :documents, :post_render, priority: 51 do |post|
+    Jekyll::Hooks.register :documents, :post_render do |post|
       process_page(post)
     end
 
@@ -25,13 +25,27 @@ module Jekyll
       prefix = {}
 
       # Process all <h2>, <h3>, and <h4> elements in order
-      doc.css('h2, h3, h4').each do |header|
-        # Determine the level of the header (h2, h3, or h4)
+      doc.css('h2, h3, h4, h5').each do |header|
+        # Check if the header starts with a short title in square brackets
+        header_text = header.text.strip
+        if header_text.match(/^\[(.*?)\]/)
+          # Extract the short title from the square brackets
+          short_title = header_text.match(/^\[(.*?)\]/)[1]
+
+          # Set the `data-toc-title` attribute on the header
+          header['data-toc-title'] = short_title
+
+          # Remove the short title from the visible header text
+          header_text = header_text.sub(/^\[.*?\]\s*/, '')
+          header.content = header_text
+        end
+
+        # Determine the level of the header (h2, h3, h4, or h5)
         level = header.name[1].to_i  # 'h2' -> 2, 'h3' -> 3, etc.
 
-        # Generate the ID for the current header based on its text
-        header_text = header.text.strip.downcase
-        header_id = CGI.escape(header_text.gsub(/\s+/, '-').gsub(/[^\w\-]/, ''))
+        # Generate the ID for the current header based on its (cleaned) text
+        clean_text = header_text.downcase.strip
+        header_id = CGI.escape(clean_text.gsub(/\s+/, '-').gsub(/[^\w\-]/, ''))
 
         # Store the current header's ID in the prefix array
         prefix[level] = header_id
