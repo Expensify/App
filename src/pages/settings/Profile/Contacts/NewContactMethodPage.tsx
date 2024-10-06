@@ -2,8 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,30 +19,25 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as UserUtils from '@libs/UserUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
-import type {LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type NewContactMethodPageOnyxProps = {
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<LoginList>;
-};
+type NewContactMethodPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
-
-function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const contactMethod = account?.primaryLogin ?? '';
+function NewContactMethodPage({route}: NewContactMethodPageProps) {
+    const contactMethod = UserUtils.getContactMethod();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
 
@@ -161,6 +155,4 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
 
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 
-export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(NewContactMethodPage);
+export default NewContactMethodPage;

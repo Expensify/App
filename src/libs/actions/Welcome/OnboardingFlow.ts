@@ -10,6 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type Onboarding from '@src/types/onyx/Onboarding';
 
 let selectedPurpose: string | undefined = '';
 Onyx.connect({
@@ -31,6 +32,17 @@ const onboardingLastVisitedPathConnection = Onyx.connect({
     },
 });
 
+let onboardingValues: Onboarding;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+        onboardingValues = value as Onboarding;
+    },
+});
+
 /**
  * Build the correct stack order for `onboardingModalNavigator`,
  * based on onboarding data (currently from the selected purpose).
@@ -46,8 +58,8 @@ function adaptOnboardingRouteState() {
     const rootState = navigationRef.getRootState();
     const adaptedState = rootState;
     const lastRouteIndex = (adaptedState?.routes?.length ?? 0) - 1;
-    const onBoardingModalNavigatorState = adaptedState?.routes[lastRouteIndex]?.state;
-    if (!onBoardingModalNavigatorState || onBoardingModalNavigatorState?.routes?.length > 1) {
+    const onBoardingModalNavigatorState = adaptedState?.routes.at(lastRouteIndex)?.state;
+    if (!onBoardingModalNavigatorState || onBoardingModalNavigatorState?.routes?.length > 1 || lastRouteIndex === -1) {
         return;
     }
 
@@ -80,7 +92,11 @@ function adaptOnboardingRouteState() {
         } as Readonly<PartialState<NavigationState>>;
     }
 
-    adaptedState.routes[lastRouteIndex].state = adaptedOnboardingModalNavigatorState;
+    const route = adaptedState.routes.at(lastRouteIndex);
+
+    if (route) {
+        route.state = adaptedOnboardingModalNavigatorState;
+    }
     navigationRef.resetRoot(adaptedState);
 }
 
@@ -99,6 +115,11 @@ function startOnboardingFlow() {
 
 function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
+    const showBusinessModal = onboardingValues && CONST.QUALIFIER_PARAM in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+    if (showBusinessModal) {
+        return `/${ROUTES.ONBOARDING_WORK.route}`;
+    }
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }

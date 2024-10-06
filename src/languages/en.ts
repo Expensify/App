@@ -19,7 +19,6 @@ import type {
     BadgeFreeTrialParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
@@ -69,6 +68,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -264,6 +264,7 @@ const translations = {
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
         and: 'and',
+        or: 'or',
         details: 'Details',
         privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
@@ -657,33 +658,34 @@ const translations = {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
         beginningOfArchivedRoomPartTwo: ", there's nothing to see here.",
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
-        beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
-        beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
-            `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
-        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `This chat is with all Expensify members on the ${domainRoom} domain.`,
+        beginningOfChatHistoryDomainRoomPartTwo: ' Use it to chat with colleagues, share tips, and ask questions.',
+        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => `This chat is with ${workspaceName} admins.`,
+        beginningOfChatHistoryAdminRoomPartTwo: ' Use it to chat about workspace setup and more.',
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `This chat is with everyone in ${workspaceName} workspace.`,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ` Use it for the most important announcements.`,
+        beginningOfChatHistoryUserRoomPartOne: 'This chat room is for anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
-        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 Use this room to view, discuss, and pay invoices.',
-        beginningOfChatHistory: 'This is the beginning of your chat with ',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, submit expenses and settle up.',
+        beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
+        beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
+        beginningOfChatHistory: 'This chat is with ',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'This is where ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' will submit expenses to ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' workspace. Just use the + button.',
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
+        askConcierge: '\nAsk questions and get 24/7 realtime support.',
         iouTypes: {
-            pay: 'pay expenses',
-            split: 'split an expense',
-            submit: 'submit an expense',
-            track: 'track an expense',
-            invoice: 'invoice an expense',
+            pay: 'pay',
+            split: 'split',
+            submit: 'submit',
+            track: 'track',
+            invoice: 'invoice',
         },
     },
     adminOnlyCanPost: 'Only admins can send messages in this room.',
@@ -1087,6 +1089,8 @@ const translations = {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        featureRequiresValidate: 'This feature requires you to validate your account.',
+        validateAccount: 'Validate your account',
         helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
         helpTextAfterEmail: ' from multiple email addresses.',
         pleaseVerify: 'Please verify this contact method',
@@ -1191,8 +1195,13 @@ const translations = {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            importOnyxState: 'Import Onyx state',
             testCrash: 'Test crash',
+            resetToOriginalState: 'Reset to original state',
+            usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
+            invalidFile: 'Invalid file',
+            invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1215,7 +1224,6 @@ const translations = {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
-        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account settings',
         account: 'Account',
@@ -2773,6 +2781,7 @@ const translations = {
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Imported as ${importedTypes.join(' and ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
@@ -4020,11 +4029,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' and ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
             }
             return {
                 one: `removed you from ${joinedNames}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
@@ -4140,6 +4149,10 @@ const translations = {
             past: 'Past',
         },
         expenseType: 'Expense type',
+        recentSearches: 'Recent searches',
+        recentChats: 'Recent chats',
+        searchIn: 'Search in',
+        searchPlaceholder: 'Search for something',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
