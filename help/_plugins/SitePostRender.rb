@@ -51,7 +51,7 @@ module Jekyll
         prefix[level] = header_id
 
         # Construct the full hierarchical ID by concatenating IDs for all levels up to the current level
-        full_id = (2..level).map { |l| prefix[l] }.join(':')
+        full_id = (2..level).map { |l| prefix[l] }.join('--')
 
         # Assign the generated ID to the header element
         header['id'] = full_id

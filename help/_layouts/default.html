@@ -259,6 +259,23 @@
               scrollActiveLinkIntoView(); // Ensure active link is visible when scrolling
           }
         });
+
+        // Function to adjust scroll for anchor links
+        function adjustAnchorOnLoad() {
+            if (window.location.hash) {
+                const element = document.querySelector(window.location.hash);
+                if (element) {
+                    window.scrollTo({
+                        top: element.getBoundingClientRect().top + window.pageYOffset - 80, // Adjust for the header
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }
+
+        // Call the function on page load
+        window.addEventListener('load', adjustAnchorOnLoad);
+
     </script>
 
 </body>
