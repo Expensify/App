@@ -7,18 +7,67 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.css">
     <style>
         body {
-            display: flex;
             margin: 0;
             font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
             background-color: #f9fafb;
             color: #333;
         }
 
+        /* Header styling */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0366d6;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0366d6;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: #f1f8ff;
+        }
+
+        /* Highlight the active page */
+        .nav-links a.active {
+            background-color: #eaf5ff;
+            color: #0366d6;
+            font-weight: bold;
+        }
+
         /* Sidebar navigation for TOC */
         .toc-sidebar {
             width: 250px;
             position: fixed;
-            top: 0;
+            top: 80px;  /* Adjust for the fixed header */
             bottom: 0;
             left: 0;
             background-color: #fff;
@@ -45,7 +94,6 @@
         /* Add extra space between groups (e.g., Introduction, Concepts, etc.) */
         .js-toc > ul > li > ul > li {
             margin-top: 25px;
-            box-shadow: 2px 0 5px rgba(0.1, 0, 0, 0);
         }
 
         /* Style for links in TOC */
@@ -75,6 +123,7 @@
         main {
             margin-left: 270px;
             padding: 20px;
+            margin-top: 80px;  /* Adjust for the fixed header */
             flex-grow: 1;
             max-width: 900px;
         }
@@ -120,6 +169,21 @@
 </head>
 <body>
 
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <a href="/index">Expensify</a>
+        </div>
+        <nav class="nav-links">
+            <a href="/expense" class="{% if page.title == 'Expensify Expense' %}active{% endif %}">Expense</a>
+            <a href="/card" class="{% if page.title == 'Expensify Cards' %}active{% endif %}">Card</a>
+            <a href="/travel" class="{% if page.title == 'Expensify Travel' %}active{% endif %}">Travel</a>
+            <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
+            <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
+            <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
+        </nav>
+    </header>
+
     <!-- TOC Sidebar -->
     <nav class="toc-sidebar">
         {% include search.html %}
@@ -150,17 +214,15 @@
           scrollToActive: true,  // Automatically scroll to the active heading in the ToC  
           enableUrlHashUpdateOnScroll: true,
           headingObjectCallback: function(obj, element) {
-            // Check if the heading has a 'data-toc-title' attribute
             const tocTitle = element.getAttribute('data-toc-title');
             if (tocTitle) {
-                // Use the 'data-toc-title' for the TOC
                 obj.textContent = tocTitle;
             }
-            // Return the modified (or original) object
             return obj;
           }
         });
     </script>
+
 </body>
 </html>
 
