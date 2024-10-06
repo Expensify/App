@@ -3,6 +3,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {getPolicyCategories} from '@libs/actions/Policy/Category';
 import type {TransactionMergeParams} from '@libs/API/parameters';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -1007,6 +1008,7 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
+            const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
@@ -1023,13 +1025,22 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     processChanges(fieldName, transactions, keys);
                 }
             } else if (fieldName === 'taxCode') {
-                const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
                 const policy = PolicyUtils.getPolicy(report?.policyID);
                 const differentValues = getDifferentValues(transactions, keys);
                 const validTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name);
 
                 if (!areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
+                }
+            } else if (fieldName === 'category') {
+                const differentValues = getDifferentValues(transactions, keys);
+                const policyCategories = getPolicyCategories(report?.policyID ?? '-1');
+                const availableCategories = Object.values(policyCategories)
+                    .filter((category) => differentValues.includes(category.name))
+                    .map((e) => e.name);
+
+                if (!areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) && availableCategories.length > 1) {
+                    change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
                 }
             } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
