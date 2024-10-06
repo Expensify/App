@@ -163,7 +163,7 @@
 
         /* Spacer at the bottom for scrolling */
         .scroll-spacer {
-            height: 300px; /* Adjust this value if more space is needed */
+            height: 200px; /* Adjust this value if more space is needed */
         }
 
         /* Footer */
@@ -204,10 +204,77 @@
         <!-- Spacer div for scrolling -->
         <div class="scroll-spacer"></div>
 
-        <footer>
-            <p>&copy; {{ site.time | date: "%Y" }} Your Company. All rights reserved.</p>
-        </footer>
     </main>
+
+    <footer style="background-color: #f9fafb; padding: 40px 20px;">
+        <div style="display: flex; justify-content: space-around; max-width: 1200px; margin: 0 auto;">
+
+            <!-- Features Column -->
+            <div style="flex: 1;">
+                <h3 style="color: #2c6a4f;">Features</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><a href="https://use.expensify.com/expense-management" style="color: #2c6a4f; text-decoration: none;">Expense Management</a></li>
+                    <li><a href="https://use.expensify.com/spend-management" style="color: #2c6a4f; text-decoration: none;">Spend Management</a></li>
+                    <li><a href="https://use.expensify.com/expense-reports" style="color: #2c6a4f; text-decoration: none;">Expense Reports</a></li>
+                    <li><a href="https://use.expensify.com/company-credit-card" style="color: #2c6a4f; text-decoration: none;">Company Card</a></li>
+                    <li><a href="https://use.expensify.com/receipt-scanning-app" style="color: #2c6a4f; text-decoration: none;">Receipt Scanning App</a></li>
+                    <li><a href="https://use.expensify.com/payments" style="color: #2c6a4f; text-decoration: none;">Payments</a></li>
+                    <li><a href="https://use.expensify.com/bill-pay-app" style="color: #2c6a4f; text-decoration: none;">Bill Pay</a></li>
+                    <li><a href="https://use.expensify.com/invoicing-software" style="color: #2c6a4f; text-decoration: none;">Invoicing</a></li>
+                    <li><a href="https://use.expensify.com/travel" style="color: #2c6a4f; text-decoration: none;">Travel</a></li>
+                </ul>
+            </div>
+
+            <!-- Resources Column -->
+            <div style="flex: 1;">
+                <h3 style="color: #2c6a4f;">Resources</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><a href="https://use.expensify.com/accountants" style="color: #2c6a4f; text-decoration: none;">ExpensifyApproved!</a></li>
+                    <li><a href="https://use.expensify.com/press-kit" style="color: #2c6a4f; text-decoration: none;">Press Kit</a></li>
+                    <li><a href="https://use.expensify.com/support" style="color: #2c6a4f; text-decoration: none;">Support</a></li>
+                    <li><a href="https://help.expensify.com/" style="color: #2c6a4f; text-decoration: none;">ExpensifyHelp</a></li>
+                    <li><a href="https://community.expensify.com/" style="color: #2c6a4f; text-decoration: none;">Community</a></li>
+                    <li><a href="https://use.expensify.com/privacy" style="color: #2c6a4f; text-decoration: none;">Privacy</a></li>
+                    <li><a href="https://use.expensify.com/download" style="color: #2c6a4f; text-decoration: none;">Expensify App</a></li>
+                </ul>
+            </div>
+
+            <!-- Learn More Column -->
+            <div style="flex: 1;">
+                <h3 style="color: #2c6a4f;">Learn more</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><a href="https://we.are.expensify.com/how-we-got-here" style="color: #2c6a4f; text-decoration: none;">About Expensify</a></li>
+                    <li><a href="https://use.expensify.com/blog" style="color: #2c6a4f; text-decoration: none;">Blog</a></li>
+                    <li><a href="https://we.are.expensify.com/" style="color: #2c6a4f; text-decoration: none;">Jobs</a></li>
+                    <li><a href="https://www.expensify.org" style="color: #2c6a4f; text-decoration: none;">Expensify.org</a></li>
+                    <li><a href="https://ir.expensify.com" style="color: #2c6a4f; text-decoration: none;">Investor Relations</a></li>
+                </ul>
+
+                <!-- Social Icons -->
+                <div>
+                    <a href="https://we.are.expensify.com/podcast" title="Expensify Podcast"><img src="podcast-icon.png" alt="Podcast" style="width: 20px;"></a>
+                    <a href="https://www.twitter.com/expensify" title="Twitter"><img src="twitter-icon.png" alt="Twitter" style="width: 20px;"></a>
+                    <a href="http://www.instagram.com/expensify" title="Instagram"><img src="instagram-icon.png" alt="Instagram" style="width: 20px;"></a>
+                    <a href="https://www.facebook.com/expensify" title="Facebook"><img src="facebook-icon.png" alt="Facebook" style="width: 20px;"></a>
+                    <a href="http://www.linkedin.com/company/expensify" title="LinkedIn"><img src="linkedin-icon.png" alt="LinkedIn" style="width: 20px;"></a>
+                </div>
+            </div>
+
+            <!-- Get Started Column -->
+            <div style="flex: 1;">
+                <h3 style="color: #2c6a4f;">Get Started</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><a href="https://www.expensify.com" style="color: #2c6a4f; text-decoration: none;">Create a new account</a></li>
+                    <li><a href="https://www.expensify.com" style="color: #2c6a4f; text-decoration: none;">Log in</a></li>
+                    <li><a href="https://apps.apple.com/us/app/expensify-receipts-expenses/id471713959" target="_blank"><img src="/assets/img/download-ios.svg" width="100"></a></li>
+                    <li><a href="https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg" target="_blank"><img src="/assets/img/download-android.svg" width="100"></a></li>
+                </ul>
+                <p style="color: #586069;">©2008-2024 Expensify, Inc.</p>
+            </div>
+
+        </div>
+    </footer>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
     <script>
