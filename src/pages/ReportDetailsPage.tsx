@@ -715,9 +715,35 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const isTransactionDeleted = useRef<boolean>(false);
     // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
     const navigateBackToAfterDelete = useRef<Route>();
+    useEffect(() => {
+        return () => {
+            if(!isTransactionDeleted.current)
+            {
+                return;
+            }
+
+            if (caseID === CASES.DEFAULT) {
+                Task.deleteTask(report);
+                return;
+            }
+        
+            if (!requestParentReportAction) {
+                return;
+            }
+        
+            const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+                
+            if (isTrackExpense) {
+                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            } else {
+                IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            }
+        };
+    }, [isTransactionDeleted]);
 
     const deleteTransaction = useCallback(() => {
         setIsDeleteModalVisible(false);
+        isTransactionDeleted.current = true;
     
         let urlToNavigateBack: string | undefined;
     
@@ -728,7 +754,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             } else {
                 Navigation.dismissModal();
             }
-            Task.deleteTask(report);
             return;
         }
     
@@ -749,13 +774,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
         }
     
-        if (isTrackExpense) {
-            IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
-        } else {
-            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
-        }
-    
-        isTransactionDeleted.current = true;
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
     
     return (
