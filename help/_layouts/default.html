@@ -213,6 +213,8 @@
           scrollSmooth: true,  // Enable smooth scrolling
           scrollToActive: true,  // Automatically scroll to the active heading in the ToC  
           enableUrlHashUpdateOnScroll: true,
+          headingsOffset: 80,  // Adjust this to match your header's height
+          scrollSmoothOffset: -80,  // Same value as headingsOffset but negative
           headingObjectCallback: function(obj, element) {
             const tocTitle = element.getAttribute('data-toc-title');
             if (tocTitle) {
