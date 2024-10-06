@@ -1039,7 +1039,10 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                     .filter((category) => differentValues.includes(category.name))
                     .map((e) => e.name);
 
-                if (!areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) && availableCategories.length > 1) {
+                if (
+                    !areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) &&
+                    (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))
+                ) {
                     change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
                 }
             } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
