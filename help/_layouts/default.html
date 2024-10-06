@@ -41,6 +41,7 @@
         .nav-links {
             display: flex;
             gap: 15px;
+            padding-right: 20px;  /* Add padding to the right to prevent cutoff */
         }
 
         .nav-links a {
@@ -121,7 +122,7 @@
 
         /* Main content area */
         main {
-            margin-left: 270px;
+            margin-left: 300px; /* Make room for the table of contents */
             padding: 20px;
             margin-top: 80px;  /* Adjust for the fixed header */
             flex-grow: 1;
@@ -141,6 +142,11 @@
 
         main h3 {
             font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        main h4 {
+            font-size: 20px;
             margin-bottom: 12px;
         }
 
