@@ -211,6 +211,18 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
     <script>
+        function updateURLHashOnScroll() {
+            const activeLink = document.querySelector('.toc-sidebar .is-active-link');
+            if (activeLink) {
+                const hash = activeLink.getAttribute('href');
+                if (history.pushState) {
+                    history.pushState(null, null, hash);
+                } else {
+                    window.location.hash = hash;
+                }
+            }
+        }
+
         tocbot.init({
           tocSelector: '.js-toc',
           contentSelector: '.js-toc-content',
@@ -219,7 +231,7 @@
           orderedList: false,  // No numbers
           scrollSmooth: true,  // Enable smooth scrolling
           scrollToActive: true,  // Automatically scroll to the active heading in the ToC  
-          enableUrlHashUpdateOnScroll: true,
+          enableUrlHashUpdateOnScroll: false, // Disabling to handle it manually
           headingsOffset: 80,  // Adjust this to match your header's height
           scrollSmoothOffset: -80,  // Same value as headingsOffset but negative
           headingObjectCallback: function(obj, element) {
@@ -228,7 +240,19 @@
                 obj.textContent = tocTitle;
             }
             return obj;
-          }
+          },
+          onClick: function(e) {
+              setTimeout(function() {
+                  const activeLink = document.querySelector('.toc-sidebar .is-active-link');
+                  if (activeLink) {
+                      activeLink.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'nearest'
+                      });
+                  }
+              }, 300); // Add a slight delay to ensure smooth behavior
+          },
+          scrollEndCallback: updateURLHashOnScroll
         });
     </script>
 
