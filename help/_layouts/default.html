@@ -30,23 +30,45 @@
 
         /* Styling the TOC list */
         .toc-sidebar ul {
-            list-style: none;
+            list-style: none;  /* Removes numbers and bullets */
             padding-left: 0;
-            line-height: 1.8;
+            line-height: 0.1;
             font-size: 15px;
         }
 
+        /* Add indentation for nested headings */
         .toc-sidebar li {
-            margin-left: 10px;
+            margin-left: 0;
+            padding-left: 10px; /* Increase indentation */
         }
 
+        /* Add extra space between groups (e.g., Introduction, Concepts, etc.) */
+        .js-toc > ul > li > ul > li {
+            margin-top: 25px;
+            box-shadow: 2px 0 5px rgba(0.1, 0, 0, 0);
+        }
+
+        /* Style for links in TOC */
         .toc-sidebar a {
+            display: block;
+            padding: 8px 10px;
+            margin-bottom: 5px;
             text-decoration: none;
             color: #0366d6;
+            border-radius: 6px;
         }
 
         .toc-sidebar a:hover {
-            text-decoration: underline;
+            background-color: #f1f8ff;
+            text-decoration: none;
+        }
+
+        /* Highlight active link */
+        .toc-sidebar .is-active-link {
+            background-color: #eaf5ff;  /* Light blue background */
+            color: #0366d6;
+            font-weight: bold;
+            border-radius: 6px;
         }
 
         /* Main content area */
@@ -123,6 +145,10 @@
           contentSelector: '.js-toc-content',
           headingSelector: 'h1, h2, h3, h4, h5, h6',
           collapseDepth: 3,
+          orderedList: false,  // No numbers
+          scrollSmooth: true,  // Enable smooth scrolling
+          scrollToActive: true,  // Automatically scroll to the active heading in the ToC  
+          enableUrlHashUpdateOnScroll: true,
           headingObjectCallback: function(obj, element) {
             // Check if the heading has a 'data-toc-title' attribute
             const tocTitle = element.getAttribute('data-toc-title');
@@ -132,29 +158,6 @@
             }
             // Return the modified (or original) object
             return obj;
-        }        });
-    </script>
-
-    <script>
-        window.addEventListener('scroll', function() {
-          const headings = document.querySelectorAll('h2, h3, h4');
-          let currentHeading = null;
-
-          for (const heading of headings) {
-            const rect = heading.getBoundingClientRect();
-            if (rect.top <= 10 && rect.bottom > 0) {
-              currentHeading = heading;
-              break;
-            }
-          }
-
-          if (currentHeading) {
-            const id = currentHeading.id;
-            if (history.pushState) {
-              history.replaceState(null, null, '#' + id);
-            } else {
-              location.hash = '#' + id;
-            }
           }
         });
     </script>
