@@ -194,23 +194,26 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         const newTransactionList: SelectedTransactions = {};
         if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
             data.forEach((transaction) => {
-                if (Object.hasOwn(transaction, 'transactionID') && 'transactionID' in transaction) {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
-                        return;
-                    }
-                    newTransactionList[transaction.transactionID] = {
-                        action: transaction.action,
-                        canHold: transaction.canHold,
-                        canUnhold: transaction.canUnhold,
-                        isSelected: selectedTransactions[transaction.transactionID].isSelected,
-                        canDelete: transaction.canDelete,
-                    };
+                if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
+                    return;
                 }
+                if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
+                    return;
+                }
+                newTransactionList[transaction.transactionID] = {
+                    action: transaction.action,
+                    canHold: transaction.canHold,
+                    canUnhold: transaction.canUnhold,
+                    isSelected: selectedTransactions[transaction.transactionID].isSelected,
+                    canDelete: transaction.canDelete,
+                };
             });
         } else {
             data.forEach((report) => {
-                const transactionsData: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
-                transactionsData.forEach((transaction) => {
+                if (!Object.hasOwn(report, 'transactions') || !('transactions' in report)) {
+                    return;
+                }
+                report.transactions.forEach((transaction) => {
                     if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
                         return;
                     }
