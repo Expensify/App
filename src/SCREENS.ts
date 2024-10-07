@@ -306,6 +306,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses',
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses_Select',
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses_Account_Select',
+            QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
