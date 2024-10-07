@@ -216,26 +216,24 @@ describe('useIndicatorStatusTest', () => {
             keys: ONYXKEYS,
         });
     });
-    describe.each(TEST_CASES)('useIndicatorStatusTest', (testCase) => {
-        describe(testCase.name, () => {
-            beforeAll(() => {
-                return Onyx.multiSet(getMockForStatus(testCase.status)).then(waitForBatchedUpdates);
-            });
-            it('returns correct indicatorColor', () => {
-                const {result} = renderHook(() => useIndicatorStatus());
-                const {indicatorColor} = result.current;
-                expect(indicatorColor).toBe(testCase.indicatorColor);
-            });
-            it('returns correct status', () => {
-                const {result} = renderHook(() => useIndicatorStatus());
-                const {status} = result.current;
-                expect(status).toBe(testCase.status);
-            });
-            it('returns correct idOfPolicyWithErrors', () => {
-                const {result} = renderHook(() => useIndicatorStatus());
-                const {idOfPolicyWithErrors} = result.current;
-                expect(idOfPolicyWithErrors).toBe(testCase.idOfPolicyWithErrors);
-            });
+    describe.each(TEST_CASES)('$name', (testCase) => {
+        beforeAll(() => {
+            return Onyx.multiSet(getMockForStatus(testCase.status)).then(waitForBatchedUpdates);
+        });
+        it('returns correct indicatorColor', () => {
+            const {result} = renderHook(() => useIndicatorStatus());
+            const {indicatorColor} = result.current;
+            expect(indicatorColor).toBe(testCase.indicatorColor);
+        });
+        it('returns correct status', () => {
+            const {result} = renderHook(() => useIndicatorStatus());
+            const {status} = result.current;
+            expect(status).toBe(testCase.status);
+        });
+        it('returns correct idOfPolicyWithErrors', () => {
+            const {result} = renderHook(() => useIndicatorStatus());
+            const {idOfPolicyWithErrors} = result.current;
+            expect(idOfPolicyWithErrors).toBe(testCase.idOfPolicyWithErrors);
         });
     });
 });
