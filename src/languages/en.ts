@@ -3665,6 +3665,8 @@ const translations = {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
+            invoiceBalance: 'Invoice balance',
+            invoiceBalanceSubtitle: 'Here’s your current balance from collecting payments on invoices.',
             bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
         },
         invite: {
