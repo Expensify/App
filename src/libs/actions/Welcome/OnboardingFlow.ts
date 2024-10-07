@@ -1,6 +1,7 @@
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
+import * as Welcome from '@libs/actions/Welcome';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -115,10 +116,15 @@ function startOnboardingFlow() {
 
 function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const showBusinessModal = onboardingValues && CONST.QUALIFIER_PARAM in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
-    if (showBusinessModal) {
+    if (isVsb) {
+        Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         return `/${ROUTES.ONBOARDING_WORK.route}`;
+    }
+    const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    if (isIndividual) {
+        Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
