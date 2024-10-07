@@ -45,16 +45,16 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         let description: string | undefined;
         switch (qbdConfig?.reimbursableExpensesExportDestination) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportCheckDescription');
-                description = translate('workspace.qbo.bankAccount');
+                hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportCheckDescription');
+                description = translate('workspace.qbd.bankAccount');
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                hintText = isTaxesEnabled ? undefined : translate('workspace.qbo.exportJournalEntryDescription');
-                description = translate('workspace.qbo.account');
+                hintText = isTaxesEnabled ? undefined : translate('workspace.qbd.exportJournalEntryDescription');
+                description = translate('workspace.qbd.account');
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportVendorBillDescription');
-                description = translate('workspace.qbo.accountsPayable');
+                hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportVendorBillDescription');
+                description = translate('workspace.qbd.accountsPayable');
                 break;
             default:
                 break;
@@ -65,7 +65,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
 
     const sections: QBDSectionType[] = [
         {
-            title: qbdConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qbdConfig?.reimbursableExpensesExportDestination}`) : undefined,
+            title: qbdConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbd.accounts.${qbdConfig?.reimbursableExpensesExportDestination}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
             hintText: exportHintText,
@@ -74,7 +74,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(accountOrExportDestination, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
-            title: qbdConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            title: qbdConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbd.notConfigured'),
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: account,

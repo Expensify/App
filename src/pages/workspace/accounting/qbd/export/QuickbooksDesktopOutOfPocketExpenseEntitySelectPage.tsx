@@ -29,8 +29,8 @@ function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLo
 
     return (
         <View style={[styles.gap2, styles.mt2, styles.ph5]}>
-            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
-            {isLocationsEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
+            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbd.outOfPocketTaxEnabledDescription')}</Text>}
+            {isLocationsEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbd.outOfPocketLocationEnabledDescription')}</Text>}
         </View>
     );
 }
@@ -56,7 +56,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
         () => [
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                text: translate(`workspace.qbo.accounts.check`),
+                text: translate(`workspace.qbd.accounts.check`),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isSelected: qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isShown: !isLocationsEnabled,
@@ -64,7 +64,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             },
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                text: translate(`workspace.qbo.accounts.journal_entry`),
+                text: translate(`workspace.qbd.accounts.journal_entry`),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isSelected: qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: !isTaxesEnabled,
@@ -72,7 +72,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             },
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                text: translate(`workspace.qbo.accounts.bill`),
+                text: translate(`workspace.qbd.accounts.bill`),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: !isLocationsEnabled,
@@ -128,7 +128,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 hasErrors && qbdConfig?.reimbursableExpensesExportDestination
                     ? {
                           [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
-                              `workspace.qbo.accounts.${qbdConfig?.reimbursableExpensesExportDestination}Error`,
+                              `workspace.qbd.accounts.${qbdConfig?.reimbursableExpensesExportDestination}Error`,
                           ),
                       }
                     : ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)

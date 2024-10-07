@@ -37,16 +37,16 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
         let descriptionText: string | undefined;
         switch (qbdConfig?.reimbursableExpensesExportDestination) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                titleText = 'workspace.qbo.bankAccount';
-                descriptionText = translate('workspace.qbo.bankAccountDescription');
+                titleText = 'workspace.qbd.bankAccount';
+                descriptionText = translate('workspace.qbd.bankAccountDescription');
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                titleText = 'workspace.qbo.account';
-                descriptionText = translate('workspace.qbo.accountDescription');
+                titleText = 'workspace.qbd.account';
+                descriptionText = translate('workspace.qbd.accountDescription');
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                titleText = 'workspace.qbo.accountsPayable';
-                descriptionText = translate('workspace.qbo.accountsPayableDescription');
+                titleText = 'workspace.qbd.accountsPayable';
+                descriptionText = translate('workspace.qbd.accountsPayableDescription');
                 break;
             default:
                 break;
@@ -97,8 +97,8 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                title={translate('workspace.qbd.noAccountsFound')}
+                subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ),

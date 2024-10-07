@@ -36,19 +36,19 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
         },
         {
-            description: translate('workspace.qbo.date'),
+            description: translate('workspace.qbd.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)), // TODO: should be updated to use new routes
-            title: qbdConfig?.exportDate ? translate(`workspace.qbo.exportDate.values.${qbdConfig?.exportDate}.label`) : undefined,
+            title: qbdConfig?.exportDate ? translate(`workspace.qbd.exportDate.values.${qbdConfig?.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            title: qbdConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qbdConfig?.reimbursableExpensesExportDestination}`) : undefined,
+            title: qbdConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbd.accounts.${qbdConfig?.reimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
-            description: translate('workspace.qbo.exportInvoices'),
+            description: translate('workspace.qbd.exportInvoices'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)), // TODO: should be updated to use new routes
             title: qbdConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
@@ -57,7 +57,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.accounting.exportCompanyCard'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)), // TODO: should be updated to use new routes
             brickRoadIndicator: qbdConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: qbdConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qbdConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
+            title: qbdConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbd.accounts.${qbdConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [
                 CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
@@ -66,8 +66,8 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             ],
         },
         {
-            description: translate('workspace.qbo.exportExpensifyCard'),
-            title: translate('workspace.qbo.accounts.credit_card'),
+            description: translate('workspace.qbd.exportExpensifyCard'),
+            title: translate('workspace.qbd.accounts.credit_card'),
             shouldShowRightIcon: false,
             interactive: false,
         },
@@ -103,12 +103,12 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                 </OfflineWithFeedback>
             ))}
             <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                <Text style={[styles.mutedNormalTextLabel]}>{translate('workspace.qbo.deepDiveExpensifyCard')}</Text>
+                <Text style={[styles.mutedNormalTextLabel]}>{translate('workspace.qbd.deepDiveExpensifyCard')}</Text>
                 <TextLink
                     onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
                     style={[styles.mutedNormalTextLabel, styles.link]}
                 >
-                    {` ${translate('workspace.qbo.deepDiveExpensifyCardIntegration')}`}
+                    {` ${translate('workspace.qbd.deepDiveExpensifyCardIntegration')}`}
                 </TextLink>
             </Text>
         </ConnectionLayout>
