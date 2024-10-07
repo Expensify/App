@@ -193,3 +193,4 @@ async function searchIndex() {
   await createIndex();
   await searchIndex();
 })();
+
