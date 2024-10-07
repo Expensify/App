@@ -2765,9 +2765,17 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, allRepo
 /**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  */
-function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, personalDetailsProp = allPersonalDetails): string | undefined {
+function getPolicyExpenseChatName({
+    report,
+    policy,
+    personalDetailsList = allPersonalDetails,
+}: {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    personalDetailsList?: OnyxEntry<PersonalDetailsList>;
+}): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
-    const personalDetails = personalDetailsProp?.[ownerAccountID ?? -1];
+    const personalDetails = personalDetailsList?.[ownerAccountID ?? -1];
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant(ownerAccountID) || login || report?.reportName;
@@ -2918,7 +2926,17 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>, policies?: OnyxCollection<Policy>): string {
+function getMoneyRequestReportName({
+    report,
+    policy,
+    invoiceReceiverPolicy,
+    policies,
+}: {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
+}): string {
     const isReportSettled = isSettled(report?.reportID ?? '-1');
     const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '-1', policies);
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
@@ -3312,12 +3330,17 @@ function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
 /**
  * Given a parent IOU report action get report name for the LHN.
  */
-function getTransactionReportName(
-    reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
-    transactions?: OnyxCollection<Transaction>,
-    reports?: OnyxCollection<Report>,
-    draftReports?: OnyxCollection<Report>,
-): string {
+function getTransactionReportName({
+    reportAction,
+    transactions,
+    reports,
+    draftReports,
+}: {
+    reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
+    transactions?: OnyxCollection<Transaction>;
+    reports?: OnyxCollection<Report>;
+    draftReports?: OnyxCollection<Report>;
+}): string {
     if (ReportActionsUtils.isReversedTransaction(reportAction)) {
         return Localize.translateLocal('parentReportAction.reversedTransaction');
     }
@@ -3834,7 +3857,7 @@ function getReportName({
 
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            formattedName = getTransactionReportName(parentReportAction, transactions, reports, draftReports);
+            formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports, draftReports});
             if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
@@ -3898,15 +3921,15 @@ function getReportName({
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName(report, policy, personalDetails);
+        formattedName = getPolicyExpenseChatName({report, policy, personalDetailsList: personalDetails});
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName(report, policy, undefined, policies);
+        formattedName = getMoneyRequestReportName({report, policy, policies});
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy, policies);
+        formattedName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, policies});
     }
 
     if (isInvoiceRoom(report)) {
@@ -5927,14 +5950,14 @@ function buildTransactionThread(
             isOptimisticReport: true,
             parentReportActionID: reportAction?.reportActionID,
             parentReportID: moneyRequestReport?.reportID,
-            reportName: getTransactionReportName(reportAction),
+            reportName: getTransactionReportName({reportAction}),
             policyID: moneyRequestReport?.policyID,
         };
     }
 
     return buildOptimisticChatReport(
         participantAccountIDs,
-        getTransactionReportName(reportAction),
+        getTransactionReportName({reportAction}),
         undefined,
         moneyRequestReport?.policyID ?? '-1',
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
