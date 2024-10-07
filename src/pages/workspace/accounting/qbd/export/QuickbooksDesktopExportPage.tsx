@@ -73,18 +73,17 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         },
     ];
 
-    const accessVariants = canUseNewDotQBD ? [] : [CONST.POLICY.ACCESS_VARIANTS.ADMIN];
-
     return (
         <ConnectionLayout
             displayName={QuickbooksDesktopExportPage.displayName}
             headerTitle="workspace.accounting.export"
             title="workspace.qbd.exportDescription"
-            accessVariants={accessVariants}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
