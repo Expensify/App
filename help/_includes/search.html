@@ -6,9 +6,13 @@
   <div id="search-modal" style="display:none;">
     <div id="modal-content">
       <span id="close-modal">&times;</span>
-      <input type="text" id="search-input" placeholder="Search..." />
-      <button id="search-submit">Search</button>
-      
+      <div class="search-icon-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Go to..." />
+      </div>
+      <!-- Hidden Search Button -->
+      <button id="search-submit" style="display:none;">Search</button>
+
       <!-- Search results container with tabindex to make it focusable -->
       <div id="search-results" tabindex="0"></div>
     </div>
@@ -40,11 +44,12 @@
     z-index: 1000;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
   }
 
   /* Modal content */
   #modal-content {
+    top: 20%;
     background: white;
     padding: 20px;
     width: 60%;
@@ -62,6 +67,30 @@
     cursor: pointer;
     font-size: 18px;
     font-weight: bold;
+  }
+
+  /* Search input with magnifying glass */
+  .search-icon-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #eaecef;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+
+  .search-icon {
+    font-size: 18px;
+    margin-right: 8px;
+  }
+
+  /* Updated input style */
+  #search-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 20px;
   }
 
   /* Search results */
@@ -296,7 +325,7 @@
           }
         });
       });
-      g_searchResults.focus();  // Focus on search results whenever there are results`
+      g_searchResults.focus();  // Focus on search results whenever there are results
     } else {
       g_searchResults.innerHTML = '<p>No results found.</p>';
     }
