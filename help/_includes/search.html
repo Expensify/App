@@ -5,7 +5,6 @@
   <!-- Search Modal -->
   <div id="search-modal" style="display:none;">
     <div id="modal-content">
-      <span id="close-modal">&times;</span>
       <div class="search-icon-wrapper">
         <span class="search-icon">🔍</span>
         <input type="text" id="search-input" placeholder="Go to..." />
@@ -57,16 +56,6 @@
     position: relative;
     border-radius: 6px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Close button */
-  #close-modal {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
   }
 
   /* Search input with magnifying glass */
@@ -152,14 +141,13 @@
   let g_searchResultsArray = [];
   let g_currentSelectionIndex = -1;
   let g_highlightedSection = null;
-  
+
   // Declare the index variable globally so it can be reused
   let g_index = null;
 
   // Look up some commonly used elements once
   const g_searchInputBox = document.getElementById('search-input-box');
   const g_searchModal = document.getElementById('search-modal');
-  const g_closeModal = document.getElementById('close-modal');
   const g_searchResults = document.getElementById('search-results');
   const g_searchInput = document.getElementById('search-input');
 
@@ -184,9 +172,11 @@
     }
   });
 
-  // Close modal when close button is clicked
-  g_closeModal.addEventListener('click', function() {
-    g_searchModal.style.display = 'none';
+  // Close modal when pressing "Escape"
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && g_searchModal.style.display === 'flex') {
+      g_searchModal.style.display = 'none';
+    }
   });
 
   // Close modal when clicking outside of modal content
@@ -272,23 +262,23 @@
 
     // Load the JSON search index file, if not already defined
     if (g_index === null) {
-        console.log('Loading search index from:', '/searchIndex.json');
-        const response = await fetch('/searchIndex.json');
-        const indexData = await response.json();
-        g_index = new FlexSearch.Document({
-          document: {
-            id: 'id',
-            index: ['content'], // Index on the content field
-            store: ['title', 'url', 'content'], // Store title, URL, and content
-          }
-        });
-
-        // Import the index
-        for (const [key, data] of Object.entries(indexData)) {
-          await g_index.import(key, data);
+      console.log('Loading search index from:', '/searchIndex.json');
+      const response = await fetch('/searchIndex.json');
+      const indexData = await response.json();
+      g_index = new FlexSearch.Document({
+        document: {
+          id: 'id',
+          index: ['content'], // Index on the content field
+          store: ['title', 'url', 'content'], // Store title, URL, and content
         }
+      });
+
+      // Import the index
+      for (const [key, data] of Object.entries(indexData)) {
+        await g_index.import(key, data);
+      }
     } else {
-        console.log('Reusing existing search index');
+      console.log('Reusing existing search index');
     }
 
     // Perform search
