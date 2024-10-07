@@ -2931,9 +2931,9 @@ const translations = {
             addCardFeed: 'Add card feed',
             addNewCard: {
                 cardProviders: {
-                    amex: 'American Express Corporate Cards',
-                    mastercard: 'Mastercard Commercial Cards',
-                    visa: 'Visa Commercial Cards',
+                    gl1025: 'American Express Corporate Cards',
+                    cdf: 'Mastercard Commercial Cards',
+                    vcf: 'Visa Commercial Cards',
                 },
                 yourCardProvider: `Who's your card provider?`,
                 enableFeed: {

@@ -13,9 +13,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy/Policy';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 type DetailsStepProps = {
@@ -44,6 +46,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .join(', ');
 
         Policy.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 
     const handleBackButtonPress = () => {

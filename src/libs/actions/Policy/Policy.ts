@@ -2002,7 +2002,7 @@ function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 isLoading: true,
             },
@@ -2012,7 +2012,7 @@ function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 isLoading: false,
             },
@@ -2022,7 +2022,7 @@ function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 isLoading: false,
             },
@@ -4441,7 +4441,7 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
                     companyCardNicknames: {
                         [bankName]: userDefinedName,
@@ -4467,7 +4467,7 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
                     companyCards: {
                         [bankName]: {liabilityType},
@@ -4493,7 +4493,7 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
                     companyCards: {
                         [bankName]: null,

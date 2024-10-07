@@ -1,6 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+/** Card feed provider */
+type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+
 /** Card feed data */
 type CardFeedData = {
     /** Whether any actions are pending */
@@ -40,7 +43,7 @@ type CardFeeds = {
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
     /** Card feed provider */
-    feedType: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+    feedType: CompanyCardFeed;
 
     /** Name of the bank */
     bankName?: string;
@@ -62,4 +65,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CompanyCardFeed};

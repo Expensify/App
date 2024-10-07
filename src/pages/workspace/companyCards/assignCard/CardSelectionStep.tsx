@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -20,6 +19,7 @@ import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type MockedCard = {
     key: string;
@@ -44,7 +44,7 @@ const mockedCardList = [
 const mockedCardListEmpty: MockedCard[] = [];
 
 type CardSelectionStepProps = {
-    feed: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+    feed: CompanyCardFeed;
 };
 
 function CardSelectionStep({feed}: CardSelectionStepProps) {

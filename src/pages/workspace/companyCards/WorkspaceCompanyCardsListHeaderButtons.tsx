@@ -16,13 +16,14 @@ import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
     /** Current policy id */
     policyID: string;
 
     /** Currently selected feed */
-    selectedFeed: string;
+    selectedFeed: CompanyCardFeed;
 };
 
 function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
@@ -30,15 +31,16 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
+    const feedName = cardFeeds?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${selectedFeed}`);
 
     return (
         <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
             <PressableWithFeedback
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldUseNarrowLayout && styles.mb3]}
-                accessibilityLabel={cardFeeds?.companyCardNicknames?.[selectedFeed] ?? ''}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldChangeLayout && styles.mb3]}
+                accessibilityLabel={feedName}
             >
                 <Icon
                     src={CardUtils.getCardFeedIcon(selectedFeed)}
@@ -47,7 +49,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 />
                 <View>
                     <CaretWrapper>
-                        <Text style={styles.textStrong}>{cardFeeds?.companyCardNicknames?.[selectedFeed]}</Text>
+                        <Text style={styles.textStrong}>{feedName}</Text>
                     </CaretWrapper>
                     <Text style={styles.textLabelSupporting}>{translate('workspace.companyCards.customFeed')}</Text>
                 </View>
@@ -65,6 +67,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
                     icon={Expensicons.Gear}
+                    isDisabled={cardFeeds?.companyCards?.[selectedFeed].pending ?? false}
                     text={translate('common.settings')}
                     style={shouldChangeLayout && styles.flex1}
                 />

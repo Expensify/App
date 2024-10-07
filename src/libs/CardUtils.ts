@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -195,7 +195,7 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
-function getCardFeedName(feedType: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>): string {
+function getCardFeedName(feedType: CompanyCardFeed): string {
     const feedNamesMapping = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
@@ -237,9 +237,9 @@ function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<
     return cards;
 }
 
-function getSelectedFeed(lastSelectedFeed: OnyxEntry<string>, cardFeeds: OnyxEntry<CardFeeds>): string {
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
-    return lastSelectedFeed ?? defaultFeed ?? '';
+function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0) as CompanyCardFeed;
+    return lastSelectedFeed ?? defaultFeed;
 }
 
 export {

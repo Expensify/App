@@ -2967,9 +2967,9 @@ const translations = {
             addCardFeed: 'Añadir alimentación de tarjeta',
             addNewCard: {
                 cardProviders: {
-                    amex: 'Tarjetas de empresa American Express',
-                    mastercard: 'Tarjetas comerciales Mastercard',
-                    visa: 'Tarjetas comerciales Visa',
+                    gl1025: 'Tarjetas de empresa American Express',
+                    cdf: 'Tarjetas comerciales Mastercard',
+                    vcf: 'Tarjetas comerciales Visa',
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
                 enableFeed: {

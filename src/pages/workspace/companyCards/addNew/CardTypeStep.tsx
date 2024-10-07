@@ -17,12 +17,13 @@ import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>>();
+    const [typeSelected, setTypeSelected] = useState<CompanyCardFeed>();
     const [isError, setIsError] = useState(false);
 
     const submit = () => {
@@ -50,7 +51,7 @@ function CardTypeStep() {
     const data = [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
+            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
             keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             leftElement: (
@@ -64,7 +65,7 @@ function CardTypeStep() {
         },
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.mastercard'),
+            text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
             keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             leftElement: (
@@ -78,7 +79,7 @@ function CardTypeStep() {
         },
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.visa'),
+            text: translate('workspace.companyCards.addNewCard.cardProviders.vcf'),
             keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             leftElement: (

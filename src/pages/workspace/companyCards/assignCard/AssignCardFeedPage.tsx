@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import AssigneeStep from './AssigneeStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
@@ -14,7 +14,7 @@ import TransactionStartDateStep from './TransactionStartDateStep';
 type AssignCardFeedPageProps = {
     route: {
         params: {
-            feed: ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+            feed: CompanyCardFeed;
         };
     };
 } & WithPolicyAndFullscreenLoadingProps;
