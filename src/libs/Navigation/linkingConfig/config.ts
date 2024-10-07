@@ -1,5 +1,4 @@
 import type {LinkingOptions} from '@react-navigation/native';
-import {parse} from 'path';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
