@@ -132,12 +132,13 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, reports?: OnyxCollection<Report>, propPolicyTags?: OnyxCollection<PolicyTagLists>): string {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, reports?: OnyxCollection<Report>, policyTagLists = allPolicyTags): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const report = (reports ?? ReportConnection.getAllReports())?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const allReports = reports ?? ReportConnection.getAllReports();
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
@@ -225,7 +226,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = (propPolicyTags ?? allPolicyTags)?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const policyTags = policyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);

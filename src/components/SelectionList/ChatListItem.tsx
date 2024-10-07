@@ -92,7 +92,7 @@ function ChatListItem<TItem extends ListItem>({
                                         fontSize={variables.fontSizeSmall}
                                         onPress={() => onSelectRow(item)}
                                     >
-                                        {/* {ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`])} */}
+                                        {/* {ReportUtils.getReportName( */}
                                         Report test
                                     </TextLink>
                                 </View>

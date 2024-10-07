@@ -108,7 +108,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                            <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
                         </Text>
                     ))}

@@ -98,7 +98,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, true);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
-    const policyName = ReportUtils.getPolicyName(report, true);
+    const policyName = ReportUtils.getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
     const shouldShowSubtitle = () => {

@@ -67,7 +67,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const subtitle = useMemo(() => {
         if (isReport) {
             if (ReportUtils.isExpenseReport(report)) {
-                return ReportUtils.getPolicyName(report);
+                return ReportUtils.getPolicyName({report});
             }
             if (ReportUtils.isMoneyRequestReport(report)) {
                 // generate subtitle from participants

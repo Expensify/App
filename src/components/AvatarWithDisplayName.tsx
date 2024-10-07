@@ -71,7 +71,7 @@ function AvatarWithDisplayName({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : -1}`,
     );
-    const title = ReportUtils.getReportName({report, policy: undefined, parentReportActionParam: undefined, personalDetails: undefined, invoiceReceiverPolicy});
+    const title = ReportUtils.getReportName({report, invoiceReceiverPolicy});
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport =

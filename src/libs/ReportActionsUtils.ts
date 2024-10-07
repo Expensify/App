@@ -125,7 +125,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
-        return message?.html === '' ?? message?.deleted;
+        return message?.html === '' || !!message?.deleted;
     }
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
@@ -1728,7 +1728,7 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, personalDetails?: Partial<PersonalDetailsList>) {
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, personalDetails?: OnyxEntry<PersonalDetailsList>) {
     const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1, false, personalDetails).at(0);
 

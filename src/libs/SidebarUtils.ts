@@ -524,7 +524,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
             welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
-                report,
+                {report},
             )} ${welcomeMessage.phrase3}`;
         }
         return welcomeMessage;
@@ -576,7 +576,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
  */
 function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
-    const workspaceName = ReportUtils.getPolicyName(report);
+    const workspaceName = ReportUtils.getPolicyName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = report.description;

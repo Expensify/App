@@ -633,7 +633,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                     displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                    policyName: ReportUtils.getPolicyName({report, policy}),
                 });
                 break;
             }
@@ -866,7 +866,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
         option.text = ReportUtils.getReportName({report});
         option.alternateText = Localize.translateLocal('workspace.common.invoices');
     } else {
-        option.text = ReportUtils.getPolicyName(report);
+        option.text = ReportUtils.getPolicyName({report});
         option.alternateText = Localize.translateLocal('workspace.common.workspace');
     }
     option.isDisabled = ReportUtils.isDraftReport(participant.reportID);
@@ -897,7 +897,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    option.text = ReportUtils.getPolicyName(expenseReport);
+    option.text = ReportUtils.getPolicyName({report: expenseReport});
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
     option.selected = participant.selected;
     option.isSelected = participant.selected;
