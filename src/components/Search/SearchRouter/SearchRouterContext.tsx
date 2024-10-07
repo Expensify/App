@@ -1,4 +1,5 @@
 import React, {useContext, useMemo, useRef, useState} from 'react';
+import * as Modal from '@userActions/Modal';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 const defaultSearchContext = {
@@ -18,8 +19,14 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
-            setIsSearchRouterDisplayed(true);
-            searchRouterDisplayedRef.current = true;
+            Modal.close(
+                () => {
+                    setIsSearchRouterDisplayed(true);
+                    searchRouterDisplayedRef.current = true;
+                },
+                false,
+                true,
+            );
         };
         const closeSearchRouter = () => {
             setIsSearchRouterDisplayed(false);
