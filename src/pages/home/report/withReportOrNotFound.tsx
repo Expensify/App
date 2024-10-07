@@ -22,21 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WithReportOrNotFoundOnyxProps = {
-    /** Metadata of the report currently being looked at */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** The policies which the user has access to */
-    policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: OnyxEntry<boolean>;
-};
-
-type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
+type WithReportOrNotFoundProps = {
     route:
         | RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>
         | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
@@ -50,6 +36,18 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
+
+    /** Metadata of the report currently being looked at */
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** The policies which the user has access to */
+    policies: OnyxCollection<OnyxTypes.Policy>;
+
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: OnyxEntry<boolean>;
 };
 
 export default function (
