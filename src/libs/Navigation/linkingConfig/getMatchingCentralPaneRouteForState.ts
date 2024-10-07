@@ -2,7 +2,7 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import type {AuthScreensParamList, CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';
+import TAB_TO_CENTRAL_PANE_MAPPING from './RELATIONS/TAB_TO_CENTRAL_PANE_MAPPING';
 
 /**
  * @param state - react-navigation state
