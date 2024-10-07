@@ -26,17 +26,18 @@ function MissingPersonalDetails() {
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
     const [personalDetailsFormDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [currentStep, setCurrentStep] = useState(getInitialStepForPersonalInfo(personalDetailsFormDraft));
+    const [currentStep, setCurrentStep] = useState(getInitialStepForPersonalInfo(personalDetailsForm));
 
     useEffect(() => {
-        setCurrentStep(getInitialStepForPersonalInfo(personalDetailsFormDraft));
-    }, [personalDetailsFormDraft]);
+        setCurrentStep(getInitialStepForPersonalInfo(personalDetailsForm));
+    }, [personalDetailsForm]);
 
     const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
     const values = useMemo(() => getFormValues(INPUT_IDS, personalDetailsFormDraft, personalDetailsForm), [personalDetailsForm, personalDetailsFormDraft]);
 
     const handleFinishStep = useCallback(() => {
         PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(values, firstUnissuedCard?.cardID ?? 0);
+        FormActions.clearFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
     }, [firstUnissuedCard?.cardID, values]);

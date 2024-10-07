@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -22,12 +24,19 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 function PhoneNumberStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [personalDetailsFormDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
-    const handleSubmit = usePersonalDetailsStepFormSubmit({
+    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
+
+    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
+        // in case the phone number is taken from existing personal details object, we need to force apply its values to the draft object
+        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        submitPersonalDetails(values);
+    };
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {

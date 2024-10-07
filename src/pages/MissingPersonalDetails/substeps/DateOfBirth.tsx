@@ -1,6 +1,7 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,6 +12,7 @@ import usePersonalDetailsStepFormSubmit from '@hooks/usePersonalDetailsStepFormS
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -37,11 +39,17 @@ function DateOfBirthStep({privatePersonalDetails, isEditing, onNext}: CustomSubS
         [translate],
     );
 
-    const handleSubmit = usePersonalDetailsStepFormSubmit({
+    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
+
+    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
+        // in case the dob is taken from existing personal details object, we need to force apply its values to the draft object
+        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        submitPersonalDetails(values);
+    };
 
     return (
         <FormProvider

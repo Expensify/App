@@ -15,11 +15,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import {useOnyx} from "react-native-onyx";
 
 const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.COUNTRY, INPUT_IDS.ZIP_POST_CODE];
 
@@ -108,11 +110,17 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
         setZipcode(addressPart);
     }, []);
 
-    const handleSubmit = usePersonalDetailsStepFormSubmit({
+    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
+
+    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
+        // in case the address is taken from existing personal details object, we need to force apply its values to the draft object
+        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        submitPersonalDetails(values);
+    };
 
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
 

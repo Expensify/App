@@ -31,4 +31,12 @@ function clearDraftValues(formID: OnyxFormKey) {
     Onyx.set(`${formID}Draft`, null);
 }
 
-export {clearDraftValues, clearErrorFields, clearErrors, setDraftValues, setErrorFields, setErrors, setIsLoading};
+function setFormValues(formId: OnyxFormKey, values: NullishDeep<OnyxValue<OnyxFormDraftKey>>) {
+    Onyx.merge(formId, values ?? null);
+}
+
+function clearFormValues(formId: OnyxFormKey) {
+    Onyx.set(formId, null);
+}
+
+export {clearDraftValues, clearErrorFields, clearErrors, setDraftValues, setErrorFields, setErrors, setIsLoading, setFormValues, clearFormValues};
