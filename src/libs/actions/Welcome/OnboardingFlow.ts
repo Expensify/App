@@ -1,7 +1,6 @@
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
-import * as Welcome from './index';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -12,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import * as Welcome from './index';
 
 let selectedPurpose: string | undefined = '';
 Onyx.connect({
