@@ -6270,7 +6270,7 @@ function getSendMoneyParams(
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
         value: null,
-};
+    };
 
 
     
