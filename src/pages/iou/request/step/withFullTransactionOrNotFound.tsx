@@ -1,9 +1,9 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef} from 'react';
+import React, {forwardRef, useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -38,14 +38,25 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
 
-type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
+type Route<TRouteName extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, TRouteName>;
 
-type WithFullTransactionOrNotFoundProps<T extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {route: Route<T>};
+type WithFullTransactionOrNotFoundProps<TRouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {
+    route: Route<TRouteName>;
+};
 
-export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & RefAttributes<TRef>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithFullTransactionOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const transactionID = props.transaction?.transactionID;
+    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+        const {route} = props;
+        const transactionID = route.params.transactionID ?? -1;
+        const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
+
+        const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);
+
+        const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
 
         const isFocused = useIsFocused();
 
@@ -59,27 +70,16 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
+                transaction={shouldUseTransactionDraft ? transactionDraft : transaction}
                 ref={ref}
             />
         );
     }
 
     WithFullTransactionOrNotFound.displayName = `withFullTransactionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-    // eslint-disable-next-line deprecation/deprecation
-    return withOnyx<TProps & RefAttributes<TRef>, WithFullTransactionOrNotFoundOnyxProps>({
-        transaction: {
-            key: ({route}) => {
-                const transactionID = route.params.transactionID ?? -1;
-                const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-                if (IOUUtils.shouldUseTransactionDraft(userAction)) {
-                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
-                }
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            },
-        },
-    })(forwardRef(WithFullTransactionOrNotFound));
+    return forwardRef(WithFullTransactionOrNotFound);
 }
 
 export type {WithFullTransactionOrNotFoundProps};
