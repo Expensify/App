@@ -28,7 +28,9 @@ If you are a developer comfortable working on the command line, you can edit the
 ### The easy way: edit on Github
 If you don't want to set up your own local dev environment, feel free to just edit the help materials directly from Github:
 
-1. ... give instructions here ...
+1. Open whatever file you want.
+2. Replace `github.com` with `github.dev` in the URL
+3. Edit away!
 
 ## How to add a page
 The current design of NewHelp.expensify.com is only to have a very small handful pages (one for each "product"), each of which is a markdown file stored in `/help` using the `product` template (defined in `/help/_layouts/product.html`).  Accordingly, it's very unlikely you'll be adding a new page.

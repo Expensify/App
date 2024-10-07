@@ -10,7 +10,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -36,7 +35,6 @@ type ApprovalWorkflowEditorProps = {
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
 
@@ -168,7 +166,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     <MenuItem
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                         icon={Expensicons.Trashcan}
-                        iconFill={theme.icon}
                         title={translate('common.delete')}
                         onPress={removeApprovalWorkflow}
                     />

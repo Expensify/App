@@ -558,4 +558,3 @@ In general, any action that modifies financial data or participates in a financi
 
 #### Why do some workspace members using paid features not require paid seats?
 In general, any workspace member that uses paid functionality will require a paid seat. However, if you own two or more workspaces with the same member, and the member uses paid functionality on multiple workspaces in a given month (ie, an admin approving expense reports on two different workspaces), you will not be billed twice for the same member – there is no "double dipping."
-

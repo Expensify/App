@@ -31,13 +31,13 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
      */
     const getTooltipShiftX = useCallback((index: number) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!containerRef.current || !childRefs.current[index]) {
+        if (!containerRef.current || index < 0 || !childRefs.current.at(index)) {
             return 0;
         }
         const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
-        const {width: textNodeWidth, left: textNodeLeft} = childRefs.current[index].getBoundingClientRect();
+        const {width: textNodeWidth, left: textNodeLeft} = childRefs.current.at(index)?.getBoundingClientRect() ?? {width: 0, left: 0};
         const tooltipX = textNodeWidth / 2 + textNodeLeft;
         const containerRight = containerWidth + containerLeft;
         const textNodeRight = textNodeWidth + textNodeLeft;

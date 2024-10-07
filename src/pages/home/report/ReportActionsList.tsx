@@ -11,8 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -39,7 +38,7 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
 
-type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
+type ReportActionsListProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
@@ -146,7 +145,6 @@ function ReportActionsList({
     sortedReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
-    currentUserPersonalDetails,
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -156,6 +154,7 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -168,11 +167,9 @@ function ReportActionsList({
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
-    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -212,7 +209,6 @@ function ReportActionsList({
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
         setUnreadMarkerTime(report.lastReadTime ?? '');
-        setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -222,31 +218,25 @@ function ReportActionsList({
      */
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
-            const nextMessage = sortedVisibleReportActions[index + 1];
+            const nextMessage = sortedVisibleReportActions.at(index + 1);
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            let shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
-
-            if (shouldDisplay && !messageManuallyMarkedUnread) {
-                // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
-                const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
-                const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                shouldDisplay = !isFromCurrentUser && isWithinVisibleThreshold;
-            }
-
-            return shouldDisplay;
+            const shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
+            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
+            return shouldDisplay && isWithinVisibleThreshold;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = 0; index < sortedVisibleReportActions.length; index++) {
-            const reportAction = sortedVisibleReportActions[index];
-            if (shouldDisplayNewMarker(reportAction, index)) {
+            const reportAction = sortedVisibleReportActions.at(index);
+
+            if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
                 return reportAction.reportActionID;
             }
         }
 
         return null;
-    }, [accountID, sortedVisibleReportActions, unreadMarkerTime, messageManuallyMarkedUnread]);
+    }, [sortedVisibleReportActions, unreadMarkerTime]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
@@ -254,11 +244,10 @@ function ReportActionsList({
     useEffect(() => {
         const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
-            setMessageManuallyMarkedUnread(new Date().getTime());
+            userActiveSince.current = DateUtils.getDBTime();
         });
         const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
-            setMessageManuallyMarkedUnread(0);
         });
 
         return () => {
@@ -278,25 +267,24 @@ function ReportActionsList({
             return;
         }
 
-        const mostRecentReportActionCreated = sortedVisibleReportActions[0]?.created ?? '';
-        if (mostRecentReportActionCreated === unreadMarkerTime) {
+        const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
+        if (mostRecentReportActionCreated <= unreadMarkerTime) {
             return;
         }
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
-        setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sortedVisibleReportActions]);
 
-    const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
+    const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
-    const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isLastPendingActionIsDelete = sortedReportActions?.at(0)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
 
@@ -456,7 +444,7 @@ function ReportActionsList({
     const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
 
     const shouldUseThreadDividerLine = useMemo(() => {
-        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
 
         if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
@@ -480,7 +468,7 @@ function ReportActionsList({
 
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
-                lastMessageTime.current = sortedVisibleReportActions[0]?.created ?? '';
+                lastMessageTime.current = sortedVisibleReportActions.at(0)?.created ?? '';
             }
             return;
         }
@@ -627,7 +615,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        loadNewerChats(false);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
@@ -676,6 +664,6 @@ function ReportActionsList({
 
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default withCurrentUserPersonalDetails(memo(ReportActionsList));
+export default memo(ReportActionsList);
 
 export type {LoadNewerChats, ReportActionsListProps};
