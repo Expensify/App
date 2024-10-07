@@ -5,6 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -32,6 +33,7 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
         isSelected: qbdConfig?.exportDate === dateType,
     }));
 
+    const {canUseNewDotQBD} = usePermissions();
     const exportDate = useMemo(() => qbdConfig?.exportDate, [qbdConfig]);
 
     const selectExportDate = useCallback(
@@ -53,10 +55,11 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))} // TODO: should be updated to use new routes
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
             onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.qbo.exportDate.label"
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE)}
