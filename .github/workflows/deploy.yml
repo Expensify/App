@@ -136,6 +136,10 @@ jobs:
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
 
+      - name: Decrypt json w/ Google Play credentials
+        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        working-directory: android/app
+
       - name: Submit Android build for review
         run: bundle exec fastlane android upload_google_play_production
         env:

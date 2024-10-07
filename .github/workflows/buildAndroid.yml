@@ -178,9 +178,3 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}android-artifact-sourcemaps
           path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
-
-      - name: Announce failure in slack
-        if: failure()
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
