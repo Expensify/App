@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -713,35 +713,37 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     // A flag to indicate whether the user choose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);
-    // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
-    const navigateBackToAfterDelete = useRef<Route>();
     useEffect(() => {
         return () => {
-            if(!isTransactionDeleted.current)
-            {
-                return;
-            }
-
-            if (caseID === CASES.DEFAULT) {
-                Task.deleteTask(report);
-                return;
-            }
-        
-            if (!requestParentReportAction) {
-                return;
-            }
-        
-            const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
-                
-            if (isTrackExpense) {
-                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
-            } else {
-                IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
-            }
+            deleteTransaction();
         };
-    }, [isTransactionDeleted]);
+    }, []);
 
     const deleteTransaction = useCallback(() => {
+        if (!isTransactionDeleted.current) {
+            return;
+        }
+
+        if (caseID === CASES.DEFAULT) {
+            Task.deleteTask(report);
+            return;
+        }
+
+        if (!requestParentReportAction) {
+            return;
+        }
+
+        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+
+        if (isTrackExpense) {
+            IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        } else {
+            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        }
+    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
+
+    // Where to go back after deleting the transaction and its report.
+    const navigateAfterTransactionDeletion = useCallback(() => {
         setIsDeleteModalVisible(false);
         isTransactionDeleted.current = true;
     
@@ -774,7 +776,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             ReportUtils.navigateBackAfterDeleteTransaction(urlToNavigateBack as Route, true);
         }
     
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, setIsDeleteModalVisible, isTransactionDeleted]);
     
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -863,27 +865,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTransaction}
+                    onConfirm={navigateAfterTransactionDeletion}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    onModalHide={() => {
-                        // // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
-                        // if (!isTransactionDeleted.current) {
-                        //     if (caseID === CASES.DEFAULT) {
-                        //         if (navigateBackToAfterDelete.current) {
-                        //             Navigation.goBack(navigateBackToAfterDelete.current);
-                        //         } else {
-                        //             Navigation.dismissModal();
-                        //         }
-                        //     }
-                        //     return;
-                        // }
-
-                        // if (!navigateBackToAfterDelete.current) {
-                        //     Navigation.dismissModal();
-                        // } else {
-                        //     ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
-                        // }
-                    }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
