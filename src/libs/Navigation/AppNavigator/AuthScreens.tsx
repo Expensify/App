@@ -1,7 +1,7 @@
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
