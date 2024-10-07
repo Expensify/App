@@ -1,4 +1,5 @@
 import type {LinkingOptions} from '@react-navigation/native';
+import {parse} from 'path';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -377,7 +378,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
                             path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.route},
@@ -927,6 +927,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {
+                    screens: {
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
+                            path: ROUTES.SETTINGS_TAGS_SETTINGS.route,
+                        },
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_EDIT_TAGS]: {
+                            path: ROUTES.SETTINGS_EDIT_TAGS.route,
+                            parse: {
+                                orderWeight: Number,
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
                     screens: {
                         [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
@@ -1017,7 +1031,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
-                        [SCREENS.SETTINGS_TAGS_ROOT]: ROUTES.SETTINGS_TAGS_ROOT.route,
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: ROUTES.SETTINGS_TAGS_ROOT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
