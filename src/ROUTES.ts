@@ -654,6 +654,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
+    },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/name` as const,
