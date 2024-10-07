@@ -10,7 +10,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
-import type {IssueNewCardOriginalMessage, JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1730,8 +1730,17 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
-    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const cardID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.cardID;
+    const assigneeAccountID = isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+    )
+        ? getOriginalMessage(reportAction)?.assigneeAccountID ?? -1
+        : -1;
+    const cardID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
+        ? getOriginalMessage(reportAction)?.cardID ?? -1
+        : -1;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
