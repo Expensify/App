@@ -476,6 +476,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
         backTo,
+        canActionTask,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
