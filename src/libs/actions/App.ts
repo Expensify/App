@@ -24,6 +24,8 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {setShouldForceOffline} from './Network';
+import * as PersistedRequests from './PersistedRequests';
 import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
@@ -74,6 +76,14 @@ Onyx.connect({
             openApp();
         }
         priorityMode = nextPriorityMode;
+    },
+});
+
+let isUsingImportedState: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.IS_USING_IMPORTED_STATE,
+    callback: (value) => {
+        isUsingImportedState = value ?? false;
     },
 });
 
@@ -518,6 +528,39 @@ function updateLastRoute(screen: string) {
     Onyx.set(ONYXKEYS.LAST_ROUTE, screen);
 }
 
+function setIsUsingImportedState(usingImportedState: boolean) {
+    Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, usingImportedState);
+}
+
+function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
+    // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
+    const isStateImported = isUsingImportedState;
+    const sequentialQueue = PersistedRequests.getAll();
+    Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+        // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
+        if (isStateImported) {
+            setShouldForceOffline(false);
+        }
+
+        if (shouldNavigateToHomepage) {
+            Navigation.navigate(ROUTES.HOME);
+        }
+
+        // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+        // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+        // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+        openApp().then(() => {
+            if (!sequentialQueue || isStateImported) {
+                return;
+            }
+
+            sequentialQueue.forEach((request) => {
+                PersistedRequests.save(request);
+            });
+        });
+    });
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -536,5 +579,7 @@ export {
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     updateLastRoute,
+    setIsUsingImportedState,
+    clearOnyxAndResetApp,
     KEYS_TO_PRESERVE,
 };

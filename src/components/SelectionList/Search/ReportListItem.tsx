@@ -86,10 +86,10 @@ function ReportListItem<TItem extends ListItem>({
         styles.pv1half,
         styles.ph0,
         styles.overflowHidden,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
-        // Removing some of the styles because they are added to the parent OpacityView via animatedHighlightStyle
-        {backgroundColor: 'unset'},
         styles.mh0,
     ];
 
@@ -140,7 +140,7 @@ function ReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={[styles.mb3]}
+            containerStyle={[styles.mb2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
