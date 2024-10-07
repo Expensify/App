@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -240,14 +241,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         </Text>
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                        <Button
-                                            text={translate('workspace.people.transferOwner')}
-                                            onPress={startChangeOwnershipFlow}
-                                            isDisabled={isOffline}
-                                            icon={Expensicons.Transfer}
-                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                            style={styles.mv5}
-                                        />
+                                        shouldRenderTransferOwnerButton() && (
+                                            <Button
+                                                text={translate('workspace.people.transferOwner')}
+                                                onPress={startChangeOwnershipFlow}
+                                                isDisabled={isOffline}
+                                                icon={Expensicons.Transfer}
+                                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                                style={styles.mv5}
+                                            />
+                                        )
                                     ) : (
                                         <Button
                                             text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}

@@ -1,6 +1,6 @@
-import type {ForwardedRef, RefAttributes} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -19,16 +19,10 @@ type SuggestionsValue = {
     shouldShowSuggestionMenu: boolean;
 };
 
-type SuggestionEmojiOnyxProps = {
-    /** Preferred skin tone */
-    preferredSkinTone: number;
+type SuggestionEmojiProps = SuggestionProps & {
+    /** Function to clear the input */
+    resetKeyboardInput?: () => void;
 };
-
-type SuggestionEmojiProps = SuggestionProps &
-    SuggestionEmojiOnyxProps & {
-        /** Function to clear the input */
-        resetKeyboardInput?: () => void;
-    };
 
 /**
  * Check if this piece of string looks like an emoji
@@ -46,22 +40,15 @@ const defaultSuggestionsValues: SuggestionsValue = {
 };
 
 function SuggestionEmoji(
-    {
-        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        isAutoSuggestionPickerLarge,
-        resetKeyboardInput,
-        measureParentContainerAndReportCursor,
-        isComposerFocused,
-    }: SuggestionEmojiProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused}: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    const isInitialFocusRef = useRef(true);
     suggestionValuesRef.current = suggestionValues;
+
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
 
@@ -83,8 +70,8 @@ function SuggestionEmoji(
     const insertSelectedEmoji = useCallback(
         (highlightedEmojiIndexInner: number) => {
             const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
-            const emojiObject = suggestionValues.suggestedEmojis[highlightedEmojiIndexInner];
-            const emojiCode = emojiObject.types?.[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
+            const emojiObject = highlightedEmojiIndexInner !== -1 ? suggestionValues.suggestedEmojis.at(highlightedEmojiIndexInner) : undefined;
+            const emojiCode = emojiObject?.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject?.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
             updateComment(`${commentBeforeColon}${emojiCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
@@ -95,8 +82,8 @@ function SuggestionEmoji(
             resetKeyboardInput?.();
 
             setSelection({
-                start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-                end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                start: suggestionValues.colonIndex + (emojiCode?.length ?? 0) + CONST.SPACE_LENGTH,
+                end: suggestionValues.colonIndex + (emojiCode?.length ?? 0) + CONST.SPACE_LENGTH,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
         },
@@ -155,6 +142,10 @@ function SuggestionEmoji(
             if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !newValue || (selectionStart === 0 && selectionEnd === 0)) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
+                return;
+            }
+            if (isInitialFocusRef.current) {
+                isInitialFocusRef.current = false;
                 return;
             }
             const leftString = newValue.substring(0, selectionEnd);
@@ -237,9 +228,4 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default withOnyx<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, SuggestionEmojiOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-    },
-})(forwardRef(SuggestionEmoji));
+export default forwardRef(SuggestionEmoji);

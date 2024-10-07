@@ -144,9 +144,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.')[1];
-        const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-        return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        const decimalPart = numValue.toString().split('.').at(1);
+        if (decimalPart) {
+            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        }
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -302,12 +304,12 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<Po
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
-
     return (
-        tagLists[tagIndex] ?? {
+        tagLists.at(tagIndex) ?? {
             name: '',
             required: false,
             tags: {},
+            orderWeight: 0,
         }
     );
 }
@@ -507,12 +509,12 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
  * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: number): number {
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover])[0];
+        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
@@ -520,12 +522,12 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
         return -1;
     }
 
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
     const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
-    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+    return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
 }
 
 /**
@@ -550,11 +552,11 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
 }
 
 /**
- * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-    return getAccountIDsByLogins([reimburserEmail])[0];
+    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1 : -1;
 }
 
 function getPersonalPolicy() {
@@ -832,6 +834,23 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
         importType: translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase(),
     });
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
+}
+
+function getNetSuiteImportCustomFieldLabel(
+    policy: Policy | undefined,
+    importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
+    translate: LocaleContextProps['translate'],
+): string | undefined {
+    const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
+    if (fieldData.length === 0) {
+        return undefined;
+    }
+
+    const mappingSet = new Set(fieldData.map((item) => item.mapping));
+    const importedTypes = Array.from(mappingSet)
+        .sort((a, b) => b.localeCompare(a))
+        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping}.label`).toLowerCase());
+    return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
 
 function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
@@ -1133,6 +1152,7 @@ export {
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
+    getNetSuiteImportCustomFieldLabel,
 };
 
 export type {MemberEmailsToAccountIDs};
