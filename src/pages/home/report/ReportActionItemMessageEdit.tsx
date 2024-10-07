@@ -47,6 +47,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
+import RNMeasureContainer from './ReportActionCompose/measureContainer';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
@@ -402,10 +403,7 @@ function ReportActionItemMessageEdit(
     );
 
     const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
-        if (!containerRef.current) {
-            return;
-        }
-        containerRef.current.measureInWindow(callback);
+        RNMeasureContainer(containerRef, callback);
     }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
