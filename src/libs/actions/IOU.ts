@@ -73,7 +73,7 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
-import { getRecentWaypoints } from './Transaction';
+import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -3109,7 +3109,7 @@ function updateMoneyRequestDistance({
     policyCategories = {},
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
-        waypoints,
+        waypoints: sanitizeRecentWaypoints(waypoints),
         routes,
     };
     const allReports = ReportConnection.getAllReports();
@@ -3122,13 +3122,13 @@ function updateMoneyRequestDistance({
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
     const {params, onyxData} = data;
-        
-    const recentServerValidatedWaypoints = getRecentWaypoints().filter(item => !item.pendingAction)
+
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
         value: recentServerValidatedWaypoints,
-    } )
+    });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
@@ -5115,7 +5115,7 @@ function createDistanceRequest(
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
-
+    const sanitizedWaypoints = sanitizeRecentWaypoints(validWaypoints);
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
@@ -5148,7 +5148,7 @@ function createDistanceRequest(
             chatReportID: splitData.chatReportID,
             createdChatReportActionID: splitData.createdReportActionID ?? '',
             reportActionID: splitData.reportActionID,
-            waypoints: JSON.stringify(validWaypoints),
+            waypoints: JSON.stringify(sanitizedWaypoints),
             customUnitRateID,
             comment,
             created,
@@ -5207,7 +5207,7 @@ function createDistanceRequest(
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(validWaypoints),
+            waypoints: JSON.stringify(sanitizedWaypoints),
             created,
             category,
             tag,
@@ -5221,12 +5221,12 @@ function createDistanceRequest(
         };
     }
 
-    const recentServerValidatedWaypoints = getRecentWaypoints().filter(item => !item.pendingAction)
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
         value: recentServerValidatedWaypoints,
-    } )
+    });
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
