@@ -115,6 +115,16 @@
             border-radius: 6px;
         }
 
+        a:has(+ ul.is-collapsible)::after {
+            content: '∧'; /* Use the logical AND symbol */
+            display: inline; /* Ensure the caret appears directly after the content */
+            margin-left: 5px; /* Add some space between the text and the caret */
+            transform: rotate(180deg); /* Rotate the caret 180 degrees */
+            display: inline-block; /* Required to apply transform */
+            position: relative; /* Enables positioning adjustments */
+            top: 3px; /* Moves the caret down 3 pixels */
+        }
+
         /* Main content area */
         main {
             margin-left: 300px;

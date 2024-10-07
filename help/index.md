@@ -1,6 +1,6 @@
 ---
 layout: product
-title: Expensify Superapp
+title: Expensify
 ---
 ## Introduction
 The Expensify Superapp packs the full power of 6 world-class business, finance, and collaboration products into a single app that works identically on desktop and mobile, efficiently with your colleagues, and seamlessly with your customers, vendors, family, and friends.
