@@ -1,11 +1,8 @@
-import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import resolveDuplicationConflictAction from '@libs/actions/RequestConflictUtils';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
-    it.each([
-        ['OpenApp', 0],
-        ['ReconnectApp', 0],
-    ])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command, index) => {
+    it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {
         const persistedRequests = [{command: 'OpenReport'}, {command: 'AddComment'}, {command: 'CloseAccount'}];
         const commandToFind = command as WriteCommand;
         const result = resolveDuplicationConflictAction(persistedRequests, commandToFind);
