@@ -22,7 +22,6 @@ import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -69,18 +68,6 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 ];
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
-
-const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>) => {
-    if (!parentReportAction) {
-        return;
-    }
-    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
-    if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-        IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
-        return;
-    }
-    IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
-};
 
 const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
@@ -494,20 +481,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 return;
                             }
 
-                            const isCreateChatErrored = !!report?.errorFields?.createChat;
-                            if ((isCreateChatErrored || !!report?.isOptimisticReport) && parentReportAction) {
-                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                Navigation.goBack(urlToNavigateBack);
-                                return;
-                            }
-
                             if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                                 if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
                                     Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                                     return;
                                 }
-                                if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
-                                    deleteTransaction(parentReport, parentReportAction);
+                                if (parentReportAction) {
+                                    const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                                    Navigation.goBack(urlToNavigateBack);
+                                    return;
                                 }
                             }
                             Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);

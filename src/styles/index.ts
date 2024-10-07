@@ -4151,6 +4151,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
+        },
+
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
@@ -4693,6 +4698,7 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
+            minHeight: variables.optionRowHeight,
         },
 
         searchQueryListItemStyle: {
