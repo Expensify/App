@@ -1471,15 +1471,20 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST);
 }
 
+function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
+    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
+    );
+
+    return findPendingRequest;
+}
+
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
-    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
-        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
-    );
-    return !!findPendingRequest;
+    return !!getActionableJoinRequestPendingReportAction(reportID);
 }
 
 function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
@@ -1869,6 +1874,7 @@ export {
     isCardIssuedAction,
     getCardIssuedMessage,
     getRemovedConnectionMessage,
+    getActionableJoinRequestPendingReportAction,
 };
 
 export type {LastVisibleMessage};
