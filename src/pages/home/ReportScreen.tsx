@@ -343,13 +343,15 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         [currentUserAccountID, linkedAction],
     );
 
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+
     /**
      * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
      * is not evaluated. This causes issues where we have `isLoading` set to false and later set to true and then set to false again.
      * Ideally, `isLoading` should be set initially to true and then set to false. We can achieve this by using logical OR operator.
      */
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty() || (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID);
 
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||

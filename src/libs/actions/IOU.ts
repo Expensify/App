@@ -5977,6 +5977,12 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         });
     }
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+        value: null,
+    });
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6260,6 +6266,15 @@ function getSendMoneyParams(
             [optimisticCreatedActionForTransactionThread?.reportActionID ?? '-1']: optimisticCreatedActionForTransactionThread,
         },
     };
+    const optimisticDeleteTransactionNavigateBackUrl: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+        value: null,
+};
+
+
+    
+
 
     const successData: OnyxUpdate[] = [];
 
@@ -6430,6 +6445,7 @@ function getSendMoneyParams(
         optimisticTransactionData,
         optimisticTransactionThreadData,
         optimisticTransactionThreadReportActionsData,
+        optimisticDeleteTransactionNavigateBackUrl,
     ];
 
     if (!isEmptyObject(optimisticPersonalDetailListData)) {

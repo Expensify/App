@@ -751,6 +751,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     
         if (caseID === CASES.DEFAULT) {
             urlToNavigateBack = IOU.getUrlToNavigateBackForTask(report);
+            Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack);
             if (urlToNavigateBack) {
                 Navigation.goBack(urlToNavigateBack as Route);
             } else {
@@ -769,6 +770,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         } else {
             urlToNavigateBack = IOU.getUrlToNavigateBackForMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
+        Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack);
     
         if (!urlToNavigateBack) {
             Navigation.dismissModal();

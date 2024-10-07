@@ -1005,6 +1005,11 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: optimisticReportActions as OnyxTypes.ReportActions,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+            value: null,
+        },
     ];
 
     // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
