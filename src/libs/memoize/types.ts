@@ -16,21 +16,40 @@ type IsomorphicReturnType<Fn extends IsomorphicFn> = Fn extends Callable ? Retur
 type KeyComparator<Key> = (k1: Key, k2: Key) => boolean;
 
 type InternalOptions = {
+    /**
+     * Type of cache to use. Currently only `array` is supported.
+     */
     cache: 'array';
 };
 
 type Options<Fn extends IsomorphicFn, MaxArgs extends number, Key> = {
+    /**
+     * Maximum number of entries in the cache. If the cache exceeds this number, the oldest entries will be removed.
+     */
     maxSize: number;
+    /**
+     * Equality comparator to use for comparing keys in the cache. Can be either:
+     * - `deep` - default comparator that uses [DeepEqual](https://github.com/planttheidea/fast-equals?tab=readme-ov-file#deepequal)
+     * - `shallow` - comparator that uses [ShallowEqual](https://github.com/planttheidea/fast-equals?tab=readme-ov-file#shallowequal)
+     * - a custom comparator - a function that takes two keys and returns a boolean.
+     */
     equality: 'deep' | 'shallow' | KeyComparator<Key>;
+    /**
+     * If set to `true`, memoized function stats will be collected. It can be overridden by global `Memoize` config. See `MemoizeStats` for more information.
+     */
     monitor: boolean;
+    /**
+     * Maximum number of arguments to use for caching. If set, only the first `maxArgs` arguments will be used to generate the cache key.
+     */
     maxArgs?: MaxArgs;
+    /**
+     * Name of the monitoring entry. If not provided, the function name will be used.
+     */
     monitoringName?: string;
     /**
-     * Function to transform the arguments into a key, which is used to reference the result in the cache.
-     * When called with constructable (e.g. class, `new` keyword) functions, it won't get proper types for `truncatedArgs`
-     * Any viable fixes are welcome!
-     * @param truncatedArgs - Tuple of arguments passed to the memoized function (truncated to `maxArgs`). Does not work with constructable (see description).
-     * @returns - Key to use for caching
+     * Transforms arguments into a cache key. If set, `maxArgs` will be applied to arguments first.
+     * @param truncatedArgs Tuple of arguments passed to the memoized function (truncated to `maxArgs`). Does not work with constructable (see description).
+     * @returns Key to use for caching
      */
     transformKey?: (truncatedArgs: TakeFirst<IsomorphicParameters<Fn>, MaxArgs>) => Key;
 } & InternalOptions;
