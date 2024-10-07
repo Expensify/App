@@ -35,7 +35,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             />
             <View style={[styles.flex1]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
-                    <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
+                    <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>
                         <ImageSVG src={Computer} />
                     </View>
 
