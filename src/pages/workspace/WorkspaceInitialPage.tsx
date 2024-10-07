@@ -368,7 +368,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
+                onLinkPress={() => Navigation.goUp(ROUTES.HOME)}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
@@ -376,7 +376,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     title={policyName}
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
-                            Navigation.resetToHome();
+                            Navigation.goUp(ROUTES.HOME);
                             Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
                         } else {
                             Navigation.goUp(ROUTES.SETTINGS_WORKSPACES);

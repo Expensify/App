@@ -224,6 +224,7 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
+    // @TODO: Fix params comparison. When comparing split navigators params, it may happen that first one has parameters with the initial settings and the second one does not.
     return shallowCompare(route.params as Record<string, string | undefined>, minimalAction.payload.params as Record<string, string | undefined>);
 }
 
@@ -232,8 +233,8 @@ function goUp(fallbackRoute: Route) {
         return;
     }
 
-    if (!navigationRef.current?.canGoBack()) {
-        Log.hmmm('[Navigation] Unable to go back');
+    if (!navigationRef.current) {
+        Log.hmmm('[Navigation] Unable to go up');
         return;
     }
 
