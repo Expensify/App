@@ -167,7 +167,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList.at(0)}`]: {
                     canHold: false,
                     canUnhold: true,
                 },
@@ -179,7 +179,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList.at(0)}`]: {
                     canHold: true,
                     canUnhold: false,
                 },
@@ -199,7 +199,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList.at(0)}`]: {
                     canHold: true,
                     canUnhold: false,
                 },
@@ -211,7 +211,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList.at(0)}`]: {
                     canHold: false,
                     canUnhold: true,
                 },
