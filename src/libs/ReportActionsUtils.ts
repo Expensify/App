@@ -58,7 +58,6 @@ Onyx.connect({
         if (!actions) {
             return;
         }
-
         allReportActions = actions;
     },
 });
