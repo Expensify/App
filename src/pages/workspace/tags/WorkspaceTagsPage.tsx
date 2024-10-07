@@ -70,7 +70,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
-
+    const backTo = route.params.backTo;
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -172,6 +172,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagsSettings = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
     };
 
