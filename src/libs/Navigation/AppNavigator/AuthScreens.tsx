@@ -138,6 +138,7 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val hasn't accountID
         if (!(value && 'accountID' in value)) {
+            currentAccountID = -1;
             timezone = null;
             return;
         }

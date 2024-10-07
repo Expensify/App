@@ -1,5 +1,5 @@
 ---
-title: Connect personal U.S. bank account
+title: Connect personal bank account
 description: Receive reimbursements for expense reports submitted to your employer
 ---
 <div id="expensify-classic" markdown="1">
