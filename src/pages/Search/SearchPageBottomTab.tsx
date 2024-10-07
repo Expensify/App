@@ -103,12 +103,12 @@ function SearchPageBottomTab() {
                             shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
                     </View>
-                    <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                        <SearchTypeMenu
-                            queryJSON={queryJSON}
-                            searchName={searchName}
-                        />
-                        {shouldUseNarrowLayout && (
+                    {shouldUseNarrowLayout ? (
+                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
+                            <SearchTypeMenu
+                                queryJSON={queryJSON}
+                                searchName={searchName}
+                            />
                             <SearchStatusBar
                                 type={queryJSON.type}
                                 status={queryJSON.status}
@@ -117,8 +117,13 @@ function SearchPageBottomTab() {
                                     topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
                                 }}
                             />
-                        )}
-                    </Animated.View>
+                        </Animated.View>
+                    ) : (
+                        <SearchTypeMenu
+                            queryJSON={queryJSON}
+                            searchName={searchName}
+                        />
+                    )}
                 </>
             ) : (
                 <SearchSelectionModeHeader queryJSON={queryJSON} />

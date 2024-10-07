@@ -49,6 +49,10 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
 }
 
+function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -68,4 +72,5 @@ export default {
     canUseNewDotCopilot,
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
+    canUseNewDotQBD,
 };
