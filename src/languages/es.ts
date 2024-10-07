@@ -2376,6 +2376,10 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión.',
+            exportInvoices: 'Exportar facturas a',
+            exportInvoicesDescription: 'Usa esta cuenta al exportar facturas a QuickBooks Online.',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',

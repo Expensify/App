@@ -1463,6 +1463,10 @@ const CONST = {
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
+    QUICKBOOKS_DESKTOP_CONFIG: {
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
+    },
+
     QUICKBOOKS_CONFIG: {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CLASSES: 'syncClasses',
