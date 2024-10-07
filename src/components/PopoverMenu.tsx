@@ -14,6 +14,7 @@ import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
@@ -21,6 +22,7 @@ import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type BaseModalProps from './Modal/types';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -48,6 +50,8 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Whether to close all modals */
     shouldCloseAllModals?: boolean;
+
+    pendingAction?: PendingAction;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -141,7 +145,10 @@ function PopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
-        const selectedItem = currentMenuItems[index];
+        const selectedItem = currentMenuItems.at(index);
+        if (!selectedItem) {
+            return;
+        }
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
@@ -262,50 +269,54 @@ function PopoverMenu({
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
-                        <FocusableMenuItem
+                        <OfflineWithFeedback
                             // eslint-disable-next-line react/no-array-index-key
                             key={`${item.text}_${menuIndex}`}
-                            icon={item.icon}
-                            iconWidth={item.iconWidth}
-                            iconHeight={item.iconHeight}
-                            iconFill={item.iconFill}
-                            additionalIconStyles={item.additionalIconStyles}
-                            contentFit={item.contentFit}
-                            title={item.text}
-                            shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                            shouldCheckActionAllowedOnPress={false}
-                            description={item.description}
-                            numberOfLinesDescription={item.numberOfLinesDescription}
-                            onPress={() => selectItem(menuIndex)}
-                            focused={focusedIndex === menuIndex}
-                            displayInDefaultIconColor={item.displayInDefaultIconColor}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            shouldShowRightComponent={item.shouldShowRightComponent}
-                            iconRight={item.iconRight}
-                            rightComponent={item.rightComponent}
-                            shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
-                            label={item.label}
-                            style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
-                            isLabelHoverable={item.isLabelHoverable}
-                            floatRightAvatars={item.floatRightAvatars}
-                            floatRightAvatarSize={item.floatRightAvatarSize}
-                            shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
-                            disabled={item.disabled}
-                            onFocus={() => setFocusedIndex(menuIndex)}
-                            success={item.success}
-                            containerStyle={item.containerStyle}
-                            shouldRenderTooltip={item.shouldRenderTooltip}
-                            tooltipAnchorAlignment={item.tooltipAnchorAlignment}
-                            tooltipShiftHorizontal={item.tooltipShiftHorizontal}
-                            tooltipShiftVertical={item.tooltipShiftVertical}
-                            tooltipWrapperStyle={item.tooltipWrapperStyle}
-                            renderTooltipContent={item.renderTooltipContent}
-                            numberOfLinesTitle={item.numberOfLinesTitle}
-                            interactive={item.interactive}
-                            isSelected={item.isSelected}
-                            badgeText={item.badgeText}
-                        />
+                            pendingAction={item.pendingAction}
+                        >
+                            <FocusableMenuItem
+                                icon={item.icon}
+                                iconWidth={item.iconWidth}
+                                iconHeight={item.iconHeight}
+                                iconFill={item.iconFill}
+                                additionalIconStyles={item.additionalIconStyles}
+                                contentFit={item.contentFit}
+                                title={item.text}
+                                shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                                titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                                shouldCheckActionAllowedOnPress={false}
+                                description={item.description}
+                                numberOfLinesDescription={item.numberOfLinesDescription}
+                                onPress={() => selectItem(menuIndex)}
+                                focused={focusedIndex === menuIndex}
+                                displayInDefaultIconColor={item.displayInDefaultIconColor}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
+                                shouldShowRightComponent={item.shouldShowRightComponent}
+                                iconRight={item.iconRight}
+                                rightComponent={item.rightComponent}
+                                shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                                label={item.label}
+                                style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
+                                isLabelHoverable={item.isLabelHoverable}
+                                floatRightAvatars={item.floatRightAvatars}
+                                floatRightAvatarSize={item.floatRightAvatarSize}
+                                shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                                disabled={item.disabled}
+                                onFocus={() => setFocusedIndex(menuIndex)}
+                                success={item.success}
+                                containerStyle={item.containerStyle}
+                                shouldRenderTooltip={item.shouldRenderTooltip}
+                                tooltipAnchorAlignment={item.tooltipAnchorAlignment}
+                                tooltipShiftHorizontal={item.tooltipShiftHorizontal}
+                                tooltipShiftVertical={item.tooltipShiftVertical}
+                                tooltipWrapperStyle={item.tooltipWrapperStyle}
+                                renderTooltipContent={item.renderTooltipContent}
+                                numberOfLinesTitle={item.numberOfLinesTitle}
+                                interactive={item.interactive}
+                                isSelected={item.isSelected}
+                                badgeText={item.badgeText}
+                            />
+                        </OfflineWithFeedback>
                     ))}
                 </ScrollView>
             </FocusTrapForModal>

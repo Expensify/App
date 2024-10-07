@@ -50,7 +50,7 @@ function AccountSwitcher() {
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
     const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, errors?: Errors, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
-        const error = Object.values(errors ?? {})[0] ?? '';
+        const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
@@ -108,7 +108,7 @@ function AccountSwitcher() {
                 const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', role),
+                    badgeText: translate('delegate.role', {role}),
                     onPress: () => {
                         if (isOffline) {
                             Modal.close(() => setShouldShowOfflineModal(true));

@@ -63,7 +63,7 @@ function ExportWithDropdownMenu({
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', connectionName),
+                text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
                 ...optionTemplate,
             },
             {
@@ -130,7 +130,7 @@ function ExportWithDropdownMenu({
                 title={translate('workspace.exportAgainModal.title')}
                 onConfirm={confirmExport}
                 onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                prompt={translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''})}
                 confirmText={translate('workspace.exportAgainModal.confirmText')}
                 cancelText={translate('workspace.exportAgainModal.cancelText')}
                 isVisible={!!modalStatus}
