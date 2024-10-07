@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type en from './en';
 import type {
@@ -7,7 +6,6 @@ import type {
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
-    AgeParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
@@ -19,7 +17,6 @@ import type {
     BadgeFreeTrialParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
@@ -41,7 +38,6 @@ import type {
     CharacterLengthLimitParams,
     CharacterLimitParams,
     CompanyCardFeedNameParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
@@ -56,10 +52,7 @@ import type {
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
-    DimensionsCountParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
@@ -73,6 +66,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -132,7 +126,6 @@ import type {
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
     SecondaryLoginParams,
-    SelectedNumberParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
@@ -262,6 +255,7 @@ const translations = {
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
         and: 'y',
+        or: 'o',
         details: 'Detalles',
         privacy: 'Privacidad',
         hidden: 'Oculto',
@@ -449,6 +443,7 @@ const translations = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -655,34 +650,36 @@ const translations = {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         beginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `¡Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
-        beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
+            `Este chat es con todos los miembros de Expensify en el dominio ${domainRoom}.`,
+        beginningOfChatHistoryDomainRoomPartTwo: ' Úsalo para chatear con colegas, compartir consejos y hacer preguntas.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
-            `¡Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
-        beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
-            `¡Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
-        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
-        beginningOfChatHistoryUserRoomPartOne: '¡Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
-        beginningOfChatHistoryUserRoomPartTwo: '.',
-        beginningOfChatHistoryInvoiceRoom: '¡Este es el lugar para colaborar! 🎉 Utilice esta sala para ver, discutir y pagar facturas.',
-        beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear y presentar o pagar gastos.',
+            `Este chat es con los administradores del espacio de trabajo ${workspaceName}.`,
+        beginningOfChatHistoryAdminRoomPartTwo: ' Use it to chat about workspace setup and more.',
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Este chat es con todos en el espacio de trabajo ${workspaceName}.`,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ` Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
+        beginningOfChatHistoryUserRoomPartOne: 'ste chat es para todo lo relacionado con ',
+        beginningOfChatHistoryUserRoomPartTwo: ' Fue creado por.',
+        beginningOfChatHistoryInvoiceRoomPartOne: `Este chat es para facturas entre `,
+        beginningOfChatHistoryInvoiceRoomPartTwo: `. Usa el botón + para enviar una factura.`,
+        beginningOfChatHistory: 'Este chat es con',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Aquí es donde ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' enviará los gastos al espacio de trabajo ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: '. Solo usa el botón +.',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
+        askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
         iouTypes: {
-            pay: 'pagar gastos',
-            split: 'dividir un gasto',
-            submit: 'presentar un gasto',
-            track: 'rastrear un gasto',
-            invoice: 'facturar un gasto',
+            pay: 'pagar',
+            split: 'dividir',
+            submit: 'presentar',
+            track: 'rastrear',
+            invoice: 'facturar',
         },
     },
     adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
@@ -823,6 +820,7 @@ const translations = {
         share: 'Compartir',
         participants: 'Participantes',
         submitExpense: 'Presentar gasto',
+        createExpense: 'Crear gasto',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         trackExpense: 'Seguimiento de gastos',
         pay: 'Pagar',
@@ -837,7 +835,10 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
-        receiptIssuesFound: ({count}: DistanceRateOperationsParams) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
+        receiptIssuesFound: () => ({
+            one: 'Problema encontrado',
+            other: 'Problemas encontrados',
+        }),
         fieldPending: 'Pendiente...',
         receiptScanning: 'Escaneando recibo...',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
@@ -857,19 +858,27 @@ const translations = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const expenseText = `${count} ${Str.pluralize('gasto', 'gastos', count)}`;
-            const statusText = [];
+        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} escaneando`);
             }
             if (pendingReceipts > 0) {
                 statusText.push(`${pendingReceipts} pendiente`);
             }
-            return statusText.length > 0 ? `${expenseText} (${statusText.join(', ')})` : expenseText;
+            return {
+                one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
+                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
+            };
         },
-        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
-        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
+        deleteExpense: () => ({
+            one: 'Eliminar gasto',
+            other: 'Eliminar gastos',
+        }),
+        deleteConfirmation: () => ({
+            one: '¿Estás seguro de que quieres eliminar esta solicitud?',
+            other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
+        }),
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
@@ -911,6 +920,8 @@ const translations = {
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} de otra forma`,
         paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} con Expensify`,
+        automaticallyPaidWithExpensify: ({payer, amount}: PaidWithExpensifyWithAmountParams) =>
+            `${payer ? `${payer} ` : ''}auto-pagó ${amount} con Expensify via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
@@ -969,20 +980,16 @@ const translations = {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'aprobar',
-                'aprobarlos',
-                transactionCount,
-            )} de todos modos?`,
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?',
+            other: 'Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?',
+        }),
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'pagar',
-                'pagarlo',
-                transactionCount,
-            )} de todos modos?`,
+        confirmPayAllHoldAmount: () => ({
+            one: 'Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?',
+            other: 'Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?',
+        }),
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloquear',
@@ -1010,6 +1017,7 @@ const translations = {
         bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
+        justTrackIt: 'Solo guardarlo (no enviarlo)',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1076,6 +1084,8 @@ const translations = {
     contacts: {
         contactMethod: 'Método de contacto',
         contactMethods: 'Métodos de contacto',
+        featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
+        validateAccount: 'Valida tu cuenta',
         helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
@@ -1181,8 +1191,13 @@ const translations = {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
+            resetToOriginalState: 'Restablecer al estado original',
+            usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
             debugMode: 'Modo depuración',
+            invalidFile: 'Archivo inválido',
+            invalidFileDescription: 'El archivo que estás intentando importar no es válido. Por favor, inténtalo de nuevo.',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1205,7 +1220,6 @@ const translations = {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
-        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -1370,7 +1384,6 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
         walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
-        bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Agregar una cuenta bancaria te permite recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
@@ -2105,7 +2118,7 @@ const translations = {
         enterYourDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
         enterTheLast4: '¿Cuáles son los últimos 4 dígitos de tu número de la seguridad social?',
         dontWorry: 'No te preocupes, no hacemos verificaciones de crédito personales.',
-        last4SSN: 'Últimos 4 dígitos de tu número de la seguridad social',
+        last4SSN: 'Últimos 4 dígitos de tu SSN',
         enterYourAddress: '¿Cuál es tu dirección?',
         address: 'Dirección',
         letsDoubleCheck: 'Revisemos que todo esté bien',
@@ -2302,7 +2315,10 @@ const translations = {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}: SelectedNumberParams) => `${selectedNumber} seleccionados`,
+            selected: () => ({
+                one: '1 seleccionado',
+                other: (count: number) => `${count} seleccionados`,
+            }),
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2357,6 +2373,9 @@ const translations = {
                         return 'Miembro';
                 }
             },
+        },
+        qbd: {
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2801,6 +2820,7 @@ const translations = {
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Importados como ${importedTypes.join(' y ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Por favor, introduzca el ${fieldName}`,
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
@@ -2918,7 +2938,10 @@ const translations = {
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
-            userDimensionsAdded: ({dimensionsCount}: DimensionsCountParams) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} añadido`,
+            userDimensionsAdded: () => ({
+                one: '1 UDD añadido',
+                other: (count: number) => `${count} UDDs añadido`,
+            }),
             mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
@@ -3684,6 +3707,9 @@ const translations = {
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
+            invoiceBalance: 'Saldo de la factura',
+            invoiceBalanceSubtitle: 'Aquí está su saldo actual de la recaudación de pagos en las facturas.',
+            bankAccountsSubtitle: 'Agrega una cuenta bancaria para recibir pagos de facturas.',
         },
         invite: {
             member: 'Invitar miembros',
@@ -3718,8 +3744,14 @@ const translations = {
                 one: 'Eliminar tasa',
                 other: 'Eliminar tasas',
             }),
-            enableRates: ({count}: DistanceRateOperationsParams) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
+            enableRates: () => ({
+                one: 'Activar tasa',
+                other: 'Activar tasas',
+            }),
+            disableRates: () => ({
+                one: 'Desactivar tasa',
+                other: 'Desactivar tasas',
+            }),
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
@@ -3727,7 +3759,10 @@ const translations = {
             changePromptMessage: ' para hacer ese cambio.',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta tasa', 'estas tasas', count)}?`,
+            areYouSureDelete: () => ({
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: '¿Estás seguro de que quieres eliminar estas tasas?',
+            }),
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -3907,7 +3942,10 @@ const translations = {
                 maxAge: 'Antigüedad máxima',
                 maxExpenseAge: 'Antigüedad máxima de los gastos',
                 maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
-                maxExpenseAgeDays: ({age}: AgeParams) => `${age} ${Str.pluralize('día', 'días', age)}`,
+                maxExpenseAgeDays: () => ({
+                    one: '1 día',
+                    other: (count: number) => `${count} días`,
+                }),
                 billableDefault: 'Valor predeterminado facturable',
                 billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
                 billable: 'Facturable',
@@ -4041,15 +4079,16 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
             }
-            const workflowWord = Str.pluralize('del flujo', 'de los flujos', submittersNames.length);
-            const chatWord = Str.pluralize('del chat', 'de los chats', submittersNames.length);
-            return `te eliminó ${workflowWord} de trabajo de aprobaciones y ${chatWord} del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`;
+            return {
+                one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+                other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+            };
         },
     },
     roomMembersPage: {
@@ -4160,6 +4199,10 @@ const translations = {
             past: 'Anterior',
         },
         expenseType: 'Tipo de gasto',
+        recentSearches: 'Búsquedas recientes',
+        recentChats: 'Chats recientes',
+        searchIn: 'Buscar en',
+        searchPlaceholder: 'Busca algo',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -4297,6 +4340,7 @@ const translations = {
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },
@@ -4906,6 +4950,8 @@ const translations = {
             title: 'Mapa pendiente',
             subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
+            errorTitle: 'Mapa error',
+            errorSubtitle: 'No se pudo cargar el mapa. Por favor, inténtalo de nuevo.',
         },
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
@@ -5385,6 +5431,29 @@ const translations = {
         date: 'Fecha',
         time: 'Hora',
         none: 'Ninguno',
+        visibleInLHN: 'Visible en LHN',
+        GBR: 'GBR',
+        RBR: 'RBR',
+        true: 'verdadero',
+        false: 'falso',
+        reasonVisibleInLHN: {
+            hasDraftComment: 'Tiene comentario en borrador',
+            hasGBR: 'Tiene GBR',
+            pinnedByUser: 'Fijado por el usuario',
+            hasIOUViolations: 'Tiene violaciones de IOU',
+            hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
+            isUnread: 'No leído (modo de enfoque)',
+            isArchived: 'Archivado (modo más reciente)',
+            isSelfDM: 'Es un mensaje directo propio',
+            isFocused: 'Está temporalmente enfocado',
+        },
+        reasonGBR: {
+            hasJoinRequest: 'Tiene solicitud de unión (sala de administrador)',
+            isUnreadWithMention: 'No leído con mención',
+            isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
+            hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
+            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
+        },
     },
 };
 

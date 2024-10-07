@@ -57,6 +57,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 submitButtonText={translate('common.save')}
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
+                enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -67,6 +68,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     onChangeText={(renamedName) => setNewName(renamedName)}
                     ref={inputCallbackRef}
                     defaultValue={name}
+                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

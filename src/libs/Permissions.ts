@@ -54,6 +54,10 @@ function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
 }
 
+function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_QBD) || canUseAllBetas(betas);
+}
+
 /**
  * New Search Router is under construction and for now should be displayed only in dev to allow developers to work on it.
  * We are not using BETA for this feature, as betas are heavier to cleanup,
@@ -86,4 +90,5 @@ export default {
     canUseCombinedTrackSubmit,
     canUseNewSearchRouter,
     canUseCategoryAndTagApprovers,
+    canUseNewDotQBD,
 };

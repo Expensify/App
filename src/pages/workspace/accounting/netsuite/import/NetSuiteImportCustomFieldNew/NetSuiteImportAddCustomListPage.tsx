@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useLocalize from '@hooks/useLocalize';
@@ -31,6 +31,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
@@ -67,6 +68,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             return;
         }
         ref.current?.movePrevious();
+        formRef.current?.resetErrors();
         prevScreen();
     };
 
@@ -94,7 +96,10 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING:
-                    return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                        errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+                    }
+                    return errors;
                 default:
                     return errors;
             }
@@ -153,6 +158,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
                 <FormProvider
+                    ref={formRef}
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
                     submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                     onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomLists : handleNextScreen}
@@ -163,6 +169,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     enabledWhenOffline
                     isSubmitDisabled={!!config?.pendingFields?.customLists}
                     submitFlexEnabled={submitFlexAllowed}
+                    shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING}
                 >
                     <SubStep
                         isEditing={isEditing}

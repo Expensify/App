@@ -59,11 +59,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string) => {
-            if (reportActionID) {
-                return `search/view/${reportID}/${reportActionID}` as const;
-            }
-            return `search/view/${reportID}` as const;
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
@@ -151,6 +149,7 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
+    SETTINGS_WALLET_VERIFY_ACCOUNT: {route: 'settings/wallet/verify', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/verify', backTo)},
     SETTINGS_WALLET_DOMAINCARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -650,6 +649,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
@@ -1276,10 +1279,7 @@ const ROUTES = {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
-    MISSING_PERSONAL_DETAILS: {
-        route: 'missing-personal-details/workspace/:policyID',
-        getRoute: (policyID: string) => `missing-personal-details/workspace/${policyID}` as const,
-    },
+    MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
@@ -1579,6 +1579,12 @@ type Route = {
 
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
+/**
+ * Represents all routes in the app as a union of literal strings.
+ *
+ * If TS throws on this line, it implies that one or more routes defined within `ROUTES` have not correctly used
+ * `as const` in their `getRoute` function return value.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
