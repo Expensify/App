@@ -4941,7 +4941,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
-		},
+        },
         indicatorStatus: {
             theresAReportAwaitingAction: "There's a report awaiting action",
             theresAReportWithErrors: "There's a report with errors",
