@@ -2,19 +2,27 @@ import React from 'react';
 import {Image, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type AttachmentPreviewProps = {uri: string};
+type AttachmentPreviewProps = {uri: string | undefined; aspectRatio: number | undefined};
 
-function AttachmentPreview({uri}: AttachmentPreviewProps) {
+function AttachmentPreview({uri, aspectRatio}: AttachmentPreviewProps) {
     // const theme = useTheme();
     const styles = useThemeStyles();
     // const {isOffline} = useNetwork();
     // const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1, styles.flexRow]}>
+        <View
+            style={{
+                width: '100%',
+                aspectRatio,
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
             <Image
                 source={{uri}}
-                style={[styles.w100, styles.flexRow, {backgroundColor: 'red'}]}
+                style={[styles.h100, styles.w100, styles.br2]}
+                resizeMode="cover"
             />
         </View>
     );

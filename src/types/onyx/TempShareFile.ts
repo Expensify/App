@@ -1,10 +1,10 @@
 /** Model of the file shared from the external source */
 type TempShareFile = {
     /** ID of the share file */
-    id?: string;
+    id: string;
 
     /** Path to the file copy in the app folder, or text content */
-    content?: string;
+    content: string;
 
     /** Mime type of the file */
     mimeType?: string;
@@ -17,6 +17,9 @@ type TempShareFile = {
 
     /** Timestamp of when the share attempt started */
     processedAt?: string;
+
+    /** Aspect ratio of the image */
+    aspectRatio?: number;
 };
 
 export default TempShareFile;

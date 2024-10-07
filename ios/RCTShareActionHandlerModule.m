@@ -90,12 +90,27 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
       NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
       NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
       NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, imagePath];
+      
+      // Get the image aspcect ratio
+      CGFloat aspectRatio = 1.0;
+      UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+      if (image) {
+          CGFloat width = image.size.width;
+          CGFloat height = image.size.height;
+          
+          if (height != 0) {
+              aspectRatio = width / height;
+          }
+      } else {
+          NSLog(@"Failed to load image from path: %@", imagePath);
+      }
 
       NSDictionary *dict = @{
         @"id" : identifier, 
         @"content" : imagePath,
         @"mimeType" : mimeType,
-        @"processedAt" : timestamp
+        @"processedAt" : timestamp,
+        @"aspectRatio" : @(aspectRatio)
       };
 
       [imageObjectsArray addObject:dict];

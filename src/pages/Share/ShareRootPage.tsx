@@ -36,7 +36,7 @@ function ShareRootPage() {
         >
             <View style={[styles.flex1]}>
                 <HeaderWithBackButton
-                    title={translate('iou.shareRoot.shareToExpensify')}
+                    title={translate('share.shareToExpensify')}
                     shouldShowBackButton
                 />
                 {/* {imageURIs.map((uri) => (

@@ -7,6 +7,7 @@ type ShareActionContent = {
     content: string;
     mimeType: string;
     processedAt: string;
+    aspectRatio: number;
 };
 
 type ShareActionHandlerType = {
