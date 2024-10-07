@@ -2354,6 +2354,16 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configure how Expensify data exports to QuickBooks Desktop.',
+            qbdSetup: 'QuickBooks Desktop setup',
+            requiredSetupDevice: {
+                title: "Can't connect from this device",
+                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
+                body2: "Once you're connected, you'll be able to sync and export from anywhere.",
+            },
+            setupPage: {
+                title: 'Open this link to connect',
+                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2921,18 +2931,6 @@ const translations = {
                     default:
                         return 'mappings';
                 }
-            },
-        },
-        qbd: {
-            qbdSetup: 'QuickBooks Desktop setup',
-            requiredSetupDevice: {
-                title: "Can't connect from this device",
-                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
-                body2: "Once you're connected, you'll be able to sync and export from anywhere.",
-            },
-            setupPage: {
-                title: 'Open this link to connect',
-                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
             },
         },
         type: {
