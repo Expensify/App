@@ -1730,17 +1730,17 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
-    const assigneeAccountID = isActionOfType(
+    const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
         CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
     )
-        ? getOriginalMessage(reportAction)?.assigneeAccountID ?? -1
-        : -1;
-    const cardID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
-        ? getOriginalMessage(reportAction)?.cardID ?? -1
-        : -1;
+        ? getOriginalMessage(reportAction)
+        : undefined;
+
+    const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? -1;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
