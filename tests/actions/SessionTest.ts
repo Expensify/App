@@ -165,7 +165,7 @@ describe('Session', () => {
         expect(PersistedRequests.getAll().length).toBe(0);
     });
 
-    test('ReconnectApp should replace same requests from the queue', async () => {
+    test('OpenApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
