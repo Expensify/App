@@ -251,7 +251,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
-    const reportName = ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName({report});
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom

@@ -289,7 +289,7 @@ function ReportPreview({
 
         let payerOrApproverName;
         if (isPolicyExpenseChat) {
-            payerOrApproverName = ReportUtils.getPolicyName(chatReport, undefined, policy);
+            payerOrApproverName = ReportUtils.getPolicyName({report: chatReport, policy});
         } else if (isInvoiceRoom) {
             payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
