@@ -198,7 +198,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         ReportUtils.canWriteInReport(report) &&
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
-        canModifyTask && 
+        canModifyTask &&
         canActionTask;
     const canDeleteRequest = isActionOwner && (ReportUtils.canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
