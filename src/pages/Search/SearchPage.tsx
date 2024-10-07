@@ -93,7 +93,7 @@ function SearchPage({route}: SearchPageProps) {
                             )}
                             <BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />
                         </View>
-                        <>
+                        <View style={styles.flex1}>
                             <SearchPageHeader
                                 queryJSON={queryJSON}
                                 hash={queryJSON.hash}
@@ -104,7 +104,7 @@ function SearchPage({route}: SearchPageProps) {
                                 policyID={queryJSON.policyID}
                             />
                             <Search queryJSON={queryJSON} />
-                        </>
+                        </View>
                     </View>
                 )}
             </FullPageNotFoundView>
