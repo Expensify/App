@@ -39,6 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
 
@@ -190,7 +191,7 @@ function WorkspacesListPage() {
                     errorRowStyles={styles.ph5}
                     onClose={item.dismissError}
                     errors={item.errors}
-                    style={styles.mb3}
+                    style={styles.mb2}
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
@@ -219,7 +220,7 @@ function WorkspacesListPage() {
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
+        [isLessThanMediumScreen, styles.mb2, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -303,15 +304,15 @@ function WorkspacesListPage() {
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, isOffline, session?.email))
             .map((policy): WorkspaceItem => {
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                    const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
-                    const id = Object.keys(policy.policyDetailsForNonMembers)[0];
+                    const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
+                    const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
                     return {
                         title: policyInfo.name,
-                        icon: policyInfo.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        icon: policyInfo?.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                         disabled: true,
                         ownerAccountID: policyInfo.ownerAccountID,
                         type: policyInfo.type,
-                        iconType: policyInfo.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                        iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         policyID: id,

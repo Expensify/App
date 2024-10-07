@@ -328,7 +328,7 @@ function subscribeToReportTypingEvents(reportID: string) {
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedStatus(typingStatus);
-        const accountIDOrLogin = Object.keys(normalizedTypingStatus)[0];
+        const accountIDOrLogin = Object.keys(normalizedTypingStatus).at(0);
 
         if (!accountIDOrLogin) {
             return;
@@ -371,7 +371,7 @@ function subscribeToReportLeavingEvents(reportID: string) {
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedLeavingStatus = getNormalizedStatus(leavingStatus);
-        const accountIDOrLogin = Object.keys(normalizedLeavingStatus)[0];
+        const accountIDOrLogin = Object.keys(normalizedLeavingStatus).at(0);
 
         if (!accountIDOrLogin) {
             return;
@@ -862,16 +862,19 @@ function openReport(
     if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
-        optimisticData[0].value = {
-            ...optimisticReport,
-            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-            ...newReportObject,
-            pendingFields: {
-                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            isOptimisticReport: true,
-        };
+        const optimisticDataItem = optimisticData.at(0);
+        if (optimisticDataItem) {
+            optimisticDataItem.onyxMethod = Onyx.METHOD.SET;
+            optimisticDataItem.value = {
+                ...optimisticReport,
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                ...newReportObject,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                isOptimisticReport: true,
+            };
+        }
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
@@ -895,7 +898,7 @@ function openReport(
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
-            const accountID = participantAccountIDs[index];
+            const accountID = participantAccountIDs.at(index) ?? -1;
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
@@ -2073,7 +2076,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
                 pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                 lastActorAccountID: currentUserAccountID,
                 lastVisibleActionCreated: optimisticDescriptionUpdatedReportAction.created,
-                lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.[0]?.text,
+                lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.at(0)?.text,
             },
         },
         {
@@ -2670,13 +2673,7 @@ function openReportFromDeepLink(url: string) {
         Session.waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (onboarding) => {
-                    if (onboarding) {
-                        // Once the onboarding data is available, we want to disconnect the connection
-                        // so it won't trigger the deeplink again every time the data is changed, for example, when relogin.
-                        Onyx.disconnect(connection);
-                    }
-
+                callback: () => {
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                             Session.signOutAndRedirectToSignIn(true);
@@ -2691,6 +2688,10 @@ function openReportFromDeepLink(url: string) {
                         }
 
                         const handleDeeplinkNavigation = () => {
+                            // We want to disconnect the connection so it won't trigger the deeplink again
+                            // every time the data is changed, for example, when relogin.
+                            Onyx.disconnect(connection);
+
                             const state = navigationRef.getRootState();
                             const currentFocusedRoute = findFocusedRoute(state);
 

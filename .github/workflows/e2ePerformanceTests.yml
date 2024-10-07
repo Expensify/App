@@ -20,13 +20,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  buildBaseline:
-    runs-on: ubuntu-latest-xl
-    name: Build apk from latest release as a baseline
+  prep:
+    runs-on: ubuntu-latest
+    name: Find the baseline and delta refs, and check for an existing build artifact for that commit
     outputs:
-      VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
-      ARTIFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND }}
-      ARTIFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_WORKFLOW_ID }}
+      BASELINE_ARTIFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND }}
+      BASELINE_ARTIFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_WORKFLOW_ID }}
+      BASELINE_VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
+      IS_PR_MERGED: ${{ steps.getPullRequestDetails.outputs.IS_MERGED }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,40 +46,11 @@ jobs:
         uses: ./.github/actions/javascript/getArtifactInfo
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          ARTIFACT_NAME: baseline-${{ steps.getMostRecentRelease.outputs.VERSION }}-android-artifact-apk
 
       - name: Skip build if there's already an existing artifact for the baseline
         if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
-
-      - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
-        run: |
-          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
-
-      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
-        with:
-          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
-          PACKAGE_SCRIPT_NAME: android-build-e2e
-          APP_OUTPUT_PATH: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-          EXPENSIFY_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
-          EXPENSIFY_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
-          EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
-          EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
-          EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-          PATH_ENV_FILE: tests/e2e/.env.e2e
-
-  buildDelta:
-    runs-on: ubuntu-latest-xl
-    name: Build apk from delta ref
-    outputs:
-      DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Get pull request details
         id: getPullRequestDetails
@@ -87,63 +60,54 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
           USER: ${{ github.actor }}
 
-      - name: Merged PR - Get merge commit sha for the pull request
-        if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        id: getMergeCommitShaIfMergedPR
-        run: |
-          MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}
-          git fetch origin "$MERGE_COMMIT_SHA" --no-tags --depth=1
-          echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Unmerged PR - Fetch head ref of unmerged PR
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        run: |
-          git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
-
-      - name: Unmerged PR - Set dummy git credentials before merging
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        run: |
-          git config --global user.email "test@test.com"
-          git config --global user.name "Test"
-
-      - name: Unmerged PR - Merge pull request locally and get merge commit sha
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        id: getMergeCommitShaIfUnmergedPR
-        run: |
-          git merge --allow-unrelated-histories -X ours --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
       - name: Determine "delta ref"
         id: getDeltaRef
-        run: echo "DELTA_REF=${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ '${{ steps.getPullRequestDetails.outputs.IS_MERGED }}' == 'true' ]; then
+            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+          else
+            # Set dummy git credentials
+            git config --global user.email "test@test.com"
+            git config --global user.name "Test"
 
-      - name: Checkout "delta ref"
-        run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
+            # Fetch head_ref of unmerged PR
+            git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
 
-      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
-        with:
-          ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-          ARTIFACT_RETENTION_DAYS: 3 # We don't need to store the delta apk for long, its only really needed for the next job in this workflow
-          PACKAGE_SCRIPT_NAME: android-build-e2edelta
-          APP_OUTPUT_PATH: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-          EXPENSIFY_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
-          EXPENSIFY_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
-          EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
-          EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
-          EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-          PATH_ENV_FILE: tests/e2e/.env.e2edelta
+            # Merge pull request locally and get merge commit sha
+            git merge --allow-unrelated-histories -X ours --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+            git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+
+            # Create and push a branch so it can be checked out in another runner
+            git checkout -b e2eDelta-${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+            git push origin e2eDelta-${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+            echo "DELTA_REF=e2eDelta-${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  buildBaseline:
+    name: Build apk from latest release as a baseline
+    uses: ./.github/workflows/buildAndroid.yml
+    needs: prep
+    if: ${{ !fromJSON(needs.prep.outputs.BASELINE_ARTIFACT_FOUND) }}
+    secrets: inherit
+    with:
+      type: e2e
+      ref: ${{ needs.prep.outputs.BASELINE_VERSION }}
+      artifact-prefix: baseline-${{ needs.prep.outputs.BASELINE_VERSION }}
+
+  buildDelta:
+    name: Build apk from delta ref
+    uses: ./.github/workflows/buildAndroid.yml
+    needs: prep
+    secrets: inherit
+    with:
+      type: e2eDelta
+      ref: ${{ needs.prep.outputs.DELTA_REF }}
+      artifact-prefix: delta-${{ needs.prep.outputs.DELTA_REF }}
 
   runTestsInAWS:
     runs-on: ubuntu-latest
-    needs: [buildBaseline, buildDelta]
+    needs: [prep, buildBaseline, buildDelta]
+    if: ${{ always() }}
     name: Run E2E tests in AWS device farm
     steps:
       - uses: actions/checkout@v4
@@ -161,25 +125,25 @@ jobs:
         uses: actions/download-artifact@v4
         id: downloadBaselineAPK
         with:
-          name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
+          name: baseline-${{ needs.prep.outputs.BASELINE_VERSION }}-android-artifact-apk
           path: zip
           # Set github-token only if the baseline was built in this workflow run:
-          github-token: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID && github.token }}
-          run-id: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID }}
+          github-token: ${{ needs.prep.outputs.BASELINE_ARTIFACT_WORKFLOW_ID && github.token }}
+          run-id: ${{ needs.prep.outputs.BASELINE_ARTIFACT_WORKFLOW_ID }}
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK
-        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk"
+        run: mv "${{ steps.downloadBaselineAPK.outputs.download-path }}/app-e2e-release.apk" "${{ steps.downloadBaselineAPK.outputs.download-path }}/app-e2eRelease.apk"
 
       - name: Download delta APK
         uses: actions/download-artifact@v4
         id: downloadDeltaAPK
         with:
-          name: delta-apk-${{ needs.buildDelta.outputs.DELTA_REF }}
+          name: delta-${{ needs.prep.outputs.DELTA_REF }}-android-artifact-apk
           path: zip
 
       - name: Rename delta APK
-        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edelta-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edeltaRelease.apk"
+        run: mv "${{ steps.downloadDeltaAPK.outputs.download-path }}/app-e2edelta-release.apk" "${{ steps.downloadDeltaAPK.outputs.download-path }}/app-e2edeltaRelease.apk"
 
       - name: Compile test runner to be executable in a nodeJS environment
         run: npm run e2e-test-runner-build
@@ -289,3 +253,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  cleanupDeltaRef:
+    needs: [prep, runTestsInAWS]
+    if: ${{ always() && needs.prep.outputs.IS_PR_MERGED != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete temporary merge branch created for delta ref
+        run: git push -d origin ${{ needs.prep.outputs.DELTA_REF }}
