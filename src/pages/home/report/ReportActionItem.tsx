@@ -427,7 +427,7 @@ function ReportActionItem({
                               text: 'actionableMentionTrackExpense.submit',
                               key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                               onPress: () => {
-                                  ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', report.reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                                  ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                               },
                               isMediumSized: true,
                           },
@@ -505,7 +505,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, reportID]);
+    }, [action, isActionableWhisper, reportID, canUseP2PDistanceRequests]);
 
     /**
      * Get the content of ReportActionItem
