@@ -7,6 +7,7 @@ import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import iconWrapperStyle from '@components/Icon/IconWrapperStyles';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -121,7 +122,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                     </View>
                 </View>
                 {shouldShowGreenDotIndicator && (
-                    <View style={styles.ml2}>
+                    <View style={[styles.ml2, iconWrapperStyle]}>
                         <Icon
                             src={Expensicons.DotIndicator}
                             fill={theme.success}

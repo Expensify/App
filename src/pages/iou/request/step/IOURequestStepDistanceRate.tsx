@@ -83,7 +83,7 @@ function IOURequestStepDistanceRate({
         };
     });
 
-    const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
+    const unit = (Object.values(rates).at(0)?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
