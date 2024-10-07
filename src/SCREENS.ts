@@ -176,6 +176,7 @@ const SCREENS = {
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        SETTINGS_TAGS: 'SettingsTags',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
@@ -245,7 +246,11 @@ const SCREENS = {
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
     },
 
-    SETTINGS_TAGS_ROOT: 'Settings_Tags',
+    SETTINGS_TAGS: {
+        SETTINGS_TAGS_ROOT: 'Settings_Tags',
+        SETTINGS_TAGS_SETTINGS: 'Settings_Tags_Settings',
+        SETTINGS_EDIT_TAGS: 'Settings_Tags_Edit',
+    },
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
@@ -303,7 +308,6 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
-            QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
