@@ -715,15 +715,15 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const isTransactionDeleted = useRef<boolean>(false);
     useEffect(() => {
         return () => {
+            if (!isTransactionDeleted.current) {
+                return;
+            }
+    
             deleteTransaction();
         };
     }, []);
 
     const deleteTransaction = useCallback(() => {
-        if (!isTransactionDeleted.current) {
-            return;
-        }
-
         if (caseID === CASES.DEFAULT) {
             Task.deleteTask(report);
             return;
@@ -743,7 +743,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
 
     // Where to go back after deleting the transaction and its report.
-    const navigateAfterTransactionDeletion = useCallback(() => {
+    const navigateToTargetUrl = useCallback(() => {
         setIsDeleteModalVisible(false);
         isTransactionDeleted.current = true;
     
@@ -867,7 +867,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={navigateAfterTransactionDeletion}
+                    onConfirm={navigateToTargetUrl}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
