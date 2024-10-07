@@ -126,105 +126,107 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh0, styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterAddress')}</Text>
             <View>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterAddress')}</Text>
+                <View>
+                    <InputWrapper
+                        InputComponent={AddressSearch}
+                        inputID={INPUT_IDS.ADDRESS_LINE_1}
+                        label={translate('common.addressLine', {lineNumber: 1})}
+                        onValueChange={(data: unknown, key: unknown) => {
+                            handleAddressChange(data, key);
+                        }}
+                        defaultValue={street1}
+                        containerStyles={styles.mt3}
+                        renamedInputKeys={{
+                            street: INPUT_IDS.ADDRESS_LINE_1,
+                            street2: INPUT_IDS.ADDRESS_LINE_2,
+                            city: INPUT_IDS.CITY,
+                            state: INPUT_IDS.STATE,
+                            zipCode: INPUT_IDS.ZIP_POST_CODE,
+                            country: INPUT_IDS.COUNTRY as Country,
+                        }}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        shouldSaveDraft={!isEditing}
+                    />
+                </View>
                 <InputWrapper
-                    InputComponent={AddressSearch}
-                    inputID={INPUT_IDS.ADDRESS_LINE_1}
-                    label={translate('common.addressLine', {lineNumber: 1})}
-                    onValueChange={(data: unknown, key: unknown) => {
-                        handleAddressChange(data, key);
-                    }}
-                    defaultValue={street1}
-                    containerStyles={styles.mt3}
-                    renamedInputKeys={{
-                        street: INPUT_IDS.ADDRESS_LINE_1,
-                        street2: INPUT_IDS.ADDRESS_LINE_2,
-                        city: INPUT_IDS.CITY,
-                        state: INPUT_IDS.STATE,
-                        zipCode: INPUT_IDS.ZIP_POST_CODE,
-                        country: INPUT_IDS.COUNTRY as Country,
-                    }}
-                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.ADDRESS_LINE_2}
+                    label={translate('common.addressLine', {lineNumber: 2})}
+                    aria-label={translate('common.addressLine', {lineNumber: 2})}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={street2}
+                    maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    spellCheck={false}
+                    containerStyles={styles.mt6}
                     shouldSaveDraft={!isEditing}
                 />
-            </View>
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.ADDRESS_LINE_2}
-                label={translate('common.addressLine', {lineNumber: 2})}
-                aria-label={translate('common.addressLine', {lineNumber: 2})}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={street2}
-                maxLength={CONST.FORM_CHARACTER_LIMIT}
-                spellCheck={false}
-                containerStyles={styles.mt6}
-                shouldSaveDraft={!isEditing}
-            />
-            <View style={[styles.mt3, styles.mhn5]}>
-                <InputWrapper
-                    InputComponent={CountryPicker}
-                    inputID={INPUT_IDS.COUNTRY}
-                    value={currentCountry}
-                    onValueChange={handleAddressChange}
-                    shouldSaveDraft={!isEditing}
-                />
-            </View>
-            {isUSAForm ? (
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
-                        InputComponent={StatePicker}
-                        inputID={INPUT_IDS.STATE}
-                        value={state as State}
+                        InputComponent={CountryPicker}
+                        inputID={INPUT_IDS.COUNTRY}
+                        value={currentCountry}
                         onValueChange={handleAddressChange}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>
-            ) : (
+                {isUSAForm ? (
+                    <View style={[styles.mt3, styles.mhn5]}>
+                        <InputWrapper
+                            InputComponent={StatePicker}
+                            inputID={INPUT_IDS.STATE}
+                            value={state as State}
+                            onValueChange={handleAddressChange}
+                            shouldSaveDraft={!isEditing}
+                        />
+                    </View>
+                ) : (
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.STATE}
+                        label={translate('common.stateOrProvince')}
+                        aria-label={translate('common.stateOrProvince')}
+                        role={CONST.ROLE.PRESENTATION}
+                        value={state}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                        spellCheck={false}
+                        onValueChange={handleAddressChange}
+                        containerStyles={styles.mt3}
+                        shouldSaveDraft={!isEditing}
+                    />
+                )}
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUT_IDS.STATE}
-                    label={translate('common.stateOrProvince')}
-                    aria-label={translate('common.stateOrProvince')}
+                    inputID={INPUT_IDS.CITY}
+                    label={translate('common.city')}
+                    aria-label={translate('common.city')}
                     role={CONST.ROLE.PRESENTATION}
-                    value={state}
+                    defaultValue={city}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
-                    containerStyles={styles.mt3}
+                    containerStyles={isUSAForm ? styles.mt3 : styles.mt6}
                     shouldSaveDraft={!isEditing}
                 />
-            )}
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.CITY}
-                label={translate('common.city')}
-                aria-label={translate('common.city')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={city}
-                maxLength={CONST.FORM_CHARACTER_LIMIT}
-                spellCheck={false}
-                onValueChange={handleAddressChange}
-                containerStyles={isUSAForm ? styles.mt3 : styles.mt6}
-                shouldSaveDraft={!isEditing}
-            />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.ZIP_POST_CODE}
-                label={translate('common.zipPostCode')}
-                aria-label={translate('common.zipPostCode')}
-                role={CONST.ROLE.PRESENTATION}
-                autoCapitalize="characters"
-                defaultValue={zipcode}
-                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                hint={zipFormat}
-                onValueChange={handleAddressChange}
-                containerStyles={styles.mt6}
-                shouldSaveDraft={!isEditing}
-            />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.ZIP_POST_CODE}
+                    label={translate('common.zipPostCode')}
+                    aria-label={translate('common.zipPostCode')}
+                    role={CONST.ROLE.PRESENTATION}
+                    autoCapitalize="characters"
+                    defaultValue={zipcode}
+                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                    hint={zipFormat}
+                    onValueChange={handleAddressChange}
+                    containerStyles={styles.mt6}
+                    shouldSaveDraft={!isEditing}
+                />
+            </View>
         </FormProvider>
     );
 }

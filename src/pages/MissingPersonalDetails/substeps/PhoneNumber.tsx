@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -50,21 +51,23 @@ function PhoneNumberStep({privatePersonalDetails, isEditing, onNext}: CustomSubS
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh0, styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.PHONE_NUMBER}
-                label={translate('common.phoneNumber')}
-                aria-label={translate('common.phoneNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.TEL}
-                defaultValue={privatePersonalDetails?.phoneNumber}
-                containerStyles={[styles.mt6]}
-                shouldSaveDraft={!isEditing}
-            />
+            <View>
+                <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.PHONE_NUMBER}
+                    label={translate('common.phoneNumber')}
+                    aria-label={translate('common.phoneNumber')}
+                    role={CONST.ROLE.PRESENTATION}
+                    inputMode={CONST.INPUT_MODE.TEL}
+                    defaultValue={privatePersonalDetails?.phoneNumber}
+                    containerStyles={[styles.mt6]}
+                    shouldSaveDraft={!isEditing}
+                />
+            </View>
         </FormProvider>
     );
 }

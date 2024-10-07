@@ -1,5 +1,6 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -48,20 +49,22 @@ function DateOfBirthStep({privatePersonalDetails, isEditing, onNext}: CustomSubS
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh0, styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterDateOfBirth')}</Text>
-            <InputWrapper
-                InputComponent={DatePicker}
-                inputID={INPUT_IDS.DATE_OF_BIRTH}
-                label={translate('common.dob')}
-                placeholder={translate('common.dateFormat')}
-                defaultValue={privatePersonalDetails?.dob}
-                minDate={minDate}
-                maxDate={maxDate}
-                shouldSaveDraft={!isEditing}
-            />
+            <View>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterDateOfBirth')}</Text>
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={INPUT_IDS.DATE_OF_BIRTH}
+                    label={translate('common.dob')}
+                    placeholder={translate('common.dateFormat')}
+                    defaultValue={privatePersonalDetails?.dob}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    shouldSaveDraft={!isEditing}
+                />
+            </View>
         </FormProvider>
     );
 }

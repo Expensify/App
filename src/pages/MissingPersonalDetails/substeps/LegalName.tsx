@@ -48,35 +48,37 @@ function LegalNameStep({privatePersonalDetails, isEditing, onNext}: CustomSubSte
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            style={[styles.mh0, styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-            <View style={[styles.flex2, styles.mb6]}>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                    name="lfname"
-                    label={translate('privatePersonalDetails.legalFirstName')}
-                    aria-label={translate('privatePersonalDetails.legalFirstName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    defaultValue={privatePersonalDetails?.legalFirstName}
-                    spellCheck={false}
-                    shouldSaveDraft={!isEditing}
-                />
-            </View>
-            <View style={[styles.flex2, styles.mb6]}>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                    name="llname"
-                    label={translate('privatePersonalDetails.legalLastName')}
-                    aria-label={translate('privatePersonalDetails.legalLastName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    defaultValue={privatePersonalDetails?.legalLastName}
-                    spellCheck={false}
-                    shouldSaveDraft={!isEditing}
-                />
+            <View>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
+                <View style={[styles.flex2, styles.mb6]}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                        name="lfname"
+                        label={translate('privatePersonalDetails.legalFirstName')}
+                        aria-label={translate('privatePersonalDetails.legalFirstName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={privatePersonalDetails?.legalFirstName}
+                        spellCheck={false}
+                        shouldSaveDraft={!isEditing}
+                    />
+                </View>
+                <View style={[styles.flex2, styles.mb6]}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                        name="llname"
+                        label={translate('privatePersonalDetails.legalLastName')}
+                        aria-label={translate('privatePersonalDetails.legalLastName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={privatePersonalDetails?.legalLastName}
+                        spellCheck={false}
+                        shouldSaveDraft={!isEditing}
+                    />
+                </View>
             </View>
         </FormProvider>
     );
