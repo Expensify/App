@@ -20,7 +20,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const policyOwner = policy?.owner ?? '';
-    const qbdConfig = policy?.connections?.quickbooksOnline?.config; // TODO: should be updated to use the new connections object
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const errorFields = qbdConfig?.errorFields;
     const {canUseNewDotQBD} = usePermissions();
 
@@ -84,7 +84,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             {menuItems.map((menuItem) => (

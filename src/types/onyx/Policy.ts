@@ -1263,11 +1263,32 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Defines how reimbursable expenses are exported */
     reimbursableExpensesExportDestination: QBDReimbursableExportAccountType;
 
+    /** Defines how non reimbursable expenses are exported */
+    nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
+
     /** Whether the taxes should be synchronized */
     syncTax: boolean;
 
     /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
+
+    /** Account that receives the exported invoices */
+    receivableAccount?: Account;
+
+    /**
+     * Whether a default vendor will be created and applied to all credit card
+     * transactions upon import
+     */
+    autoCreateVendor: boolean;
+
+    /** TODO: Will be handled in another issue */
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Configuration of the export */
+    export: {
+        /** E-mail of the exporter */
+        exporter: string;
+    };
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;

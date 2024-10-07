@@ -27,8 +27,8 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {}; // TODO: should be updated to use the new connections object;
-    const qbdConfig = policy?.connections?.quickbooksOnline?.config; // TODO: should be updated to use the new connections object;
+    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
 
     const {canUseNewDotQBD} = usePermissions();
 
@@ -119,7 +119,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title={title}
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}

@@ -36,7 +36,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const qbdConfig = policy?.connections?.quickbooksOnline?.config; // TODO: should be updated to use the new connections object
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const isLocationEnabled = !!(qbdConfig?.syncLocations && qbdConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qbdConfig?.syncTax;
     const {canUseNewDotQBD} = usePermissions();
@@ -110,7 +110,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
         >
             {sections.map((section, index) => (

@@ -42,8 +42,8 @@ type MenuItem = ListItem & {
 function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const qbdConfig = policy?.connections?.quickbooksOnline?.config; // TODO: should be updated to use the new connections object
-    const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {}; // TODO: should be updated to use the new connections object
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const isLocationsEnabled = !!(qbdConfig?.syncLocations && qbdConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qbdConfig?.syncTax;
     const shouldShowTaxError = isTaxesEnabled && qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
@@ -119,7 +119,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.exportAs"
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={PolicyUtils.settingsPendingAction(
                 [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
                 qbdConfig?.pendingFields,
