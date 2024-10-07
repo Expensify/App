@@ -2401,6 +2401,7 @@ function getTrackExpenseInformation(
         undefined,
         actionableTrackExpenseWhisper,
     );
+    console.log('[wildebug] ~ file: IOU.ts:2429 ~ trackExpenseOnyxData:', trackExpenseOnyxData);
 
     return {
         createdWorkspaceParams,
@@ -2531,15 +2532,24 @@ function getUpdateMoneyRequestParams(
 
         // Revert the transaction's amount to the original value on failure.
         // The IOU Report will be fully reverted in the failureData further below.
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                amount: transaction.amount,
-                modifiedAmount: transaction.modifiedAmount,
-                modifiedMerchant: transaction.modifiedMerchant,
+        const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    amount: transaction.amount,
+                    modifiedAmount: transaction.modifiedAmount,
+                    modifiedMerchant: transaction.modifiedMerchant,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+                value: recentServerValidatedWaypoints,
+            },
+        );
+        console.log('[wildebug] ~ file: IOU.ts:2552 ~ failureData:', failureData);
     }
 
     // Step 3: Build the modified expense report actions
@@ -3862,7 +3872,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
+                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
