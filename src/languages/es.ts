@@ -4950,6 +4950,8 @@ const translations = {
             title: 'Mapa pendiente',
             subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
+            errorTitle: 'Mapa error',
+            errorSubtitle: 'No se pudo cargar el mapa. Por favor, inténtalo de nuevo.',
         },
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
