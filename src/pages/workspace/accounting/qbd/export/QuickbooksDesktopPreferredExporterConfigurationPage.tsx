@@ -73,22 +73,21 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
         [translate, styles.ph5, styles.pb5],
     );
 
-    const accessVariants = canUseNewDotQBD ? [] : [CONST.POLICY.ACCESS_VARIANTS.ADMIN];
-
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={accessVariants}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopPreferredExporterConfigurationPage.displayName}
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))} // TODO: should be updated to use new routes
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
             onSelectRow={selectExporter}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_CONFIG.EXPORT)}
