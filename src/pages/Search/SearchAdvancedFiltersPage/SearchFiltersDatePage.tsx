@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,8 +21,9 @@ function SearchFiltersDatePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const dateAfter = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER];
-    const dateBefore = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE];
+
+    const dateAfter = DateUtils.isDate(searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER]) ? searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER] : undefined;
+    const dateBefore = DateUtils.isDate(searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE]) ? searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE] : undefined;
 
     const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
