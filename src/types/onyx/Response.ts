@@ -68,6 +68,12 @@ type Response = {
     /** Base64 key to decrypt messages from Pusher encrypted channels */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     shared_secret?: string;
+
+    /** The accountID of the user */
+    accountID?: number;
+
+    /** The email of the user */
+    email?: string;
 };
 
 export default Response;

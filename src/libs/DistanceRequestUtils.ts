@@ -83,7 +83,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     }
     const mileageRates = Object.values(getMileageRates(policy));
 
-    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates[0] ?? {};
+    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates.at(0) ?? ({} as MileageRate);
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,

@@ -22,12 +22,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
-import type BaseAttachmentPickerProps from './types';
-
-type AttachmentPickerProps = BaseAttachmentPickerProps & {
-    /** If this value is true, then we exclude Camera option. */
-    shouldHideCameraOption?: boolean;
-};
+import type AttachmentPickerProps from './types';
 
 type Item = {
     /** The icon associated with the item. */
@@ -112,7 +107,13 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  */
-function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false, shouldValidateImage = true}: AttachmentPickerProps) {
+function AttachmentPicker({
+    type = CONST.ATTACHMENT_PICKER_TYPE.FILE,
+    children,
+    shouldHideCameraOption = false,
+    shouldHideGalleryOption = false,
+    shouldValidateImage = true,
+}: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -177,7 +178,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                                             const uri = manipResult.uri;
                                             const convertedAsset = {
                                                 uri,
-                                                name: uri.substring(uri.lastIndexOf('/') + 1).split('?')[0],
+                                                name: uri
+                                                    .substring(uri.lastIndexOf('/') + 1)
+                                                    .split('?')
+                                                    .at(0),
                                                 type: 'image/jpeg',
                                                 width: manipResult.width,
                                                 height: manipResult.height,
@@ -219,16 +223,18 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Gallery,
-                textTranslationKey: 'attachmentPicker.chooseFromGallery',
-                pickAttachment: () => showImagePicker(launchImageLibrary),
-            },
-            {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
+        if (!shouldHideGalleryOption) {
+            data.unshift({
+                icon: Expensicons.Gallery,
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
+                pickAttachment: () => showImagePicker(launchImageLibrary),
+            });
+        }
         if (!shouldHideCameraOption) {
             data.unshift({
                 icon: Expensicons.Camera,
@@ -238,7 +244,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
         }
 
         return data;
-    }, [showDocumentPicker, showImagePicker, shouldHideCameraOption]);
+    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -383,8 +389,11 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             if (focusedIndex === -1) {
                 return;
             }
-            selectItem(menuItemData[focusedIndex]);
-            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            const item = menuItemData.at(focusedIndex);
+            if (item) {
+                selectItem(item);
+                setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            }
         },
         {
             isActive: isVisible,

@@ -112,6 +112,7 @@ const SCREENS = {
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
 
         EXIT_SURVEY: {
@@ -302,6 +303,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
