@@ -336,8 +336,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
             onCheckboxPress={toggleTransaction}
             onSelectAll={toggleAllTransactions}
             isSelected={(item) =>
-                status !== CONST.SEARCH.STATUS.EXPENSE.ALL
-                    ? (item as ReportListItemType).transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
+                status !== CONST.SEARCH.STATUS.EXPENSE.ALL && SearchUtils.isReportListItemType(item)
+                    ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
                     : !!item.isSelected
             }
             customListHeader={
