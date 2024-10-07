@@ -289,7 +289,7 @@ function ReportActionItemSingle({
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${actorAccountID}`}
                             accountID={actorAccountID ?? -1}
-                            fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
+                            fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
                             actorIcon={icon}
