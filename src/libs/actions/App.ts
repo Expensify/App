@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -559,6 +560,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             });
         });
     });
+    clearSoundAssetsCache();
 }
 
 export {

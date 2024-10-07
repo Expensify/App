@@ -68,8 +68,27 @@ const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     });
 };
 
+function clearSoundAssetsCache() {
+    // Exit early if the Cache API is not available in the current browser.
+    if (!('caches' in window)) {
+        return;
+    }
+
+    caches
+        .delete('sound-assets')
+        .then((success) => {
+            if (success) {
+                return;
+            }
+            Log.alert('[sound] Failed to clear sound assets cache.');
+        })
+        .catch((error) => {
+            Log.alert('[sound] Error clearing sound assets cache:', {message: (error as Error).message});
+        });
+}
+
 // Cache sound assets on load
 cacheSoundAssets();
 
-export {SOUNDS};
+export {SOUNDS, clearSoundAssetsCache};
 export default withMinimalExecutionTime(playSound, 300);
