@@ -10,7 +10,7 @@ import createNormalizedConfigs from './createNormalizedConfigs';
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
     // initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
-    initialRouteName: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+    // initialRouteName: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
     screens: {
         // Main Routes
         [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
