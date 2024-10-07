@@ -553,7 +553,6 @@ type GetReportNameParams = {
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    shouldIncludePolicyName?: boolean;
     transactions?: OnyxCollection<Transaction>;
     reports?: OnyxCollection<Report>;
     draftReports?: OnyxCollection<Report>;
@@ -2127,7 +2126,7 @@ function getDisplayNameForParticipant(
     return shouldUseShortForm ? shortName : longName;
 }
 
-function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false): number[] {
+function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false, shouldForceExcludeCurrentUser = false): number[] {
     const reportParticipants = report?.participants ?? {};
     let participantsEntries = Object.entries(reportParticipants);
 
@@ -2154,7 +2153,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
 
     // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
     // For system chat, we want to display Expensify as the only participant
-    const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report);
+    const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report) || shouldForceExcludeCurrentUser;
 
     if (shouldExcludeCurrentUser || shouldExcludeHidden || shouldExcludeDeleted) {
         participantsIds = participantsIds.filter((accountID) => {
@@ -3599,7 +3598,7 @@ function getModifiedExpenseOriginalMessage(
     const didTaxCodeChange = 'taxCode' in transactionChanges;
     if (didTaxCodeChange && !didAmountOrCurrencyChange) {
         originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)]?.value;
-        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode]?.value;
     }
 
     // We only want to display a tax amount update system message when tax amount is updated by user.
@@ -3811,7 +3810,6 @@ function getReportName({
     parentReportActionParam,
     personalDetails,
     invoiceReceiverPolicy,
-    shouldIncludePolicyName = false,
     transactions,
     reports,
     draftReports,
@@ -3822,10 +3820,10 @@ function getReportName({
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
 
-    if (reportID && !isUserCreatedPolicyRoom(report) && !isDefaultRoom(report)) {
+    if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
-        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName) {
+        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName && reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
             return reportNameFromCache.reportName;
         }
     }
@@ -3936,12 +3934,7 @@ function getReportName({
         formattedName = getInvoicesChatName(report, invoiceReceiverPolicy, policies);
     }
 
-    if (shouldIncludePolicyName && (isUserCreatedPolicyRoom(report) || isDefaultRoom(report))) {
-        const policyName = getPolicyName({report, returnEmptyIfNotFound: true, policies});
-        formattedName = policyName ? `${policyName} • ${report?.reportName}` : report?.reportName;
-    }
-
-    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
@@ -3997,8 +3990,8 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, isTitleIncludePolicyName = false): string | undefined {
-    if (isChatThread(report) || ((isUserCreatedPolicyRoom(report) || isDefaultRoom(report)) && isTitleIncludePolicyName)) {
+function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
+    if (isChatThread(report)) {
         return '';
     }
     if (isSelfDM(report)) {
@@ -8085,7 +8078,7 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
         return false;
     }
 
-    return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+    return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
 }
 
 function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {

@@ -93,9 +93,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
         parentReportActionParam: parentReportAction,
         personalDetails,
         invoiceReceiverPolicy,
-        shouldIncludePolicyName: true,
     });
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, true);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName({report, returnEmptyIfNotFound: true});
@@ -127,15 +126,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     );
 
     const renderAdditionalText = () => {
-        if (
-            shouldShowSubtitle() ||
-            isPersonalExpenseChat ||
-            !policyName ||
-            !isEmptyObject(parentNavigationSubtitleData) ||
-            isSelfDM ||
-            ReportUtils.isUserCreatedPolicyRoom(report) ||
-            ReportUtils.isDefaultRoom(report)
-        ) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
         }
         return (

@@ -66,7 +66,7 @@ function ChatListItem<TItem extends ListItem>({
                 [styles.selectionListPressableItemWrapper, styles.textAlignLeft, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle],
             ]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
-            containerStyle={styles.mb3}
+            containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
