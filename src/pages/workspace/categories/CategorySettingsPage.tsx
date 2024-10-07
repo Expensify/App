@@ -80,7 +80,7 @@ function CategorySettingsPage({
     const approverText = useMemo(() => {
         const categoryApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
         const approver = PersonalDetailsUtils.getPersonalDetailByEmail(categoryApprover);
-        return approver?.displayName || categoryApprover;
+        return approver?.displayName ?? categoryApprover;
     }, [categoryName, policy?.rules?.approvalRules]);
 
     const defaultTaxRateText = useMemo(() => {
