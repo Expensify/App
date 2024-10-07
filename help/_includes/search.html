@@ -13,7 +13,12 @@
       <button id="search-submit" style="display:none;">Search</button>
 
       <!-- Search results container with tabindex to make it focusable -->
-      <div id="search-results" tabindex="0"></div>
+      <div id="search-results" tabindex="0" style="display:none;"></div>
+
+      <!-- Footer with shortcut info -->
+      <div id="search-footer" style="text-align: center; margin-top: 10px; font-size: 14px; color: #586069;">
+        ⇵ Select, ↩ Go
+      </div>
     </div>
   </div>
 </div>
@@ -155,6 +160,7 @@
   function showSearchModal() {
     g_searchModal.style.display = 'flex';
     if (g_searchResultsArray.length > 0) {
+      g_searchResults.style.display = 'block';
       g_searchResults.focus(); // Focus on search results if they exist
     } else {
       g_searchInput.focus();
@@ -256,7 +262,7 @@
     g_currentSelectionIndex = -1;
 
     if (query.length === 0) {
-      g_searchResults.innerHTML = '<p>Please enter a search term.</p>';
+      g_searchResults.style.display = 'none';
       return;
     }
 
@@ -315,9 +321,10 @@
           }
         });
       });
+      g_searchResults.style.display = 'block';
       g_searchResults.focus();  // Focus on search results whenever there are results
     } else {
-      g_searchResults.innerHTML = '<p>No results found.</p>';
+      g_searchResults.style.display = 'none';
     }
   });
 
