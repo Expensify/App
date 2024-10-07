@@ -1,8 +1,17 @@
 diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
-index 165df83..73e17a5 100644
+index 7ef8b36..f4d44ff 100644
 --- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
 +++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
-@@ -104,12 +104,12 @@ class EdgeToEdgeReactViewGroup(private val reactContext: ThemedReactContext) : R
+@@ -74,7 +74,7 @@ class EdgeToEdgeReactViewGroup(
+   }
+ 
+   override fun onConfigurationChanged(newConfig: Configuration?) {
+-    this.reApplyWindowInsets()
++    // this.reApplyWindowInsets()
+   }
+   // endregion
+ 
+@@ -124,12 +124,12 @@ class EdgeToEdgeReactViewGroup(
    }
  
    private fun goToEdgeToEdge(edgeToEdge: Boolean) {
@@ -12,22 +21,24 @@ index 165df83..73e17a5 100644
 -        !edgeToEdge,
 -      )
 -    }
-+  // reactContext.currentActivity?.let {
-+  //  WindowCompat.setDecorFitsSystemWindows(
-+  //    it.window,
-+  //    !edgeToEdge,
-+  //  )
-+  // }
++    // reactContext.currentActivity?.let {
++    //   WindowCompat.setDecorFitsSystemWindows(
++    //     it.window,
++    //     !edgeToEdge,
++    //   )
++    // }
    }
  
    private fun setupKeyboardCallbacks() {
-@@ -158,13 +158,13 @@ class EdgeToEdgeReactViewGroup(private val reactContext: ThemedReactContext) : R
+@@ -182,16 +182,16 @@ class EdgeToEdgeReactViewGroup(
    // region State managers
    private fun enable() {
      this.goToEdgeToEdge(true)
 -    this.setupWindowInsets()
 +    // this.setupWindowInsets()
      this.setupKeyboardCallbacks()
+-    modalAttachedWatcher.enable()
++    // modalAttachedWatcher.enable()
    }
  
    private fun disable() {
@@ -35,5 +46,17 @@ index 165df83..73e17a5 100644
 -    this.setupWindowInsets()
 +    // this.setupWindowInsets()
      this.removeKeyboardCallbacks()
+-    modalAttachedWatcher.disable()
++    // modalAttachedWatcher.disable()
+   }
+   // endregion
+ 
+@@ -219,7 +219,7 @@ class EdgeToEdgeReactViewGroup(
+   fun forceStatusBarTranslucent(isStatusBarTranslucent: Boolean) {
+     if (active && this.isStatusBarTranslucent != isStatusBarTranslucent) {
+       this.isStatusBarTranslucent = isStatusBarTranslucent
+-      this.reApplyWindowInsets()
++      // this.reApplyWindowInsets()
+     }
    }
    // endregion
