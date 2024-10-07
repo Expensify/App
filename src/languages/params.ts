@@ -279,8 +279,6 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
 
-type ReimbursementRateParams = {unit: Unit};
-
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
@@ -648,7 +646,6 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
-    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,

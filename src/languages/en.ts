@@ -108,7 +108,6 @@ import type {
     PayerSettledParams,
     PaySomeoneParams,
     ReconciliationWorksParams,
-    ReimbursementRateParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
