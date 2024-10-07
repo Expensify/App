@@ -62,7 +62,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const {isOffline} = useNetwork();
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const {canUseWorkspaceRules} = usePermissions();
-
+    const backTo = route.params.backTo;
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
             Tag.setPolicyRequiresTag(policyID, value);
@@ -82,7 +82,13 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     <MenuItemWithTopDescription
                         title={policyTagLists.at(0)?.name ?? ''}
                         description={translate(`workspace.tags.customTagName`)}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0))}
+                        onPress={() => {
+                            if (backTo) {
+                                Navigation.navigate(ROUTES.SETTINGS_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0, backTo));
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0));
+                        }}
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
