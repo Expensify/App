@@ -430,7 +430,7 @@ function ReportActionItem({
                                   ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                               },
                               isMediumSized: true,
-                          },
+                          } as ActionableItem,
                       ]
                     : []),
                 {
