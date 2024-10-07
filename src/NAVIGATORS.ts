@@ -12,4 +12,7 @@ export default {
     WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
+    REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
+    SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
+    WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
 } as const;

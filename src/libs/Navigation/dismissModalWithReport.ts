@@ -16,7 +16,6 @@ import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import switchPolicyID from './switchPolicyID';
 import type {RootStackParamList, StackNavigationAction, State} from './types';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
@@ -34,7 +33,7 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
     const state = navigationRef.getState();
     const lastRoute = state.routes.at(-1);
     switch (lastRoute?.name) {
-        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR:
         case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
@@ -51,11 +50,13 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
                 const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
                 const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
-                if (shouldOpenAllWorkspace) {
-                    switchPolicyID(navigationRef, {route: ROUTES.HOME});
-                } else {
-                    switchPolicyID(navigationRef, {policyID, route: ROUTES.HOME});
-                }
+                // @TODO Handle dismissing modal with switching a policyID
+
+                // if (shouldOpenAllWorkspace) {
+                //     switchPolicyID(navigationRef, {route: ROUTES.HOME});
+                // } else {
+                //     switchPolicyID(navigationRef, {policyID, route: ROUTES.HOME});
+                // }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
                 if (action) {

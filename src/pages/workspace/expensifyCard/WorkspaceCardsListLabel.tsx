@@ -1,8 +1,8 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -20,7 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
@@ -40,7 +40,7 @@ type WorkspaceCardsListLabelProps = {
 };
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
-    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
+    const route = useRoute<RouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
     const policy = usePolicy(route.params.policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();

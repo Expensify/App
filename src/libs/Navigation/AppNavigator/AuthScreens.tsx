@@ -1,16 +1,19 @@
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
+import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
+import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,29 +57,15 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
-import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
-import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
-import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
-
-type AuthScreensProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The report ID of the last opened public room as anonymous user */
-    lastOpenedPublicRoomID: OnyxEntry<string>;
-
-    /** The last Onyx update ID was applied to the client */
-    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
-};
 
 const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -90,11 +79,18 @@ const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/Rep
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
+const loadReportSplitNavigator = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default);
+const loadSettingsSplitNavigator = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default);
+const loadWorkspaceSplitNavigator = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default);
+const loadSearchPage = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('@pages/Search/SearchPage').default);
+
 function shouldOpenOnAdminRoom() {
     const url = getCurrentUrl();
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
+// @TODO: Add these params to SearchPage and ReportScreen
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
@@ -226,7 +222,10 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -413,25 +412,34 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const CentralPaneScreenOptions = {
-        headerShown: false,
-        title: 'New Expensify',
-
-        // Prevent unnecessary scrolling
-        cardStyle: styles.cardStyleNavigator,
-    };
-
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator
                     screenOptions={screenOptions.centralPaneNavigator}
                     isSmallScreenWidth={isSmallScreenWidth}
                 >
+                    {/* This have to be the first navigator in auth screens. */}
                     <RootStack.Screen
-                        name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
-                        options={screenOptions.bottomTab}
-                        component={BottomTabNavigator}
+                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                        options={screenOptions.fullScreen}
+                        getComponent={loadReportSplitNavigator}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                        options={screenOptions.fullScreen}
+                        getComponent={loadSettingsSplitNavigator}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.SEARCH.CENTRAL_PANE}
+                        options={screenOptions.fullScreen}
+                        getComponent={loadSearchPage}
+                        initialParams={{q: buildSearchQueryString()}}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                        options={screenOptions.fullScreen}
+                        getComponent={loadWorkspaceSplitNavigator}
                     />
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
@@ -510,11 +518,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         listeners={modalScreenListenersWithCancelSearch}
                     />
                     <RootStack.Screen
-                        name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
-                        options={screenOptions.fullScreen}
-                        component={FullScreenNavigator}
-                    />
-                    <RootStack.Screen
                         name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                         options={screenOptions.leftModalNavigator}
                         component={LeftModalNavigator}
@@ -577,19 +580,24 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
-                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
+                    {/* {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
                         const centralPaneName = screenName as CentralPaneName;
+                        const options = {...CentralPaneScreenOptions};
+
+                        if (centralPaneName === SCREENS.SETTINGS.WORKSPACES) {
+                            options.animationEnabled = false;
+                        }
+
                         return (
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
-                                options={CentralPaneScreenOptions}
-                                listeners={getCentralPaneScreenListeners(centralPaneName)}
+                                options={options}
                             />
                         );
-                    })}
+                    })} */}
                 </RootStack.Navigator>
                 <SearchRouterModal />
             </View>
@@ -600,16 +608,4 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
 AuthScreens.displayName = 'AuthScreens';
 
-const AuthScreensMemoized = memo(AuthScreens, () => true);
-
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    initialLastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-})(AuthScreensMemoized);
+export default memo(AuthScreens, () => true);

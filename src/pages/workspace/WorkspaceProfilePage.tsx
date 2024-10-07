@@ -14,7 +14,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -23,7 +22,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -45,14 +44,14 @@ type WorkspaceProfilePageOnyxProps = {
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = route.params.policyID;
     const {canUseSpotnanaTravel} = usePermissions();
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -136,10 +135,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policy?.id) {
-            setActiveWorkspaceID(undefined);
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+            Navigation.switchPolicyID(undefined);
         }
-    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+    }, [policy?.id, policyName, activeWorkspaceID]);
 
     return (
         <WorkspacePageWithSections

@@ -1,8 +1,7 @@
 import {useContext} from 'react';
 import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
-import type {ActiveWorkspaceContextType} from '@components/ActiveWorkspace/ActiveWorkspaceContext';
 
-function useActiveWorkspace(): ActiveWorkspaceContextType {
+function useActiveWorkspace(): {activeWorkspaceID: string | undefined; setActiveWorkspaceID: (workspaceID: string | undefined) => void} {
     return useContext(ActiveWorkspaceContext);
 }
 

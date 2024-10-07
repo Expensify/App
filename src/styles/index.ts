@@ -1552,6 +1552,19 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
         // Sidebar Styles
         sidebar: {
             backgroundColor: theme.sidebar,

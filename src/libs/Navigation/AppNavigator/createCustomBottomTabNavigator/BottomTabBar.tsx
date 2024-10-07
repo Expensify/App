@@ -147,7 +147,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />

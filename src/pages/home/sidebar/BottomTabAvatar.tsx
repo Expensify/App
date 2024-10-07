@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -5,12 +6,16 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import AvatarWithDelegateAvatar from './AvatarWithDelegateAvatar';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
@@ -28,8 +33,10 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
+    const route = useRoute();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const showSettingsPage = useCallback(() => {
         if (isCreateMenuOpen) {
@@ -37,8 +44,55 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
-        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
-    }, [isCreateMenuOpen]);
+        if (route.name === SCREENS.SETTINGS.WORKSPACES && shouldUseNarrowLayout) {
+            Navigation.goBack(ROUTES.SETTINGS);
+            return;
+        }
+
+        if (route.name === SCREENS.WORKSPACE.INITIAL) {
+            const previousRoute = navigationRef.getRootState().routes.at(-2);
+
+            // If there is the settings split navigator we can dismiss safely
+            if (previousRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+                Navigation.dismissModal();
+            } else {
+                // If not, we are going to replace this route with the settings route
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+            }
+            return;
+        }
+
+        interceptAnonymousUser(() => {
+            const rootState = navigationRef.getRootState();
+            const lastSettingsOrWorkspaceNavigatorRoute = rootState.routes.findLast(
+                (rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+            );
+
+            // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
+            if (lastSettingsOrWorkspaceNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                const params = lastSettingsOrWorkspaceNavigatorRoute.state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+                // Screens of this navigator should always have policyID
+                if (params.policyID) {
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(params.policyID));
+                }
+                return;
+            }
+
+            // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
+            if (
+                lastSettingsOrWorkspaceNavigatorRoute &&
+                lastSettingsOrWorkspaceNavigatorRoute.state &&
+                lastSettingsOrWorkspaceNavigatorRoute.state.routes.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES
+            ) {
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                return;
+            }
+
+            // Otherwise we should simply open the settings navigator.
+            // This case also covers if there is no route to remember.
+            Navigation.navigate(ROUTES.SETTINGS);
+        });
+    }, [isCreateMenuOpen, shouldUseNarrowLayout, route.name]);
 
     let children;
 

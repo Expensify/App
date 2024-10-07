@@ -22,15 +22,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -66,7 +68,7 @@ type WorkspaceMenuItem = {
     badgeText?: string;
 };
 
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
@@ -362,7 +364,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -377,7 +379,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             Navigation.resetToHome();
                             Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
                         } else {
-                            Navigation.dismissModal();
+                            // @TODO This part could be done with the new goBack method when it will be implemented.
+                            const previousRoute = navigationRef.getRootState().routes.at(-2);
+
+                            // If there is the settings split navigator we can dismiss safely
+                            if (previousRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+                                Navigation.dismissModal();
+                            } else {
+                                // If not, we are going to replace this route with the settings route
+                                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+                            }
                         }
                     }}
                     policyAvatar={policyAvatar}
@@ -426,6 +437,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
