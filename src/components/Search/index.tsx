@@ -180,33 +180,11 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const isSearchResultsEmpty = !searchResults?.data || SearchUtils.isSearchResultsEmpty(searchResults);
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
-    const data = searchResults === undefined ? [] : SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type !== type);
     }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
-
-    useEffect(() => {
-        const newTransactionList: SelectedTransactions = {};
-        data.forEach((report) => {
-            const transactionsData: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
-            transactionsData.forEach((transaction) => {
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
-                    return;
-                }
-                newTransactionList[transaction.transactionID] = {
-                    action: transaction.action,
-                    canHold: transaction.canHold,
-                    canUnhold: transaction.canUnhold,
-                    isSelected: selectedTransactions[transaction.transactionID].isSelected,
-                    canDelete: transaction.canDelete,
-                };
-            });
-        });
-        setSelectedTransactions(newTransactionList, data);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -230,6 +208,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     }
 
     const ListItem = SearchUtils.getListItem(type, status);
+    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
     const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
