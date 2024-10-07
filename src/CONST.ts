@@ -5776,7 +5776,7 @@ const CONST = {
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     },
 
-    SETTINGS_STATUS: {
+    INDICATOR_STATUS: {
         HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',

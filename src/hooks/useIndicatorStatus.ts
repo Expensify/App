@@ -9,13 +9,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useTheme from './useTheme';
 
-type SettingsStatus = {
+type IndicatorStatus = {
     indicatorColor: string;
-    status: ValueOf<typeof CONST.SETTINGS_STATUS> | undefined;
+    status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined;
     idOfPolicyWithErrors: string | undefined;
 };
 
-function useSettingsStatus(): SettingsStatus {
+function useIndicatorStatus(): IndicatorStatus {
     const theme = useTheme();
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -31,10 +31,10 @@ function useSettingsStatus(): SettingsStatus {
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
     const policyErrors = {
-        [CONST.SETTINGS_STATUS.HAS_POLICY_ERRORS]: Object.values(cleanPolicies).find(PolicyUtils.hasPolicyError),
-        [CONST.SETTINGS_STATUS.HAS_CUSTOM_UNITS_ERROR]: Object.values(cleanPolicies).find(PolicyUtils.hasCustomUnitsError),
-        [CONST.SETTINGS_STATUS.HAS_EMPLOYEE_LIST_ERROR]: Object.values(cleanPolicies).find(PolicyUtils.hasEmployeeListError),
-        [CONST.SETTINGS_STATUS.HAS_SYNC_ERRORS]: Object.values(cleanPolicies).find((cleanPolicy) =>
+        [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: Object.values(cleanPolicies).find(PolicyUtils.hasPolicyError),
+        [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR]: Object.values(cleanPolicies).find(PolicyUtils.hasCustomUnitsError),
+        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR]: Object.values(cleanPolicies).find(PolicyUtils.hasEmployeeListError),
+        [CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS]: Object.values(cleanPolicies).find((cleanPolicy) =>
             PolicyUtils.hasSyncError(
                 cleanPolicy,
                 isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
@@ -46,29 +46,29 @@ function useSettingsStatus(): SettingsStatus {
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
     // we only care if a single error / info condition exists anywhere.
     const errorChecking = {
-        [CONST.SETTINGS_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
-        [CONST.SETTINGS_STATUS.HAS_PAYMENT_METHOD_ERROR]: PaymentMethods.hasPaymentMethodError(bankAccountList, fundList),
+        [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
+        [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: PaymentMethods.hasPaymentMethodError(bankAccountList, fundList),
         ...(Object.fromEntries(Object.entries(policyErrors).map(([error, policy]) => [error, !!policy])) as Record<keyof typeof policyErrors, boolean>),
-        [CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_ERRORS]: SubscriptionUtils.hasSubscriptionRedDotError(),
-        [CONST.SETTINGS_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
-        [CONST.SETTINGS_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && UserUtils.hasLoginListError(loginList),
+        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS]: SubscriptionUtils.hasSubscriptionRedDotError(),
+        [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && UserUtils.hasLoginListError(loginList),
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
-        [CONST.SETTINGS_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
+        [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
     };
 
     const infoChecking = {
-        [CONST.SETTINGS_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && UserUtils.hasLoginListInfo(loginList),
-        [CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_INFO]: SubscriptionUtils.hasSubscriptionGreenDotInfo(),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && UserUtils.hasLoginListInfo(loginList),
+        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: SubscriptionUtils.hasSubscriptionGreenDotInfo(),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];
     const [info] = Object.entries(infoChecking).find(([, value]) => value) ?? [];
 
-    const status = (error ?? info) as ValueOf<typeof CONST.SETTINGS_STATUS> | undefined;
+    const status = (error ?? info) as ValueOf<typeof CONST.INDICATOR_STATUS> | undefined;
     const idOfPolicyWithErrors = Object.values(policyErrors).find(Boolean)?.id;
     const indicatorColor = error ? theme.danger : theme.success;
 
     return {indicatorColor, status, idOfPolicyWithErrors};
 }
 
-export default useSettingsStatus;
+export default useIndicatorStatus;

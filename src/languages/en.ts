@@ -4899,7 +4899,7 @@ const translations = {
         date: 'Date',
         time: 'Time',
         none: 'None',
-        settingsStatus: {
+        indicatorStatus: {
             theresAReportAwaitingAction: "There's a report awaiting action",
             theresAReportWithErrors: "There's a report with errors",
             workspaceHasCustomUnitsErrors: 'Workspace has custom units errors',

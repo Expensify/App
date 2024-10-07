@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
-import useSettingsStatus from '@hooks/useSettingsStatus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,62 +25,62 @@ type DebugTabViewProps = {
     activeWorkspaceID?: string;
 };
 
-function getSettingsMessage(status: ValueOf<typeof CONST.SETTINGS_STATUS> | undefined): TranslationPaths | undefined {
+function getSettingsMessage(status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined): TranslationPaths | undefined {
     switch (status) {
-        case CONST.SETTINGS_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return 'debug.settingsStatus.workspaceHasCustomUnitsErrors';
-        case CONST.SETTINGS_STATUS.HAS_EMPLOYEE_LIST_ERROR:
-            return 'debug.settingsStatus.workspaceHasEmployeeListErrors';
-        case CONST.SETTINGS_STATUS.HAS_LOGIN_LIST_ERROR:
-            return 'debug.settingsStatus.profileHasErrors';
-        case CONST.SETTINGS_STATUS.HAS_LOGIN_LIST_INFO:
-            return 'debug.settingsStatus.profileRequiresAttention';
-        case CONST.SETTINGS_STATUS.HAS_PAYMENT_METHOD_ERROR:
-            return 'debug.settingsStatus.walletHasPaymentMethodError';
-        case CONST.SETTINGS_STATUS.HAS_POLICY_ERRORS:
-            return 'debug.settingsStatus.workspaceHasErrors';
-        case CONST.SETTINGS_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return 'debug.settingsStatus.workspaceHasReimbursementAccountError';
-        case CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_ERRORS:
-            return 'debug.settingsStatus.subscriptionHasErrors';
-        case CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_INFO:
-            return 'debug.settingsStatus.subscriptionRequiresAttention';
-        case CONST.SETTINGS_STATUS.HAS_SYNC_ERRORS:
-            return 'debug.settingsStatus.policyAccountingHasSyncErrors';
-        case CONST.SETTINGS_STATUS.HAS_USER_WALLET_ERRORS:
-            return 'debug.settingsStatus.walletHasErrors';
-        case CONST.SETTINGS_STATUS.HAS_WALLET_TERMS_ERRORS:
-            return 'debug.settingsStatus.walletHasTermsErrors';
+        case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
+            return 'debug.indicatorStatus.workspaceHasCustomUnitsErrors';
+        case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
+            return 'debug.indicatorStatus.workspaceHasEmployeeListErrors';
+        case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
+            return 'debug.indicatorStatus.profileHasErrors';
+        case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
+            return 'debug.indicatorStatus.profileRequiresAttention';
+        case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
+            return 'debug.indicatorStatus.walletHasPaymentMethodError';
+        case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
+            return 'debug.indicatorStatus.workspaceHasErrors';
+        case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
+            return 'debug.indicatorStatus.workspaceHasReimbursementAccountError';
+        case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
+            return 'debug.indicatorStatus.subscriptionHasErrors';
+        case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
+            return 'debug.indicatorStatus.subscriptionRequiresAttention';
+        case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
+            return 'debug.indicatorStatus.policyAccountingHasSyncErrors';
+        case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
+            return 'debug.indicatorStatus.walletHasErrors';
+        case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
+            return 'debug.indicatorStatus.walletHasTermsErrors';
         default:
             return undefined;
     }
 }
 
-function getSettingsRoute(status: ValueOf<typeof CONST.SETTINGS_STATUS> | undefined, idOfPolicyWithErrors = ''): Route | undefined {
+function getSettingsRoute(status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined, idOfPolicyWithErrors = ''): Route | undefined {
     switch (status) {
-        case CONST.SETTINGS_STATUS.HAS_CUSTOM_UNITS_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
             return ROUTES.SETTINGS_SUBSCRIPTION;
-        case CONST.SETTINGS_STATUS.HAS_EMPLOYEE_LIST_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(idOfPolicyWithErrors);
-        case CONST.SETTINGS_STATUS.HAS_LOGIN_LIST_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return ROUTES.SETTINGS_PROFILE;
-        case CONST.SETTINGS_STATUS.HAS_LOGIN_LIST_INFO:
+        case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
             return ROUTES.SETTINGS_PROFILE;
-        case CONST.SETTINGS_STATUS.HAS_PAYMENT_METHOD_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
-        case CONST.SETTINGS_STATUS.HAS_POLICY_ERRORS:
+        case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return ROUTES.WORKSPACE_INITIAL.getRoute(idOfPolicyWithErrors);
-        case CONST.SETTINGS_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
+        case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
             return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', idOfPolicyWithErrors);
-        case CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_ERRORS:
+        case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION;
-        case CONST.SETTINGS_STATUS.HAS_SUBSCRIPTION_INFO:
+        case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION;
-        case CONST.SETTINGS_STATUS.HAS_SYNC_ERRORS:
+        case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
             return ROUTES.WORKSPACE_ACCOUNTING.getRoute(idOfPolicyWithErrors);
-        case CONST.SETTINGS_STATUS.HAS_USER_WALLET_ERRORS:
+        case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
-        case CONST.SETTINGS_STATUS.HAS_WALLET_TERMS_ERRORS:
+        case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         default:
             return undefined;
@@ -92,15 +92,15 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {status, indicatorColor, idOfPolicyWithErrors} = useSettingsStatus();
+    const {status, indicatorColor, idOfPolicyWithErrors} = useIndicatorStatus();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === SCREENS.HOME) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                return 'debug.settingsStatus.theresAReportAwaitingAction';
+                return 'debug.indicatorStatus.theresAReportAwaitingAction';
             }
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                return 'debug.settingsStatus.theresAReportWithErrors';
+                return 'debug.indicatorStatus.theresAReportWithErrors';
             }
         }
         if (selectedTab === SCREENS.SETTINGS.ROOT) {

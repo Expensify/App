@@ -1,11 +1,11 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import useSettingsStatus from '@hooks/useSettingsStatus';
+import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function Indicator() {
     const styles = useThemeStyles();
-    const {indicatorColor, status} = useSettingsStatus();
+    const {indicatorColor, status} = useIndicatorStatus();
 
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
