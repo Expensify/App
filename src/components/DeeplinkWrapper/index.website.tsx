@@ -22,6 +22,11 @@ function promptToOpenInDesktopApp(initialUrl = '') {
     // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
     // So we need to wait until after sign-in and navigation are complete before starting the deeplink redirect.
     if (Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS))) {
+        const params = new URLSearchParams(window.location.search);
+        // If the user is redirected from the desktop app, don't prompt the user to open in desktop.
+        if (params.get('referrer') === 'desktop') {
+            return;
+        }
         App.beginDeepLinkRedirectAfterTransition();
     } else {
         // Match any magic link (/v/<account id>/<6 digit code>)

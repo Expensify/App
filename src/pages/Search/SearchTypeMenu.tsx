@@ -4,7 +4,6 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -34,7 +33,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
-type SavedSearchMenuItem = MenuItemBaseProps & {
+type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
     hash: string;
     query: string;
@@ -43,16 +42,17 @@ type SavedSearchMenuItem = MenuItemBaseProps & {
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
+    searchName?: string;
 };
 
 type SearchTypeMenuItem = {
     title: string;
     type: SearchDataTypes;
     icon: IconAsset;
-    route?: Route;
+    getRoute: (policyID?: string) => Route;
 };
 
-function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -72,25 +72,37 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             title: translate('common.expenses'),
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
         {
             title: translate('common.chats'),
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: Expensicons.ChatBubbles,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
         {
             title: translate('workspace.common.invoices'),
             type: CONST.SEARCH.DATA_TYPES.INVOICE,
             icon: Expensicons.InvoiceGeneric,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.ALL)}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
         {
             title: translate('travel.trips'),
             type: CONST.SEARCH.DATA_TYPES.TRIP,
             icon: Expensicons.Suitcase,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
+            getRoute: (policyID?: string) => {
+                const query = SearchUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
         },
     ];
 
@@ -115,10 +127,17 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             focused: Number(key) === hash,
             onPress: () => {
                 SearchActions.clearAllFilters();
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
             },
-            rightComponent: <SavedSearchItemThreeDotMenu menuItems={getOverflowMenu(item.name, Number(key), item.query)} />,
+            rightComponent: (
+                <SavedSearchItemThreeDotMenu
+                    menuItems={getOverflowMenu(title, Number(key), item.query)}
+                    isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                />
+            ),
             styles: [styles.alignItemsCenter],
+            pendingAction: item.pendingAction,
+            disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         };
 
         if (!isNarrow) {
@@ -132,8 +151,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftHorizontal: -32,
                 tooltipShiftVertical: 15,
                 tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                onHideTooltip: () => SearchActions.dismissSavedSearchRenameTooltip(),
                 renderTooltipContent: () => {
-                    SearchActions.dismissSavedSearchRenameTooltip();
                     return (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Expensicons.Lightbulb
@@ -178,7 +197,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         if (!savedSearches) {
             return [];
         }
-        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item as SaveSearchItem, key, shouldUseNarrowLayout, index));
+        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout, index));
     };
 
     const renderSavedSearchesSection = useCallback(
@@ -191,7 +210,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     iconWidth={variables.iconSizeNormal}
                     iconHeight={variables.iconSizeNormal}
                     shouldUseSingleExecution
-                    isPaneMenu
                 />
             </View>
         ),
@@ -202,7 +220,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+        const title = searchName ?? (isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates));
 
         return (
             <SearchTypeMenuNarrow
@@ -221,7 +239,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 {typeMenuItems.map((item, index) => {
                     const onPress = singleExecution(() => {
                         SearchActions.clearAllFilters();
-                        Navigation.navigate(item.route);
+                        Navigation.navigate(item.getRoute(queryJSON.policyID));
                     });
 
                     return (
@@ -236,7 +254,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             wrapperStyle={styles.sectionMenuItem}
                             focused={index === activeItemIndex}
                             onPress={onPress}
-                            isPaneMenu
                         />
                     );
                 })}

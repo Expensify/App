@@ -7,6 +7,7 @@ import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import iconWrapperStyle from '@components/Icon/IconWrapperStyles';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -15,6 +16,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -58,7 +60,9 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const theme = useTheme();
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
+
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
@@ -71,7 +75,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
     const htmlForTaskPreview = `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
-
+    const shouldShowGreenDotIndicator = ReportUtils.isOpenTaskReport(taskReport, action) && ReportUtils.isReportManager(taskReport);
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
     }
@@ -117,6 +121,14 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                     </View>
                 </View>
+                {shouldShowGreenDotIndicator && (
+                    <View style={[styles.ml2, iconWrapperStyle]}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.success}
+                        />
+                    </View>
+                )}
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
