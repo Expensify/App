@@ -7635,7 +7635,7 @@ function detachReceipt(transactionID: string) {
             value: {
                 ...newTransaction,
                 pendingFields: {
-                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
