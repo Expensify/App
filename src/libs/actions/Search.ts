@@ -160,14 +160,65 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    const successData = finallyData;
+    const failureData = finallyData;
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                    canHold: false,
+                    canUnhold: true,
+                },
+            },
+        } as Record<string, Record<string, Partial<SearchTransaction>>>,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                    canHold: true,
+                    canUnhold: false,
+                },
+            },
+        } as Record<string, Record<string, Partial<SearchTransaction>>>,
+    });
 
-    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, failureData, successData});
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+    const successData = finallyData;
+    const failureData = finallyData;
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                    canHold: true,
+                    canUnhold: false,
+                },
+            },
+        } as Record<string, Record<string, Partial<SearchTransaction>>>,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList[0]}`]: {
+                    canHold: false,
+                    canUnhold: true,
+                },
+            },
+        } as Record<string, Record<string, Partial<SearchTransaction>>>,
+    });
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, successData});
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
