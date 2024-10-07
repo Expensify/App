@@ -3,8 +3,10 @@ import {NativeModules} from 'react-native';
 const {ShareActionHandlerModule} = NativeModules;
 
 type ShareActionContent = {
+    id: string;
     content: string;
     mimeType: string;
+    processedAt: string;
 };
 
 type ShareActionHandlerType = {

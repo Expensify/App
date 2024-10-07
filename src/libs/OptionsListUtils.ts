@@ -875,6 +875,39 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 }
 
 /**
+ * Get the display option for a given report.
+ */
+function getReportDisplayOption(report: OnyxEntry<Report>): ReportUtils.OptionData {
+    const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
+
+    const option = createOption(
+        visibleParticipantAccountIDs,
+        allPersonalDetails ?? {},
+        !isEmptyObject(report) ? report : undefined,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    if (option.isSelfDM) {
+        option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+    } else if (option.isInvoiceRoom) {
+        option.text = ReportUtils.getReportName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.invoices');
+    } else {
+        option.text = ReportUtils.getPolicyName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    }
+    option.isDisabled = true;
+    option.selected = false;
+    option.isSelected = false;
+    return option;
+}
+
+/**
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
@@ -2619,6 +2652,7 @@ export {
     getEmptyOptions,
     shouldUseBoldText,
     getAlternateText,
+    getReportDisplayOption,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

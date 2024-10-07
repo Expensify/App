@@ -55,17 +55,22 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
   for (int i = 0; i < imageSrcPath.count; i++) {
     if (imageSrcPath[i] == NULL) {
-      NSLog(@"handleShareAction Invalid image in position %d, imageSrcPath[i] is nil", i);
-      continue;
+        NSLog(@"handleShareAction Invalid image in position %d, imageSrcPath[i] is nil", i);
+        continue;
     }
     NSLog(@"handleShareAction Valid image in position %d", i);
-    NSString *srcImageAbsolutePath = [sharedImagesFolderPath stringByAppendingPathComponent:imageSrcPath[i]];
-  
+    NSString *source = imageSrcPath[i]; // Store image source path
+    NSString *srcImageAbsolutePath = [sharedImagesFolderPath stringByAppendingPathComponent:source];
+
+    // Get dynamic file extension from the source file
+    NSString *fileExtension = [source pathExtension];
+    NSLog(@"handleShareAction File Extension %@", fileExtension);
+
     // Save image to sharedImagesFolderPath.
-    NSString *imageName = [NSString stringWithFormat:@"%@%@", [[NSUUID UUID] UUIDString], ShareImageFileExtension];
+    NSString *imageName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension]; // Append dynamic extension
     NSString *path = [sharedImagesFolderPath stringByAppendingPathComponent:imageName];
     NSLog(@"handleShareAction Native module target path %@", srcImageAbsolutePath);
-  
+
     // Add the file URI to imageFinalPaths
     [imageFinalPaths addObject:srcImageAbsolutePath];
   }
@@ -80,10 +85,17 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
       // If MIME type can't be inferred, set "application/octet-stream" as default
       mimeType = mimeType ? mimeType : @"application/octet-stream";
+      
+      // Generate an ID based on current timestamp and file path
+      NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
+      NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
+      NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, imagePath];
 
       NSDictionary *dict = @{
+        @"id" : identifier, 
         @"content" : imagePath,
-        @"mimeType" : mimeType
+        @"mimeType" : mimeType,
+        @"processedAt" : timestamp
       };
 
       [imageObjectsArray addObject:dict];

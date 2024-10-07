@@ -55,8 +55,16 @@ function ShareTab() {
         <MoneyRequestParticipantsSelector
             // participants={transaction?.participants ?? []}
             iouType={CONST.IOU.TYPE.SUBMIT}
-            onFinish={() => console.warn('TEST')}
-            onParticipantsAdded={() => console.warn('ADDED')}
+            onFinish={(value) => console.log('TEST ', value)}
+            onParticipantsAdded={(value) => {
+                const reportID = value.at(0)?.reportID;
+
+                console.log('REPORT ID ', reportID);
+                if (!reportID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID));
+            }}
             iouRequestType="manual"
             action="create" // isScanRequest
         />

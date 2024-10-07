@@ -1284,10 +1284,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
-            path: ROUTES.SHARE_ROOT,
             initialRouteName: SCREENS.SHARE.ROOT,
             screens: {
-                [SCREENS.SHARE.ROOT]: ROUTES.SHARE_ROOT,
+                [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
+                [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
             },
         },
     },

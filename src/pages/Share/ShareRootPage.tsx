@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {AppStateStatus} from 'react-native';
 import {AppState, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -17,46 +16,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
 
-type ShareRootPageOnyxProps = {
-    selectedTab: OnyxEntry<string>;
-};
-
-type ShareRootPageProps = ShareRootPageOnyxProps;
-
 function ShareRootPage() {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [tempShareFiles, setTempShareFiles] = useState([]);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const fileIsScannable = false;
-    const [imageURIs, setImageURIs] = useState<string[]>([]);
     const appState = useRef(AppState.currentState);
-
-    const handleProcessFiles = () => {
-        console.log('PROCESS FILES ATTEMPT');
-        ShareActionHandlerModule.processFiles((processedFiles) => {
-            // eslint-disable-next-line no-console
-            console.log('PROCESSED FILES ', processedFiles);
-            // setImageURIs(processedFiles);
-        });
-    };
-
-    useEffect(() => {
-        const changeSubscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                handleProcessFiles();
-            }
-            appState.current = nextAppState;
-        });
-        TransactionEdit.createDraftTransaction(transaction);
-
-        handleProcessFiles();
-
-        return () => {
-            changeSubscription.remove();
-            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
-        };
-    }, []);
 
     console.log('transaction test ', transaction);
 

@@ -343,14 +343,14 @@ function FloatingActionButtonAndPopover(
     }));
 
     const toggleCreateMenu = () => {
-        if (isCreateMenuActive) {
-            hideCreateMenu();
-        } else {
-            showCreateMenu();
-        }
+        // if (isCreateMenuActive) {
+        //     hideCreateMenu();
+        // } else {
+        //     showCreateMenu();
+        // }
 
-        // IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false);
-        // Navigation.navigate(ROUTES.SHARE_ROOT);
+        IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false);
+        Navigation.navigate(ROUTES.SHARE_ROOT);
     };
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
