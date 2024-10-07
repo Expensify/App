@@ -6,7 +6,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {importEmojiLocale} from '@assets/emojis';
-import resolveDuplicationConflictAction from '@libs/actions/RequestConflictUtils';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -26,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy/Policy';
+import resolveDuplicationConflictAction from './RequestConflictUtils';
 import * as Session from './Session';
 import Timing from './Timing';
 
