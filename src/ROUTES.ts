@@ -149,6 +149,7 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
+    SETTINGS_WALLET_VERIFY_ACCOUNT: {route: 'settings/wallet/verify', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/verify', backTo)},
     SETTINGS_WALLET_DOMAINCARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -648,6 +649,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
@@ -1274,10 +1279,7 @@ const ROUTES = {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
-    MISSING_PERSONAL_DETAILS: {
-        route: 'missing-personal-details/workspace/:policyID',
-        getRoute: (policyID: string) => `missing-personal-details/workspace/${policyID}` as const,
-    },
+    MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,

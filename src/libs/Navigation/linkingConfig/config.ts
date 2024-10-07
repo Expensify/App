@@ -161,6 +161,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_CLOSE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
                             exact: true,
@@ -373,6 +377,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
                             path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.route},
@@ -1178,7 +1183,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
-                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS.route,
+                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {
