@@ -143,8 +143,8 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
-                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: translate('iou.submitExpense'),
+                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.REQUEST),
+                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.PAY]: {
@@ -159,8 +159,8 @@ function AttachmentPickerWithMenuItems({
                 },
             },
             [CONST.IOU.TYPE.TRACK]: {
-                icon: getIconForAction(CONST.IOU.TYPE.TRACK),
-                text: translate('iou.trackExpense'),
+                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.TRACK),
+                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.INVOICE]: {
@@ -170,57 +170,14 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        let list: PopoverMenuItem[] = ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        const moneyRequestOptionsList = ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
 
-        if (canUseCombinedTrackSubmit) {
-            const trackOnlyCreateExpense = {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                text: translate('iou.createExpense'),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
-            };
-
-            const submitOnlyCreateExpense = {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                text: translate('iou.createExpense'),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
-            };
-
-            if (list.some((option) => options[CONST.IOU.TYPE.TRACK].text === option.text) && list.some((option) => options[CONST.IOU.TYPE.SUBMIT].text === option.text)) {
-                list = list.reduce((acc, item) => {
-                    if (item.text === translate('iou.submitExpense')) {
-                        acc.push(submitOnlyCreateExpense);
-                    } else if (item.text !== translate('iou.trackExpense')) {
-                        acc.push(item);
-                    }
-
-                    return acc;
-                }, [] as PopoverMenuItem[]);
-            } else if (list.some((option) => options[CONST.IOU.TYPE.TRACK].text === option.text)) {
-                list = list.reduce((acc, item) => {
-                    if (item.text === translate('iou.trackExpense')) {
-                        acc.push(trackOnlyCreateExpense);
-                    } else {
-                        acc.push(item);
-                    }
-
-                    return acc;
-                }, [] as PopoverMenuItem[]);
-            } else if (list.some((option) => options[CONST.IOU.TYPE.SUBMIT].text === option.text)) {
-                list = list.reduce((acc, item) => {
-                    if (item.text === translate('iou.submitExpense')) {
-                        acc.push(submitOnlyCreateExpense);
-                    } else {
-                        acc.push(item);
-                    }
-
-                    return acc;
-                }, [] as PopoverMenuItem[]);
-            }
-        }
-
-        return list;
+        return canUseCombinedTrackSubmit
+            ? // Removes track option for the workspace with the canUseCombinedTrackSubmit enabled
+              moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text))
+            : moneyRequestOptionsList;
     }, [translate, canUseCombinedTrackSubmit, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
