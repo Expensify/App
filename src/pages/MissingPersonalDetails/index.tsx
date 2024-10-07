@@ -1,49 +1,43 @@
 /* eslint-disable no-case-declarations */
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as FormActions from '@userActions/FormActions';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsForm} from '@src/types/form/PersonalDetailsForm';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import Address from './substeps/Address';
 import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
-import type {CustomSubStepProps, SubStepsValues} from './types';
+import type {CustomSubStepProps} from './types';
+import getFormValues from './utils/getFormValues';
+import getInitialStepForPersonalInfo from './utils/getInitialStepForPersonalInfo';
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber];
 
 function MissingPersonalDetails() {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
     const [personalDetailsFormDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [currentStep, setCurrentStep] = useState(getInitialStepForPersonalInfo(personalDetailsFormDraft));
+
+    useEffect(() => {
+        setCurrentStep(getInitialStepForPersonalInfo(personalDetailsFormDraft));
+    }, [personalDetailsFormDraft]);
 
     const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
-    const values = useMemo(() => {
-        return Object.entries(INPUT_IDS).reduce((acc, [, value]) => {
-            // @ts-expect-error complaints about Country not being a string, but it is
-            acc[value] = (personalDetailsFormDraft?.[value] ?? personalDetailsForm?.[value] ?? '') as PersonalDetailsForm[keyof PersonalDetailsForm];
-            return acc;
-        }, {} as SubStepsValues);
-    }, [personalDetailsForm, personalDetailsFormDraft]);
+    const values = useMemo(() => getFormValues(INPUT_IDS, personalDetailsFormDraft, personalDetailsForm), [personalDetailsForm, personalDetailsFormDraft]);
 
     const handleFinishStep = useCallback(() => {
         PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(values, firstUnissuedCard?.cardID ?? 0);
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
     }, [firstUnissuedCard?.cardID, values]);
 
@@ -57,9 +51,9 @@ function MissingPersonalDetails() {
         goToTheLastStep,
     } = useSubStep<CustomSubStepProps>({
         bodyContent: formSteps,
-        startFrom: CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME,
+        startFrom: currentStep,
         onFinished: handleFinishStep,
-        onNextSubStep: () => ref.current?.moveNext(),
+        onNextSubStep: () => setCurrentStep(currentStep + 1),
     });
 
     const handleBackButtonPress = () => {
@@ -73,47 +67,28 @@ function MissingPersonalDetails() {
             Navigation.goBack();
             return;
         }
-        ref.current?.movePrevious();
+        setCurrentStep(currentStep - 1);
         prevScreen();
     };
 
-    // TODO: consider if this is necessary
-    // const handleNextScreen = useCallback(() => {
-    //     if (isEditing) {
-    //         goToTheLastStep();
-    //         return;
-    //     }
-    //     ref.current?.moveNext();
-    //     nextScreen();
-    // }, [goToTheLastStep, isEditing, nextScreen]);
-
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={MissingPersonalDetails.displayName}
+            shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={MissingPersonalDetails.displayName}
+            headerTitle={translate('workspace.expensifyCard.addShippingDetails')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={currentStep}
+            stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
-                onBackButtonPress={handleBackButtonPress}
+            <SubStep
+                isEditing={isEditing}
+                onNext={nextScreen}
+                onMove={moveTo}
+                screenIndex={screenIndex}
+                privatePersonalDetails={privatePersonalDetails}
             />
-            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    ref={ref}
-                    startStepIndex={CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME}
-                    stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
-                />
-            </View>
-            <View style={styles.ph5}>
-                <SubStep
-                    isEditing={isEditing}
-                    onNext={nextScreen}
-                    onMove={moveTo}
-                    screenIndex={screenIndex}
-                    privatePersonalDetails={privatePersonalDetails}
-                />
-            </View>
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

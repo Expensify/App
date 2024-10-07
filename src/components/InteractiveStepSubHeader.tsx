@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,12 +36,17 @@ const MIN_AMOUNT_OF_STEPS = 2;
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
     const styles = useThemeStyles();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
+    const [currentStep, setCurrentStep] = useState(startStepIndex);
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
     }
 
-    const [currentStep, setCurrentStep] = useState(startStepIndex);
+    useEffect(() => {
+        // make sure to update current step if startStepIndex changes outside the component
+        setCurrentStep(startStepIndex);
+    }, [startStepIndex]);
+
     useImperativeHandle(
         ref,
         () => ({

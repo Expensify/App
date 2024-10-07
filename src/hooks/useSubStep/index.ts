@@ -1,4 +1,4 @@
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {SubStepProps, UseSubStep} from './types';
 
 /**
@@ -11,6 +11,11 @@ import type {SubStepProps, UseSubStep} from './types';
 export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, onNextSubStep = () => {}}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
+
+    useEffect(() => {
+        // make sure the screen index is updated whenever the startFrom prop changes
+        setScreenIndex(startFrom);
+    }, [startFrom]);
 
     const prevScreen = useCallback(() => {
         const prevScreenIndex = screenIndex - 1;
