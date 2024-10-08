@@ -1,6 +1,8 @@
 import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions, StackRouter} from '@react-navigation/native';
+import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getParamsFromRoute from '@libs/Navigation/linkingConfig/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {SplitStackNavigatorRouterOptions} from './types';
 
@@ -16,11 +18,14 @@ type AdaptStateIfNecessaryArgs = {
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
 
-    // @TODO leftover from times when there was fullscreen navigator only for the workspaces.
-    const workspaceCentralPane = state.routes.at(-1);
+    const lastRoute = state.routes.at(-1);
 
-    // There should always be sidebarScreen screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
+    // If the screen is wide, there should be at least two screens inside:
+    // - sidebarScreen to cover left pane.
+    // - defaultCentralScreen to cover central pane.
     if (!isAtLeastOneInState(state, sidebarScreen) && !isNarrowLayout) {
+        const paramsFromRoute = getParamsFromRoute(sidebarScreen);
+
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line
@@ -30,8 +35,8 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             // Unshift the root screen to fill left pane.
             state.routes.unshift({
                 name: sidebarScreen,
-                // @TODO why we need to pass params here?
-                params: workspaceCentralPane?.params,
+                // This handles the case where the sidebar should have params included in the central screen e.g. policyID for workspace initial.
+                params: pick(lastRoute?.params, paramsFromRoute),
             });
         }
     }

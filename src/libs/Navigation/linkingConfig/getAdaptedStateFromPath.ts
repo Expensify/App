@@ -8,10 +8,10 @@ import * as ReportConnection from '@libs/ReportConnection';
 import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import config, {normalizedConfigs} from './config';
+import config from './config';
 import createSplitNavigator from './createSplitNavigator';
+import getParamsFromRoute from './getParamsFromRoute';
 import RELATIONS from './RELATIONS';
 import replacePathInNestedState from './replacePathInNestedState';
 
@@ -23,14 +23,6 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof getStateFromPath>
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
-
-function getParamsFromRoute(screenName: string): string[] {
-    const routeConfig = normalizedConfigs[screenName as Screen];
-
-    const route = routeConfig.pattern;
-
-    return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
-}
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
@@ -118,7 +110,6 @@ function getMatchingFullScreenRouteForState(state: PartialState<NavigationState<
     }
 
     // @TODO should we push this route on narrow layout?
-    // @TODO maybe we can handle this with regular flow.
     if (isRouteWithReportID(focusedRoute)) {
         const reportID = focusedRoute.params.reportID;
         const paramsFromRoute = getParamsFromRoute(SCREENS.REPORT);
