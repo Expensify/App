@@ -4,22 +4,390 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+            background-color: #f9fafb;
+            color: #333;
+        }
+
+        /* Header styling */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0366d6;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            padding-right: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0366d6;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: #f1f8ff;
+        }
+
+        .nav-links a.active {
+            background-color: #eaf5ff;
+            color: #0366d6;
+            font-weight: bold;
+        }
+
+        /* Sidebar navigation for TOC */
+        .toc-sidebar {
+            width: 250px;
+            position: fixed;
+            top: 80px;
+            bottom: 0;
+            left: 0;
+            background-color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #eaecef;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .toc-sidebar ul {
+            list-style: none;
+            padding-left: 0;
+            line-height: 1.0;
+            font-size: 15px;
+        }
+
+        .toc-sidebar li {
+            margin-left: 0;
+            padding-left: 10px;
+        }
+
+        .js-toc > ul > li > ul > li {
+            margin-top: 25px;
+        }
+
+        .toc-sidebar a {
+            word-wrap: break-word;
+            display: block;
+            padding: 1px 10px;
+            margin-bottom: 5px;
+            text-decoration: none;
+            color: #0366d6;
+            border-radius: 6px;
+        }
+
+        .toc-sidebar a:hover {
+            background-color: #f1f8ff;
+            text-decoration: none;
+        }
+
+        .toc-sidebar .is-active-link {
+            background-color: #eaf5ff;
+            color: #0366d6;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+
+        a:has(+ ul.is-collapsible)::after {
+            content: '∧'; /* Use the logical AND symbol */
+            display: inline; /* Ensure the caret appears directly after the content */
+            margin-left: 5px; /* Add some space between the text and the caret */
+            transform: rotate(180deg); /* Rotate the caret 180 degrees */
+            display: inline-block; /* Required to apply transform */
+            position: relative; /* Enables positioning adjustments */
+            top: 3px; /* Moves the caret down 3 pixels */
+        }
+
+        /* Main content area */
+        main {
+            margin-left: 300px;
+            padding: 20px;
+            margin-top: 80px;
+            flex-grow: 1;
+            max-width: 900px;
+        }
+
+        main h1 {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        main h2 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        main h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        main h4 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        main p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .is-active-link {
+            font-weight: bold;
+        }
+
+        .scroll-spacer {
+            height: 300px;
+        }
+
+        /* Footer */
+        footer {
+            margin-left: 300px;
+            color: #0366d6;
+            background-color: #f9fafb;
+            padding: 40px 20px;
+            font-size: 14px;
+            max-width: 900px;
+        }
+
+        footer h3 {
+            color: #0366d6;
+        }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer ul li a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        footer ul li a:hover {
+            text-decoration: underline;
+        }
+
+        footer .social-icons a img {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-column {
+            flex: 1;
+            max-width: 300px; /* Set a max-width for each column */
+            padding: 0 20px;  /* Add padding for some space between the columns */                  
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <!-- Navigation links, logo, etc. -->
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <a href="/">Expensify</a>
+        </div>
+        <nav class="nav-links">
+            <a href="/expense" class="{% if page.title == 'Expensify Expense' %}active{% endif %}">Expense</a>
+            <a href="/card" class="{% if page.title == 'Expensify Cards' %}active{% endif %}">Card</a>
+            <a href="/travel" class="{% if page.title == 'Expensify Travel' %}active{% endif %}">Travel</a>
+            <a href="/chat" class="{% if page.title == 'Expensify Chat' %}active{% endif %}">Chat</a>
+            <a href="/invoice" class="{% if page.title == 'Expensify Invoice' %}active{% endif %}">Invoice</a>
+            <a href="/billpay" class="{% if page.title == 'Expensify Billpay' %}active{% endif %}">Billpay</a>
         </nav>
     </header>
 
-    <!-- This is where the content from product.html or any other layout will be inserted -->
-    <main>
+    <!-- TOC Sidebar -->
+    <nav class="toc-sidebar">
+        {% include search.html %}
+        <div class="js-toc"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="js-toc-content">
         {{ content }}
+
+        <!-- Spacer div for scrolling -->
+        <div class="scroll-spacer"></div>
     </main>
 
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2024 Your Website</p>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>Features</h3>
+                <ul>
+                    <li><a href="https://use.expensify.com/expense-management">Expense Management</a></li>
+                    <li><a href="https://use.expensify.com/spend-management">Spend Management</a></li>
+                    <li><a href="https://use.expensify.com/expense-reports">Expense Reports</a></li>
+                    <li><a href="https://use.expensify.com/company-credit-card">Company Card</a></li>
+                    <li><a href="https://use.expensify.com/receipt-scanning-app">Receipt Scanning App</a></li>
+                    <li><a href="https://use.expensify.com/payments">Payments</a></li>
+                    <li><a href="https://use.expensify.com/bill-pay-app">Bill Pay</a></li>
+                    <li><a href="https://use.expensify.com/invoicing-software">Invoicing</a></li>
+                    <li><a href="https://use.expensify.com/travel">Travel</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="https://use.expensify.com/accountants">ExpensifyApproved!</a></li>
+                    <li><a href="https://use.expensify.com/press-kit">Press Kit</a></li>
+                    <li><a href="https://use.expensify.com/support">Support</a></li>
+                    <li><a href="https://help.expensify.com/">ExpensifyHelp</a></li>
+                    <li><a href="https://community.expensify.com/">Community</a></li>
+                    <li><a href="https://use.expensify.com/privacy">Privacy</a></li>
+                    <li><a href="https://use.expensify.com/download">Expensify App</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Learn more</h3>
+                <ul>
+                    <li><a href="https://we.are.expensify.com/how-we-got-here">About Expensify</a></li>
+                    <li><a href="https://use.expensify.com/blog">Blog</a></li>
+                    <li><a href="https://we.are.expensify.com/">Jobs</a></li>
+                    <li><a href="https://www.expensify.org">Expensify.org</a></li>
+                    <li><a href="https://ir.expensify.com">Investor Relations</a></li>
+                </ul>
+                <div class="social-icons">
+                    <a href="https://www.twitter.com/expensify" title="Twitter">
+                        <img src="https://img.icons8.com/material-outlined/24/000000/twitter.png" alt="Twitter">
+                    </a>
+                    <a href="http://www.instagram.com/expensify" title="Instagram">
+                        <img src="https://img.icons8.com/material-outlined/24/000000/instagram-new.png" alt="Instagram">
+                    </a>
+                    <a href="https://www.facebook.com/expensify" title="Facebook">
+                        <img src="https://img.icons8.com/material-outlined/24/000000/facebook.png" alt="Facebook">
+                    </a>
+                    <a href="http://www.linkedin.com/company/expensify" title="LinkedIn">
+                        <img src="https://img.icons8.com/material-outlined/24/000000/linkedin.png" alt="LinkedIn">
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-column">
+                <h3>Get Started</h3>
+                <ul>
+                    <li><a href="https://www.expensify.com">Create a new account</a></li>
+                    <li><a href="https://www.expensify.com">Log in</a></li>
+                    <li>
+                        <a href="https://apps.apple.com/us/app/expensify-receipts-expenses/id471713959">
+                            <img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-example-preferred_2x.png" width="100" alt="iOS App">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" width="100" alt="Android App">
+                        </a>
+                    </li>
+                </ul>
+                <p>©2008-2024 Expensify, Inc.</p>
+            </div>
+
+            </div>
     </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.27.4/tocbot.min.js"></script>
+    <script>
+        function updateURLHashOnScroll() {
+            const activeLink = document.querySelector('.toc-sidebar .is-active-link');
+            if (activeLink) {
+                const hash = activeLink.getAttribute('href');
+                if (history.pushState) {
+                    history.pushState(null, null, hash);
+                } else {
+                    window.location.hash = hash;
+                }
+            }
+        }
+
+        function scrollActiveLinkIntoView() {
+            const activeLink = document.querySelector('.toc-sidebar .is-active-link');
+            if (activeLink) {
+                activeLink.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest'
+                });
+            }
+        }
+
+        tocbot.init({
+          tocSelector: '.js-toc',
+          contentSelector: '.js-toc-content',
+          headingSelector: 'h1, h2, h3, h4, h5, h6',
+          collapseDepth: 3,
+          orderedList: false,
+          scrollSmooth: true,
+          scrollToActive: true,
+          enableUrlHashUpdateOnScroll: false,
+          headingsOffset: 80,
+          scrollSmoothOffset: -80,
+          headingObjectCallback: function(obj, element) {
+            const tocTitle = element.getAttribute('data-toc-title');
+            if (tocTitle) {
+                obj.textContent = tocTitle;
+            }
+            return obj;
+          },
+          onClick: function(e) {
+              setTimeout(scrollActiveLinkIntoView, 300);
+          },
+          scrollEndCallback: function() {
+              updateURLHashOnScroll();
+              scrollActiveLinkIntoView();
+          }
+        });
+
+        function adjustAnchorOnLoad() {
+            if (window.location.hash) {
+                const element = document.querySelector(window.location.hash);
+                if (element) {
+                    window.scrollTo({
+                        top: element.getBoundingClientRect().top + window.pageYOffset - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }
+
+        window.addEventListener('load', adjustAnchorOnLoad);
+    </script>
+
 </body>
 </html>
 
