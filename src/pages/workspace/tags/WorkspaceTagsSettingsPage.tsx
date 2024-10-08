@@ -131,7 +131,10 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     style={[styles.defaultModalContainer]}
                     testID={WorkspaceTagsSettingsPage.displayName}
                 >
-                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <HeaderWithBackButton
+                        title={translate('common.settings')}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
+                    />
                     {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
                 </ScreenWrapper>
             )}

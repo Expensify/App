@@ -29,6 +29,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(route.params.policyID);
+    const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
 
     const tagName = route.params.tagName;
@@ -37,7 +38,11 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName));
+        Navigation.goBack(
+            backTo
+                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName, backTo)
+                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName),
+        );
     }, [orderWeight, route.params.policyID, tagName]);
 
     const editGLCode = useCallback(
