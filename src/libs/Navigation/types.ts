@@ -288,10 +288,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        backTo?: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
         orderWeight: number;
+        backTo?: string;
     };
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
