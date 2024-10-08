@@ -14,7 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 500
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
