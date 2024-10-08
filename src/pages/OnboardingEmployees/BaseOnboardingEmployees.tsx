@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -56,10 +55,10 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             <Button
                 success
                 large
-                text={translate('common.confirm')}
+                text={translate('common.continue')}
                 onPress={() => {
                     if (!selectedCompanySize) {
-                        setError(translate('onboarding.purpose.errorSelection'));
+                        setError(translate('onboarding.errorSelection'));
                         return;
                     }
                     Welcome.setOnboardingCompanySize(selectedCompanySize);
@@ -82,9 +81,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 onBackButtonPress={OnboardingFlow.goBack}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text style={[styles.textHeadlineH1]}>{translate('onboarding.employees.title')}</Text>
-                </View>
+                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.employees.title')}</Text>
             </View>
             <SelectionList
                 sections={[{data: companySizeOptions}]}
@@ -98,7 +95,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 footerContent={footerContent}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
             />
-            {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

@@ -6,7 +6,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -47,45 +46,50 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [error, setError] = useState('');
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
-        const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME).map((connectionName): OnboardingListItem => {
-            let text;
-            let accountingIcon;
-            switch (connectionName) {
-                case CONST.POLICY.CONNECTIONS.NAME.QBO: {
-                    text = translate('workspace.accounting.qbo');
-                    accountingIcon = Expensicons.QBOCircle;
-                    break;
+        const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
+            .map((connectionName): OnboardingListItem | undefined => {
+                let text;
+                let accountingIcon;
+                switch (connectionName) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO: {
+                        text = translate('workspace.accounting.qbo');
+                        accountingIcon = Expensicons.QBOCircle;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO: {
+                        text = translate('workspace.accounting.xero');
+                        accountingIcon = Expensicons.XeroCircle;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
+                        text = translate('workspace.accounting.netsuite');
+                        accountingIcon = Expensicons.NetSuiteSquare;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
+                        text = translate('workspace.accounting.intacct');
+                        accountingIcon = Expensicons.IntacctSquare;
+                        break;
+                    }
+                    default: {
+                        return;
+                    }
                 }
-                case CONST.POLICY.CONNECTIONS.NAME.XERO: {
-                    text = translate('workspace.accounting.xero');
-                    accountingIcon = Expensicons.XeroCircle;
-                    break;
-                }
-                case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
-                    text = translate('workspace.accounting.netsuite');
-                    accountingIcon = Expensicons.NetSuiteSquare;
-                    break;
-                }
-                default: {
-                    text = translate('workspace.accounting.intacct');
-                    accountingIcon = Expensicons.IntacctSquare;
-                    break;
-                }
-            }
-            return {
-                keyForList: connectionName,
-                text,
-                leftElement: (
-                    <Icon
-                        src={accountingIcon}
-                        width={variables.iconSizeExtraLarge}
-                        height={variables.iconSizeExtraLarge}
-                        additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
-                    />
-                ),
-                isSelected: userReportedIntegration === connectionName,
-            };
-        });
+                return {
+                    keyForList: connectionName,
+                    text,
+                    leftElement: (
+                        <Icon
+                            src={accountingIcon}
+                            width={variables.iconSizeExtraLarge}
+                            height={variables.iconSizeExtraLarge}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
+                        />
+                    ),
+                    isSelected: userReportedIntegration === connectionName,
+                };
+            })
+            .filter((item) => !!item);
         const noneAccountingOption: OnboardingListItem = {
             keyForList: null,
             text: translate('onboarding.accounting.noneOfAbove'),
@@ -115,10 +119,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             <Button
                 success
                 large
-                text={translate('common.confirm')}
+                text={translate('common.continue')}
                 onPress={() => {
                     if (userReportedIntegration === undefined) {
-                        setError(translate('onboarding.purpose.errorSelection'));
+                        setError(translate('onboarding.errorSelection'));
                         return;
                     }
 
@@ -180,7 +184,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 shouldShowTooltips={false}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
             />
-            {shouldUseNarrowLayout && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
