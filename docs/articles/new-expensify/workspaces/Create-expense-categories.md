@@ -23,6 +23,7 @@ To manually add a category,
 4. Click **Categories** in the left menu.
 5. Click **Add Category** in the top right. 
 6. Enter a name for the category and click **Save**.
+{% include end-option.html %}
 
 {% include option.html value="mobile" %}
 1. Tap your profile image or icon in the bottom menu.
@@ -42,7 +43,8 @@ To delete a category,
 {% include option.html value="desktop" %}
 1. Click the category on the Categories page. 
 2. Click the 3-dot menu in the top right. 
-3. Click **Delete category** to permanently delete the category. 
+3. Click **Delete category** to permanently delete the category.
+{% include end-option.html %}
 
 {% include option.html value="mobile" %}
 1. Tap the category on the Categories page. 
@@ -107,7 +109,6 @@ GL codes and payroll codes can be exported to a CSV export. They are not display
 5. Click a category to open the category-settings
 6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
 7. To add or edit a payroll code, click the payroll code field, make the desired change, then click **Save**
-
 
 
 # Apply categories to expenses automatically
