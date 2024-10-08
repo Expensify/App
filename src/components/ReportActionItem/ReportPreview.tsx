@@ -198,6 +198,10 @@ function ReportPreview({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
+    const startAnimation = useCallback(() => {
+        setIsPaidAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -325,12 +329,14 @@ function ReportPreview({
     ]);
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-
-    const shouldShowPayButton = useMemo(
-        () => isPaidAnimationRunning || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
-        [isPaidAnimationRunning, iouReport, chatReport, policy, allTransactions],
+    const getCanIOUBePaid = useCallback(
+        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, onlyShowPayElsewhere),
+        [iouReport, chatReport, policy, allTransactions],
     );
 
+    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
+    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
@@ -540,6 +546,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
+                                        onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
@@ -609,6 +616,7 @@ function ReportPreview({
                     chatReport={chatReport}
                     moneyRequestReport={iouReport}
                     transactionCount={numberOfRequests}
+                    startAnimation={startAnimation}
                 />
             )}
         </OfflineWithFeedback>

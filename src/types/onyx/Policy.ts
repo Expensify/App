@@ -1230,6 +1230,9 @@ type Connections = {
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+
+    /** QuickBooks integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
