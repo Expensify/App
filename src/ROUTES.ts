@@ -154,9 +154,17 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
+    SETTINGS_DOMAINCARD_DETAIL: {
+        route: 'settings/card/:cardID?',
+        getRoute: (cardID: string) => `settings/card/${cardID}` as const,
+    },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+    },
+    SETTINGS_DOMAINCARD_REPORT_FRAUD: {
+        route: 'settings/card/:cardID/report-virtual-fraud',
+        getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
         route: 'settings/wallet/card/:domain/get-physical/name',
@@ -429,6 +437,54 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
+    SETTINGS_TAGS_ROOT: {
+        route: 'settings/:policyID/tags',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags`, backTo),
+    },
+    SETTINGS_TAGS_SETTINGS: {
+        route: 'settings/:policyID/tags/settings',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
+    },
+    SETTINGS_TAGS_EDIT: {
+        route: 'settings/:policyID/tags/:orderWeight/edit',
+        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/${orderWeight}/edit` as const, backTo),
+    },
+    SETTINGS_TAG_CREATE: {
+        route: 'settings/:policyID/tags/new',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/new` as const, backTo),
+    },
+    SETTINGS_TAG_EDIT: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName/edit',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const, backTo),
+    },
+    SETTINGS_TAG_SETTINGS: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const, backTo),
+    },
+    SETTINGS_TAG_APPROVER: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${tagName}/approver` as const, backTo),
+    },
+    SETTINGS_TAG_LIST_VIEW: {
+        route: 'settings/:policyID/tag-list/:orderWeight',
+        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tag-list/${orderWeight}` as const, backTo),
+    },
+    SETTINGS_TAG_GL_CODE: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName/gl-code',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const, backTo),
+    },
+    SETTINGS_TAGS_IMPORT: {
+        route: 'settings/:policyID/tags/import',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/import` as const, backTo),
+    },
+    SETTINGS_TAGS_IMPORTED: {
+        route: 'settings/:policyID/tags/imported',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/imported` as const, backTo),
+    },
     SETTINGS_CATEGORIES_ROOT: {
         route: 'settings/:policyID/categories',
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories`, backTo),
@@ -498,10 +554,6 @@ const ROUTES = {
         route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
-    },
-    SETTINGS_TAGS_ROOT: {
-        route: 'settings/:policyID/tags',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -1015,17 +1067,33 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
     },
+    EXPENSIFY_CARD_DETAILS: {
+        route: 'settings/:policyID/expensify-card/:cardID',
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}`, backTo),
+    },
     WORKSPACE_EXPENSIFY_CARD_NAME: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
+    },
+    EXPENSIFY_CARD_NAME: {
+        route: 'settings/:policyID/expensify-card/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/name` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_LIMIT: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
     },
+    EXPENSIFY_CARD_LIMIT: {
+        route: 'settings/:policyID/expensify-card/:cardID/edit/limit',
+        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+    },
+    EXPENSIFY_CARD_LIMIT_TYPE: {
+        route: 'settings/:policyID/expensify-card/:cardID/edit/limit-type',
+        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
