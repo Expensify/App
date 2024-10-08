@@ -1731,16 +1731,16 @@ const translations = {
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         employees: {
-            title: 'How many empleados do you have?',
+            title: '¿Cuántos empleados tienes?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 empleados',
-            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Más de 1,000 empleados',
         },
         accounting: {
-            title: 'Do you use any accounting software?',
-            noneOfAbove: 'None of the above',
+            title: '¿Utilizas algún software de contabilidad?',
+            noneOfAbove: 'Ninguno de los anteriores',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar.',
