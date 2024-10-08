@@ -106,6 +106,7 @@ function ReportActionItemSingle({
         avatarId = ownerAccountID;
         avatarSource = personalDetails[ownerAccountID ?? -1]?.avatar;
         displayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
+        actorHint = displayName;
     }
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report, undefined, policy);
