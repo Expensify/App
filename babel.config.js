@@ -3,7 +3,7 @@ require('dotenv').config();
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
 const ReactCompilerConfig = {
-    runtimeModule: 'react-compiler-runtime',
+    target: '18',
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
