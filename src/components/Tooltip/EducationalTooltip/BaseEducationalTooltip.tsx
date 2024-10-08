@@ -1,9 +1,10 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {Modal} from '@src/types/onyx';
 import measureTooltipCoordinate from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
@@ -17,9 +18,28 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal, setModal] = useState<Modal>({
+        willAlertModalBecomeVisible: false,
+        isVisible: false,
+    });
 
     const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible && shouldRender;
+
+    useEffect(() => {
+        if (!shouldRender) return;
+        const unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                if (modalArg === undefined) {
+                    return;
+                }
+                setModal(modalArg);
+            },
+        });
+        return () => {
+            unsubscribeOnyxModal();
+        };
+    }, [shouldRender]);
 
     const didShow = useRef(false);
 
