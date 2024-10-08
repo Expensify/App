@@ -421,7 +421,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
-                    setClipboardMessage(displayMessage);
+                    if (displayMessage === Parser.htmlToText(displayMessage)) {
+                        Clipboard.setString(displayMessage);
+                    } else {
+                        setClipboardMessage(displayMessage);
+                    }
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
