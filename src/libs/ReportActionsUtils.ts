@@ -10,7 +10,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
-import type {IssueNewCardOriginalMessage, JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -25,6 +25,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -58,7 +59,6 @@ Onyx.connect({
         if (!actions) {
             return;
         }
-
         allReportActions = actions;
     },
 });
@@ -130,13 +130,13 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     }
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
-    const isLegacyDeletedComment = message.length === 0 || message[0]?.html === '';
+    const isLegacyDeletedComment = message.length === 0 || message.at(0)?.html === '';
 
-    return isLegacyDeletedComment || !!message[0]?.deleted;
+    return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
-    return Array.isArray(reportAction?.message) ? reportAction.message[0] : reportAction?.message;
+    return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -161,6 +161,10 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 
 function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
+}
+
+function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
 }
 
 function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
@@ -521,8 +525,8 @@ function findPreviousAction(reportActions: ReportAction[] | undefined, actionInd
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions[i].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return reportActions[i];
+        if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return reportActions.at(i);
         }
     }
 
@@ -732,8 +736,12 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return updatedReportAction;
     }
 
-    if (Array.isArray(updatedReportAction.message) && updatedReportAction.message[0]) {
-        updatedReportAction.message[0].html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
+    if (Array.isArray(updatedReportAction.message)) {
+        const message = updatedReportAction.message.at(0);
+
+        if (message) {
+            message.html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
+        }
     }
 
     return updatedReportAction;
@@ -753,7 +761,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
     if (sortedReportActions.length === 0) {
         return undefined;
     }
-    return sortedReportActions[0];
+    return sortedReportActions.at(0);
 }
 
 function formatLastMessageText(lastMessageText: string) {
@@ -862,7 +870,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
         return '';
     }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
-    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2)?.reportActionID ?? '-1' : '';
 }
 
 /**
@@ -1009,20 +1017,20 @@ const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
     CONST.IOU.REPORT_ACTION_TYPE.TRACK,
 ]);
 
-function getMoneyRequestActions(
-    reportID: string,
-    reportActions: OnyxEntry<ReportActions> | ReportAction[],
-    isOffline: boolean | undefined = undefined,
-): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't have money request actions.
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
+    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-        return [];
+        return;
     }
 
     const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
-        return [];
+        return;
     }
 
     const iouRequestActions = [];
@@ -1050,22 +1058,13 @@ function getMoneyRequestActions(
             iouRequestActions.push(action);
         }
     }
-    return iouRequestActions;
-}
-
-/**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
-    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
         return;
     }
 
-    const singleAction = iouRequestActions[0];
+    const singleAction = iouRequestActions.at(0);
     const originalMessage = getOriginalMessage(singleAction);
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
@@ -1075,28 +1074,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
     }
 
     // Ensure we have a childReportID associated with the IOU report action
-    return singleAction.childReportID;
-}
-
-/**
- * Returns true if all transactions on the report have the same ownerID
- */
-function hasSameActorForAllTransactions(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): boolean {
-    const iouRequestActions = getMoneyRequestActions(reportID, reportActions, isOffline);
-    if (!iouRequestActions.length) {
-        return true;
-    }
-
-    let actorID: number | undefined;
-
-    for (const action of iouRequestActions) {
-        if (actorID !== undefined && actorID !== action?.actorAccountID) {
-            return false;
-        }
-        actorID = action?.actorAccountID;
-    }
-
-    return true;
+    return singleAction?.childReportID;
 }
 
 /**
@@ -1482,8 +1460,8 @@ function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAc
     if (currentActionIndex === -1) {
         return false;
     }
-    const prevReportAction = sortedReportActions[currentActionIndex - 1];
-    return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+    const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
+    return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 
 /**
@@ -1494,15 +1472,20 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST);
 }
 
+function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
+    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
+    );
+
+    return findPendingRequest;
+}
+
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
-    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
-        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
-    );
-    return !!findPendingRequest;
+    return !!getActionableJoinRequestPendingReportAction(reportID);
 }
 
 function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
@@ -1633,7 +1616,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     if (reimbursableUrls.length === 1) {
         result.push({
             text: Localize.translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
-            url: reimbursableUrls[0],
+            url: reimbursableUrls.at(0) ?? '',
         });
     }
 
@@ -1642,7 +1625,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls[0];
+            url = nonReimbursableUrls.at(0) ?? '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
@@ -1654,7 +1637,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
                     // The first three characters in a Salesforce ID is the expense type
-                    url = nonReimbursableUrls[0].substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3);
+                    url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
                 default:
                     url = QBO_EXPENSES_URL;
@@ -1722,6 +1705,15 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     return Localize.translateLocal('report.actions.type.removeMember', {email, role});
 }
 
+function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const connectionName = originalMessage?.connectionName;
+    return connectionName ? Localize.translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
+}
+
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
     const originalMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
@@ -1742,13 +1734,24 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false) {
-    const assigneeAccountID = (getOriginalMessage(reportAction) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1)[0];
+function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1') {
+    const cardIssuedActionOriginalMessage = isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+    )
+        ? getOriginalMessage(reportAction)
+        : undefined;
 
-    const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails.login ?? '';
+    const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? -1;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
+    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
+    const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
+    const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
     const link = shouldRenderHTML
-        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
+        ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');
 
     const missingDetails =
@@ -1860,6 +1863,7 @@ export {
     isTripPreview,
     isWhisperAction,
     isSubmittedAction,
+    isSubmittedAndClosedAction,
     isApprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
@@ -1881,7 +1885,8 @@ export {
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
-    hasSameActorForAllTransactions,
+    getRemovedConnectionMessage,
+    getActionableJoinRequestPendingReportAction,
 };
 
 export type {LastVisibleMessage};

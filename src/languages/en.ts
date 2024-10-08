@@ -19,7 +19,6 @@ import type {
     BadgeFreeTrialParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
@@ -69,6 +68,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     ImportedTagsMessageParams,
+    ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
@@ -264,6 +264,7 @@ const translations = {
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
         and: 'and',
+        or: 'or',
         details: 'Details',
         privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
@@ -451,6 +452,7 @@ const translations = {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
@@ -656,33 +658,34 @@ const translations = {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
         beginningOfArchivedRoomPartTwo: ", there's nothing to see here.",
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
-        beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
-        beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
-            `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
-        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `This chat is with all Expensify members on the ${domainRoom} domain.`,
+        beginningOfChatHistoryDomainRoomPartTwo: ' Use it to chat with colleagues, share tips, and ask questions.',
+        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => `This chat is with ${workspaceName} admins.`,
+        beginningOfChatHistoryAdminRoomPartTwo: ' Use it to chat about workspace setup and more.',
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `This chat is with everyone in ${workspaceName} workspace.`,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ` Use it for the most important announcements.`,
+        beginningOfChatHistoryUserRoomPartOne: 'This chat room is for anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
-        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 Use this room to view, discuss, and pay invoices.',
-        beginningOfChatHistory: 'This is the beginning of your chat with ',
-        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
-        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, submit expenses and settle up.',
+        beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
+        beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
+        beginningOfChatHistory: 'This chat is with ',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'This is where ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' will submit expenses to ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' workspace. Just use the + button.',
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
+        askConcierge: '\nAsk questions and get 24/7 realtime support.',
         iouTypes: {
-            pay: 'pay expenses',
-            split: 'split an expense',
-            submit: 'submit an expense',
-            track: 'track an expense',
-            invoice: 'invoice an expense',
+            pay: 'pay',
+            split: 'split',
+            submit: 'submit',
+            track: 'track',
+            invoice: 'invoice',
         },
     },
     adminOnlyCanPost: 'Only admins can send messages in this room.',
@@ -824,6 +827,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         submitExpense: 'Submit expense',
+        createExpense: 'Create expense',
         trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -922,6 +926,8 @@ const translations = {
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
         paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} with Expensify`,
+        automaticallyPaidWithExpensify: ({payer, amount}: PaidWithExpensifyWithAmountParams) =>
+            `${payer ? `${payer} ` : ''}automatically paid ${amount} with Expensify via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
@@ -1016,6 +1022,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1082,6 +1089,8 @@ const translations = {
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        featureRequiresValidate: 'This feature requires you to validate your account.',
+        validateAccount: 'Validate your account',
         helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
         helpTextAfterEmail: ' from multiple email addresses.',
         pleaseVerify: 'Please verify this contact method',
@@ -1186,8 +1195,13 @@ const translations = {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            importOnyxState: 'Import Onyx state',
             testCrash: 'Test crash',
+            resetToOriginalState: 'Reset to original state',
+            usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
+            invalidFile: 'Invalid file',
+            invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1210,7 +1224,6 @@ const translations = {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
-        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account settings',
         account: 'Account',
@@ -1373,7 +1386,6 @@ const translations = {
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
-        bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
@@ -2340,6 +2352,9 @@ const translations = {
                 }
             },
         },
+        qbd: {
+            exportDescription: 'Configure how Expensify data exports to QuickBooks Desktop.',
+        },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
             classes: 'Classes',
@@ -2769,6 +2784,7 @@ const translations = {
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Imported as ${importedTypes.join(' and ')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
@@ -3649,6 +3665,9 @@ const translations = {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
+            invoiceBalance: 'Invoice balance',
+            invoiceBalanceSubtitle: 'Here’s your current balance from collecting payments on invoices.',
+            bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
         },
         invite: {
             member: 'Invite member',
@@ -4015,11 +4034,11 @@ const translations = {
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
-                joinedNames = submittersNames[0];
+                joinedNames = submittersNames.at(0) ?? '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' and ');
             } else if (submittersNames.length > 2) {
-                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
             }
             return {
                 one: `removed you from ${joinedNames}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
@@ -4135,6 +4154,10 @@ const translations = {
             past: 'Past',
         },
         expenseType: 'Expense type',
+        recentSearches: 'Recent searches',
+        recentChats: 'Recent chats',
+        searchIn: 'Search in',
+        searchPlaceholder: 'Search for something',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -4270,6 +4293,7 @@ const translations = {
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },
@@ -4419,6 +4443,8 @@ const translations = {
             title: 'Map pending',
             subtitle: 'The map will be generated when you go back online',
             onlineSubtitle: 'One moment while we set up the map',
+            errorTitle: 'Map error',
+            errorSubtitle: 'There was an error loading the map. Please try again.',
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location.',
@@ -4893,6 +4919,29 @@ const translations = {
         date: 'Date',
         time: 'Time',
         none: 'None',
+        visibleInLHN: 'Visible in LHN',
+        GBR: 'GBR',
+        RBR: 'RBR',
+        true: 'true',
+        false: 'false',
+        reasonVisibleInLHN: {
+            hasDraftComment: 'Has draft comment',
+            hasGBR: 'Has GBR',
+            pinnedByUser: 'Pinned by user',
+            hasIOUViolations: 'Has IOU violations',
+            hasAddWorkspaceRoomErrors: 'Has add workspace room errors',
+            isUnread: 'Is unread (focus mode)',
+            isArchived: 'Is archived (most recent mode)',
+            isSelfDM: 'Is self DM',
+            isFocused: 'Is temporarily focused',
+        },
+        reasonGBR: {
+            hasJoinRequest: 'Has join request (admin room)',
+            isUnreadWithMention: 'Is unread with mention',
+            isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
+            hasChildReportAwaitingAction: 'Has child report awaiting action',
+            hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
+        },
     },
 };
 

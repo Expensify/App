@@ -3,6 +3,7 @@ import {
     addHours,
     addMilliseconds,
     addMinutes,
+    differenceInDays,
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
@@ -616,15 +617,15 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
 /**
  * param {String} dateTime in 'HH:mm:ss.SSS a' format
  * returns {Object}
- * example {hour: '11', minute: '10', seconds: '10', miliseconds: '123', period: 'AM'}
+ * example {hour: '11', minute: '10', seconds: '10', milliseconds: '123', period: 'AM'}
  */
-function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; miliseconds: string; period: string} {
+function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; milliseconds: string; period: string} {
     if (!dateTime) {
         return {
             hour: '12',
             minute: '00',
             seconds: '00',
-            miliseconds: '000',
+            milliseconds: '000',
             period: 'PM',
         };
     }
@@ -633,7 +634,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
-        miliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
+        milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
         period: format(parsedTime, 'a').toUpperCase(),
     };
 }
@@ -825,6 +826,25 @@ function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
     return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
 }
 
+/**
+ * Returns the difference in the number of days from the provided date to/from now.
+ * @param - The date to compare.
+ * @returns The difference in days as an integer.
+ */
+function getDifferenceInDaysFromNow(date: Date) {
+    return differenceInDays(new Date(), date);
+}
+
+/**
+ * Returns a boolean value indicating whether the provided date string can be parsed as a valid date.
+ * @param dateString string
+ * @returns True if the date string is valid, otherwise false.
+ */
+function isValidDateString(dateString: string) {
+    const date = new Date(dateString);
+    return !Number.isNaN(date.getTime());
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -870,6 +890,8 @@ const DateUtils = {
     getFormattedTransportDate,
     doesDateBelongToAPastYear,
     isCardExpired,
+    getDifferenceInDaysFromNow,
+    isValidDateString,
 };
 
 export default DateUtils;

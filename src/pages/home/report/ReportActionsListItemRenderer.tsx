@@ -171,7 +171,7 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isInvoiceRoom(report)) &&
+                ReportUtils.isPolicyExpenseChat(report) &&
                 [
                     CONST.REPORT.ACTIONS.TYPE.IOU,
                     CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
