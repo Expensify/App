@@ -4,11 +4,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
-import type {ComponentProps} from './types';
 
-const MapView = forwardRef<MapViewHandle, ComponentProps>((props, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();

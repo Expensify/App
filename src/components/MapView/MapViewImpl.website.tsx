@@ -26,13 +26,12 @@ import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
 import './mapbox.css';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import type {ComponentProps} from './types';
 import utils from './utils';
 
-const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
+const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
     (
         {
             style,
