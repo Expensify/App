@@ -8,7 +8,16 @@ const insertByCommand = (text: string) => {
     document.execCommand('insertText', false, text);
 };
 
-const insertAtCaret = (target: HTMLElement, text: string) => {
+const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
+    const currentText = target.innerText;
+
+    const availableLength = maxLength - currentText.length;
+    if (availableLength <= 0) {
+        return;
+    }
+
+    const text = insertedText.slice(0, availableLength);
+
     const selection = window.getSelection();
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
@@ -28,37 +37,42 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     }
 };
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
     const navigation = useNavigation();
 
     /**
      * Set pasted text to clipboard
      * @param {String} text
      */
-    const paste = useCallback((text: string) => {
-        try {
-            const textInputHTMLElement = textInputRef.current as HTMLElement;
-            if (textInputHTMLElement?.hasAttribute('contenteditable')) {
-                insertAtCaret(textInputHTMLElement, text);
-            } else {
-                (textInputRef.current as unknown as HTMLInputElement)?.setRangeText(text, 0, 0, 'end');
-                // Trigger the onChange event, which sync the pasted value with the text input state
-                textInputHTMLElement?.dispatchEvent(new Event('input', {bubbles: true}));
-            }
+    const paste = useCallback(
+        (text: string) => {
+            try {
+                const textInputHTMLElement = textInputRef.current as HTMLElement;
+                if (textInputHTMLElement?.hasAttribute('contenteditable')) {
+                    insertAtCaret(textInputHTMLElement, text, maxLength);
+                } else {
+                    const htmlInput = textInputRef.current as unknown as HTMLInputElement;
+                    const availableLength = maxLength - (htmlInput.value?.length ?? 0);
+                    htmlInput.setRangeText(text.slice(0, availableLength));
+                    // Trigger the onChange event, which sync the pasted value with the text input state
+                    textInputHTMLElement?.dispatchEvent(new Event('input', {bubbles: true}));
+                }
 
-            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            // To avoid the keyboard toggle issue in mWeb if using blur() and focus() functions, we just need to dispatch the event to trigger the onFocus handler
-            // We need to trigger the bubbled "focusin" event to make sure the onFocus handler is triggered
-            textInputHTMLElement.dispatchEvent(
-                new FocusEvent('focusin', {
-                    bubbles: true,
-                }),
-            );
-            // eslint-disable-next-line no-empty
-        } catch (e) {}
-        // We only need to set the callback once.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+                // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
+                // To avoid the keyboard toggle issue in mWeb if using blur() and focus() functions, we just need to dispatch the event to trigger the onFocus handler
+                // We need to trigger the bubbled "focusin" event to make sure the onFocus handler is triggered
+                textInputHTMLElement.dispatchEvent(
+                    new FocusEvent('focusin', {
+                        bubbles: true,
+                    }),
+                );
+                // eslint-disable-next-line no-empty
+            } catch (e) {}
+            // We only need to set the callback once.
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        },
+        [maxLength, textInputRef],
+    );
 
     /**
      * Manually place the pasted HTML into Composer
@@ -67,9 +81,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(html.length <= CONST.MAX_MARKUP_LENGTH ? Parser.htmlToMarkdown(html) : html);
+            paste(Parser.htmlToMarkdown(html.slice(0, maxLength)));
         },
-        [paste],
+        [paste, maxLength],
     );
 
     /**
