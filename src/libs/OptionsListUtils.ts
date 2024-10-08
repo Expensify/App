@@ -2538,9 +2538,12 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
 
+        const excludedLogins = new Set(recentReports.map((report) => report.login));
+        const filteredPersonalDetails = personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+
         return {
             recentReports: recentReports ?? [],
-            personalDetails: personalDetails ?? [],
+            personalDetails: filteredPersonalDetails ?? [],
             userToInvite: null,
             currentUserOption,
             categoryOptions: [],

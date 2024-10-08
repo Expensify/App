@@ -404,9 +404,11 @@ describe('OptionsListUtils', () => {
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        const results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
-        // Then the 2 personalDetails that don't have reports should be returned
-        expect(results.personalDetails.length).toBe(2);
+        let results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+
+        // All 2 personalDetails (including those that have reports) should be returned
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(9);
 
         // Then all of the reports should be shown including the archived rooms.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
@@ -422,15 +424,25 @@ describe('OptionsListUtils', () => {
         // We should expect maximimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
 
-        // We should expect all personalDetails to be returned,
-        // minus the currently logged in user and recent reports count
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1 - MAX_RECENT_REPORTS);
+        // We should expect all personalDetails except the currently logged in user to be returned
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
+        // All personal details including those that have reports should be returned
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
-        expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
-        expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
-        expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic');
+        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister');
+        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(8)?.text).toBe('Thor');
+        // expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
+        // expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
+        // expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
+        // expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
@@ -481,29 +493,33 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1 - MAX_RECENT_REPORTS);
+        // (minus the currently logged in user)
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails, [], '', [], [CONST.EMAIL.CONCIERGE]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2 - MAX_RECENT_REPORTS);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CHRONOS.reports, OPTIONS_WITH_CHRONOS.personalDetails, [], '', [], [CONST.EMAIL.CHRONOS]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2 - MAX_RECENT_REPORTS);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_RECEIPTS.reports, OPTIONS_WITH_RECEIPTS.personalDetails, [], '', [], [CONST.EMAIL.RECEIPTS]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2 - MAX_RECENT_REPORTS);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
@@ -514,15 +530,21 @@ describe('OptionsListUtils', () => {
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
 
-        // And we should expect all the personalDetails to show (minus the 5 that are already
-        // showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 6);
+        // And we should expect all the personalDetails to show except the currently logged in user
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
+        // All personal details including those that have reports should be returned
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
-        expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
-        expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
-        expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic');
+        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister');
+        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
+        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(8)?.text).toBe('Thor');
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
@@ -548,34 +570,38 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 6);
+        // (minus the currently logged in user)
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails, [], '', [], [CONST.EMAIL.CONCIERGE]);
 
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // We should expect all the personalDetails to show (minus 
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 7);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CHRONOS.reports, OPTIONS_WITH_CHRONOS.personalDetails, [], '', [], [CONST.EMAIL.CHRONOS]);
 
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 7);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_RECEIPTS.reports, OPTIONS_WITH_RECEIPTS.personalDetails, [], '', [], [CONST.EMAIL.RECEIPTS]);
 
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // We should expect all the personalDetails to show (minus 
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 7);
+        // Filtering of personalDetails that have reports is done in filterOptions
+        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
@@ -2610,7 +2636,7 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, '');
 
-            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length + filteredOptions.personalDetails.length);
+            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(12);
         });
 
         it('should return filtered options in correct order', () => {
