@@ -35,9 +35,8 @@ function BaseOnboardingWork({shouldUseNativeStyles, route}: BaseOnboardingWorkPr
     const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const {isOffline} = useNetwork();
-
-    const isVsbOnboarding = onboardingValues && CONST.QUALIFIER_PARAM in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-
+    const isVsbOnboarding = Array.isArray(onboardingValues) ? false : onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
             if (!onboardingPurposeSelected) {
