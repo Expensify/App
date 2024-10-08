@@ -20,7 +20,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const workspaceCentralPane = state.routes.at(-1);
 
     // There should always be sidebarScreen screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
-    if (!isAtLeastOneInState(state, sidebarScreen)) {
+    if (!isAtLeastOneInState(state, sidebarScreen) && !isNarrowLayout) {
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line

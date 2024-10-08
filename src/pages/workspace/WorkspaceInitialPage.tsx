@@ -24,7 +24,7 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -368,7 +368,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
+                onLinkPress={() => Navigation.goUp(ROUTES.HOME)}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
@@ -376,19 +376,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     title={policyName}
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
-                            Navigation.resetToHome();
+                            Navigation.goUp(ROUTES.HOME);
                             Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
                         } else {
-                            // @TODO This part could be done with the new goBack method when it will be implemented.
-                            const previousRoute = navigationRef.getRootState().routes.at(-2);
-
-                            // If there is the settings split navigator we can dismiss safely
-                            if (previousRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-                                Navigation.dismissModal();
-                            } else {
-                                // If not, we are going to replace this route with the settings route
-                                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
-                            }
+                            Navigation.goUp(ROUTES.SETTINGS_WORKSPACES);
                         }
                     }}
                     policyAvatar={policyAvatar}

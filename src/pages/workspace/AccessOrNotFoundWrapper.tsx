@@ -91,7 +91,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
             shouldForceFullScreen={shouldShowFullScreenFallback}
             onBackButtonPress={() => {
                 if (shouldShowFullScreenFallback) {
-                    Navigation.dismissModal();
+                    Navigation.goUp(ROUTES.SETTINGS_WORKSPACES);
                     return;
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined);
