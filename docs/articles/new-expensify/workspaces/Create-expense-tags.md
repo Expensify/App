@@ -25,6 +25,7 @@ To manually add a tag,
 6. Click **Tags** in the left menu.
 7. Click **Add Tag** in the top right. 
 8. Enter a name for the tag and click **Save**.
+{% include end-option.html %}
 
 {% include option.html value="mobile" %}
 1. Tap your profile image or icon in the bottom menu.
