@@ -445,7 +445,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE>;
 
 /**
- * Non reimbursable account types exported from QuickBooks Online
+ * Non reimbursable account types exported from QuickBooks Desktop
  */
 type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
 
