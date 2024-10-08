@@ -644,11 +644,44 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
     API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, {...parameters, domainAccountID});
 }
 
-function openCardDetailsPage(cardID: number) {
+function openCardDetailsPage(cardID: number, workspaceAccountID?: string) {
     const authToken = NetworkStore.getAuthToken();
-
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
     if (!authToken) {
         return;
+    }
+    if (workspaceAccountID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: true,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        });
     }
 
     const parameters: OpenCardDetailsPageParams = {
@@ -656,7 +689,7 @@ function openCardDetailsPage(cardID: number) {
         cardID,
     };
 
-    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
+    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {

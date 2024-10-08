@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -100,7 +101,7 @@ function ExpensifyCardPage({
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     useEffect(() => {
-        setIsNotFound(!cardsToShow);
+        setIsNotFound(isEmpty(cardsToShow));
     }, [cardList, cardsToShow]);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);

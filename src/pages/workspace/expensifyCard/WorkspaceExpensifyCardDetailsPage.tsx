@@ -6,6 +6,7 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceExpensifyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS>;
 
@@ -47,8 +49,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const styles = useThemeStyles();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-
+    const [cardsList, cardListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const isLoadingCardListFromOnyx = isLoadingOnyxValue(cardListResult);
     const card = cardsList?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
@@ -58,8 +60,12 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
     const fetchCardDetails = useCallback(() => {
-        Card.openCardDetailsPage(Number(cardID));
-    }, [cardID]);
+        if (!cardID || !workspaceAccountID) {
+            return;
+        }
+
+        Card.openCardDetailsPage(Number(cardID), String(workspaceAccountID));
+    }, [cardID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
@@ -71,8 +77,16 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         Navigation.goBack();
     };
 
+    const isLoadingCard = isLoadingCardListFromOnyx || card?.isLoading;
+    const shouldBeBlocked = !isLoadingCard && !card?.cardID;
+
+    if (isLoadingCard) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <AccessOrNotFoundWrapper
+            shouldBeBlocked={shouldBeBlocked}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
