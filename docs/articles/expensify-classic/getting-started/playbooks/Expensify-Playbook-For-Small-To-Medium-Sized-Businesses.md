@@ -103,7 +103,7 @@ Receipts are important, and in most cases, you prefer an itemized receipt. Howev
 
 ![Expense Basics](https://help.expensify.com/assets/images/playbook-expense-basics.png){:width="100%"}
 
-At this point, you’ve set enough compliance controls around categorical spending and general expenses for all employees such that you can put trust in our solution to audit all expenses upfront so you don’t have to. Next, let’s dive into how we can comfortably take on more automation while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
+At this point, you’ve set enough compliance controls around categorical spending and general expenses for all employees that you can trust our solution to audit all expenses upfront so you don’t have to. Next, let’s explore how we can comfortably take on more automation while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
 ## Step 7: Set up scheduled submit
 For an efficient company, we recommend setting up [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/policy-and-domain-settings/reports/Scheduled-Submit) on a *Daily* Frequency:
@@ -228,7 +228,7 @@ Integration with your business bank account: Once your business bank account is 
 Let’s go over how Bill Pay works:
 1. Have your vendors send their invoices to yourdomain.com@expensify.cash.
 - This email address comes with every account, so no need to activate it anywhere.
-2. Once the invoices has been received, we’ll create a bill to pay for your review directly in Expensify
+2. Once the invoices have been received, we’ll create a bill to pay for your review directly in Expensify
 3. At the top of the bill, you’ll notice a Pay button. Once you click that, you’ll see options including ACH, credit/debit card, and mailing a physical check.
 
 Similarly, you can send bills directly from Expensify as well. 
@@ -236,7 +236,7 @@ Similarly, you can send bills directly from Expensify as well.
 1. From the *Reports* tab, select the down arrow next to *New Report* and select *Bill*
 2. Next, enter the Supplier’s email address, the Merchant name, the total amount, and the date
 3. At this point, you can also upload an attachment to further validate the bill if necessary
-4. Click *Submit*, we’ll forward the newly created bill directly to your Supplier.
+4. Click *Submit*, and we’ll forward the newly created bill directly to your Supplier.
 
 ![Send bills directly from Expensify](https://help.expensify.com/assets/images/playbook-new-bill.png){:width="100%"}
 
