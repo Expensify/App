@@ -106,6 +106,7 @@ function reauthenticate(command = ''): Promise<void> {
             NetworkStore.setIsAuthenticating(false);
         })
         .catch((error) => {
+            // In case the atuhentication call throws error, we need to sign user out as most likely they are missing credentials
             NetworkStore.setIsAuthenticating(false);
             Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {error});
             redirectToSignIn('passwordForm.error.fallback');
