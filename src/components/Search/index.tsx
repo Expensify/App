@@ -188,10 +188,15 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
     useEffect(() => {
+        if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+            return;
+        }
         const newTransactionList: SelectedTransactions = {};
-        data.forEach((report) => {
-            const transactionsData: TransactionListItemType[] = Object.hasOwn(report, 'transactions') && 'transactions' in report ? report.transactions : [];
-            transactionsData.forEach((transaction) => {
+        if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+            data.forEach((transaction) => {
+                if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
+                    return;
+                }
                 if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
                     return;
                 }
@@ -203,7 +208,25 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     canDelete: transaction.canDelete,
                 };
             });
-        });
+        } else {
+            data.forEach((report) => {
+                if (!Object.hasOwn(report, 'transactions') || !('transactions' in report)) {
+                    return;
+                }
+                report.transactions.forEach((transaction) => {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
+                        return;
+                    }
+                    newTransactionList[transaction.transactionID] = {
+                        action: transaction.action,
+                        canHold: transaction.canHold,
+                        canUnhold: transaction.canUnhold,
+                        isSelected: selectedTransactions[transaction.transactionID].isSelected,
+                        canDelete: transaction.canDelete,
+                    };
+                });
+            });
+        }
         setSelectedTransactions(newTransactionList, data);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [data, setSelectedTransactions]);

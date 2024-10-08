@@ -617,15 +617,15 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
 /**
  * param {String} dateTime in 'HH:mm:ss.SSS a' format
  * returns {Object}
- * example {hour: '11', minute: '10', seconds: '10', miliseconds: '123', period: 'AM'}
+ * example {hour: '11', minute: '10', seconds: '10', milliseconds: '123', period: 'AM'}
  */
-function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; miliseconds: string; period: string} {
+function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; milliseconds: string; period: string} {
     if (!dateTime) {
         return {
             hour: '12',
             minute: '00',
             seconds: '00',
-            miliseconds: '000',
+            milliseconds: '000',
             period: 'PM',
         };
     }
@@ -634,7 +634,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
-        miliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
+        milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
         period: format(parsedTime, 'a').toUpperCase(),
     };
 }
