@@ -50,7 +50,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
                 }
             >
                 <MapViewImpl
-                    // @ts-expect-error React.lazy loses type for ref.
                     ref={ref}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
