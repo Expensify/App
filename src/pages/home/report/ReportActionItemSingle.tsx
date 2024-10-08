@@ -248,7 +248,7 @@ function ReportActionItemSingle({
         );
     };
 
-    const getHeading = useMemo(() => {
+    const getHeading = useCallback(() => {
         return () => {
             if (displayAllActors && personArray.length === 2 && isReportPreviewAction) {
                 return (
