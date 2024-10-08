@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
@@ -36,6 +36,8 @@ function ShareDetailsPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
 
+    const [message, setMessage] = useState('');
+
     const handleProcessFiles = () => {
         ShareActionHandlerModule.processFiles((processedFiles) => {
             // eslint-disable-next-line no-console
@@ -69,10 +71,10 @@ function ShareDetailsPage({
             currentAttachment.content,
             currentAttachment.id,
             (file) => {
-                Report.addAttachment(reportID, file);
+                Report.addAttachment(reportID, file, message);
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-                Navigation.navigate(routeToNavigate, 'replace');
+                Navigation.navigate(routeToNavigate);
             },
             () => {},
         );
@@ -111,6 +113,10 @@ function ShareDetailsPage({
                     <View style={styles.justifyContentCenter}>
                         <View style={[styles.pv5]}>
                             <TextInput
+                                value={message}
+                                onChangeText={(value) => {
+                                    setMessage(value);
+                                }}
                                 accessibilityLabel={translate('share.messageInputLabel')}
                                 label={translate('share.messageInputLabel')}
                             />
