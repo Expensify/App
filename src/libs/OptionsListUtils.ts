@@ -2489,8 +2489,8 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
-        const excludedLogins = new Set(recentReports.map(report => report.login));
-        const filteredPersonalDetails = options.personalDetails.filter(personalDetail => !excludedLogins.has(personalDetail.login));
+        const excludedLogins = new Set(recentReports.map((report) => report.login));
+        const filteredPersonalDetails = options.personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
         return {
             ...options,
             recentReports,
@@ -2572,10 +2572,9 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         recentReports.splice(maxRecentReportsToShow);
     }
 
-    const excludedLogins = new Set(recentReports.map(report => report.login));
-    const filteredPersonalDetails = personalDetails.filter(personalDetail => !excludedLogins.has(personalDetail.login));
+    const excludedLogins = new Set(recentReports.map((report) => report.login));
+    const filteredPersonalDetails = personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
     personalDetails = filteredPersonalDetails;
-
 
     return {
         personalDetails,
