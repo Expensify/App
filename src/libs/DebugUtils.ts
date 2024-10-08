@@ -1,9 +1,14 @@
 /* eslint-disable max-classes-per-file */
 import {isMatch} from 'date-fns';
 import isValid from 'date-fns/isValid';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import * as OptionsListUtils from './OptionsListUtils';
+import * as ReportUtils from './ReportUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -106,6 +111,40 @@ const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
+
+let isInFocusMode: OnyxEntry<boolean>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (priorityMode) => {
+        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    },
+});
+
+let policies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        policies = value;
+    },
+});
+
+let transactionViolations: OnyxCollection<TransactionViolation[]>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        transactionViolations = value;
+    },
+});
+
+let betas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => {
+        betas = value;
+    },
+});
 
 function stringifyJSON(data: Record<string, unknown>) {
     return JSON.stringify(data, null, 6);
@@ -551,6 +590,67 @@ function validateReportActionJSON(json: string) {
     });
 }
 
+/**
+ * Gets the reason for showing LHN row
+ */
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
+    if (!report) {
+        return null;
+    }
+
+    const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+
+    const reason = ReportUtils.reasonForReportToBeInOptionList({
+        report,
+        // We can't pass report.reportID because it will cause reason to always be isFocused
+        currentReportId: '-1',
+        isInFocusMode: !!isInFocusMode,
+        betas,
+        policies,
+        excludeEmptyChats: true,
+        doesReportHaveViolations,
+        includeSelfDM: true,
+    });
+
+    // When there's no specific reason, we default to isFocused since the report is only showing because we're viewing it
+    if (reason === null || reason === CONST.REPORT_IN_LHN_REASONS.DEFAULT) {
+        return 'debug.reasonVisibleInLHN.isFocused';
+    }
+
+    return `debug.reasonVisibleInLHN.${reason}`;
+}
+
+type GBRReasonAndReportAction = {
+    reason: TranslationPaths;
+    reportAction: OnyxEntry<ReportAction>;
+};
+
+/**
+ * Gets the reason and report action that is causing the GBR to show up in LHN row
+ */
+function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRReasonAndReportAction | null {
+    if (!report) {
+        return null;
+    }
+
+    const {reason, reportAction} = ReportUtils.getReasonAndReportActionThatRequiresAttention(report) ?? {};
+
+    if (reason) {
+        return {reason: `debug.reasonGBR.${reason}`, reportAction};
+    }
+
+    return null;
+}
+
+/**
+ * Gets the report action that is causing the RBR to show up in LHN
+ */
+function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+    const {reportAction} = OptionsListUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+    return reportAction;
+}
+
 const DebugUtils = {
     stringifyJSON,
     onyxDataToDraftData,
@@ -568,6 +668,9 @@ const DebugUtils = {
     validateReportDraftProperty,
     validateReportActionDraftProperty,
     validateReportActionJSON,
+    getReasonForShowingRowInLHN,
+    getReasonAndReportActionForGBRInLHNRow,
+    getRBRReportAction,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
 };

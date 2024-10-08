@@ -37,7 +37,7 @@ type TimePickerProps = {
     /** Whether the time value should be validated */
     shouldValidate?: boolean;
 
-    /** Whether the picker shows hours, minutes, seconds and miliseconds */
+    /** Whether the picker shows hours, minutes, seconds and milliseconds */
     showFullFormat?: boolean;
 };
 
@@ -88,7 +88,7 @@ function replaceRangeWithZeros(originalString: string, from: number, to: number,
 }
 
 /**
- * Clear the value under selection of an input (either hours, minutes, seconds or miliseconds) by replacing it with zeros
+ * Clear the value under selection of an input (either hours, minutes, seconds or milliseconds) by replacing it with zeros
  *
  * @param value - current value of the input
  * @param selection - current selection of the input
@@ -135,7 +135,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).hour);
     const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).minute);
     const [seconds, setSeconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).seconds);
-    const [miliseconds, setMiliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).miliseconds);
+    const [milliseconds, setMilliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).milliseconds);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).period);
 
     const lastPressedKey = useRef('');
@@ -189,7 +189,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         setSelectionSecond({start: 0, end: 0});
     };
 
-    const resetMiliseconds = () => {
+    const resetMilliseconds = () => {
         setMinutes('000');
         setSelectionMilisecond({start: 0, end: 0});
     };
@@ -440,14 +440,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     };
 
     /*
-     This function receives value from the miliseconds input and validates it.
+     This function receives value from the milliseconds input and validates it.
      The valid format is SSS(from 000 to 999). If the user enters 9, it will be prepended to 009. If the user tries to change 999 to 9999, it would skip the character
     */
-    const handleMilisecondsChange = (text: string) => {
+    const handleMillisecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
         const trimmedText = text.replace(/ /g, '0');
         if (!trimmedText) {
-            resetMiliseconds();
+            resetMilliseconds();
             return;
         }
 
@@ -460,7 +460,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         let newSelection;
 
         if (selectionMilisecond.start === 0 && selectionMilisecond.end === 0) {
-            // The cursor is at the start of miliseconds
+            // The cursor is at the start of milliseconds
             const firstDigit = trimmedText[0];
             const secondDigit = trimmedText[2] || '0';
             const thirdDigit = trimmedText[3] || '0';
@@ -514,10 +514,10 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         }
 
         if (Number(newMilisecond) > 999) {
-            newMilisecond = miliseconds;
+            newMilisecond = milliseconds;
         }
 
-        setMiliseconds(newMilisecond);
+        setMilliseconds(newMilisecond);
         setSelectionMilisecond({start: newSelection, end: newSelection});
     };
 
@@ -563,7 +563,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         return;
                     }
 
-                    clearSelectedValue(miliseconds, selectionMilisecond, setMiliseconds, setSelectionMilisecond, 3);
+                    clearSelectedValue(milliseconds, selectionMilisecond, setMilliseconds, setSelectionMilisecond, 3);
                 }
                 return;
             }
@@ -576,11 +576,11 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             } else if (isSecondFocused) {
                 handleSecondsChange(insertAtPosition(seconds, trimmedKey, selectionSecond.start, selectionSecond.end));
             } else if (isMilisecondFocused) {
-                handleMilisecondsChange(insertAtPosition(miliseconds, trimmedKey, selectionMilisecond.start, selectionMilisecond.end));
+                handleMillisecondsChange(insertAtPosition(milliseconds, trimmedKey, selectionMilisecond.start, selectionMilisecond.end));
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [minutes, hours, seconds, miliseconds, selectionMinute, selectionHour, selectionSecond, selectionMilisecond],
+        [minutes, hours, seconds, milliseconds, selectionMinute, selectionHour, selectionSecond, selectionMilisecond],
     );
 
     useEffect(() => {
@@ -690,12 +690,12 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     }, [canUseTouchScreen, updateAmountNumberPad]);
 
     useEffect(() => {
-        onInputChange(showFullFormat ? `${hours}:${minutes}:${seconds}.${miliseconds} ${amPmValue}` : `${hours}:${minutes} ${amPmValue}`);
+        onInputChange(showFullFormat ? `${hours}:${minutes}:${seconds}.${milliseconds} ${amPmValue}` : `${hours}:${minutes} ${amPmValue}`);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hours, minutes, amPmValue]);
 
     const handleSubmit = () => {
-        const time = showFullFormat ? `${hours}:${minutes}:${seconds}.${miliseconds}` : `${hours}:${minutes} ${amPmValue}`;
+        const time = showFullFormat ? `${hours}:${minutes}:${seconds}.${milliseconds}` : `${hours}:${minutes} ${amPmValue}`;
         const isValid = validate(time);
 
         if (isValid) {
@@ -796,12 +796,12 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                             <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
                             <AmountTextInput
                                 placeholder={numberFormat(0)}
-                                formattedAmount={miliseconds}
+                                formattedAmount={milliseconds}
                                 onKeyPress={(e) => {
                                     lastPressedKey.current = e.nativeEvent.key;
                                     handleFocusOnBackspace(e);
                                 }}
-                                onChangeAmount={handleMilisecondsChange}
+                                onChangeAmount={handleMillisecondsChange}
                                 ref={(textInputRef) => {
                                     updateRefs('milisecondRef', textInputRef);
                                     milisecondInputRef.current = textInputRef as TextInput | null;
