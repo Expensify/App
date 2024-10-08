@@ -17,7 +17,7 @@ function SearchRouterModal() {
             type={modalType}
             fullscreen
             isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={{right: 20, top: 20}}
+            popoverAnchorPosition={{right: 6, top: 6}}
             onClose={closeSearchRouter}
         >
             <FocusTrapForModal active={isSearchRouterDisplayed}>{isSearchRouterDisplayed && <SearchRouter onRouterClose={closeSearchRouter} />}</FocusTrapForModal>

@@ -185,6 +185,7 @@ function SearchRouterList(
             onLayout={setPerformanceTimersEnd}
             ref={ref}
             showScrollIndicator={!isSmallScreenWidth}
+            sectionTitleStyles={styles.mhn2}
         />
     );
 }
