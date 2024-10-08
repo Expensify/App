@@ -228,33 +228,39 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
-            return accountingIntegrations.map((integration) => {
-                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-                const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-                return {
-                    ...iconProps,
-                    interactive: false,
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    shouldShowRightComponent: true,
-                    title: integrationData?.title,
-                    rightComponent: (
-                        <Button
-                            onPress={() => startIntegrationFlow({name: integration})}
-                            text={translate('workspace.accounting.setup')}
-                            style={styles.justifyContentCenter}
-                            small
-                            isDisabled={isOffline}
-                            ref={(ref) => {
-                                if (!popoverAnchorRefs?.current) {
-                                    return;
-                                }
-                                // eslint-disable-next-line react-compiler/react-compiler
-                                popoverAnchorRefs.current[integration].current = ref;
-                            }}
-                        />
-                    ),
-                };
-            });
+            return accountingIntegrations
+                .map((integration) => {
+                    const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                    const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+                    if (!integrationData) {
+                        return undefined;
+                    }
+                    return {
+                        ...iconProps,
+                        interactive: false,
+                        wrapperStyle: [styles.sectionMenuItemTopDescription],
+                        shouldShowRightComponent: true,
+                        title: integrationData?.title,
+                        rightComponent: (
+                            <Button
+                                onPress={() => startIntegrationFlow({name: integration})}
+                                text={translate('workspace.accounting.setup')}
+                                style={styles.justifyContentCenter}
+                                small
+                                isDisabled={isOffline}
+                                ref={(ref) => {
+                                    if (!popoverAnchorRefs?.current) {
+                                        return;
+                                    }
+                                    // eslint-disable-next-line react-compiler/react-compiler
+                                    popoverAnchorRefs.current[integration].current = ref;
+                                }}
+                            />
+                        ),
+                    };
+                })
+                .filter(Boolean) as MenuItemData[];
         }
 
         if (!connectedIntegration) {
