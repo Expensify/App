@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -231,11 +232,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return accountingIntegrations
                 .map((integration) => {
                     const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-                    const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-
                     if (!integrationData) {
                         return undefined;
                     }
+                    const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
                     return {
                         ...iconProps,
                         interactive: false,
@@ -389,38 +390,44 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const otherIntegrations = accountingIntegrations.filter(
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
-        return otherIntegrations.map((integration) => {
-            const integrationData = getAccountingIntegrationData(integration, policyID, translate);
-            const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-            return {
-                ...iconProps,
-                title: integrationData?.title,
-                rightComponent: (
-                    <Button
-                        onPress={() =>
-                            startIntegrationFlow({
-                                name: integration,
-                                integrationToDisconnect: connectedIntegration,
-                                shouldDisconnectIntegrationBeforeConnecting: true,
-                            })
-                        }
-                        text={translate('workspace.accounting.setup')}
-                        style={styles.justifyContentCenter}
-                        small
-                        isDisabled={isOffline}
-                        ref={(r) => {
-                            if (!popoverAnchorRefs?.current) {
-                                return;
+        return otherIntegrations
+            .map((integration) => {
+                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                if (!integrationData) {
+                    return undefined;
+                }
+                const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+                return {
+                    ...iconProps,
+                    title: integrationData?.title,
+                    rightComponent: (
+                        <Button
+                            onPress={() =>
+                                startIntegrationFlow({
+                                    name: integration,
+                                    integrationToDisconnect: connectedIntegration,
+                                    shouldDisconnectIntegrationBeforeConnecting: true,
+                                })
                             }
-                            popoverAnchorRefs.current[integration].current = r;
-                        }}
-                    />
-                ),
-                interactive: false,
-                shouldShowRightComponent: true,
-                wrapperStyle: styles.sectionMenuItemTopDescription,
-            };
-        });
+                            text={translate('workspace.accounting.setup')}
+                            style={styles.justifyContentCenter}
+                            small
+                            isDisabled={isOffline}
+                            ref={(r) => {
+                                if (!popoverAnchorRefs?.current) {
+                                    return;
+                                }
+                                popoverAnchorRefs.current[integration].current = r;
+                            }}
+                        />
+                    ),
+                    interactive: false,
+                    shouldShowRightComponent: true,
+                    wrapperStyle: styles.sectionMenuItemTopDescription,
+                };
+            })
+            .filter(Boolean) as MenuItemWithLink[];
     }, [
         policy?.connections,
         isSyncInProgress,
