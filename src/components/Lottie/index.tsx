@@ -81,6 +81,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     }, [browser, navigationContainerRef, navigator]);
 
     // If user is being navigated away, let pause the animation to prevent memory leak.
+    // see issue: https://github.com/Expensify/App/issues/36645
     useEffect(() => {
         if (!animationRef.current || !hasNavigatedAway) {
             return;
