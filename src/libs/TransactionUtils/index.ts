@@ -417,7 +417,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
-    return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction); 
+    return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
 }
 
 /**
