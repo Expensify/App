@@ -261,7 +261,15 @@ const SCREENS = {
     SETTINGS_TAGS: {
         SETTINGS_TAGS_ROOT: 'Settings_Tags',
         SETTINGS_TAGS_SETTINGS: 'Settings_Tags_Settings',
-        SETTINGS_EDIT_TAGS: 'Settings_Tags_Edit',
+        SETTINGS_TAGS_EDIT: 'Settings_Tags_Edit',
+        SETTINGS_TAG_CREATE: 'Settings_Tag_Create',
+        SETTINGS_TAG_EDIT: 'Settings_Tag_Edit',
+        SETTINGS_TAG_SETTINGS: 'Settings_Tag_Settings',
+        SETTINGS_TAG_APPROVER: 'Settings_Tag_Approver',
+        SETTINGS_TAG_LIST_VIEW: 'Settings_Tag_List_View',
+        SETTINGS_TAG_GL_CODE: 'Settings_Tag_GL_Code',
+        SETTINGS_TAGS_IMPORT: 'Settings_Tags_Import',
+        SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported',
     },
 
     REPORT_SETTINGS: {
