@@ -1002,7 +1002,7 @@ const translations = {
         changed: 'cambió',
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
-        chooseARate: `Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo`,
+        chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
         unapprove: 'Desaprobar',
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
