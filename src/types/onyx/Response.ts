@@ -74,6 +74,12 @@ type Response = {
 
     /** The email of the user */
     email?: string;
+
+    /** If there is older data to load for pagination commands */
+    hasOlderActions?: boolean;
+
+    /** If there is newer data to load for pagination commands */
+    hasNewerActions?: boolean;
 };
 
 export default Response;
