@@ -275,11 +275,11 @@ Onyx.connect({
     },
 });
 
-let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+let allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (val) => (allPolicyCategories = val),
+    callback: (val) => (allPolicies = val),
 });
 
 const lastReportActions: ReportActions = {};
@@ -298,7 +298,11 @@ Onyx.connect({
 
         // Iterate over the report actions to build the sorted and lastVisible report actions objects
         Object.entries(allReportActions).forEach((reportActions) => {
-            const reportID = reportActions[0].split('_')[1];
+            const reportID = reportActions[0].split('_').at(1);
+            if (!reportID) {
+                return;
+            }
+
             const reportActionsArray = Object.values(reportActions[1] ?? {});
             let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
             allSortedReportActions[reportID] = sortedReportActions;
@@ -311,7 +315,12 @@ Onyx.connect({
                 sortedReportActions = ReportActionUtils.getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID, false);
             }
 
-            lastReportActions[reportID] = sortedReportActions[0];
+            const firstReportAction = sortedReportActions.at(0);
+            if (!firstReportAction) {
+                delete lastReportActions[reportID];
+            } else {
+                lastReportActions[reportID] = firstReportAction;
+            }
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -323,7 +332,12 @@ Onyx.connect({
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                     !ReportActionUtils.isResolvedActionTrackExpense(reportAction),
             );
-            lastVisibleReportActions[reportID] = reportActionsForDisplay[0];
+            const reportActionForDisplay = reportActionsForDisplay.at(0);
+            if (!reportActionForDisplay) {
+                delete lastVisibleReportActions[reportID];
+                return;
+            }
+            lastVisibleReportActions[reportID] = reportActionForDisplay;
         });
     },
 });
@@ -466,18 +480,23 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-/**
- * Get an object of error messages keyed by microtime by combining all error objects related to the report.
- */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
-    const reportErrors = report?.errors ?? {};
-    const reportErrorFields = report?.errorFields ?? {};
+type ReportErrorsAndReportActionThatRequiresAttention = {
+    errors: OnyxCommon.ErrorFields;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {});
     const reportActionErrors: OnyxCommon.ErrorFields = {};
+    let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
         if (action && !isEmptyObject(action.errors)) {
             Object.assign(reportActionErrors, action.errors);
+
+            if (!reportAction) {
+                reportAction = action;
+            }
         }
     }
     const parentReportAction: OnyxEntry<ReportAction> =
@@ -488,14 +507,32 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = undefined;
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
         if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = ReportUtils.getReportActionWithMissingSmartscanFields(report?.reportID ?? '-1');
         }
     } else if (ReportUtils.hasSmartscanError(reportActionsArray)) {
         reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+        reportAction = ReportUtils.getReportActionWithSmartscanError(reportActionsArray);
     }
+
+    return {
+        errors: reportActionErrors,
+        reportAction,
+    };
+}
+
+/**
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
+ */
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
+    const reportErrors = report?.errors ?? {};
+    const reportErrorFields = report?.errorFields ?? {};
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
         reportErrors,
@@ -532,9 +569,15 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     const report = ReportUtils.getReportOrDraftReport(option.reportID);
     const isAdminRoom = ReportUtils.isAdminRoom(report);
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+    const isGroupChat = ReportUtils.isGroupChat(report);
+    const isExpenseThread = ReportUtils.isMoneyRequest(report);
 
-    if (!!option.isThread || !!option.isMoneyRequestReport) {
-        return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+    if (isExpenseThread || option.isMoneyRequestReport) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'iou.expense');
+    }
+
+    if (option.isThread) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
@@ -546,12 +589,16 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'task.task');
+    }
+
+    if (isGroupChat) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'common.group');
     }
 
     return showChatPreviewLine && option.lastMessageText
         ? option.lastMessageText
-        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
+        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
 }
 
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
@@ -660,8 +707,16 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
-        lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
+    } else if (
+        ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+        ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
+    ) {
+        const wasSubmittedViaHarvesting = ReportActionUtils.getOriginalMessage(lastReportAction)?.harvesting ?? false;
+        if (wasSubmittedViaHarvesting) {
+            lastMessageTextFromReport = ReportUtils.getReportAutomaticallySubmittedMessage(lastReportAction);
+        } else {
+            lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
+        }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
@@ -677,6 +732,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
+}
+
+function hasReportErrors(report: Report, reportActions: OnyxEntry<ReportActions>) {
+    return !isEmptyObject(getAllReportErrors(report, reportActions));
 }
 
 /**
@@ -725,7 +784,7 @@ function createOption(
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
     const personalDetailList = Object.values(personalDetailMap).filter((details): details is PersonalDetails => !!details);
-    const personalDetail = personalDetailList[0];
+    const personalDetail = personalDetailList.at(0);
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
     let reportName;
@@ -745,7 +804,7 @@ function createOption(
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.brickRoadIndicator = hasReportErrors(report, reportActions) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
@@ -783,12 +842,12 @@ function createOption(
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
         reportName = showPersonalDetails
-            ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
+            ? ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
             : ReportUtils.getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
-        result.keyForList = String(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs.at(0)) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
+        result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
     }
@@ -1991,8 +2050,8 @@ function getOptions(
             reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
-                const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
-                if (getEnabledCategoriesCount(policyCategories) !== 0) {
+                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
+                if (reportPolicy?.areCategoriesEnabled) {
                     recentReportOptions.push(reportOption);
                 }
             } else {
@@ -2084,7 +2143,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
+function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = [], isUsedInChatFinder = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
@@ -2094,7 +2153,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         sortByReportTypeInSearch: true,
-        showChatPreviewLine: true,
+        showChatPreviewLine: isUsedInChatFinder,
         includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
@@ -2102,7 +2161,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeMoneyRequests: true,
         includeTasks: true,
         includeSelfDM: true,
-        shouldBoldTitleByDefault: false,
+        shouldBoldTitleByDefault: !isUsedInChatFinder,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2408,9 +2467,9 @@ function getFirstKeyForList(data?: Option[] | null) {
         return '';
     }
 
-    const firstNonEmptyDataObj = data[0];
+    const firstNonEmptyDataObj = data.at(0);
 
-    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+    return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
 function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {
@@ -2588,6 +2647,8 @@ export {
     getEmptyOptions,
     shouldUseBoldText,
     getAlternateText,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    hasReportErrors,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
