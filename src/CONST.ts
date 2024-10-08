@@ -84,6 +84,12 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
+const signupQualifiers = {
+    INDIVIDUAL: 'individual',
+    VSB: 'vsb',
+    SMB: 'smb',
+} as const;
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
@@ -111,16 +117,16 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
                 'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
         },
         {
-            type: 'enableWallet',
+            type: 'addBankAccount',
             autoCompleted: false,
-            title: 'Enable your wallet',
+            title: 'Add personal bank account',
             description:
-                'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
                 '\n' +
-                'Here’s how to set up your wallet:\n' +
+                'Here’s how to set up your bank account:\n' +
                 '\n' +
                 '1. Click your profile picture.\n' +
-                '2. Click *Wallet* > *Enable wallet*.\n' +
+                '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
                 'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
@@ -189,8 +195,9 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
-    ANIMATION_PAY_BUTTON_DURATION: 200,
-    ANIMATION_PAY_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_DURATION: 200,
+    ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -473,6 +480,7 @@ const CONST = {
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
+        NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -715,18 +723,19 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    SAGE_INTACCT_HELP_LINK:
-        "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
+    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
+        POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -837,6 +846,7 @@ const CONST = {
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
+                SUBMITTED_AND_CLOSED: 'SUBMITTEDCLOSED',
                 TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
                 TASK_COMPLETED: 'TASKCOMPLETED',
@@ -1009,6 +1019,7 @@ const CONST = {
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
@@ -1054,7 +1065,6 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
-            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -1151,9 +1161,9 @@ const CONST = {
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
-        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        INCORRECT_MAGIC_CODE: 451,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -1263,6 +1273,7 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        PRESENCE_ACTIVE_GUIDES: 'presence-activeGuides',
     },
 
     EMOJI_SPACER: 'SPACER',
@@ -1417,6 +1428,7 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
+    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
         ADMIN: 'admin@expensify.com',
@@ -1835,6 +1847,7 @@ const CONST = {
             DATE_OF_BIRTH: 1,
             ADDRESS: 2,
             PHONE_NUMBER: 3,
+            CONFIRM: 4,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -2033,6 +2046,7 @@ const CONST = {
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
+        LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
@@ -2054,6 +2068,7 @@ const CONST = {
             INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
+            CREATE: 'create',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -2095,6 +2110,9 @@ const CONST = {
         },
         ACCESS_VARIANTS: {
             CREATE: 'create',
+        },
+        PAGE_INDEX: {
+            CONFIRM: 'confirm',
         },
         PAYMENT_SELECTED: {
             BBA: 'BBA',
@@ -2153,7 +2171,6 @@ const CONST = {
 
     POLICY: {
         TYPE: {
-            FREE: 'free',
             PERSONAL: 'personal',
 
             // Often referred to as "control" workspaces
@@ -2162,7 +2179,15 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
-        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        RULE_CONDITIONS: {
+            MATCHES: 'matches',
+        },
+        FIELDS: {
+            TAG: 'tag',
+            CATEGORY: 'category',
+            FIELD_LIST_TITLE: 'text_title',
+            TAX: 'tax',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
@@ -2172,7 +2197,7 @@ const CONST = {
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
         AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
         AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
-        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 5,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.05,
 
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
@@ -2277,12 +2302,14 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                QBD: 'quickbooksDesktop',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
+                QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -2293,6 +2320,12 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+            },
+            AUTH_HELP_LINKS: {
+                intacct:
+                    "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
+                netsuite:
+                    'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2438,6 +2471,7 @@ const CONST = {
         },
     },
     EXPENSIFY_CARD: {
+        NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
@@ -2684,11 +2718,7 @@ const CONST = {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
         WORKSPACE_PROFILE: 'WorkspaceProfile',
-        WORKSPACE_CARD: 'WorkspaceCorporateCards',
-        WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
-        WORKSPACE_BILLS: 'WorkspacePayBills',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
-        WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
@@ -2771,6 +2801,7 @@ const CONST = {
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+    STATE_CHARACTER_LIMIT: 32,
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -2804,6 +2835,7 @@ const CONST = {
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
+        DEBUG: 'debug',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4000,7 +4032,6 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
-    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
@@ -4036,70 +4067,6 @@ const CONST = {
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
-    },
-
-    /**
-     * Acceptable values for the `accessibilityRole` prop on react native components.
-     *
-     * **IMPORTANT:** Do not use with the `role` prop as it can cause errors.
-     *
-     * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
-     */
-    ACCESSIBILITY_ROLE: {
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        BUTTON: 'button',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        LINK: 'link',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        MENUITEM: 'menuitem',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        TEXT: 'text',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        RADIO: 'radio',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        IMAGEBUTTON: 'imagebutton',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        CHECKBOX: 'checkbox',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        SWITCH: 'switch',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        ADJUSTABLE: 'adjustable',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        IMAGE: 'image',
-
-        /**
-         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
-         */
-        TEXTBOX: 'textbox',
     },
 
     /**
@@ -4203,6 +4170,7 @@ const CONST = {
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -4249,7 +4217,7 @@ const CONST = {
         PADDING: 32,
         DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
-        DEFAULT_COORDINATE: [-122.4021, 37.7911],
+        DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
@@ -4261,7 +4229,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -4505,9 +4472,11 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
+    QUALIFIER_PARAM: 'signupQualifier',
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
+    ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
@@ -4596,14 +4565,33 @@ const CONST = {
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to Workspaces.\n' +
+                        '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Enable and disable default categories.\n' +
-                        '6. Click *Add categories* to make your own.\n' +
-                        '7. For more controls like requiring a category for every expense, click *Settings*.\n' +
+                        '5. Add or import your own categories.\n' +
+                        "6. Disable any default categories you don't need.\n" +
+                        '7. Require a category for every expense in *Settings*.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
+                },
+                {
+                    type: 'setupTags',
+                    autoCompleted: false,
+                    title: 'Set up tags',
+                    description: ({workspaceMoreFeaturesLink}) =>
+                        'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags you can upgrade to a control plan.\n' +
+                        '\n' +
+                        '*Here’s how to set up tags:*\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click More features.\n' +
+                        '5. Enable tags.\n' +
+                        '6. Navigate to Tags in the workspace editor.\n' +
+                        '7. In Tags, click + Add tag to make your own.\n' +
+                        '\n' +
+                        `*[Take me to more features](${workspaceMoreFeaturesLink})*`,
                 },
                 {
                     type: 'addExpenseApprovals',
@@ -4716,19 +4704,19 @@ const CONST = {
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
                 },
                 {
-                    type: 'enableWallet',
+                    type: 'addBankAccount',
                     autoCompleted: false,
-                    title: 'Enable your wallet',
+                    title: 'Add personal bank account',
                     description:
-                        'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                        'You’ll need to add your personal bank account to get paid back. Don’t worry, it’s easy!\n' +
                         '\n' +
-                        'Here’s how to enable your wallet:\n' +
+                        'Here’s how to set up your bank account:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. *Click Wallet* > *Enable wallet*.\n' +
-                        '3. Add your bank account.\n' +
+                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                        '3. Connect your bank account.\n' +
                         '\n' +
-                        'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
+                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
                 },
             ],
         },
@@ -5468,6 +5456,7 @@ const CONST = {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
     },
 
     RESERVATION_TYPE: {
@@ -5560,6 +5549,7 @@ const CONST = {
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
+                PINNED: 'pinned',
             },
         },
         TABLE_COLUMNS: {
@@ -5796,6 +5786,39 @@ const CONST = {
         ICON_HEIGHT: 160,
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
+        MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
+        TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    },
+
+    // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
+    ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
+    },
+
+    REPORT_IN_LHN_REASONS: {
+        HAS_DRAFT_COMMENT: 'hasDraftComment',
+        HAS_GBR: 'hasGBR',
+        PINNED_BY_USER: 'pinnedByUser',
+        HAS_IOU_VIOLATIONS: 'hasIOUViolations',
+        HAS_ADD_WORKSPACE_ROOM_ERRORS: 'hasAddWorkspaceRoomErrors',
+        IS_UNREAD: 'isUnread',
+        IS_ARCHIVED: 'isArchived',
+        IS_SELF_DM: 'isSelfDM',
+        IS_FOCUSED: 'isFocused',
+        DEFAULT: 'default',
+    },
+
+    REQUIRES_ATTENTION_REASONS: {
+        HAS_JOIN_REQUEST: 'hasJoinRequest',
+        IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
+        IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
+        HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
+        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
     },
 } as const;
 

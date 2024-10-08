@@ -64,6 +64,7 @@ import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
+import type {RecentSearchItem} from './RecentSearch';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
@@ -105,7 +106,6 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
@@ -207,7 +207,6 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
-    WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
@@ -232,6 +231,7 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
+    RecentSearchItem,
     ImportedSpreadsheet,
     ValidateMagicCodeAction,
 };

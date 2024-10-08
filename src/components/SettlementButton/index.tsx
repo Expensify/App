@@ -5,7 +5,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import {useSession} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -58,20 +58,19 @@ function SettlementButton({
     useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    onlyShowPayElsewhere,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const session = useSession();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
-    const [lastPaymentMethod = '-1'] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod?.[policyID]});
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const [lastPaymentMethod = '-1', lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod?.[policyID]});
+    const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const shouldShowPaywithExpensifyOption =
-        !isPaidGroupPolicy ||
-        (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
-    const shouldShowPayElsewhereOption = (!isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) && !isInvoiceReport;
+    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -103,6 +102,10 @@ function SettlementButton({
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
             return [approveButtonOption];
+        }
+
+        if (onlyShowPayElsewhere) {
+            return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
@@ -159,9 +162,11 @@ function SettlementButton({
             return buttonOptions.sort((method) => (method.value === lastPaymentMethod ? -1 : 0));
         }
         return buttonOptions;
-        // We don't want to reorder the options when the preferred payment method changes while the button is still visible
+        // We don't want to reorder the options when the preferred payment method changes while the button is still visible except for component initialization when the last payment method is not initialized yet.
+        // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
+        isLoadingLastPaymentMethod,
         iouReport,
         translate,
         formattedAmount,
@@ -174,6 +179,7 @@ function SettlementButton({
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,
+        onlyShowPayElsewhere,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
@@ -183,6 +189,10 @@ function SettlementButton({
         }
 
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+            if (!isUserValidated) {
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute());
+                return;
+            }
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;

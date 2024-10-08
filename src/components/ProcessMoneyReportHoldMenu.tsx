@@ -25,7 +25,7 @@ type ProcessMoneyReportHoldMenuProps = {
     isVisible: boolean;
 
     /** The report currently being looked at */
-    moneyRequestReport: OnyxTypes.Report;
+    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Not held amount of expense report */
     nonHeldAmount?: string;
@@ -41,6 +41,9 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Number of transaction of a money request */
     transactionCount: number;
+
+    /** Callback for displaying payment animation on IOU preview component */
+    startAnimation?: () => void;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -53,6 +56,7 @@ function ProcessMoneyReportHoldMenu({
     chatReport,
     moneyRequestReport,
     transactionCount,
+    startAnimation,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -62,10 +66,13 @@ function ProcessMoneyReportHoldMenu({
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport.reportID)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport.reportID));
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
         } else if (chatReport && paymentType) {
+            if (startAnimation) {
+                startAnimation();
+            }
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
         onClose();
@@ -75,7 +82,7 @@ function ProcessMoneyReportHoldMenu({
         if (nonHeldAmount) {
             return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
         }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {transactionCount});
+        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
     }, [nonHeldAmount, transactionCount, translate, isApprove]);
 
     return (

@@ -193,6 +193,10 @@ function AvatarWithImagePicker({
         setError(null, {});
     }, [isFocused]);
 
+    useEffect(() => {
+        setError(null, {});
+    }, [source, avatarID]);
+
     /**
      * Check if the attachment extension is allowed.
      */
@@ -228,26 +232,31 @@ function AvatarWithImagePicker({
                 return;
             }
 
-            isValidResolution(image).then((isValid) => {
-                if (!isValid) {
-                    setError('avatarWithImagePicker.resolutionConstraints', {
-                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                    });
-                    return;
-                }
+            FileUtils.validateImageForCorruption(image)
+                .then(() => isValidResolution(image))
+                .then((isValid) => {
+                    if (!isValid) {
+                        setError('avatarWithImagePicker.resolutionConstraints', {
+                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                        });
+                        return;
+                    }
 
-                setIsAvatarCropModalOpen(true);
-                setError(null, {});
-                setIsMenuVisible(false);
-                setImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
+                    setIsAvatarCropModalOpen(true);
+                    setError(null, {});
+                    setIsMenuVisible(false);
+                    setImageData({
+                        uri: image.uri ?? '',
+                        name: image.name ?? '',
+                        type: image.type ?? '',
+                    });
+                })
+                .catch(() => {
+                    setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
                 });
-            });
         },
         [isValidExtension, isValidSize],
     );
@@ -325,7 +334,7 @@ function AvatarWithImagePicker({
     );
 
     return (
-        <View style={style}>
+        <View style={[styles.w100, style]}>
             <View style={styles.w100}>
                 <AttachmentModal
                     headerTitle={headerTitle}
@@ -335,7 +344,11 @@ function AvatarWithImagePicker({
                     maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
-                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                        <AttachmentPicker
+                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                            // We need to skip the validation in AttachmentPicker because it is handled in this component itself
+                            shouldValidateImage={false}
+                        >
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
@@ -372,14 +385,14 @@ function AvatarWithImagePicker({
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, avatarStyle, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter]}
+                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
                                                     ref={anchorRef}
                                                 >
                                                     <OfflineWithFeedback pendingAction={pendingAction}>
                                                         {source ? (
                                                             <Avatar
                                                                 containerStyles={avatarStyle}
-                                                                imageStyles={[avatarStyle, styles.alignSelfCenter]}
+                                                                imageStyles={[styles.alignSelfCenter, avatarStyle]}
                                                                 source={source}
                                                                 avatarID={avatarID}
                                                                 fallbackIcon={fallbackIcon}

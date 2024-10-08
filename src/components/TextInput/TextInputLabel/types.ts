@@ -10,9 +10,6 @@ type TextInputLabelProps = {
     /** Label scale */
     labelScale: Animated.Value;
 
-    /** Whether the label is currently active or not */
-    isLabelActive: boolean;
-
     /** For attribute for label */
     for?: string;
 };

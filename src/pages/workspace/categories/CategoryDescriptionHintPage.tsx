@@ -63,7 +63,7 @@ function CategoryDescriptionHintPage({
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', categoryName)}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', {categoryName})}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMMENT_HINT}
