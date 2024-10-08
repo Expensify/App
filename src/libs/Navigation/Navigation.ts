@@ -1,6 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import lodashOmit from 'lodash/omit';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -32,6 +33,8 @@ import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorParamListType, State, StateOrRoute} from './types';
+
+const PARAMS_TO_OMIT_WHEN_COMPARING_ROUTES = ['path', 'initial', 'params', 'state', 'screen', 'policyID'] as const;
 
 const SPLIT_NAVIGATOR_TO_SIDEBAR_MAP: Record<keyof SplitNavigatorParamListType, SplitNavigatorLHNScreen> = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: SCREENS.HOME,
@@ -225,9 +228,10 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
-    // @TODO: Fix params comparison. When comparing split navigators params, it may happen that first one has parameters with the initial settings and the second one does not.
-    // We can filter out params that shouldn't be compared. For example params that react-navigation uses for the initial state.
-    return shallowCompare(route.params as Record<string, string | undefined>, minimalAction.payload.params as Record<string, string | undefined>);
+    const routeParams = lodashOmit(route.params ?? {}, PARAMS_TO_OMIT_WHEN_COMPARING_ROUTES) as Record<string, string | undefined>;
+    const minimalActionParams = lodashOmit(minimalAction.payload.params ?? {}, PARAMS_TO_OMIT_WHEN_COMPARING_ROUTES) as Record<string, string | undefined>;
+
+    return shallowCompare(routeParams, minimalActionParams);
 }
 
 function goUp(fallbackRoute: Route) {
