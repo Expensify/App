@@ -440,9 +440,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 /**
- * Reimbursable account types exported from QuickBooks Online
- *
- * TODO: QBD remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ * Reimbursable account types exported from QuickBooks Desktop
  */
 type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE>;
 
@@ -1281,7 +1279,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     autoCreateVendor: boolean;
 
-    /** TODO: Will be handled in another issue */
+    /** Defines the export date */
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 
     /** Configuration of the export */

@@ -161,7 +161,7 @@ function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Conn
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.AUTO_SYNC),
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED, parameters, onyxData);
 }

@@ -83,22 +83,6 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         },
     ];
 
-    const toggleSettingItems = [
-        ...(qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK
-            ? [
-                  {
-                      title: translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle'),
-                      switchAccessibilityLabel: translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle'),
-                      isActive: !!qbdConfig?.markChecksToBePrinted,
-                      onToggle: () => QuickbooksDesktop.updateQuickbooksDesktopMarkChecksToBePrinted(policyID, !qbdConfig?.markChecksToBePrinted),
-                      subscribedSetting: CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
-                      errors: ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED),
-                      pendingAction: settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED], qbdConfig?.pendingFields),
-                  },
-              ]
-            : []),
-    ];
-
     return (
         <ConnectionLayout
             displayName={QuickbooksDesktopOutOfPocketExpenseConfigurationPage.displayName}
@@ -129,19 +113,20 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     />
                 </OfflineWithFeedback>
             ))}
-            {toggleSettingItems.map((item) => (
+            {qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
                 <ToggleSettingOptionRow
-                    key={item.title}
-                    title={item.title}
-                    switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
+                    title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
+                    switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.ph5]}
-                    isActive={item.isActive}
-                    onToggle={item.onToggle}
-                    errors={item.errors}
-                    onCloseError={() => clearQBDErrorField(policyID, item.subscribedSetting)}
+                    isActive={!!qbdConfig?.markChecksToBePrinted}
+                    onToggle={() => QuickbooksDesktop.updateQuickbooksDesktopMarkChecksToBePrinted(policyID, !qbdConfig?.markChecksToBePrinted)}
+                    errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED)}
+                    pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED], qbdConfig?.pendingFields)}
+                    onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED)}
                 />
-            ))}
+            )}
         </ConnectionLayout>
     );
 }
