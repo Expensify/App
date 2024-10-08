@@ -3,6 +3,7 @@ import {
     addHours,
     addMilliseconds,
     addMinutes,
+    differenceInDays,
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
@@ -825,6 +826,25 @@ function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
     return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
 }
 
+/**
+ * Returns the difference in the number of days from the provided date to/from now.
+ * @param - The date to compare.
+ * @returns The difference in days as an integer.
+ */
+function getDifferenceInDaysFromNow(date: Date) {
+    return differenceInDays(new Date(), date);
+}
+
+/**
+ * Returns a boolean value indicating whether the provided date string can be parsed as a valid date.
+ * @param dateString string
+ * @returns True if the date string is valid, otherwise false.
+ */
+function isValidDateString(dateString: string) {
+    const date = new Date(dateString);
+    return !Number.isNaN(date.getTime());
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -870,6 +890,8 @@ const DateUtils = {
     getFormattedTransportDate,
     doesDateBelongToAPastYear,
     isCardExpired,
+    getDifferenceInDaysFromNow,
+    isValidDateString,
 };
 
 export default DateUtils;
