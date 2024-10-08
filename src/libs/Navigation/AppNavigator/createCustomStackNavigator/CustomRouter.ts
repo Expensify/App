@@ -41,6 +41,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+
         // We reset the URL as the browser sets it in a way that doesn't match the navigation state
         // @TODO is it working? Maybe we should split it for platforms.
         // eslint-disable-next-line no-restricted-globals
@@ -78,7 +79,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     const {setActiveWorkspaceID} = useActiveWorkspace();
 
-    // @TODO: Make sure that everything works fine without compareAndAdaptState function
+    // @TODO: Make sure that everything works fine without compareAndAdaptState function. Probably with getMatchingFullScreenRoute.
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType | CustomRootStackActionType, configOptions: RouterConfigOptions) {
@@ -111,6 +112,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                     setActiveWorkspaceID(action.payload.policyID);
                     return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
+
                 // We don't have other navigators that should handle switch policy action.
                 return null;
             }

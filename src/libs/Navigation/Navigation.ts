@@ -226,6 +226,7 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
     }
 
     // @TODO: Fix params comparison. When comparing split navigators params, it may happen that first one has parameters with the initial settings and the second one does not.
+    // We can filter out params that shouldn't be compared. For example params that react-navigation uses for the initial state.
     return shallowCompare(route.params as Record<string, string | undefined>, minimalAction.payload.params as Record<string, string | undefined>);
 }
 
@@ -474,6 +475,8 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     );
 }
 
+// @TODO In places where we use dismissModal with report arg we should do dismiss modal and then navigate to the report.
+// We left it here to limit the number of changed files.
 const dismissModal = (reportID?: string, ref = navigationRef) => {
     ref.dispatch({type: 'DISMISS_MODAL'});
     if (!reportID) {

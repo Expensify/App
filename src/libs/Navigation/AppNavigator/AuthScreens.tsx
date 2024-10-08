@@ -89,24 +89,7 @@ function shouldOpenOnAdminRoom() {
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
-// @TODO: Add these params to SearchPage and ReportScreen
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
-    if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
-        // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString()};
-    }
-
-    if (screenName === SCREENS.REPORT) {
-        return {
-            openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
-            reportID: initialReportID,
-        };
-    }
-
-    return undefined;
-}
-
+// @TODO Adapt to the new structure.
 function getCentralPaneScreenListeners(screenName: CentralPaneName) {
     if (screenName === SCREENS.REPORT) {
         return {beforeRemove: beforeRemoveReportOpenedFromSearchRHP};
