@@ -147,7 +147,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
 
     return (
         <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-            <View style={[styles.flexRow, styles.gap2]}>
+            <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={indicator}
