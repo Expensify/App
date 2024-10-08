@@ -940,7 +940,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             },
                         },
                     },
-                },   
+                },
                 [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: {
                     screens: {
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
