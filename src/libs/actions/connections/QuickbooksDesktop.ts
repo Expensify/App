@@ -8,72 +8,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
 
-function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']>>(
-    policyID: string,
-    configUpdate: TConfigUpdate,
-    configCurrentData: TConfigUpdate,
-) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                        config: {
-                            ...configUpdate,
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                        config: {
-                            ...configCurrentData,
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(
-                                Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')]),
-                            ),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                        config: {
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-    return {
-        optimisticData,
-        failureData,
-        successData,
-    };
-}
-
 function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']>(
     policyID: string,
     settingName: TSettingName,
@@ -181,4 +115,4 @@ function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extend
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
-export {updateQuickbooksDesktopMarkChecksToBePrinted, updateQuickbooksDesktopReimbursableExpensesAccount, buildOnyxDataForMultipleQuickbooksConfigurations};
+export {updateQuickbooksDesktopMarkChecksToBePrinted, updateQuickbooksDesktopReimbursableExpensesAccount};
