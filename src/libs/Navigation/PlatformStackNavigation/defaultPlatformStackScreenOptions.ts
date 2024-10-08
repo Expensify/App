@@ -1,4 +1,4 @@
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations from './navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from './types';
 
 const defaultPlatformStackScreenOptions: PlatformStackNavigationOptions = {
