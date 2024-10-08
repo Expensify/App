@@ -32,13 +32,13 @@ function getSettingsMessage(status: ValueOf<typeof CONST.INDICATOR_STATUS> | und
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.workspaceHasEmployeeListErrors';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
-            return 'debug.indicatorStatus.profileHasErrors';
+            return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
-            return 'debug.indicatorStatus.profileRequiresAttention';
+            return 'debug.indicatorStatus.contactMethodRequiresVerification';
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
-            return 'debug.indicatorStatus.walletHasPaymentMethodError';
+            return 'debug.indicatorStatus.theresAProblemWithAPaymentMethod';
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
-            return 'debug.indicatorStatus.workspaceHasErrors';
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspace';
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
             return 'debug.indicatorStatus.workspaceHasReimbursementAccountError';
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
@@ -46,11 +46,11 @@ function getSettingsMessage(status: ValueOf<typeof CONST.INDICATOR_STATUS> | und
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return 'debug.indicatorStatus.subscriptionRequiresAttention';
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return 'debug.indicatorStatus.policyAccountingHasSyncErrors';
+            return 'debug.indicatorStatus.theresWasAProblemDuringAWorkspaceConnectionSync';
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
-            return 'debug.indicatorStatus.walletHasErrors';
+            return 'debug.indicatorStatus.theresAProblemWithYourWallet';
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
-            return 'debug.indicatorStatus.walletHasTermsErrors';
+            return 'debug.indicatorStatus.theresAProblemWithYourWalletTerms';
         default:
             return undefined;
     }
