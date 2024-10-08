@@ -4,7 +4,7 @@ import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Modal} from '@src/types/onyx';
+import type {Modal} from '@src/types/onyx';
 import measureTooltipCoordinate from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
@@ -26,7 +26,9 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
     const shouldShow = !modal?.willAlertModalBecomeVisible && !modal?.isVisible && shouldRender;
 
     useEffect(() => {
-        if (!shouldRender) return;
+        if (!shouldRender) {
+            return;
+        }
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
