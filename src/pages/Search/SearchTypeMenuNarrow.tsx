@@ -81,6 +81,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 shouldShowRightIcon: isSelected,
                 success: isSelected,
                 containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                shouldCallAfterModalHide: true,
             };
         });
 
@@ -95,6 +96,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 containerStyle: undefined,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: false,
+                shouldCallAfterModalHide: true,
             });
         }
 
@@ -137,6 +139,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             />
         ),
         isSelected: currentSavedSearch?.hash === item.hash,
+        shouldCallAfterModalHide: true,
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     }));
@@ -170,7 +173,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1, styles.fontSizeLabel]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.label]}
                             >
                                 {menuTitle}
                             </Text>
