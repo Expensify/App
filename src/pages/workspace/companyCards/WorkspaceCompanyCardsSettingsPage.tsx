@@ -57,6 +57,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const onToggleLiability = (isOn: boolean) => {
         Policy.setWorkspaceCompanyCardTransactionLiability(
             workspaceAccountID,
+            policyID,
             selectedFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
         );

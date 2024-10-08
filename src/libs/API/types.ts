@@ -875,6 +875,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_TAXES_PAGE: 'OpenPolicyTaxesPage',
     OPEN_POLICY_REPORT_FIELDS_PAGE: 'OpenPolicyReportFieldsPage',
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
+    OPEN_POLICY_COMPANY_CARDS_FEED: 'OpenPolicyCompanyCardsFeed',
     OPEN_POLICY_COMPANY_CARDS_PAGE: 'OpenPolicyCompanyCardsPage',
     OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE: 'OpenPolicyEditCardLimitTypePage',
     OPEN_WORKSPACE_INVITE_PAGE: 'OpenWorkspaceInvitePage',
@@ -939,6 +940,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
+    [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED]: Parameters.OpenPolicyCompanyCardsFeedParams;
     [READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE]: Parameters.OpenPolicyEditCardLimitTypePageParams;
     [READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE]: Parameters.OpenPolicyProfilePageParams;
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;

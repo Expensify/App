@@ -27,6 +27,7 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyCompanyCardsFeedParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -81,6 +82,7 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CompanyCardFeed,
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
@@ -1994,6 +1996,15 @@ function openPolicyTaxesPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
+}
+
+function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
+    const parameters: OpenPolicyCompanyCardsFeedParams = {
+        policyID,
+        feed,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
 function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number) {
@@ -4461,7 +4472,7 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
 }
 
-function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, bankName: string, liabilityType: string) {
+function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: string, liabilityType: string) {
     const authToken = NetworkStore.getAuthToken();
     const onyxData: OnyxData = {
         optimisticData: [
@@ -4479,6 +4490,7 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
 
     const parameters = {
         authToken,
+        policyID,
         bankName,
         liabilityType,
     };
@@ -4874,6 +4886,7 @@ export {
     deleteWorkspaceCompanyCardFeed,
     setWorkspaceCompanyCardTransactionLiability,
     openPolicyCompanyCardsPage,
+    openPolicyCompanyCardsFeed,
     addNewCompanyCardsFeed,
     assignWorkspaceCompanyCard,
     unassignWorkspaceCompanyCard,

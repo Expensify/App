@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -33,6 +33,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const isLoading = !cardFeeds || cardFeeds.isLoading;
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
@@ -42,12 +43,17 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
     useFocusEffect(fetchCompanyCards);
 
+    useEffect(() => {
+        if (!isLoading) {
+            Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+        }
+    }, [selectedFeed, isLoading]);
+
     const companyCards = cardFeeds?.companyCards ?? {};
     const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
     const isNoFeed = !selectedCompanyCard;
     const isPending = selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
-    const isLoading = !cardFeeds || cardFeeds.isLoading;
 
     return (
         <AccessOrNotFoundWrapper
