@@ -301,7 +301,7 @@
     "prettier": "^2.8.8",
     "pusher-js-mock": "^0.3.3",
     "react-compiler-healthcheck": "^0.0.0-experimental-ab3118d-20240725",
-    "react-compiler-runtime": "file:./lib/react-compiler-runtime",
+    "react-compiler-runtime": "^0.0.0-experimental-8d8e73f-20241007",
     "react-is": "^18.3.1",
     "react-native-clean-project": "^4.0.0-alpha4.0",
     "react-test-renderer": "18.3.1",
