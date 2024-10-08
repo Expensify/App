@@ -89,7 +89,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     isSelected: userReportedIntegration === connectionName,
                 };
             })
-            .filter((item) => !!item);
+            .filter((item): item is OnboardingListItem => !!item);
         const noneAccountingOption: OnboardingListItem = {
             keyForList: null,
             text: translate('onboarding.accounting.noneOfAbove'),
