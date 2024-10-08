@@ -59,13 +59,13 @@ function getSettingsMessage(status: ValueOf<typeof CONST.INDICATOR_STATUS> | und
 function getSettingsRoute(status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined, idOfPolicyWithErrors = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return ROUTES.SETTINGS_SUBSCRIPTION;
+            return ROUTES.WORKSPACE_INITIAL.getRoute(idOfPolicyWithErrors);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(idOfPolicyWithErrors);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
-            return ROUTES.SETTINGS_PROFILE;
+            return ROUTES.SETTINGS_CONTACT_METHODS.route;
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
-            return ROUTES.SETTINGS_PROFILE;
+            return ROUTES.SETTINGS_CONTACT_METHODS.route;
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
