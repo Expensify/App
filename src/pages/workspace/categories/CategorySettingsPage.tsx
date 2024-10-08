@@ -14,6 +14,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CategoryUtils from '@libs/CategoryUtils';
@@ -43,6 +44,7 @@ function CategorySettingsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseCategoryAndTagApprovers} = usePermissions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
 
@@ -255,26 +257,30 @@ function CategorySettingsPage({
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <MenuItemWithTopDescription
-                                        title={approverText}
-                                        description={translate('workspace.rules.categoryRules.approver')}
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                                        }}
-                                        shouldShowRightIcon
-                                        disabled={approverDisabled}
-                                    />
-                                    {approverDisabled && (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                            <TextLink
-                                                style={[styles.link, styles.label]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                            >
-                                                {translate('workspace.common.moreFeatures')}
-                                            </TextLink>{' '}
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                        </Text>
+                                    {canUseCategoryAndTagApprovers && (
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                title={approverText}
+                                                description={translate('workspace.rules.categoryRules.approver')}
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                                }}
+                                                shouldShowRightIcon
+                                                disabled={approverDisabled}
+                                            />
+                                            {approverDisabled && (
+                                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
+                                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
+                                                    <TextLink
+                                                        style={[styles.link, styles.label]}
+                                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                                                    >
+                                                        {translate('workspace.common.moreFeatures')}
+                                                    </TextLink>{' '}
+                                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
+                                                </Text>
+                                            )}
+                                        </>
                                     )}
                                     {policy?.tax?.trackingEnabled && (
                                         <MenuItemWithTopDescription
