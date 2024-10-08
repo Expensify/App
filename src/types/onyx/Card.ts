@@ -159,5 +159,14 @@ type IssueNewCard = {
 /** List of Expensify cards */
 type WorkspaceCardsList = Record<string, Card>;
 
+/** Model of Expensify card metadata */
+type CardMetadata = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Whether the card is loading */
+    isLoading: boolean;
+}>;
+
+/** List of Expensify cards metadata */
+type WorkspaceCardsListMetadata = Record<string, CardMetadata>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, WorkspaceCardsListMetadata};

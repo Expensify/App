@@ -80,7 +80,7 @@ function ExpensifyCardPage({
     privatePersonalDetails,
     loginList,
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', backTo},
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -163,7 +163,7 @@ function ExpensifyCardPage({
     };
 
     if (isNotFound) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET)} />;
     }
 
     return (

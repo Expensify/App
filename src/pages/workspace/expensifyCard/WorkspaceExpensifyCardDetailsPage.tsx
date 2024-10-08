@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -50,8 +51,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList, cardListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const isLoadingCardListFromOnyx = isLoadingOnyxValue(cardListResult);
+    const [cardsListMetadata, cardsListMetadataResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST_METADATA}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const isLoadingCardList = isLoadingOnyxValue(cardListResult);
+    const isLoadingCardListMetadata = isLoadingOnyxValue(cardsListMetadataResult);
     const card = cardsList?.[cardID];
+    const cardMetadata = cardsListMetadata?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card?.availableSpend);
@@ -77,7 +81,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         Navigation.goBack();
     };
 
-    const isLoadingCard = isLoadingCardListFromOnyx || card?.isLoading;
+    const isLoadingCard = isLoadingCardList || isLoadingCardListMetadata || cardMetadata?.isLoading;
     const shouldBeBlocked = !isLoadingCard && !card?.cardID;
 
     if (isLoadingCard) {
@@ -86,7 +90,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     return (
         <AccessOrNotFoundWrapper
-            shouldBeBlocked={shouldBeBlocked}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
@@ -96,7 +99,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 testID={WorkspaceExpensifyCardDetailsPage.displayName}
             >
                 {({safeAreaPaddingBottomStyle}) => (
-                    <>
+                    <FullPageNotFoundView shouldShow={shouldBeBlocked}>
                         <HeaderWithBackButton
                             title={translate('workspace.expensifyCard.cardDetails')}
                             onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -190,7 +193,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 onClose={() => setIsOfflineModalVisible(false)}
                             />
                         </ScrollView>
-                    </>
+                    </FullPageNotFoundView>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

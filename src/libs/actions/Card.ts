@@ -655,7 +655,7 @@ function openCardDetailsPage(cardID: number, workspaceAccountID?: string) {
     if (workspaceAccountID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST_METADATA}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     isLoading: true,
@@ -665,7 +665,7 @@ function openCardDetailsPage(cardID: number, workspaceAccountID?: string) {
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST_METADATA}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     isLoading: false,
@@ -675,7 +675,7 @@ function openCardDetailsPage(cardID: number, workspaceAccountID?: string) {
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST_METADATA}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     isLoading: false,

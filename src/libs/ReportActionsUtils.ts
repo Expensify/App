@@ -23,6 +23,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
@@ -1749,7 +1750,9 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? -1).at(0);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
-    const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
+    const navigateRoute = isPolicyAdmin
+        ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID))
+        : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID), Navigation.getActiveRoute());
     const link = shouldRenderHTML
         ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
         : Localize.translateLocal('cardPage.expensifyCard');

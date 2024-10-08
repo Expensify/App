@@ -156,7 +156,7 @@ const ROUTES = {
     },
     SETTINGS_DOMAINCARD_DETAIL: {
         route: 'settings/card/:cardID?',
-        getRoute: (cardID: string) => `settings/card/${cardID}` as const,
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/card/${cardID}`, backTo),
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',

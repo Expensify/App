@@ -503,6 +503,9 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'cards_',
 
+        /** Stores the card's metadata, such as isLoading */
+        WORKSPACE_CARDS_LIST_METADATA: 'cardsMetadata_',
+
         /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
@@ -844,6 +847,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
+    [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST_METADATA]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: string;
