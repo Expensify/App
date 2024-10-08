@@ -166,8 +166,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 onBackButtonPress={OnboardingFlow.goBack}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mb3]}>{translate('onboarding.accounting.title')}</Text>
-                <Text style={[styles.textNormalThemeText, styles.colorMuted, styles.mb5]}>{translate('onboarding.accounting.description')}</Text>
+                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
             </View>
             <SelectionList
                 sections={[{data: accountingOptions}]}

@@ -1740,7 +1740,6 @@ const translations = {
         },
         accounting: {
             title: 'Do you use any accounting software?',
-            description: 'Connect your accounting software directly to Expensify',
             noneOfAbove: 'None of the above',
         },
         error: {
