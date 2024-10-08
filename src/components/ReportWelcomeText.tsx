@@ -190,7 +190,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <Text>{welcomeMessage.phrase1}</Text>
                     </Text>
                 )}
-                {isDefault && (
+                {isDefault && displayNamesWithTooltips.length && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
                         {displayNamesWithTooltips.map(({displayName, accountID}, index) => (
