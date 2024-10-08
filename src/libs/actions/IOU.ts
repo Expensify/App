@@ -2401,7 +2401,6 @@ function getTrackExpenseInformation(
         undefined,
         actionableTrackExpenseWhisper,
     );
-    console.log('[wildebug] ~ file: IOU.ts:2429 ~ trackExpenseOnyxData:', trackExpenseOnyxData);
 
     return {
         createdWorkspaceParams,
@@ -2532,24 +2531,15 @@ function getUpdateMoneyRequestParams(
 
         // Revert the transaction's amount to the original value on failure.
         // The IOU Report will be fully reverted in the failureData further below.
-        const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    amount: transaction.amount,
-                    modifiedAmount: transaction.modifiedAmount,
-                    modifiedMerchant: transaction.modifiedMerchant,
-                },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+                modifiedMerchant: transaction.modifiedMerchant,
             },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
-                value: recentServerValidatedWaypoints,
-            },
-        );
-        console.log('[wildebug] ~ file: IOU.ts:2552 ~ failureData:', failureData);
+        });
     }
 
     // Step 3: Build the modified expense report actions
@@ -3783,6 +3773,13 @@ function trackExpense(
                 : undefined,
         ) ?? {};
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport?.reportID;
+
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+    onyxData?.failureData?.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+        value: recentServerValidatedWaypoints,
+    });
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
