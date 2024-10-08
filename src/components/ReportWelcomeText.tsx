@@ -40,7 +40,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
-    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
