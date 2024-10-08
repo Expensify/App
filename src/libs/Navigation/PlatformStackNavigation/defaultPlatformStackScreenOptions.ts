@@ -1,7 +1,8 @@
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from './types';
 
 const defaultPlatformStackScreenOptions: PlatformStackNavigationOptions = {
-    animation: 'slide_from_right',
+    animation: Animations.SLIDE_FROM_RIGHT,
     headerShown: false,
 };
 

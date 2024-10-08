@@ -1,6 +1,7 @@
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import Animations from './index';
 import none from './none';
 import slideFromBottom from './slideFromBottom';
 import slideFromLeft from './slideFromLeft';
@@ -10,13 +11,13 @@ function withAnimation<PlatformSpecificNavigationOptions extends StackNavigation
     screenOptions: PlatformStackNavigationOptions,
 ): PlatformSpecificNavigationOptions {
     switch (screenOptions?.animation) {
-        case 'slide_from_left':
+        case Animations.SLIDE_FROM_LEFT:
             return slideFromLeft as PlatformSpecificNavigationOptions;
-        case 'slide_from_right':
+        case Animations.SLIDE_FROM_RIGHT:
             return slideFromRight as PlatformSpecificNavigationOptions;
         case 'modal':
             return slideFromBottom as PlatformSpecificNavigationOptions;
-        case 'none':
+        case Animations.NONE:
             return none as PlatformSpecificNavigationOptions;
         default:
             return {} as PlatformSpecificNavigationOptions;
