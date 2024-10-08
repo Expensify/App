@@ -444,6 +444,11 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
  */
 type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE>;
 
+/**
+ * Non reimbursable account types exported from QuickBooks Online
+ */
+type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
+
 /** Xero bill status values
  *
  * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
@@ -1262,7 +1267,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     reimbursableExpensesExportDestination: QBDReimbursableExportAccountType;
 
     /** Defines how non reimbursable expenses are exported */
-    nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
+    nonReimbursableExpensesExportDestination: QBDNonReimbursableExportAccountType;
 
     /** Whether the taxes should be synchronized */
     syncTax: boolean;
