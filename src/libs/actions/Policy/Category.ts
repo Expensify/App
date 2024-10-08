@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
+    GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
@@ -185,6 +186,19 @@ function openPolicyCategoriesPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
+function getPolicyCategories(policyID: string) {
+    if (!policyID || policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
+        Log.warn('GetPolicyCategories invalid params', {policyID});
+        return;
+    }
+
+    const params: GetPolicyCategoriesParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
 function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
@@ -846,7 +860,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
-        acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
     const shouldDisableRequiresCategory = !OptionsListUtils.hasEnabledOptions(
@@ -878,6 +892,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                     acc[categoryName] = {
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.deleteFailureMessage'),
+                        enabled: !!policyCategories?.[categoryName]?.enabled,
                     };
                     return acc;
                 }, {}),
@@ -1336,6 +1351,7 @@ function getPolicyCategories(policyID: string) {
 }
 
 export {
+    getPolicyCategories,
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,

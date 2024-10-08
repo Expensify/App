@@ -7,6 +7,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
+import getBottomSuggestionPadding from './AutoCompleteSuggestionsPortal/getBottomSuggestionPadding';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
 
 const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean): number => {
@@ -89,7 +90,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             return;
         }
 
-        measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates}: MeasureParentContainerAndCursor) => {
+        measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates, height}: MeasureParentContainerAndCursor) => {
             const xCoordinatesOfCursor = x + cursorCoordinates.x;
             const bigScreenLeftOffset =
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
@@ -97,7 +98,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            let bottomValue = windowHeight - (y - scrollValue) - keyboardHeight + getBottomSuggestionPadding();
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
@@ -123,7 +124,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
+                bottomValue = bottomValue - (measuredHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING) - height - 2 * getBottomSuggestionPadding();
             }
             setSuggestionHeight(measuredHeight);
             setContainerState({

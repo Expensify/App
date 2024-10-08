@@ -6,13 +6,13 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type DateTimeSelectorProps = {
-    /** Form error text. e.g when no constant is selected */
+    /** Form error text. e.g when no datetime is selected */
     errorText?: string;
 
-    /** Callback called when the constant changes. */
+    /** Callback called when the datetime changes. */
     onInputChange?: (value?: string) => void;
 
-    /** Current selected constant */
+    /** Current datetime */
     value?: string;
 
     /** Name of the field */
@@ -27,17 +27,17 @@ function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTime
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
-        // If no constant is selected from the URL, exit the effect early to avoid further processing.
+        // If no datetime is present in the URL, exit the effect early to avoid further processing.
         if (!fieldValue) {
             return;
         }
 
-        // If a constant is selected, invoke `onInputChange` to update the form and clear any validation errors related to the constant selection.
+        // If datetime is present, invoke `onInputChange` to update the form and clear any validation errors related to the constant selection.
         if (onInputChange) {
             onInputChange(fieldValue);
         }
 
-        // Clears the `constant` parameter from the URL to ensure the component constant is driven by the parent component rather than URL parameters.
+        // Clears the `datetime` parameter from the URL to ensure the component datetime is driven by the parent component rather than URL parameters.
         // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
         Navigation.setParams({[name]: undefined});
     }, [fieldValue, name, onInputChange]);
