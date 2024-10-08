@@ -90,9 +90,8 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
     // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
     // we'll just render an empty view as the fallback to prevent
-    // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
-    // 2. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
-    // 3. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
+    // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
+    // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
     if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && shouldLoadAfterInteractions)) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
