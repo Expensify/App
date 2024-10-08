@@ -5,7 +5,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -51,15 +51,82 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
-    const saveSearchName = name ?? queryJSON?.inputQuery ?? '';
+function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
+    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name: saveSearchName});
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: saveSearchName,
+                    query: queryJSON.inputQuery,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            value: {
+                [queryJSON.hash]: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
-    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash});
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            value: {
+                [hash]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            value: {
+                [hash]: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            value: {
+                [hash]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -71,7 +138,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
@@ -156,8 +223,12 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+function showSavedSearchRenameTooltip() {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
+}
+
 function dismissSavedSearchRenameTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_SAVED_SEARCH_RENAME_TOOLTIP, true);
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
 }
 
 export {
@@ -173,4 +244,5 @@ export {
     clearAdvancedFilters,
     deleteSavedSearch,
     dismissSavedSearchRenameTooltip,
+    showSavedSearchRenameTooltip,
 };

@@ -34,7 +34,7 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1)}
+                isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1) || !Task.canActionTask(report, session?.accountID ?? -1)}
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={Session.checkIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.

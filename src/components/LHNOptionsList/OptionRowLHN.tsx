@@ -3,7 +3,6 @@ import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -22,14 +21,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
+import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -48,7 +47,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
     const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
@@ -163,6 +162,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const firstIcon = optionItem.icons?.at(0);
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -172,12 +173,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         >
             <EducationalTooltip
                 shouldRender={
-                    isFirstTimeNewExpensifyUser &&
-                    !shouldHideGBRTooltip &&
-                    hasCompletedGuidedSetupFlow &&
-                    isScreenFocused &&
-                    shouldUseNarrowLayout &&
-                    ReportUtils.isConciergeChatReport(report)
+                    isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)
                 }
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
@@ -188,7 +184,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
-                onPressOverlay={() => User.dismissGBRTooltip()}
+                onHideTooltip={() => User.dismissGBRTooltip()}
             >
                 <View>
                     <Hoverable>
@@ -208,7 +204,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     if (!event) {
                                         return;
                                     }
-
                                     // Prevent composer blur on left click
                                     event.preventDefault();
                                 }}
@@ -221,7 +216,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     }
                                 }}
                                 withoutFocusOnSecondaryInteraction
-                                activeOpacity={0.8}
+                                activeOpacity={variables.pressDimValue}
+                                opacityAnimationDuration={0}
                                 style={[
                                     styles.flexRow,
                                     styles.alignItemsCenter,
@@ -240,11 +236,12 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {!!optionItem.icons?.length &&
+                                            firstIcon &&
                                             (optionItem.shouldShowSubscript ? (
                                                 <SubscriptAvatar
                                                     backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    mainAvatar={optionItem.icons[0]}
-                                                    secondaryAvatar={optionItem.icons[1]}
+                                                    mainAvatar={firstIcon}
+                                                    secondaryAvatar={optionItem.icons.at(1)}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                 />
                                             ) : (
@@ -280,13 +277,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                         ReportUtils.isSystemChat(report)
                                                     }
                                                 />
-                                                {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
-                                                    <Badge
-                                                        success
-                                                        text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-                                                        badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]}
-                                                    />
-                                                )}
+                                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}

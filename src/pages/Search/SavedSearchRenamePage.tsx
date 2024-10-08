@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
@@ -20,12 +21,14 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     const styles = useThemeStyles();
     const {q, name} = route.params;
     const [newName, setNewName] = useState(name);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: q,
+                name: newName,
             }),
         );
     };
@@ -35,7 +38,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
         SearchActions.saveSearch({
             queryJSON,
-            name: newName,
+            newName,
         });
 
         applyFiltersAndNavigate();
@@ -54,6 +57,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 submitButtonText={translate('common.save')}
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
+                enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -62,6 +66,9 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     accessibilityLabel={translate('search.searchName')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={(renamedName) => setNewName(renamedName)}
+                    ref={inputCallbackRef}
+                    defaultValue={name}
+                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>
