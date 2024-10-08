@@ -30,6 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
@@ -51,7 +52,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import RNMeasureContainer from './measureContainer';
 import SendButton from './SendButton';
 
 type SuggestionsRef = {
@@ -212,7 +212,10 @@ function ReportActionCompose({
     const containerRef = useRef<View>(null);
     const measureContainer = useCallback(
         (callback: MeasureInWindowOnSuccessCallback) => {
-            RNMeasureContainer(containerRef, callback);
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -511,6 +514,10 @@ function ReportActionCompose({
                                     isDisabled={isBlockedFromConcierge || disabled}
                                     onModalHide={(isNavigating) => {
                                         if (isNavigating) {
+                                            return;
+                                        }
+                                        const activeElementId = DomUtils.getActiveElement()?.id;
+                                        if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                                             return;
                                         }
                                         focus();
