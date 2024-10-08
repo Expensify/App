@@ -9,14 +9,6 @@ type NativeOnlyNavigationOptions = NativeStackNavigationOptions;
 // Common navigation options merged from both stack and native-stack navigations.
 type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
 
-// type CardOptions = {
-//     cardShadowEnabled?: StackNavigationOptions['cardShadowEnabled'];
-//     cardOverlayEnabled?: StackNavigationOptions['cardOverlayEnabled'];
-//     cardOverlay?: StackNavigationOptions['cardOverlay'];
-//     cardStyle?: StackNavigationOptions['cardStyle'];
-//     cardStyleInterpolator: StackNavigationOptions['cardStyleInterpolator'];
-// };
-
 type GeneralPlatformStackNavigationOptions = {
     web?: WebOnlyNavigationOptions;
     native?: NativeOnlyNavigationOptions;

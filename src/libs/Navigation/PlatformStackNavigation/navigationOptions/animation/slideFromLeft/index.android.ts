@@ -1,6 +1,7 @@
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 
 // `slide_from_right` is resolved to `default` transition on iOS, but this transition causes issues on iOS
-const slideFromLeft: NativeStackNavigationOptions = {animation: 'ios_from_left'};
+const slideFromLeft: NativeStackNavigationOptions = {animation: Animations.IOS_FROM_LEFT};
 
 export default slideFromLeft;
