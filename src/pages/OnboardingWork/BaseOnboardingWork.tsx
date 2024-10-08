@@ -36,7 +36,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, route}: BaseOnboardingWorkPr
     const {inputCallbackRef} = useAutoFocusInput();
     const {isOffline} = useNetwork();
     const isVsbOnboarding = Array.isArray(onboardingValues) ? false : onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    
+
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
             if (!onboardingPurposeSelected) {
