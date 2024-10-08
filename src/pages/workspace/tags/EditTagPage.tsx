@@ -36,6 +36,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = PolicyUtils.getCleanedTagName(route.params.tagName);
+    const backTo = route.params.backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {

@@ -36,6 +36,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const backTo = route.params.backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -63,7 +64,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.goBack(backTo);
         },
         [route.params.policyID],
     );
@@ -82,7 +83,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
