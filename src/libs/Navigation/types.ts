@@ -60,8 +60,6 @@ type SplitNavigatorParamListType = {
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
 };
 
-type SplitNavigatorName = keyof SplitNavigatorParamListType;
-
 type SplitNavigatorByLHN<T extends SplitNavigatorLHNScreen> = (typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T];
 
 type CentralPaneScreensParamList = {
@@ -1652,5 +1650,4 @@ export type {
     SplitNavigatorLHNScreen,
     SplitNavigatorParamListType,
     SplitNavigatorByLHN,
-    SplitNavigatorName,
 };

@@ -413,7 +413,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 scrollEventThrottle={16}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
-        >
+            >
                 {accountMenuItems}
                 {workspaceMenuItems}
                 {generalMenuItems}

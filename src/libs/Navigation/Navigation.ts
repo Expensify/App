@@ -26,12 +26,12 @@ import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
+import createSplitNavigator from './linkingConfig/createSplitNavigator';
 import linkTo from './linkTo';
 import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorParamListType, State, StateOrRoute} from './types';
-import createSplitNavigator from './linkingConfig/createSplitNavigator';
 
 const SPLIT_NAVIGATOR_TO_SIDEBAR_MAP: Record<keyof SplitNavigatorParamListType, SplitNavigatorLHNScreen> = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: SCREENS.HOME,
