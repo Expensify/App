@@ -176,8 +176,6 @@ const SCREENS = {
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
-        EXPENSIFY_CARD: 'ExpensifyCard',
-        DOMAIN_CARD: 'DomainCard',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
@@ -245,16 +243,6 @@ const SCREENS = {
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
         SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
-    },
-    EXPENSIFY_CARD: {
-        EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
-        EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
-        EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
-        EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
-    },
-    DOMAIN_CARD: {
-        DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
-        DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
     },
 
     SETTINGS_TAGS_ROOT: 'Settings_Tags',

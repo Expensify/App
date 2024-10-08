@@ -1252,8 +1252,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;

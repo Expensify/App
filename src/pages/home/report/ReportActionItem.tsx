@@ -695,12 +695,7 @@ function ReportActionItem({
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
-            children = (
-                <IssueCardMessage
-                    action={action}
-                    policyID={report?.policyID}
-                />
-            );
+            children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {

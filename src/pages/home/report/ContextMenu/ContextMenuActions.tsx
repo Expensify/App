@@ -498,8 +498,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
-                    const report = ReportUtils.getReport(reportID);
-                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true, report?.policyID));
+                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(ReportActionsUtils.getRemovedConnectionMessage(reportAction));
                 } else if (content) {

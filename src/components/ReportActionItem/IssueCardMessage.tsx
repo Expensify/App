@@ -16,10 +16,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
-    policyID: string | undefined;
 };
 
-function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
+function IssueCardMessage({action}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -41,7 +40,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     return (
         <>
-            <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true, policyID)}</muted-text>`} />
+            <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true)}</muted-text>`} />
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
