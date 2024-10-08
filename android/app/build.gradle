@@ -110,8 +110,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009004400
-        versionName "9.0.44-0"
+        versionCode 1009004601
+        versionName "9.0.46-1"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -229,11 +229,11 @@ dependencies {
     implementation 'com.facebook.fresco:fresco:2.5.0'
     implementation 'com.facebook.fresco:animated-gif:2.5.0'
 
-    // Android support library
-    implementation 'com.android.support:support-core-utils:28.0.0'
+    // AndroidX support library
+    implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
 
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
-    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     // Plaid SDK
     implementation project(':react-native-plaid-link-sdk')
