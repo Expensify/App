@@ -34,14 +34,14 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
             <View style={[styles.flex1]}>
-                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.ph5]}>
                     <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>
                         <ImageSVG src={Computer} />
                     </View>
 
-                    <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.ph6]}>{translate('workspace.qbd.requiredSetupDevice.title')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.p4]}>{translate('workspace.qbd.requiredSetupDevice.body1')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.p4]}>{translate('workspace.qbd.requiredSetupDevice.body2')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.requiredSetupDevice.title')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.pt3]}>{translate('workspace.qbd.requiredSetupDevice.body1')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.requiredSetupDevice.body2')}</Text>
                 </View>
                 <FixedFooter>
                     <Button
