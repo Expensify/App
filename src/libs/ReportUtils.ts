@@ -3827,7 +3827,8 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) {
+
+    if (ReportActionsUtils.isUnapprovedOrApprovedAction(parentReportAction)) {
         return getIOUUnapprovedOrApprovedMessage(parentReportAction);
     }
 
