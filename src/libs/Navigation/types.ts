@@ -1447,6 +1447,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             source: string;
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
             accountID: string;
+            isAuthTokenRequired?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

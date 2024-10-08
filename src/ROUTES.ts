@@ -303,8 +303,10 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number) =>
-            `attachment?source=${encodeURIComponent(url)}&type=${type}${reportID ? `&reportID=${reportID}` : ''}${accountID ? `&accountID=${accountID}` : ''}` as const,
+        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number, isAuthTokenRequired?: boolean) =>
+            `attachment?source=${encodeURIComponent(url)}&type=${type}${reportID ? `&reportID=${reportID}` : ''}${accountID ? `&accountID=${accountID}` : ''}${
+                isAuthTokenRequired ? '&isAuthTokenRequired=true' : ''
+            }` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
