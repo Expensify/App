@@ -32,8 +32,8 @@ type IsEnoughSpaceToRenderMenuAboveCursor = Pick<MeasureParentContainerAndCursor
     contentHeight: number;
     topInset: number;
 };
-function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
-    return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+function isEnoughSpaceToRenderMenuAboveCursor({y, contentHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
+    return y > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
 }
 
 const initialContainerState = {
@@ -98,7 +98,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            let bottomValue = windowHeight - (y - scrollValue) - keyboardHeight + getBottomSuggestionPadding();
+            let bottomValue = windowHeight - y - keyboardHeight + getBottomSuggestionPadding();
+
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
