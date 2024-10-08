@@ -51,6 +51,7 @@ function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -59,7 +60,6 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const {isOffline} = useNetwork();
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const {canUseWorkspaceRules} = usePermissions();
-    const backTo = route.params.backTo;
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
             Tag.setPolicyRequiresTag(policyID, value);
@@ -81,7 +81,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         description={translate(`workspace.tags.customTagName`)}
                         onPress={() => {
                             if (backTo) {
-                                Navigation.navigate(ROUTES.SETTINGS_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0, backTo));
+                                Navigation.navigate(ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0, backTo));
                                 return;
                             }
                             Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0));
