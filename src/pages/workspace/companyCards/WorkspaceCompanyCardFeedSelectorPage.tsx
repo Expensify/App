@@ -41,14 +41,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
 
-    const feeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
-        value: key as CompanyCardFeed,
-        text: value,
-        keyForList: key,
-        isSelected: key === selectedFeed,
+    const feeds: CardFeedListItem[] = Object.keys(cardFeeds?.companyCards ?? {}).map((feed) => ({
+        value: feed as CompanyCardFeed,
+        text: cardFeeds?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${feed as CompanyCardFeed}`),
+        keyForList: feed,
+        isSelected: feed === selectedFeed,
         leftElement: (
             <Icon
-                src={CardUtils.getCardFeedIcon(key)}
+                src={CardUtils.getCardFeedIcon(feed)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
