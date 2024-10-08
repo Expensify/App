@@ -49,6 +49,10 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         [loginList, contactMethod],
     );
 
+    const clearError = useCallback(() => {
+        User.clearContactMethodErrors(contactMethod, 'validateLogin');
+    }, [contactMethod]);
+
     useEffect(() => {
         if (!isUserValidated) {
             return;
@@ -73,7 +77,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
                     validateCodeAction={validateCodeAction}
                     validateError={validateLoginError}
                     handleSubmitForm={handleSubmitForm}
-                    clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                    clearError={clearError}
                     buttonStyles={[styles.justifyContentEnd, styles.flex1, safePaddingBottomStyle]}
                 />
             </View>

@@ -137,7 +137,7 @@ identifier
 quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
 
 alphanumeric "word"
-  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ {
+  = chars:[A-Za-z0-9_@./#&+\-\\',;%]+ {
       return chars.join("").trim().split(",").filter(Boolean);
     }
 
