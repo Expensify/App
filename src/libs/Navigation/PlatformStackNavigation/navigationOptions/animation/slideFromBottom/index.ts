@@ -1,5 +1,5 @@
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import GestureDirection from '../../gestureDirection';
+import GestureDirection from '@libs/Navigation/PlatformStackNavigation/navigationOptions/gestureDirection';
 
 const slideFromBottom: StackNavigationOptions = {animationEnabled: true, gestureDirection: GestureDirection.VERTICAL};
 
