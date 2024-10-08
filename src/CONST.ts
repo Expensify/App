@@ -5798,6 +5798,27 @@ const CONST = {
         REPORT_ACTIONS: 'actions',
         REPORT_ACTION_PREVIEW: 'preview',
     },
+
+    REPORT_IN_LHN_REASONS: {
+        HAS_DRAFT_COMMENT: 'hasDraftComment',
+        HAS_GBR: 'hasGBR',
+        PINNED_BY_USER: 'pinnedByUser',
+        HAS_IOU_VIOLATIONS: 'hasIOUViolations',
+        HAS_ADD_WORKSPACE_ROOM_ERRORS: 'hasAddWorkspaceRoomErrors',
+        IS_UNREAD: 'isUnread',
+        IS_ARCHIVED: 'isArchived',
+        IS_SELF_DM: 'isSelfDM',
+        IS_FOCUSED: 'isFocused',
+        DEFAULT: 'default',
+    },
+
+    REQUIRES_ATTENTION_REASONS: {
+        HAS_JOIN_REQUEST: 'hasJoinRequest',
+        IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
+        IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
+        HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
+        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

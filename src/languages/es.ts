@@ -3707,6 +3707,8 @@ const translations = {
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
+            invoiceBalance: 'Saldo de la factura',
+            invoiceBalanceSubtitle: 'Aquí está su saldo actual de la recaudación de pagos en las facturas.',
             bankAccountsSubtitle: 'Agrega una cuenta bancaria para recibir pagos de facturas.',
         },
         invite: {
@@ -4948,6 +4950,8 @@ const translations = {
             title: 'Mapa pendiente',
             subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
+            errorTitle: 'Mapa error',
+            errorSubtitle: 'No se pudo cargar el mapa. Por favor, inténtalo de nuevo.',
         },
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
@@ -5427,6 +5431,29 @@ const translations = {
         date: 'Fecha',
         time: 'Hora',
         none: 'Ninguno',
+        visibleInLHN: 'Visible en LHN',
+        GBR: 'GBR',
+        RBR: 'RBR',
+        true: 'verdadero',
+        false: 'falso',
+        reasonVisibleInLHN: {
+            hasDraftComment: 'Tiene comentario en borrador',
+            hasGBR: 'Tiene GBR',
+            pinnedByUser: 'Fijado por el usuario',
+            hasIOUViolations: 'Tiene violaciones de IOU',
+            hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
+            isUnread: 'No leído (modo de enfoque)',
+            isArchived: 'Archivado (modo más reciente)',
+            isSelfDM: 'Es un mensaje directo propio',
+            isFocused: 'Está temporalmente enfocado',
+        },
+        reasonGBR: {
+            hasJoinRequest: 'Tiene solicitud de unión (sala de administrador)',
+            isUnreadWithMention: 'No leído con mención',
+            isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
+            hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
+            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
+        },
     },
 };
 
