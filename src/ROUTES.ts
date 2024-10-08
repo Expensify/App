@@ -445,9 +445,45 @@ const ROUTES = {
         route: 'settings/:policyID/tags/settings',
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
     },
-    SETTINGS_EDIT_TAGS: {
+    SETTINGS_TAGS_EDIT: {
         route: 'settings/:policyID/tags/:orderWeight/edit',
         getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/${orderWeight}/edit` as const, backTo),
+    },
+    SETTINGS_TAG_CREATE: {
+        route: 'settings/:policyID/tags/new',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/new` as const, backTo),
+    },
+    SETTINGS_TAG_EDIT: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName/edit',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const, backTo),
+    },
+    SETTINGS_TAG_SETTINGS: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const, backTo),
+    },
+    SETTINGS_TAG_APPROVER: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName/approver',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${tagName}/approver` as const, backTo),
+    },
+    SETTINGS_TAG_LIST_VIEW: {
+        route: 'settings/:policyID/tag-list/:orderWeight',
+        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tag-list/${orderWeight}` as const, backTo),
+    },
+    SETTINGS_TAG_GL_CODE: {
+        route: 'settings/:policyID/tag/:orderWeight/:tagName/gl-code',
+        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const, backTo),
+    },
+    SETTINGS_TAGS_IMPORT: {
+        route: 'settings/:policyID/tags/import',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/import` as const, backTo),
+    },
+    SETTINGS_TAGS_IMPORTED: {
+        route: 'settings/:policyID/tags/imported',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/imported` as const, backTo),
     },
     SETTINGS_CATEGORIES_ROOT: {
         route: 'settings/:policyID/categories',
