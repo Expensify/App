@@ -18,13 +18,12 @@ import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import type {ComponentProps} from './types';
 import utils from './utils';
 
-const MapView = forwardRef<MapViewHandle, ComponentProps>(
+const MapView = forwardRef<MapViewHandle, MapViewProps>(
     ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
         const navigation = useNavigation();
