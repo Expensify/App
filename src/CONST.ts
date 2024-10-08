@@ -480,6 +480,7 @@ const CONST = {
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
+        CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
     },
     BUTTON_STATES: {
