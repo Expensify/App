@@ -1,6 +1,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type Response from '@src/types/onyx/Response';
+import * as Delegate from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as ErrorUtils from './ErrorUtils';
@@ -82,6 +83,14 @@ function reauthenticate(command = ''): Promise<void> {
                     error: errorMessage,
                 });
                 redirectToSignIn(errorMessage);
+                return;
+            }
+
+            // If we reauthenticated due to an expired delegate token, restore the delegate's original account.
+            // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
+            if (Delegate.isConnectedAsDelegate()) {
+                Log.info('Reauthenticated while connected as a delegate. Restoring original account.');
+                Delegate.restoreDelegateSession(response);
                 return;
             }
 
