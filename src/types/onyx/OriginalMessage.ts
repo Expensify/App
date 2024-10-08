@@ -538,6 +538,9 @@ type OriginalMessageIntegrationSyncFailed = {
 type OriginalMessageExpensifyCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
+
+    /** The id of the card */
+    cardID: number;
 };
 
 /**
