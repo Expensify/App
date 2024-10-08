@@ -1,34 +1,38 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsStepFormSubmit from '@hooks/usePersonalDetailsStepFormSubmit';
+import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.DATE_OF_BIRTH];
 
-function DateOfBirthStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepProps) {
+function DateOfBirthStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
-    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+
+    const handleSubmit = usePersonalDetailsFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.DATE_OF_BIRTH])) {
                 errors[INPUT_IDS.DATE_OF_BIRTH] = translate('common.error.fieldRequired');
             } else if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DATE_OF_BIRTH]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DATE_OF_BIRTH])) {
@@ -39,38 +43,26 @@ function DateOfBirthStep({privatePersonalDetails, isEditing, onNext}: CustomSubS
         [translate],
     );
 
-    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
-
-    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
-        // in case the dob is taken from existing personal details object, we need to force apply its values to the draft object
-        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
-        submitPersonalDetails(values);
-    };
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
+            style={[styles.flexGrow1, styles.mt3]}
+            submitButtonStyles={[styles.ph5, styles.mb0]}
+            enabledWhenOffline
         >
-            <View>
+            <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterDateOfBirth')}</Text>
                 <InputWrapper
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.DATE_OF_BIRTH}
                     label={translate('common.dob')}
                     placeholder={translate('common.dateFormat')}
-                    defaultValue={privatePersonalDetails?.dob}
+                    defaultValue={personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]}
                     minDate={minDate}
                     maxDate={maxDate}
-                    shouldSaveDraft={!isEditing}
                 />
             </View>
         </FormProvider>

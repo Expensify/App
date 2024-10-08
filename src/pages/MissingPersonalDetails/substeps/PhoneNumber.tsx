@@ -1,46 +1,37 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsStepFormSubmit from '@hooks/usePersonalDetailsStepFormSubmit';
+import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
-function PhoneNumberStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepProps) {
+function PhoneNumberStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [personalDetailsFormDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
-    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
+    const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
     });
 
-    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
-        // in case the phone number is taken from existing personal details object, we need to force apply its values to the draft object
-        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
-        submitPersonalDetails(values);
-    };
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
             }
@@ -60,11 +51,12 @@ function PhoneNumberStep({privatePersonalDetails, isEditing, onNext}: CustomSubS
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
+            style={[styles.flexGrow1, styles.mt3]}
+            submitButtonStyles={[styles.ph5, styles.mb0]}
+            enabledWhenOffline
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
+            <View style={styles.ph5}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterPhoneNumber')}</Text>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.PHONE_NUMBER}
@@ -72,9 +64,7 @@ function PhoneNumberStep({privatePersonalDetails, isEditing, onNext}: CustomSubS
                     aria-label={translate('common.phoneNumber')}
                     role={CONST.ROLE.PRESENTATION}
                     inputMode={CONST.INPUT_MODE.TEL}
-                    defaultValue={privatePersonalDetails?.phoneNumber}
-                    containerStyles={[styles.mt6]}
-                    shouldSaveDraft={!isEditing}
+                    defaultValue={personalDetailsValues[INPUT_IDS.PHONE_NUMBER]}
                 />
             </View>
         </FormProvider>

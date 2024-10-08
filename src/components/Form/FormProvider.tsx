@@ -237,8 +237,16 @@ function FormProvider(
         },
         [inputValues],
     );
+
+    const resetErrors = useCallback(() => {
+        FormActions.clearErrors(formID);
+        FormActions.clearErrorFields(formID);
+        setErrors({});
+    }, [formID]);
+
     useImperativeHandle(forwardedRef, () => ({
         resetForm,
+        resetErrors,
     }));
 
     const registerInput = useCallback<RegisterInput>(

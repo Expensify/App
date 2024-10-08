@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
@@ -10,43 +10,32 @@ import type {State} from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsStepFormSubmit from '@hooks/usePersonalDetailsStepFormSubmit';
+import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-import {useOnyx} from "react-native-onyx";
 
-const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.COUNTRY, INPUT_IDS.ZIP_POST_CODE];
+const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.ZIP_POST_CODE, INPUT_IDS.COUNTRY];
 
-function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepProps) {
+function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const address = useMemo(() => PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
 
-    const {street} = address ?? {};
-    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState(address?.country);
-    const [state, setState] = useState(address?.state);
-    const [city, setCity] = useState(address?.city);
-    const [zipcode, setZipcode] = useState(address?.zip);
+    const [currentCountry, setCurrentCountry] = useState(personalDetailsValues[INPUT_IDS.COUNTRY]);
+    const [state, setState] = useState(personalDetailsValues[INPUT_IDS.STATE]);
+    const [city, setCity] = useState(personalDetailsValues[INPUT_IDS.CITY]);
+    const [zipcode, setZipcode] = useState(personalDetailsValues[INPUT_IDS.ZIP_POST_CODE]);
 
-    useEffect(() => {
-        if (!address) {
-            return;
-        }
-        setState(address.state);
-        setCurrentCountry(address.country);
-        setCity(address.city);
-        setZipcode(address.zip);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [address?.state, address?.country, address?.city, address?.zip]);
+    const handleSubmit = usePersonalDetailsFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
@@ -110,18 +99,6 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
         setZipcode(addressPart);
     }, []);
 
-    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
-
-    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
-        // in case the address is taken from existing personal details object, we need to force apply its values to the draft object
-        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
-        submitPersonalDetails(values);
-    };
-
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
 
     const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
@@ -134,10 +111,11 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
+            style={[styles.flexGrow1, styles.mt3]}
+            submitButtonStyles={[styles.ph5, styles.mb0]}
+            enabledWhenOffline
         >
-            <View>
+            <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterAddress')}</Text>
                 <View>
                     <InputWrapper
@@ -147,8 +125,7 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
                         onValueChange={(data: unknown, key: unknown) => {
                             handleAddressChange(data, key);
                         }}
-                        defaultValue={street1}
-                        containerStyles={styles.mt3}
+                        defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_1]}
                         renamedInputKeys={{
                             street: INPUT_IDS.ADDRESS_LINE_1,
                             street2: INPUT_IDS.ADDRESS_LINE_2,
@@ -158,7 +135,6 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
                             country: INPUT_IDS.COUNTRY as Country,
                         }}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        shouldSaveDraft={!isEditing}
                     />
                 </View>
                 <InputWrapper
@@ -167,29 +143,26 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
                     label={translate('common.addressLine', {lineNumber: 2})}
                     aria-label={translate('common.addressLine', {lineNumber: 2})}
                     role={CONST.ROLE.PRESENTATION}
-                    defaultValue={street2}
+                    defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
-                    containerStyles={styles.mt6}
-                    shouldSaveDraft={!isEditing}
+                    containerStyles={styles.mt5}
                 />
-                <View style={[styles.mt3, styles.mhn5]}>
+                <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={CountryPicker}
                         inputID={INPUT_IDS.COUNTRY}
                         value={currentCountry}
                         onValueChange={handleAddressChange}
-                        shouldSaveDraft={!isEditing}
                     />
                 </View>
                 {isUSAForm ? (
-                    <View style={[styles.mt3, styles.mhn5]}>
+                    <View style={[styles.mt2, styles.mhn5]}>
                         <InputWrapper
                             InputComponent={StatePicker}
                             inputID={INPUT_IDS.STATE}
                             value={state as State}
                             onValueChange={handleAddressChange}
-                            shouldSaveDraft={!isEditing}
                         />
                     </View>
                 ) : (
@@ -200,11 +173,10 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
                         aria-label={translate('common.stateOrProvince')}
                         role={CONST.ROLE.PRESENTATION}
                         value={state}
-                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                        maxLength={CONST.STATE_CHARACTER_LIMIT}
                         spellCheck={false}
                         onValueChange={handleAddressChange}
-                        containerStyles={styles.mt3}
-                        shouldSaveDraft={!isEditing}
+                        containerStyles={styles.mt2}
                     />
                 )}
                 <InputWrapper
@@ -217,8 +189,7 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
-                    containerStyles={isUSAForm ? styles.mt3 : styles.mt6}
-                    shouldSaveDraft={!isEditing}
+                    containerStyles={isUSAForm ? styles.mt2 : styles.mt5}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -231,8 +202,7 @@ function AddressStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepP
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     hint={zipFormat}
                     onValueChange={handleAddressChange}
-                    containerStyles={styles.mt6}
-                    shouldSaveDraft={!isEditing}
+                    containerStyles={styles.mt5}
                 />
             </View>
         </FormProvider>

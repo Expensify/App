@@ -1,67 +1,79 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsStepFormSubmit from '@hooks/usePersonalDetailsStepFormSubmit';
+import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME];
 
-function LegalNameStep({privatePersonalDetails, isEditing, onNext}: CustomSubStepProps) {
+function LegalNameStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // TODO: apply validation from index file
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-            if (values.legalFirstName && !ValidationUtils.isValidPersonName(values.legalLastName)) {
-                errors.legalFirstName = translate('bankAccount.error.firstName');
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
+                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.fieldRequired');
+            } else if (!ValidationUtils.isValidLegalName(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
+                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (values[INPUT_IDS.LEGAL_FIRST_NAME].length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.characterLimitExceedCounter', {
+                    length: values[INPUT_IDS.LEGAL_FIRST_NAME].length,
+                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
+                });
             }
-
-            if (values.legalLastName && !ValidationUtils.isValidPersonName(values.legalLastName)) {
-                errors.legalLastName = translate('bankAccount.error.lastName');
+            if (ValidationUtils.doesContainReservedWord(values[INPUT_IDS.LEGAL_FIRST_NAME], CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.LEGAL_FIRST_NAME, translate('personalDetails.error.containsReservedWord'));
+            }
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.LEGAL_LAST_NAME])) {
+                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.fieldRequired');
+            } else if (!ValidationUtils.isValidLegalName(values[INPUT_IDS.LEGAL_LAST_NAME])) {
+                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (values[INPUT_IDS.LEGAL_LAST_NAME].length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.characterLimitExceedCounter', {
+                    length: values[INPUT_IDS.LEGAL_LAST_NAME].length,
+                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
+                });
+            }
+            if (ValidationUtils.doesContainReservedWord(values[INPUT_IDS.LEGAL_LAST_NAME], CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.LEGAL_LAST_NAME, translate('personalDetails.error.containsReservedWord'));
             }
             return errors;
         },
         [translate],
     );
 
-    const submitPersonalDetails = usePersonalDetailsStepFormSubmit({
+    const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
     });
 
-    const handleSubmit = (values: FormOnyxValues<'personalDetailsForm'>) => {
-        // in case the legal name is taken from existing personal details object, we need to force apply its values to the draft object
-        FormActions.setFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
-        submitPersonalDetails(values);
-    };
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            validate={validate}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
+            validate={validate}
+            style={[styles.flexGrow1, styles.mt3]}
+            submitButtonStyles={[styles.ph5, styles.mb0]}
+            enabledWhenOffline
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-                <View style={[styles.flex2, styles.mb6]}>
+            <View style={styles.ph5}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
+                <View style={[styles.flex2, styles.mb5]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LEGAL_FIRST_NAME}
@@ -69,12 +81,11 @@ function LegalNameStep({privatePersonalDetails, isEditing, onNext}: CustomSubSte
                         label={translate('privatePersonalDetails.legalFirstName')}
                         aria-label={translate('privatePersonalDetails.legalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={privatePersonalDetails?.legalFirstName}
+                        defaultValue={personalDetailsValues[INPUT_IDS.LEGAL_FIRST_NAME]}
                         spellCheck={false}
-                        shouldSaveDraft={!isEditing}
                     />
                 </View>
-                <View style={[styles.flex2, styles.mb6]}>
+                <View style={[styles.flex2, styles.mb5]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LEGAL_LAST_NAME}
@@ -82,9 +93,8 @@ function LegalNameStep({privatePersonalDetails, isEditing, onNext}: CustomSubSte
                         label={translate('privatePersonalDetails.legalLastName')}
                         aria-label={translate('privatePersonalDetails.legalLastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={privatePersonalDetails?.legalLastName}
+                        defaultValue={personalDetailsValues[INPUT_IDS.LEGAL_LAST_NAME]}
                         spellCheck={false}
-                        shouldSaveDraft={!isEditing}
                     />
                 </View>
             </View>

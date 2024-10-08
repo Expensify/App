@@ -1,95 +1,27 @@
-/* eslint-disable no-case-declarations */
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
-import Navigation from '@libs/Navigation/Navigation';
-import * as FormActions from '@userActions/FormActions';
-import * as PersonalDetails from '@userActions/PersonalDetails';
-import CONST from '@src/CONST';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import Address from './substeps/Address';
-import DateOfBirth from './substeps/DateOfBirth';
-import LegalName from './substeps/LegalName';
-import PhoneNumber from './substeps/PhoneNumber';
-import type {CustomSubStepProps} from './types';
-import getFormValues from './utils/getFormValues';
-import getInitialStepForPersonalInfo from './utils/getInitialStepForPersonalInfo';
-
-const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber];
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
 function MissingPersonalDetails() {
-    const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-    const [personalDetailsFormDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [currentStep, setCurrentStep] = useState(getInitialStepForPersonalInfo(personalDetailsForm));
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
-    useEffect(() => {
-        setCurrentStep(getInitialStepForPersonalInfo(personalDetailsForm));
-    }, [personalDetailsForm]);
+    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, cardListMetadata, draftValuesMetadata);
 
-    const firstUnissuedCard = useMemo(() => Object.values(cardList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardList]);
-    const values = useMemo(() => getFormValues(INPUT_IDS, personalDetailsFormDraft, personalDetailsForm), [personalDetailsForm, personalDetailsFormDraft]);
-
-    const handleFinishStep = useCallback(() => {
-        PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(values, firstUnissuedCard?.cardID ?? 0);
-        FormActions.clearFormValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        Navigation.goBack();
-    }, [firstUnissuedCard?.cardID, values]);
-
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep<CustomSubStepProps>({
-        bodyContent: formSteps,
-        startFrom: currentStep,
-        onFinished: handleFinishStep,
-        onNextSubStep: () => setCurrentStep(currentStep + 1),
-    });
-
-    const handleBackButtonPress = () => {
-        if (isEditing) {
-            goToTheLastStep();
-            return;
-        }
-
-        // Clicking back on the first screen should dismiss the modal
-        if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
-            Navigation.goBack();
-            return;
-        }
-        setCurrentStep(currentStep - 1);
-        prevScreen();
-    };
+    if (isLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={MissingPersonalDetails.displayName}
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            headerTitle={translate('workspace.expensifyCard.addShippingDetails')}
-            handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={currentStep}
-            stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
-        >
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-                screenIndex={screenIndex}
-                privatePersonalDetails={privatePersonalDetails}
-            />
-        </InteractiveStepWrapper>
+        <MissingPersonalDetailsContent
+            privatePersonalDetails={privatePersonalDetails}
+            cardList={cardList}
+            draftValues={draftValues}
+        />
     );
 }
 
