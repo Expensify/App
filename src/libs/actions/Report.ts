@@ -2673,13 +2673,7 @@ function openReportFromDeepLink(url: string) {
         Session.waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (onboarding) => {
-                    if (onboarding) {
-                        // Once the onboarding data is available, we want to disconnect the connection
-                        // so it won't trigger the deeplink again every time the data is changed, for example, when relogin.
-                        Onyx.disconnect(connection);
-                    }
-
+                callback: () => {
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                             Session.signOutAndRedirectToSignIn(true);
@@ -2694,6 +2688,10 @@ function openReportFromDeepLink(url: string) {
                         }
 
                         const handleDeeplinkNavigation = () => {
+                            // We want to disconnect the connection so it won't trigger the deeplink again
+                            // every time the data is changed, for example, when relogin.
+                            Onyx.disconnect(connection);
+
                             const state = navigationRef.getRootState();
                             const currentFocusedRoute = findFocusedRoute(state);
 

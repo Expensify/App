@@ -102,6 +102,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
         listItemWrapperStyle,
+        shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
     }: BaseSelectionListProps<TItem>,
@@ -469,7 +470,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                     alternateTextNumberOfLines={alternateTextNumberOfLines}
                     onFocus={() => {
-                        if (isDisabled) {
+                        if (shouldIgnoreFocus || isDisabled) {
                             return;
                         }
                         setFocusedIndex(normalizedIndex);
@@ -621,7 +622,22 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, scrollToIndex}), [scrollAndHighlightItem, clearInputAfterSelect, scrollToIndex]);
+    /**
+     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput is not defocused when typing in it.
+     *
+     * @param isTextInputFocused - Is external TextInput focused.
+     */
+    const updateExternalTextInputFocus = useCallback((isTextInputFocused: boolean) => {
+        isTextInputFocusedRef.current = isTextInputFocused;
+    }, []);
+
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex}), [
+        scrollAndHighlightItem,
+        clearInputAfterSelect,
+        updateAndScrollToFocusedIndex,
+        updateExternalTextInputFocus,
+        scrollToIndex,
+    ]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {

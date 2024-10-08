@@ -134,6 +134,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
+    if (index === -1) {
+        return Promise.resolve();
+    }
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
 

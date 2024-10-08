@@ -23,7 +23,7 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}:
         <Animated.Text
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
-            style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(labelTranslateY, 0, labelScale), styles.pointerEventsNone]}
+            style={[styles.textInputLabel, styles.textInputLabelTransformation(labelTranslateY, labelScale), styles.pointerEventsNone]}
         >
             {label}
         </Animated.Text>

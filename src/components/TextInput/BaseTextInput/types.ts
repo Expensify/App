@@ -137,6 +137,9 @@ type CustomBaseTextInputProps = {
     /** Style for the suffix container */
     suffixContainerStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the loading spinner */
+    loadingSpinnerStyle?: StyleProp<ViewStyle>;
+
     /** The width of inner content */
     contentWidth?: number;
 };

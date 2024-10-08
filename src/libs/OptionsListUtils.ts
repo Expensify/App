@@ -275,11 +275,11 @@ Onyx.connect({
     },
 });
 
-let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+let allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (val) => (allPolicyCategories = val),
+    callback: (val) => (allPolicies = val),
 });
 
 const lastReportActions: ReportActions = {};
@@ -317,10 +317,10 @@ Onyx.connect({
 
             const firstReportAction = sortedReportActions.at(0);
             if (!firstReportAction) {
-                return;
+                delete lastReportActions[reportID];
+            } else {
+                lastReportActions[reportID] = firstReportAction;
             }
-
-            lastReportActions[reportID] = firstReportAction;
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -334,6 +334,7 @@ Onyx.connect({
             );
             const reportActionForDisplay = reportActionsForDisplay.at(0);
             if (!reportActionForDisplay) {
+                delete lastVisibleReportActions[reportID];
                 return;
             }
             lastVisibleReportActions[reportID] = reportActionForDisplay;
@@ -479,18 +480,23 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-/**
- * Get an object of error messages keyed by microtime by combining all error objects related to the report.
- */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
-    const reportErrors = report?.errors ?? {};
-    const reportErrorFields = report?.errorFields ?? {};
+type ReportErrorsAndReportActionThatRequiresAttention = {
+    errors: OnyxCommon.ErrorFields;
+    reportAction?: OnyxEntry<ReportAction>;
+};
+
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {});
     const reportActionErrors: OnyxCommon.ErrorFields = {};
+    let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
         if (action && !isEmptyObject(action.errors)) {
             Object.assign(reportActionErrors, action.errors);
+
+            if (!reportAction) {
+                reportAction = action;
+            }
         }
     }
     const parentReportAction: OnyxEntry<ReportAction> =
@@ -501,14 +507,32 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = undefined;
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
         if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+            reportAction = ReportUtils.getReportActionWithMissingSmartscanFields(report?.reportID ?? '-1');
         }
     } else if (ReportUtils.hasSmartscanError(reportActionsArray)) {
         reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
+        reportAction = ReportUtils.getReportActionWithSmartscanError(reportActionsArray);
     }
+
+    return {
+        errors: reportActionErrors,
+        reportAction,
+    };
+}
+
+/**
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
+ */
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
+    const reportErrors = report?.errors ?? {};
+    const reportErrorFields = report?.errorFields ?? {};
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
         reportErrors,
@@ -710,6 +734,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
+function hasReportErrors(report: Report, reportActions: OnyxEntry<ReportActions>) {
+    return !isEmptyObject(getAllReportErrors(report, reportActions));
+}
+
 /**
  * Creates a report list option
  */
@@ -776,7 +804,7 @@ function createOption(
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.brickRoadIndicator = hasReportErrors(report, reportActions) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
@@ -2022,8 +2050,8 @@ function getOptions(
             reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
-                const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
-                if (getEnabledCategoriesCount(policyCategories) !== 0) {
+                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
+                if (reportPolicy?.areCategoriesEnabled) {
                     recentReportOptions.push(reportOption);
                 }
             } else {
@@ -2619,6 +2647,8 @@ export {
     getEmptyOptions,
     shouldUseBoldText,
     getAlternateText,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    hasReportErrors,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
