@@ -234,6 +234,27 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
+function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
+    const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions)).length !== 0;
+
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
+    if (oneTransactionThreadReportID) {
+        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
+
+        if (
+            ReportUtils.shouldDisplayTransactionThreadViolations(
+                oneTransactionThreadReport,
+                transactionViolations,
+                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+            )
+        ) {
+            return true;
+        }
+    }
+
+    return hasErrors || hasViolations;
+}
+
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
@@ -306,7 +327,6 @@ function getOptionData({
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
-    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -320,21 +340,7 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
-    if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                transactionViolations,
-                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
-            result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
-    }
+    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -624,4 +630,5 @@ export default {
     getOptionData,
     getOrderedReportIDs,
     getWelcomeMessage,
+    shouldShowRedBrickRoad,
 };

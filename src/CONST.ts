@@ -480,6 +480,7 @@ const CONST = {
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
+        NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2300,12 +2301,14 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                QBD: 'quickbooksDesktop',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
+                QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -5794,6 +5797,27 @@ const CONST = {
         JSON: 'json',
         REPORT_ACTIONS: 'actions',
         REPORT_ACTION_PREVIEW: 'preview',
+    },
+
+    REPORT_IN_LHN_REASONS: {
+        HAS_DRAFT_COMMENT: 'hasDraftComment',
+        HAS_GBR: 'hasGBR',
+        PINNED_BY_USER: 'pinnedByUser',
+        HAS_IOU_VIOLATIONS: 'hasIOUViolations',
+        HAS_ADD_WORKSPACE_ROOM_ERRORS: 'hasAddWorkspaceRoomErrors',
+        IS_UNREAD: 'isUnread',
+        IS_ARCHIVED: 'isArchived',
+        IS_SELF_DM: 'isSelfDM',
+        IS_FOCUSED: 'isFocused',
+        DEFAULT: 'default',
+    },
+
+    REQUIRES_ATTENTION_REASONS: {
+        HAS_JOIN_REQUEST: 'hasJoinRequest',
+        IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
+        IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
+        HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
+        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
     },
 } as const;
 
