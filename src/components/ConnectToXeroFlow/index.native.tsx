@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -14,19 +13,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Session} from '@src/types/onyx';
 import type {ConnectToXeroFlowProps} from './types';
 
-type ConnectToXeroFlowOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
-
-function ConnectToXeroFlow({policyID, session}: ConnectToXeroFlowProps & ConnectToXeroFlowOnyxProps) {
+function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
-
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -90,8 +83,4 @@ function ConnectToXeroFlow({policyID, session}: ConnectToXeroFlowProps & Connect
 
 ConnectToXeroFlow.displayName = 'ConnectToXeroFlow';
 
-export default withOnyx<ConnectToXeroFlowProps & ConnectToXeroFlowOnyxProps, ConnectToXeroFlowOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ConnectToXeroFlow);
+export default ConnectToXeroFlow;
