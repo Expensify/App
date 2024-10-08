@@ -62,6 +62,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {selectionMode} = useMobileSelectionMode();
@@ -70,7 +71,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
-
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -172,16 +172,32 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagsSettings = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
     };
 
     const navigateToCreateTagPage = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
         if (tag.orderWeight !== undefined) {
+            if (backTo) {
+                Navigation.navigate(ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight, backTo));
+                return;
+            }
             Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight));
+            return;
+        }
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo));
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
@@ -304,6 +320,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         Modal.close(() => setIsOfflineModalVisible(true));
                         return;
                     }
+                    if (backTo) {
+                        Navigation.navigate(ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo));
+                        return;
+                    }
                     Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
                 },
             },
@@ -328,7 +348,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, hasVisibleTags, isOffline, policyID]);
+    }, [translate, hasVisibleTags, isOffline, policyID, backTo]);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -374,7 +394,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        Navigation.goBack(backTo);
                     }}
                     shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
                     threeDotsMenuItems={threeDotsMenuItems}

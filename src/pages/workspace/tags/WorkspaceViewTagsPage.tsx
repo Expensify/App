@@ -53,6 +53,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '-1';
+    const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {selectionMode} = useMobileSelectionMode();
@@ -141,6 +142,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value));
     };
 
@@ -237,6 +242,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }
 
     const navigateToEditTag = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_TAGS_EDIT.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0));
     };
 

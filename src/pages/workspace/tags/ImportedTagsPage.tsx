@@ -30,6 +30,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
@@ -126,7 +127,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

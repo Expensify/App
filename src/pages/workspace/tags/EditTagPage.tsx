@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -22,16 +21,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import type {PolicyTagLists} from '@src/types/onyx';
 
-type EditTagPageOnyxProps = {
-    /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
+type EditTagPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
 
-type EditTagPageProps = EditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
-
-function EditTagPage({route, policyTags}: EditTagPageProps) {
+function EditTagPage({route}: EditTagPageProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -111,8 +105,4 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
 EditTagPage.displayName = 'EditTagPage';
 
-export default withOnyx<EditTagPageProps, EditTagPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
-    },
-})(EditTagPage);
+export default EditTagPage;
