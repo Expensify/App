@@ -54,8 +54,6 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-// test
-
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
 function App({url}: AppProps) {
