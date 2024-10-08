@@ -1,3 +1,4 @@
+import type {ComponentType} from 'react';
 import {useCallback, useRef, useState} from 'react';
 import type {SubStepProps, UseSubStep} from './types';
 
@@ -22,24 +23,27 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         setScreenIndex(prevScreenIndex);
     }, [screenIndex]);
 
-    const nextScreen = useCallback(() => {
-        if (isEditing.current) {
-            isEditing.current = false;
+    const nextScreen = useCallback(
+        (finishData?: unknown) => {
+            if (isEditing.current) {
+                isEditing.current = false;
 
-            setScreenIndex(bodyContent.length - 1);
+                setScreenIndex(bodyContent.length - 1);
 
-            return;
-        }
+                return;
+            }
 
-        const nextScreenIndex = screenIndex + 1;
+            const nextScreenIndex = screenIndex + 1;
 
-        if (nextScreenIndex === bodyContent.length) {
-            onFinished();
-        } else {
-            onNextSubStep();
-            setScreenIndex(nextScreenIndex);
-        }
-    }, [screenIndex, bodyContent.length, onFinished, onNextSubStep]);
+            if (nextScreenIndex === bodyContent.length) {
+                onFinished(finishData);
+            } else {
+                onNextSubStep();
+                setScreenIndex(nextScreenIndex);
+            }
+        },
+        [screenIndex, bodyContent.length, onFinished, onNextSubStep],
+    );
 
     const moveTo = useCallback((step: number) => {
         isEditing.current = true;
@@ -56,7 +60,8 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     }, [bodyContent]);
 
     return {
-        componentToRender: bodyContent[screenIndex],
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        componentToRender: bodyContent.at(screenIndex) as ComponentType<SubStepProps & TProps>,
         isEditing: isEditing.current,
         screenIndex,
         prevScreen,

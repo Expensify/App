@@ -299,7 +299,7 @@ DEPENDENCIES
   xcpretty (~> 0)
 
 RUBY VERSION
-   ruby 2.6.10p210
+   ruby 3.3.4p94
 
 BUNDLED WITH
    2.4.19

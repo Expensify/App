@@ -57,7 +57,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
     const cardFeeds = mockedData;
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
     const selectedFeed = lastSelectedFeed ?? defaultFeed;
 
     const feeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
@@ -75,7 +75,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         ),
     }));
 
-    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    const goBack = () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
     const selectFeed = (feed: CardFeedListItem) => {
         Card.updateSelectedFeed(feed.value, policyID);

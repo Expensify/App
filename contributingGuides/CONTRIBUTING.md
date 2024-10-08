@@ -4,7 +4,7 @@ Welcome! Thanks for checking out the New Expensify app and taking the time to co
 ## Getting Started
 If you would like to become an Expensify contributor, the first step is to read this document in its **entirety**. The second step is to review the README guidelines [here](https://github.com/Expensify/App/blob/main/README.md) to understand our coding philosophy and for a general overview of the code repository (i.e. how to run the app locally, testing, storage, our app philosophy, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
-#### Test Accounts
+### Test Accounts
 You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be created by opening the "New Chat" or "Group Chat" pages via the Global Create menu, inputting a valid email or phone number, and tapping the user's avatar. Do not use Expensify employee or customer accounts for testing.
 
 **Notes**: 
@@ -12,17 +12,17 @@ You can create as many accounts as needed in order to test your changes directly
 1. When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you.
 2. A member of our customer onboarding team gets auto-assigned to every new policy created by a non-paying account to help them set up. Please **do not interact with these teams, ask for calls, or support on your issues.** If you do need to test functionality inside the defaultRooms (#admins & #announce) for any issues you’re working on, please let them know that you are a contributor and don’t need assistance. They will proceed to ignore the chat.
 
-##### Generating Multiple Test Accounts
+#### Generating Multiple Test Accounts
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
-##### High Traffic Accounts
+#### High Traffic Accounts
 
 All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Use these Google forms to manage your high-traffic accounts. You'll need to authenticate via Google first. 
 1. [Make an account high-traffic](https://docs.google.com/forms/d/e/1FAIpQLScpiS0Mo-HA5xHPsvDow79yTsMBgF0wjuqc0K37lTK5fheB8Q/viewform)
 2. [Remove a high-traffic account](https://docs.google.com/forms/d/e/1FAIpQLSd9_FDav83pnhhtu1KGAKIpf2yttQ_0Bvq1b9nuFM1-wbL11Q/viewform)
 
 
-#### Working on beta features
+### Working on beta features
 Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
 
 ## Code of Conduct
@@ -30,6 +30,15 @@ This project and everyone participating in it is governed by the Expensify [Code
 
 ## Restrictions
 At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran, Cuba, or Syria.
+
+## Slack channels
+All contributors should be a member of a shared Slack channel called [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) -- this channel is used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
+
+Before requesting an invite to Slack, please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to Slack, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
+
+Note: Do not send direct messages to the Expensify team in Slack or Expensify Chat, they will not be able to respond. 
+
+Note: if you are hired for an Upwork job and have any job-specific questions, please ask in the GitHub issue or pull request. This will ensure that the person addressing your question has as much context as possible.
 
 ## Reporting Vulnerabilities
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
@@ -58,35 +67,76 @@ The 168 hours (aka 7 days) will be measured by calculating the time between when
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
 
-#### Finding a job that Expensify posted
+### Finding a job that Expensify posted
 This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/nx/search/jobs/?nbs=1&q=expensify%20react%20native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view all open jobs in the Expensify/App GH repository by searching for GH issues with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22). Lastly, you can follow the [@ExpensifyOSS](https://twitter.com/ExpensifyOSS) Twitter account to see a live feed of jobs that are posted.
 
->**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
+### Posting proposals for new projects
+Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. If you want to propose that Expensify implement some idea you have, you should post it in the #expensify-open-source slack room with the `Strategy`/`Problem`/`Solution` format.
+
+#### How to write a good problem statement
+A good problem statement is in this format:
+
+> **Problem**: When X happens, it causes Y, which prevents us from Z.
+
+Just state the direct cause and effect, with minimal fluff and analysis.
+
+In short, a good problem statement makes no mention whatsoever of the desired solution. This sounds obvious, but is easier said than done. The point of not mentioning the solution is to force you to identify the actual problem you are trying to solve, and not waving your hands with a "reverse solution statement". For example:
+
+**Bad:**
+> **Problem:** We don't have a car
+> 
+> **Solution:** Buy a car.
+
+
+**Good:**
+> **Problem:** I want to buy a new chair, but it's too heavy for me to carry it home, so I can't sit in it.
 >
->**Problem:** The app start up time has regressed because we introduced "New Feature" in PR #12345 and is now 1042ms slower because `SomeComponent` is re-rendering 42 times.
+> **Solution:** Buy a truck.
 >
->**Solution:** Start up time will perceptibly decrease by 1042ms if we prevent the unnecessary re-renders of this component.
+> **Solution:** Rent a truck.
+>
+> **Solution:** Hire movers.
+>
+> **Solution:** Buy a bean bag.
+
+
+A real problem description enables a much richer discussion to find more creative solutions. Having multiple viable solutions is a good indicator that your problem statement is *NOT* a reverse solution description.
+
+#### How to write a bad problem statement
+
+Similarly, a sign that you are actually doing a reverse solution statement is if it contains phrases like:
+
+* **Problem:** We don't do/have X; **Solution:** Build X
+    * Rewrite the problem statement to explain the consequence of not doing/having X. You might think it is incredibly obvious -- so obvious that it doesn't need to be stated. But just state it outright. An obvious problem statement is the goal: this is not a place to be clever, it's a place to be clear.
+* **Problem:** We lack insight/knowledge/awareness/visibility; **Solution:** Create insight
+    * Information isn't itself valuable. Not having it isn't inherently a problem; having it isn't itself a solution. Information is only valuable when it enables us to act -- so the problem isn't the lack of information, but the problem is that there is something we aren't doing. Part of the solution might be getting more information -- but the information isn't the whole solution, the solution is that we are doing something with that information that we weren't doing before.
+* **Problem:** There are problems A, B, C, D, and E. **Solution:** Do F.
+    * Focus on one problem at a time, to enable a collaborative conversation about each of the problems in isolation. Are all of A-E equally important? If one stands out, lead with it and focus on it. Otherwise, it's likely you are just "fitting the problem to the solution" and trying to invent a justification for a solution you've already mentally committed to, and aren't genuinely trying to create a collaborative, problem-focused solution.
+* **Problem:** X is inefficient/error-prone. **Solution:** Do Y.
+    * Everything is inefficient and error prone. Everything is cumbersome. Without some kind of quantification, they are not problems, they are just statements of reality. Without some kind of measurable improvement, it's not a solution: it's just a change. Focus on the actual, tangible, measurable problems that can be provably solved.
+
+Basically, a bad problem statement (ie, a reverse solution statement) is written in such a fashion that it only allows for a single solution. To enable the most creative, most collaborative discussion, equip your peers with the tools to engage by listing all the key assumptions that went into your understanding of the problem, and connecting that directly to the solution.
+
+### Posting Ideas
+Additionally, if you want to discuss an idea with the open source community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
 
 ## Working on Expensify Jobs
 *Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
-## Posting Ideas
-Additionally, if you want to discuss an idea with the open source community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
-
-#### Make sure you can test on all platforms
+### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
 * In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/contributingGuides/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
 
-#### Check GitHub for existing proposals from other users
+### Check GitHub for existing proposals from other users
 
 1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
 
-#### Make sure you can reproduce the problem
+### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
-#### Propose a solution for the job
+### Propose a solution for the job
 4. You can propose solutions on any issue at any time, but if you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
@@ -102,7 +152,7 @@ Additionally, if you want to discuss an idea with the open source community with
 8. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
 9. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
 
-#### Begin coding your solution in a pull request
+### Begin coding your solution in a pull request
 9. When you are ready to start, fork the repository and create a new branch.
 10. Before you begin writing any code, please be aware that we require all commits to be [signed](https://docs.github.com/en/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your GitHub account](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
     ```
@@ -115,11 +165,11 @@ Additionally, if you want to discuss an idea with the open source community with
     [gpg]
         program = gpg
     ```
-11. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
+11. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). It is required to complete every step and check every box in the PR Author Checklist. If a box has been checked without the action being taken, it will be a violation of [Rule #2](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and could lead to [a warning](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md#compliance)  being issued.
 12. An Expensify engineer and a member from the Contributor-Plus team will be assigned to your pull request automatically to review.
 13. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates within 48 hours, please comment on the PR or issue stating how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 5 days (including weekend days) may be considered abandoned and the original contract terminated.
 
-#### Submit your pull request for final review
+### Submit your pull request for final review
 14. When you are ready to submit your pull request for final review, make sure the following checks pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/contributingGuides/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
@@ -129,7 +179,7 @@ Additionally, if you want to discuss an idea with the open source community with
 17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 18. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
 
-#### Completing the final checklist
+### Completing the final checklist
 19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
 20. The items requiring your completion consist of: 
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
@@ -138,23 +188,23 @@ Additionally, if you want to discuss an idea with the open source community with
     4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
 21. Once the above items have been successfully completed, then payments will begin to be issued. 
 
-#### Timeline expectations and asking for help along the way
+### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
 - Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days, please let us know via the #expensify-open-source Slack channel.
 - On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR. 
 
-#### Important note about JavaScript Style
+### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
 
-#### For external agencies that Expensify partners with
+### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:
 - Post “I’m from [agency], I’d like to work on this job”
   - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
   - If there are existing proposals, BZ will put the issue on hold. [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
 - Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
 
-#### Guide on Acronyms used within Expensify Communication
+## Guide on Acronyms used within Expensify Communication
 During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in Slack or the GH issue if there are any that are not understood/known!
 - **ND/NewDot:** new.expensify.com
 - **OD/OldDot:** expensify.com

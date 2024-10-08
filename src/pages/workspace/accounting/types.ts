@@ -14,8 +14,7 @@ type PolicyAccountingPageOnyxProps = {
 
 type PolicyAccountingPageProps = WithPolicyConnectionsProps &
     PolicyAccountingPageOnyxProps & {
-        // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
-        policy: Policy;
+        policy: OnyxEntry<Policy>;
     };
 
 type WorkspaceUpgradeNavigationDetails = {

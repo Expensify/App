@@ -47,7 +47,7 @@ type GetAdaptedStateReturnType = {
     metainfo: Metainfo;
 };
 
-type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) => GetAdaptedStateReturnType;
+type GetAdaptedStateFromPath = (...args: [...Parameters<typeof getStateFromPath>, shouldReplacePathInNestedState?: boolean]) => GetAdaptedStateReturnType;
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
@@ -114,22 +114,26 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
         if (stateForBackTo) {
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            const rhpNavigator = stateForBackTo.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-
-            const centralPaneOrFullScreenNavigator = stateForBackTo.routes.find(
-                // eslint-disable-next-line @typescript-eslint/no-shadow
-                (route) => isCentralPaneName(route.name) || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR,
-            );
-
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
+            const rhpNavigator = stateForBackTo.routes.find((rt) => rt.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
             if (rhpNavigator && rhpNavigator.state) {
-                return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
+                const isRHPinState = stateForBackTo.routes.at(0)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+                if (isRHPinState) {
+                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
+                }
             }
 
-            // If we know that backTo targets the root route (central pane or full screen) we want to use it.
-            if (centralPaneOrFullScreenNavigator && centralPaneOrFullScreenNavigator.state) {
-                return centralPaneOrFullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+            // If we know that backTo targets the root route (full screen) we want to use it.
+            const fullScreenNavigator = stateForBackTo.routes.find((rt) => rt.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+            if (fullScreenNavigator && fullScreenNavigator.state) {
+                return fullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+            }
+
+            // If we know that backTo targets a central pane screen we want to use it.
+            const centralPaneScreen = stateForBackTo.routes.find((rt) => isCentralPaneName(rt.name));
+            if (centralPaneScreen) {
+                return centralPaneScreen as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
             }
         }
     }
@@ -191,7 +195,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         if (focusedRHPRoute) {
             let matchingRootRoute = getMatchingRootRouteForRHPRoute(focusedRHPRoute);
             const isRHPScreenOpenedFromLHN = focusedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(focusedRHPRoute?.name as RHPScreenOpenedFromLHN);
-            // This may happen if this RHP doens't have a route that should be under the overlay defined.
+            // This may happen if this RHP doesn't have a route that should be under the overlay defined.
             if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
                 metainfo.isFullScreenNavigatorMandatory = false;
@@ -336,7 +340,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - matching central pane on desktop layout
 
         // We want to make sure that the bottom tab search page is always pushed with matching central pane page. Even on the narrow layout.
-        if (isNarrowLayout && bottomTabNavigator.state?.routes[0].name !== SCREENS.SEARCH.BOTTOM_TAB) {
+        if (isNarrowLayout && bottomTabNavigator.state?.routes.at(0)?.name !== SCREENS.SEARCH.BOTTOM_TAB) {
             return {
                 adaptedState: state,
                 metainfo,
@@ -365,7 +369,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     };
 }
 
-const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
+const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
     const isAnonymous = isAnonymousUser();
@@ -374,7 +378,9 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
-    replacePathInNestedState(state, path);
+    if (shouldReplacePathInNestedState) {
+        replacePathInNestedState(state, path);
+    }
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }

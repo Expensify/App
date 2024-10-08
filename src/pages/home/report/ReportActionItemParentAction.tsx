@@ -77,7 +77,11 @@ function ReportActionItemParentAction({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
                     callback: (val) => {
                         ancestorReports.current[ancestorReportID] = val;
-                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
+                        //  getAllAncestorReportActions use getReportOrDraftReport to get parent reports which gets the report from allReports that
+                        // holds the report collection. However, allReports is not updated by the time this current callback is called.
+                        // Therefore we need to pass the up-to-date report to getAllAncestorReportActions so that it uses the up-to-date report value
+                        // to calculate, for instance, unread marker.
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, val));
                     },
                 }),
             );

@@ -184,6 +184,11 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
+/** Check if the receipt has the source file */
+function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return !!transaction?.receipt?.source;
+}
+
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -256,7 +261,14 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
+        updatedTransaction.comment = {
+            ...(updatedTransaction?.comment ?? {}),
+            customUnit: {
+                ...updatedTransaction?.comment?.customUnit,
+                customUnitRateID: transactionChanges.customUnitRateID,
+                defaultP2PRate: null,
+            },
+        };
         shouldStopSmartscan = true;
     }
 
@@ -480,7 +492,7 @@ function getTagArrayFromName(tagName: string): string[] {
 function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
-        return tagsArray[tagIndex] ?? '';
+        return tagsArray.at(tagIndex) ?? '';
     }
 
     return transaction?.tag ?? '';
@@ -634,7 +646,10 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
     let waypointIndex = -1;
 
     return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
-        const previousWaypoint = waypointValues[lastWaypointIndex];
+        // Array.at(-1) returns the last element of the array
+        // If a user does a round trip, the last waypoint will be the same as the first waypoint
+        // We want to avoid comparing them as this will result in an incorrect duplicate waypoint error.
+        const previousWaypoint = lastWaypointIndex !== -1 ? waypointValues.at(lastWaypointIndex) : undefined;
 
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
@@ -825,7 +840,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();
+    return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
 /**
@@ -970,12 +985,12 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
     // Helper function to check if all comments are equal
     function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+        return items.every((item) => lodashIsEqual(getDescription(item), getDescription(firstTransaction)));
     }
 
     // Helper function to check if all fields are equal for a given key
     function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
-        const firstTransaction = transactions[0];
+        const firstTransaction = transactions.at(0);
         return items.every((item) => keyExtractor(item) === keyExtractor(firstTransaction));
     }
 
@@ -990,13 +1005,12 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
-            const firstTransaction = transactions[0];
+            const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
-
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
@@ -1136,6 +1150,7 @@ export {
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
     getCardName,
+    hasReceiptSource,
 };
 
 export type {TransactionChanges};
