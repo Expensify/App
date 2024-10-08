@@ -23,6 +23,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const errorFields = qbdConfig?.errorFields;
     const {canUseNewDotQBD} = usePermissions();
+    const reimbursable = qbdConfig?.export.reimbursable.toLowerCase(); // TODO: should be updated to be lowercase by default
 
     const shouldShowVendorMenuItems = useMemo(
         () => qbdConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
@@ -44,7 +45,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            title: qbdConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbd.accounts.${qbdConfig?.reimbursableExpensesExportDestination}`) : undefined,
+            title: reimbursable ? translate(`workspace.qbd.accounts.${reimbursable}`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {

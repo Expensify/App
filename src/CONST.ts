@@ -1465,8 +1465,8 @@ const CONST = {
 
     QUICKBOOKS_DESKTOP_CONFIG: {
         MARK_CHECKS_TO_BE_PRINTED: 'markChecksToBePrinted',
-        REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
-        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        REIMBURSABLE: 'reimbursable',
     },
 
     QUICKBOOKS_CONFIG: {

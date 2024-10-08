@@ -18,6 +18,7 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Account} from '@src/types/onyx/Policy';
 
 type QBDSectionType = {
     title?: string;
@@ -37,35 +38,41 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const isLocationEnabled = !!(qbdConfig?.syncLocations && qbdConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qbdConfig?.syncTax;
+    const reimbursable = qbdConfig?.export.reimbursable.toLowerCase(); // TODO: should be updated to be lowercase by default
     const {canUseNewDotQBD} = usePermissions();
-    const [exportHintText, accountDescription] = useMemo(() => {
+    const [exportHintText, accountDescription, accountsList] = useMemo(() => {
         let hintText: string | undefined;
         let description: string | undefined;
-        switch (qbdConfig?.reimbursableExpensesExportDestination) {
+        let accounts: Account[] = [];
+        switch (reimbursable) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportCheckDescription');
                 description = translate('workspace.qbd.bankAccount');
+                accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 hintText = isTaxesEnabled ? undefined : translate('workspace.qbd.exportJournalEntryDescription');
                 description = translate('workspace.qbd.account');
+                accounts = journalEntryAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportVendorBillDescription');
                 description = translate('workspace.qbd.accountsPayable');
+                accounts = accountPayable ?? [];
                 break;
             default:
                 break;
         }
 
-        return [hintText, description];
-    }, [translate, qbdConfig?.reimbursableExpensesExportDestination, isLocationEnabled, isTaxesEnabled]);
+        return [hintText, description, accounts];
+    }, [reimbursable, isLocationEnabled, translate, bankAccounts, isTaxesEnabled, journalEntryAccounts, accountPayable]);
 
     const sections: QBDSectionType[] = [
         {
-            title: qbdConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbd.accounts.${qbdConfig?.reimbursableExpensesExportDestination}`) : undefined,
+            title: reimbursable ? translate(`workspace.qbd.accounts.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
             hintText: exportHintText,
@@ -74,7 +81,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(accountOrExportDestination, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
-            title: qbdConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbd.notConfigured'),
+            title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name ?? translate('workspace.qbd.notConfigured'),
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: account,
@@ -113,7 +120,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     />
                 </OfflineWithFeedback>
             ))}
-            {qbdConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
+            {reimbursable === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
                 <ToggleSettingOptionRow
                     key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
                     title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}

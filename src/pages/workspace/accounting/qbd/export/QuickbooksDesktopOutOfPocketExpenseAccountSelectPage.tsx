@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
+import {updatePolicyConnectionConfig} from '@libs/actions/connections/index';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -29,13 +29,14 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     const styles = useThemeStyles();
     const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const reimbursable = qbdConfig?.export.reimbursable.toLowerCase(); // TODO: should be updated to be lowercase by default
 
     const {canUseNewDotQBD} = usePermissions();
 
     const [title, description] = useMemo(() => {
         let titleText: TranslationPaths | undefined;
         let descriptionText: string | undefined;
-        switch (qbdConfig?.reimbursableExpensesExportDestination) {
+        switch (reimbursable) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 titleText = 'workspace.qbd.bankAccount';
                 descriptionText = translate('workspace.qbd.bankAccountDescription');
@@ -53,11 +54,11 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
         }
 
         return [titleText, descriptionText];
-    }, [qbdConfig?.reimbursableExpensesExportDestination, translate]);
+    }, [reimbursable, translate]);
 
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
-        switch (qbdConfig?.reimbursableExpensesExportDestination) {
+        switch (reimbursable) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 accounts = bankAccounts ?? [];
                 break;
@@ -75,20 +76,26 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             value: account,
             text: account.name,
             keyForList: account.name,
-            isSelected: account.id === qbdConfig?.reimbursableExpensesAccount?.id,
+            isSelected: account.id === qbdConfig?.export?.reimbursableAccount,
         }));
-    }, [qbdConfig?.reimbursableExpensesExportDestination, qbdConfig?.reimbursableExpensesAccount?.id, bankAccounts, journalEntryAccounts, accountPayable]);
+    }, [reimbursable, bankAccounts, journalEntryAccounts, accountPayable, qbdConfig?.export?.reimbursableAccount]);
 
     const policyID = policy?.id ?? '-1';
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
-            if (row.value.id !== qbdConfig?.reimbursableExpensesAccount?.id) {
-                QuickbooksDesktop.updateQuickbooksDesktopReimbursableExpensesAccount(policyID, row.value, qbdConfig?.reimbursableExpensesAccount);
+            if (row.value.id !== qbdConfig?.export?.reimbursableAccount) {
+                updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBD,
+                    'export',
+                    {[CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: row.value.id},
+                    {[CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: qbdConfig?.export?.reimbursableAccount},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
-        [qbdConfig?.reimbursableExpensesAccount, policyID],
+        [qbdConfig?.export?.reimbursableAccount, policyID],
     );
 
     const listEmptyContent = useMemo(
@@ -120,10 +127,10 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             title={title}
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT], qbdConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT], qbdConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
+            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT)}
             listEmptyContent={listEmptyContent}
             shouldSingleExecuteRowSelect
         />
