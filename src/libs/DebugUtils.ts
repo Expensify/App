@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
-import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
 
 class NumberError extends SyntaxError {
@@ -598,7 +597,11 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         return null;
     }
 
-    const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
+
+    if (ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)) {
+        return `debug.reasonVisibleInLHN.hasRBR`;
+    }
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
@@ -646,7 +649,7 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
  * Gets the report action that is causing the RBR to show up in LHN
  */
 function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const {reportAction} = OptionsListUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     return reportAction;
 }

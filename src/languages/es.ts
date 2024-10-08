@@ -5443,6 +5443,7 @@ const translations = {
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
+            hasRBR: 'Tiene RBR',
             pinnedByUser: 'Fijado por el usuario',
             hasIOUViolations: 'Tiene violaciones de IOU',
             hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
