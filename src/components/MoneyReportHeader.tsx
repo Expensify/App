@@ -248,6 +248,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
+    const shouldDuplicateButtonBeSuccess = useMemo(
+        () => isDuplicate && !(shouldShowSettlementButton || shouldShowExportIntegrationButton || shouldShowSubmitButton || hasAllPendingRTERViolations),
+        [isDuplicate, shouldShowSettlementButton, shouldShowExportIntegrationButton, shouldShowSubmitButton, hasAllPendingRTERViolations],
+    );
+
     useEffect(() => {
         if (isLoadingHoldUseExplained) {
             return;
@@ -298,6 +303,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {isDuplicate && !shouldUseNarrowLayout && (
                     <View style={[styles.mh2]}>
                         <Button
+                            success={shouldDuplicateButtonBeSuccess}
                             text={translate('iou.reviewDuplicates')}
                             style={styles.p0}
                             onPress={() => {
@@ -364,6 +370,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {isDuplicate && shouldUseNarrowLayout && (
                             <Button
+                                success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
                                 style={[styles.flex1, styles.pr0]}
                                 onPress={() => {
@@ -391,31 +398,31 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isLoading={!isOffline && !canAllowSettlement}
                             />
                         )}
+                        {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                            <ExportWithDropdownMenu
+                                policy={policy}
+                                report={moneyRequestReport}
+                                connectionName={connectedIntegration}
+                            />
+                        )}
+                        {shouldShowSubmitButton && shouldUseNarrowLayout && (
+                            <Button
+                                success={isWaitingForSubmissionFromCurrentUser}
+                                text={translate('common.submit')}
+                                style={[styles.flex1, styles.pr0]}
+                                onPress={() => IOU.submitReport(moneyRequestReport)}
+                                isDisabled={shouldDisableSubmitButton}
+                            />
+                        )}
+                        {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
+                            <Button
+                                success
+                                text={translate('iou.markAsCash')}
+                                style={[styles.flex1, styles.pr0]}
+                                onPress={markAsCash}
+                            />
+                        )}
                     </View>
-                    {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
-                        <ExportWithDropdownMenu
-                            policy={policy}
-                            report={moneyRequestReport}
-                            connectionName={connectedIntegration}
-                        />
-                    )}
-                    {shouldShowSubmitButton && shouldUseNarrowLayout && (
-                        <Button
-                            success={isWaitingForSubmissionFromCurrentUser}
-                            text={translate('common.submit')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={() => IOU.submitReport(moneyRequestReport)}
-                            isDisabled={shouldDisableSubmitButton}
-                        />
-                    )}
-                    {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={markAsCash}
-                        />
-                    )}
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
                     {statusBarProps && (
                         <MoneyRequestHeaderStatusBar
