@@ -5,6 +5,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getParamsFromRoute from '@libs/Navigation/linkingConfig/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {SplitStackNavigatorRouterOptions} from './types';
+import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
 
@@ -94,7 +95,8 @@ function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
             return stackRouter.getStateForAction(state, action, configOptions);
         },
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
-            const initialState = stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
+            const preservedState = getPreservedSplitNavigatorState(options.parentRoute.key);
+            const initialState = preservedState ?? stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
 
             adaptStateIfNecessary({
                 state: initialState,
