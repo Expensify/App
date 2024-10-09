@@ -127,7 +127,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         });
 
         socket?.connection.bind('connected', () => {
-            pusherSocketID = socket?.connection.socket_id ?? '';
+            pusherSocketID = socket?.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });

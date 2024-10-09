@@ -90,7 +90,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                 description={getDescriptionText()}
                 descriptionTextStyle={styles.textNormalThemeText}
                 wrapperStyle={styles.pr3}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policy?.id ?? ''))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policy?.id))}
                 shouldShowRightIcon
             />
         </OfflineWithFeedback>

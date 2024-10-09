@@ -104,7 +104,7 @@ function AmountForm(
      * Event occurs when a user presses a mouse button over an DOM element.
      */
     const focusTextInput = (event: React.MouseEvent, ids: string[]) => {
-        const relatedTargetId = (event.nativeEvent?.target as HTMLElement | null)?.id ?? '';
+        const relatedTargetId = (event.nativeEvent?.target as HTMLElement | null)?.id;
         if (!ids.includes(relatedTargetId)) {
             return;
         }

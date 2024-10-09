@@ -60,7 +60,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             isActive: !!config?.export.nonReimbursableCreditCardChargeDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {
-                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
+                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id : '';
                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor, config?.export.nonReimbursableCreditCardChargeDefaultVendor);
             },
             onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),

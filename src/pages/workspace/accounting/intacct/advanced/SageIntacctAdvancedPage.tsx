@@ -70,7 +70,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     updateSageIntacctSyncReimbursedReports(policyID, enabled);
 
                     if (enabled && !sync?.reimbursementAccountID) {
-                        const reimbursementAccountID = data?.bankAccounts[0]?.id ?? '';
+                        const reimbursementAccountID = data?.bankAccounts[0]?.id;
                         updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
                     }
                 },

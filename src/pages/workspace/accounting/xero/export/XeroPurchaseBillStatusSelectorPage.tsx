@@ -25,7 +25,7 @@ type MenuListItem = ListItem & {
 
 function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {config} = policy?.connections?.xero ?? {};
     const invoiceStatus = config?.export?.billStatus?.purchase;

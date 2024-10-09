@@ -48,7 +48,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {
-                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
+                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id : '';
                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor, config?.export.reimbursableExpenseReportDefaultVendor);
             },
             onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR),

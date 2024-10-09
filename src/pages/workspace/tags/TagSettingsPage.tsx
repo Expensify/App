@@ -72,7 +72,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const navigateToEditGlCode = () => {
         if (!PolicyUtils.isControlPolicy(policy)) {
             Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias, ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', orderWeight, tagName)),
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias, ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id, orderWeight, tagName)),
             );
             return;
         }
