@@ -13,7 +13,6 @@ import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
-import OnboardingWork from '@pages/OnboardingWork';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
@@ -52,10 +51,6 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK}
-                                component={OnboardingWork}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.EMPLOYEES}

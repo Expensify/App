@@ -118,7 +118,7 @@ function getOnboardingInitialPath(): string {
     const showBusinessModal = onboardingValues && CONST.QUALIFIER_PARAM in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     if (showBusinessModal) {
-        return `/${ROUTES.ONBOARDING_WORK.route}`;
+        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
