@@ -35,7 +35,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbd.classes'),
-            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49704
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${mappings?.classes ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
         },

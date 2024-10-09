@@ -702,6 +702,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
+    },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/name` as const,
