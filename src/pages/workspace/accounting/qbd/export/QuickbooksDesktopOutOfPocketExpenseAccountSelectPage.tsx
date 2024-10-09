@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updatePolicyConnectionConfig} from '@libs/actions/connections/index';
+import * as Connections from '@libs/actions/connections/index';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -85,7 +85,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== qbdConfig?.export?.reimbursableAccount) {
-                updatePolicyConnectionConfig(
+                Connections.updatePolicyConnectionConfig(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.QBD,
                     'export',

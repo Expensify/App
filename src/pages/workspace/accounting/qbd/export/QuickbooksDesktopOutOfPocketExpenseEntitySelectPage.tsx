@@ -1,10 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,21 +17,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLocationsEnabled: boolean}) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
-    if (!isTaxEnabled && !isLocationsEnabled) {
-        return null;
-    }
-
-    return (
-        <View style={[styles.gap2, styles.mt2, styles.ph5]}>
-            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbd.outOfPocketTaxEnabledDescription')}</Text>}
-            {isLocationsEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbd.outOfPocketLocationEnabledDescription')}</Text>}
-        </View>
-    );
-}
 type MenuItem = ListItem & {
     value: QBDReimbursableExportAccountType;
     isShown: boolean;
@@ -45,11 +28,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const reimbursable = qbdConfig?.export.reimbursable;
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
-    const isLocationsEnabled = !!(qbdConfig?.syncLocations && qbdConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = !!qbdConfig?.syncTax;
-    const shouldShowTaxError = isTaxesEnabled && reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const shouldShowLocationError = isLocationsEnabled && reimbursable !== CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const hasErrors = !!qbdConfig?.errorFields?.reimbursableExpensesExportDestination && (shouldShowTaxError || shouldShowLocationError);
+    const hasErrors = !!qbdConfig?.errorFields?.reimbursable;
     const policyID = policy?.id ?? '-1';
     const {canUseNewDotQBD} = usePermissions();
 
@@ -60,7 +39,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}`),
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isShown: !isLocationsEnabled,
+                isShown: true,
                 accounts: bankAccounts ?? [],
             },
             {
@@ -68,7 +47,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}`),
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isShown: !isTaxesEnabled,
+                isShown: true,
                 accounts: journalEntryAccounts ?? [],
             },
             {
@@ -76,11 +55,11 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}`),
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isShown: !isLocationsEnabled,
+                isShown: true,
                 accounts: accountPayable ?? [],
             },
         ],
-        [reimbursable, isTaxesEnabled, translate, isLocationsEnabled, bankAccounts, accountPayable, journalEntryAccounts],
+        [reimbursable, translate, bankAccounts, accountPayable, journalEntryAccounts],
     );
 
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
@@ -94,7 +73,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                     {
                         export: {
                             [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: row.value,
-                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: row.accounts.at(0)?.id,
+                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: row.accounts.at(0)?.id ?? '',
                         },
                     },
                     {
@@ -135,12 +114,6 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             }
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE)}
-            listFooterContent={
-                <Footer
-                    isTaxEnabled={isTaxesEnabled}
-                    isLocationsEnabled={isLocationsEnabled}
-                />
-            }
         />
     );
 }

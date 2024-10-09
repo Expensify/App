@@ -1,5 +1,0 @@
-import type UpdateQuickbooksDesktopGenericTypeParams from './UpdateQuickbooksDesktopGenericTypeParams';
-
-type UpdateQuickbooksDesktopMarkChecksToBePrintedTypeParams = UpdateQuickbooksDesktopGenericTypeParams & {enabled: boolean};
-
-export default UpdateQuickbooksDesktopMarkChecksToBePrintedTypeParams;

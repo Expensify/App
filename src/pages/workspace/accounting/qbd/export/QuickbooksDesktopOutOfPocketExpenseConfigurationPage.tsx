@@ -39,8 +39,6 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
-    const isLocationEnabled = !!(qbdConfig?.syncLocations && qbdConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = !!qbdConfig?.syncTax;
     const reimbursable = qbdConfig?.export.reimbursable;
     const {canUseNewDotQBD} = usePermissions();
     const [exportHintText, accountDescription, accountsList] = useMemo(() => {
@@ -49,17 +47,17 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         let accounts: Account[] = [];
         switch (reimbursable) {
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportCheckDescription');
+                hintText = translate('workspace.qbd.exportCheckDescription');
                 description = translate('workspace.qbd.bankAccount');
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                hintText = isTaxesEnabled ? undefined : translate('workspace.qbd.exportJournalEntryDescription');
+                hintText = translate('workspace.qbd.exportJournalEntryDescription');
                 description = translate('workspace.qbd.account');
                 accounts = journalEntryAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportVendorBillDescription');
+                hintText = translate('workspace.qbd.exportVendorBillDescription');
                 description = translate('workspace.qbd.accountsPayable');
                 accounts = accountPayable ?? [];
                 break;
@@ -68,7 +66,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         }
 
         return [hintText, description, accounts];
-    }, [reimbursable, isLocationEnabled, translate, bankAccounts, isTaxesEnabled, journalEntryAccounts, accountPayable]);
+    }, [reimbursable, translate, bankAccounts, journalEntryAccounts, accountPayable]);
 
     const sections: QBDSectionType[] = [
         {

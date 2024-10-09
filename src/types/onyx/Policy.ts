@@ -447,7 +447,7 @@ type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_
 /**
  * Non reimbursable account types exported from QuickBooks Desktop
  */
-type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
+type QBDNonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
 
 /** Xero bill status values
  *
@@ -1244,61 +1244,52 @@ type QBDConnectionData = {
 /**
  * User configuration for the QuickBooks Desktop accounting integration.
  */
-type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
-    {
-        /** API provider */
-        apiProvider: string;
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** API provider */
+    apiProvider: string;
 
-        /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
-        autoSync: {
-            /** TODO: Will be handled in another issue */
-            jobID: string;
+    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+    autoSync: {
+        /** TODO: Will be handled in another issue */
+        jobID: string;
 
-            /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
-            enabled: boolean;
-        };
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
 
-        /** Whether a check to be printed */
-        markChecksToBePrinted: boolean;
+    /** Whether a check to be printed */
+    markChecksToBePrinted: boolean;
 
-        /** Whether Quickbooks Desktop locations should be imported */
-        syncLocations: IntegrationEntityMap;
+    /** Determines if a vendor should be automatically created */
+    shouldAutoCreateVendor: boolean;
 
-        /** Defines how non reimbursable expenses are exported */
-        nonReimbursableExpensesExportDestination: QBDNonReimbursableExportAccountType;
+    /** Configuration of the export */
+    export: {
+        /** E-mail of the exporter */
+        exporter: string;
 
-        /** Whether the taxes should be synchronized */
-        syncTax: boolean;
+        /** Defines how reimbursable expenses are exported */
+        reimbursable: QBDReimbursableExportAccountType;
 
-        /** Account that receives the exported invoices */
-        receivableAccount?: Account;
+        /** Account that receives the reimbursable expenses */
+        reimbursableAccount: string;
 
-        /**
-         * Whether a default vendor will be created and applied to all credit card
-         * transactions upon import
-         */
-        autoCreateVendor: boolean;
-
-        /** Defines the export date */
+        /** Export date type */
         exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 
-        /** Configuration of the export */
-        export: {
-            /** E-mail of the exporter */
-            exporter?: string;
+        /** Defines how non-reimbursable expenses are exported */
+        nonReimbursable: QBDNonReimbursableExportAccountType;
 
-            /** Defines how reimbursable expenses are exported */
-            reimbursable?: QBDReimbursableExportAccountType;
+        /** Account that receives the non reimbursable expenses */
+        nonReimbursableAccount: string;
 
-            /** Account that receives the reimbursable expenses */
-            reimbursableAccount?: string;
-        };
+        /** Default vendor of non reimbursable bill */
+        nonReimbursableBillDefaultVendor: string;
+    };
 
-        /** Collections of form field errors */
-        errorFields?: OnyxCommon.ErrorFields;
-    },
-    string
->;
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {

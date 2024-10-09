@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type UpdateQuickbooksDesktopMarkChecksToBePrintedTypeParams from '@libs/API/parameters/UpdateQuickbooksDesktopMarkChecksToBePrintedTypeParams';
+import type UpdateQuickbooksDesktopGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksDesktopGenericTypeParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -92,11 +92,10 @@ function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Conn
 ) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED, settingValue, !settingValue);
 
-    const parameters: UpdateQuickbooksDesktopMarkChecksToBePrintedTypeParams = {
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED),
-        enabled: settingValue,
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED, parameters, onyxData);
 }
