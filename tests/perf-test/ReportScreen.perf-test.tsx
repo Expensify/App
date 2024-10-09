@@ -6,7 +6,7 @@ import type ReactNative from 'react-native';
 import {Dimensions, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -230,7 +230,7 @@ test('[ReportScreen] should render ReportScreen', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
-    await measurePerformance(
+    await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
             route={mockRoute}
@@ -265,7 +265,7 @@ test('[ReportScreen] should render composer', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
-    await measurePerformance(
+    await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
             route={mockRoute}
@@ -305,7 +305,7 @@ test('[ReportScreen] should render report list', async () => {
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
-    await measurePerformance(
+    await measureRenders(
         <ReportScreenWrapper
             navigation={navigation}
             route={mockRoute}
