@@ -572,4 +572,5 @@ export {
     updateDelegateRoleOptimistically,
     clearDelegateRolePendingAction,
     updateDelegateRole,
+    removeDelegate,
 };
