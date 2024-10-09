@@ -208,3 +208,136 @@ The action for the first step created with `getMinimalAction` looks like this:
 
 ### Deeplinking 
 There is no minimal action for deeplinking directly to the `Profile` screen. But because the `Settings_root` is not on the stack, pressing UP will reset the params for navigators to the correct ones.
+
+### Tests
+
+#### There should be a proper report under attachment screen after reload
+narrow layout:
+
+1. Open any report with image attachment.
+2. Open attachment.
+3. Reload the page.
+4. Verify that after pressing back arrow in the header you are on the report where you sent the attachment.
+
+
+#### There is a proper split navigator under RHP with a sidebar screen only for screens that can be opened from the sidebar
+
+1. Open the browser on narrow layout with url /settings/profile/status.
+2. Reload the page.
+3. Verify that after pressing back arrow in the header you are on the settings root page.
+
+
+#### There is a proper split navigator under the overlay after refreshing page with RHP/LHP on wide screen
+
+1. Open the browser on wide screen with url /settings/profile/details.
+2. Verify that you can see settings profile page under the overlay of RHP.
+
+
+#### There is a proper split navigator under the overlay after deeplinking to page with RHP/LHP on wide screen
+
+1. Open the browser on wide screen.
+2. Open any report.
+3. Send message with url /settings/profile/details.
+4. Press the sent link
+5. Verify that the settings profile screen is now visible under the overlay
+
+
+#### The Workspace list page is displayed (SCREENS.SETTINGS.WORKSPACES) after clicking the Settings tab from the Workspace settings screen
+
+1. Open the workspace settings (use a link in format: https://dev.new.expensify.com:8082/settings/workspaces/:policyID:/profile or open it using this flow Settings → Workspaces → Select any workspace)
+2. Click the Settings button on the bottom tab.
+3. Verify that the Workspace list is displayed (https://dev.new.expensify.com:8082/settings/workspaces)
+
+
+#### The last visited screen in the settings tab is saved when switching between tabs 
+
+1. Open the app.
+2. Go to the settings tab.
+3. Open the workspace list.
+4. Select any workspace.
+5. Switch between tabs and open the settings tabs again.
+6. Verify that the last visited page in this tab is displayed.
+
+
+#### The Workspace selected in the application is reset when you select a chat that does not belong to the current policy
+
+1. Open the home page.
+2. Click on the Expensify icon in the upper left corner.
+3. Select any workspace.
+4. Click on the magnifying glass above the list of available chats. 
+5. Select a chat that does not belong to the workspace selected in the third step.
+6. Verify if the chat is opened and the global workspace is selected.
+
+
+#### The selected workspace is saved between Search and Inbox tabs
+
+1. Open the Inbox tab.
+2. Change the workspace using the workspace switcher.
+3. Switch to the Search tab and verify if the workspace selected in the second step is also selected in the Search.
+4. Repeat the second step.
+5. Go back to the Inbox.
+6. Verify if the workspace selected in the fourth step is also selected in the Inbox tab.
+
+#### Going up to the workspace list page after refreshing on the workspace settings and pressing the up button
+
+1. Open the workspace settings from the deep link (use a link in format: https://dev.new.expensify.com:8082/settings/workspaces/:policyID:/profile)
+2. Click the app’s back button.
+3. Verify if the workspace list is displayed.
+
+#### Going up to the RHP screen provided in the backTo parameter in the url
+
+1. Open the settings tab.
+2. Go to the Profile page.
+3. Click the Address button.
+4. Click the Country button.
+5. Reload the page.
+6. Click the app’s back button.
+7. Verify if the Profile address page is displayed (https://dev.new.expensify.com:8082/settings/profile/address)
+
+#### There is proper split navigator under the overlay after refreshing page in RHP that includes valid reportID in params
+
+wide layout :
+
+1. Open any report.
+2. Open report details (press the chat header).
+3. Reload the app.
+4. Verify that the report under the overlay is the same as the one opened in report details.
+
+narrow layout :
+
+1. Open any report
+2. Open report details (press the chat header).
+3. Reload the app.
+4. Verify that after pressing back arrow in the header you are on the report previously seen in the details page.
+
+#### Navigating back to the Workspace Switcher from the created workspace
+
+1. Open the app and go to the Inbox tab.
+2. Open the workspace switcher (Click on the button in the upper left corner).
+3. Create a new workspace by clicking on the + button.
+4. Navigate back using the back button in the app.
+5. Verify if the workspace switcher is displayed with the report screen below it
+
+#### Going up to the sidebar screen
+
+Linked issue: https://github.com/Expensify/App/pull/44138
+
+1. Go to Subscription page in the settings tab.
+2. Click on Request refund button
+3. Verify that modal shown
+4. Next click Downgrade...
+5. Verify that modal got closed, your account is downgraded and the Home page is opened.
+
+#### Navigating back from the Search page with invalid query parameters 
+
+1. Open the search page with invalid query parameters (e.g https://dev.new.expensify.com:8082/search?q=from%3a)
+2. Press the app's back button on the not found page.
+3. Verify that the Search page with default query parameters is displayed.
+
+#### Navigating to the chat from the link in the thread 
+
+1. Open any chat.
+2. If there are no messages in the chat, send a message.
+3. Reply to the message you created in the thread.
+4. After being redirected to the thread screen, click on the link displayed in the header.
+5. Verify if the link correctly redirects to the chat opened in the first step.
