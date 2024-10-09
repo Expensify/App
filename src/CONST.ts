@@ -1577,6 +1577,13 @@ const CONST = {
         JOURNAL_ENTRY: 'journal_entry',
     },
 
+    QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE: {
+        VENDOR_BILL: 'BILL',
+        CHECK: 'CHECK',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        NOTHING: 'NOTHING',
+    },
+
     SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
         EXPENSE_REPORT: 'EXPENSE_REPORT',
         VENDOR_BILL: 'VENDOR_BILL',
@@ -1845,6 +1852,12 @@ const CONST = {
         CREDIT_CARD: 'credit_card',
         DEBIT_CARD: 'debit_card',
         VENDOR_BILL: 'bill',
+    },
+
+    QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
+        VENDOR_BILL: 'BILL',
+        CREDIT_CARD: 'CREDIT_CARD',
+        DEBIT_CARD: 'DEBIT_CARD',
     },
 
     MISSING_PERSONAL_DETAILS_INDEXES: {

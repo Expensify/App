@@ -442,7 +442,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /**
  * Reimbursable account types exported from QuickBooks Desktop
  */
-type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE>;
+type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE>;
 
 /**
  * Non reimbursable account types exported from QuickBooks Desktop
@@ -1288,7 +1288,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
             exporter?: string;
 
             /** Defines how reimbursable expenses are exported */
-            reimbursable: QBDReimbursableExportAccountType;
+            reimbursable?: QBDReimbursableExportAccountType;
 
             /** Account that receives the reimbursable expenses */
             reimbursableAccount?: string;

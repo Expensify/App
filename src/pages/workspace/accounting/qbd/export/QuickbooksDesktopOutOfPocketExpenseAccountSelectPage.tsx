@@ -29,7 +29,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     const styles = useThemeStyles();
     const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const reimbursable = qbdConfig?.export.reimbursable.toLowerCase(); // TODO: should be updated to be lowercase by default
+    const reimbursable = qbdConfig?.export.reimbursable;
 
     const {canUseNewDotQBD} = usePermissions();
 
@@ -37,15 +37,15 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
         let titleText: TranslationPaths | undefined;
         let descriptionText: string | undefined;
         switch (reimbursable) {
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 titleText = 'workspace.qbd.bankAccount';
                 descriptionText = translate('workspace.qbd.bankAccountDescription');
                 break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 titleText = 'workspace.qbd.account';
                 descriptionText = translate('workspace.qbd.accountDescription');
                 break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 titleText = 'workspace.qbd.accountsPayable';
                 descriptionText = translate('workspace.qbd.accountsPayableDescription');
                 break;
@@ -59,13 +59,13 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
         switch (reimbursable) {
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 accounts = bankAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 accounts = journalEntryAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 accounts = accountPayable ?? [];
                 break;
             default:

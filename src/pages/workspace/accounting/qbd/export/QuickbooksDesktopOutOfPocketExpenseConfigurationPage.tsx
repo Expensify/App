@@ -41,24 +41,24 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const isLocationEnabled = !!(qbdConfig?.syncLocations && qbdConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qbdConfig?.syncTax;
-    const reimbursable = qbdConfig?.export.reimbursable.toLowerCase(); // TODO: should be updated to be lowercase by default
+    const reimbursable = qbdConfig?.export.reimbursable;
     const {canUseNewDotQBD} = usePermissions();
     const [exportHintText, accountDescription, accountsList] = useMemo(() => {
         let hintText: string | undefined;
         let description: string | undefined;
         let accounts: Account[] = [];
         switch (reimbursable) {
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportCheckDescription');
                 description = translate('workspace.qbd.bankAccount');
                 accounts = bankAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 hintText = isTaxesEnabled ? undefined : translate('workspace.qbd.exportJournalEntryDescription');
                 description = translate('workspace.qbd.account');
                 accounts = journalEntryAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 hintText = isLocationEnabled ? undefined : translate('workspace.qbd.exportVendorBillDescription');
                 description = translate('workspace.qbd.accountsPayable');
                 accounts = accountPayable ?? [];
@@ -120,7 +120,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     />
                 </OfflineWithFeedback>
             ))}
-            {reimbursable === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
+            {reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
                 <ToggleSettingOptionRow
                     key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
                     title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}

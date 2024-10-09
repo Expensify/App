@@ -23,7 +23,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const errorFields = qbdConfig?.errorFields;
     const {canUseNewDotQBD} = usePermissions();
-    const reimbursable = qbdConfig?.export.reimbursable.toLowerCase(); // TODO: should be updated to be lowercase by default
+    const reimbursable = qbdConfig?.export.reimbursable;
 
     const shouldShowVendorMenuItems = useMemo(
         () => qbdConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
