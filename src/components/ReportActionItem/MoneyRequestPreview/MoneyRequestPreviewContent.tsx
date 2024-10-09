@@ -73,9 +73,9 @@ function MoneyRequestPreviewContent({
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
 
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
     const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : '-1';

@@ -83,10 +83,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
-    const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`);
+    const {reportActions} = usePaginatedReportActions(report.reportID);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {currentSearchHash} = useSearchContext();
 
