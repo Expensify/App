@@ -44,7 +44,7 @@ function CardTypeStep() {
     }, [addNewCard?.data.cardType]);
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
