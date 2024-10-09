@@ -14,9 +14,8 @@ const FS = {
     /**
      * Initializes FullStory
      */
-    init: () => {
-        const [session] = useOnyx(ONYXKEYS.USER_METADATA);
-        FS.consentAndIdentify(session);
+    init: (value: OnyxEntry<UserMetadata>) => {
+        FS.consentAndIdentify(value);
     },
 
     /**

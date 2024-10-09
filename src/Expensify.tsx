@@ -149,7 +149,8 @@ function Expensify({
         ActiveClientManager.init();
 
         // Initialize Fullstory lib
-        FS.init();
+        const [session] = useOnyx(ONYXKEYS.USER_METADATA);
+        FS.init(session);
 
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
