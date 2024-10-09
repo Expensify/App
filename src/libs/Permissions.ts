@@ -33,6 +33,10 @@ function canUseCompanyCardFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMPANY_CARD_FEEDS) || canUseAllBetas(betas);
 }
 
+function canUseDirectFeeds(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.DIRECT_FEEDS) || canUseAllBetas(betas);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
@@ -43,6 +47,10 @@ function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
+}
+
+function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
 }
 
 function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
@@ -80,10 +88,12 @@ export default {
     canUseSpotnanaTravel,
     canUseWorkspaceFeeds,
     canUseCompanyCardFeeds,
+    canUseDirectFeeds,
     canUseNetSuiteUSATax,
     canUseNewDotCopilot,
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
     canUseNewSearchRouter,
+    canUseCategoryAndTagApprovers,
     canUseNewDotQBD,
 };

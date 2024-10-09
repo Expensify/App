@@ -909,7 +909,11 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
+        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
+            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
+        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
+            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
@@ -2376,6 +2380,16 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
+            qbdSetup: 'Configuración de QuickBooks Desktop',
+            requiredSetupDevice: {
+                title: 'No se puede conectar desde este dispositivo',
+                body1: 'Deberás configurar esta conexión desde la computadora que hospeda tu archivo de empresa de QuickBooks Desktop.',
+                body2: 'Una vez que estés conectado, podrás sincronizar y exportar desde cualquier lugar.',
+            },
+            setupPage: {
+                title: 'Abre este enlace para conectar',
+                body: 'Para completar la configuración, abre el siguiente enlace en la computadora donde se está ejecutando QuickBooks Desktop.',
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3430,6 +3444,7 @@ const translations = {
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
@@ -3707,6 +3722,8 @@ const translations = {
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
+            invoiceBalance: 'Saldo de la factura',
+            invoiceBalanceSubtitle: 'Aquí está su saldo actual de la recaudación de pagos en las facturas.',
             bankAccountsSubtitle: 'Agrega una cuenta bancaria para recibir pagos de facturas.',
         },
         invite: {
@@ -4948,6 +4965,8 @@ const translations = {
             title: 'Mapa pendiente',
             subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
+            errorTitle: 'Mapa error',
+            errorSubtitle: 'No se pudo cargar el mapa. Por favor, inténtalo de nuevo.',
         },
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
@@ -5427,6 +5446,29 @@ const translations = {
         date: 'Fecha',
         time: 'Hora',
         none: 'Ninguno',
+        visibleInLHN: 'Visible en LHN',
+        GBR: 'GBR',
+        RBR: 'RBR',
+        true: 'verdadero',
+        false: 'falso',
+        reasonVisibleInLHN: {
+            hasDraftComment: 'Tiene comentario en borrador',
+            hasGBR: 'Tiene GBR',
+            pinnedByUser: 'Fijado por el usuario',
+            hasIOUViolations: 'Tiene violaciones de IOU',
+            hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
+            isUnread: 'No leído (modo de enfoque)',
+            isArchived: 'Archivado (modo más reciente)',
+            isSelfDM: 'Es un mensaje directo propio',
+            isFocused: 'Está temporalmente enfocado',
+        },
+        reasonGBR: {
+            hasJoinRequest: 'Tiene solicitud de unión (sala de administrador)',
+            isUnreadWithMention: 'No leído con mención',
+            isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
+            hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
+            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
+        },
     },
 };
 
