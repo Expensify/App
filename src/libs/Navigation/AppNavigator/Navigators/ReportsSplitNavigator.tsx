@@ -1,6 +1,5 @@
 import React, {useRef} from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
@@ -12,7 +11,7 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const loadReportScreen = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default);
+const loadReportScreen = () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default;
 
 const Stack = createSplitStackNavigator<ReportsSplitNavigatorParamList>();
 

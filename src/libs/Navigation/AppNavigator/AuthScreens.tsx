@@ -9,7 +9,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
-import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -24,6 +23,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
+import SIDEBAR_TO_SPLIT from '@libs/Navigation/linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -56,7 +56,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import SIDEBAR_TO_SPLIT from '../linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -79,10 +78,10 @@ const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/Rep
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-const loadReportSplitNavigator = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default);
-const loadSettingsSplitNavigator = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default);
-const loadWorkspaceSplitNavigator = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default);
-const loadSearchPage = withPrepareCentralPaneScreen(() => require<ReactComponentModule>('@pages/Search/SearchPage').default);
+const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
+const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
+const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
+const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 
 function shouldOpenOnAdminRoom() {
     const url = getCurrentUrl();

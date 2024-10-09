@@ -13,6 +13,7 @@ import SplitStackRouter from './SplitStackRouter';
 import type {SplitStackNavigatorProps, SplitStackNavigatorRouterOptions} from './types';
 import useHandleScreenResize from './useHandleScreenResize';
 import usePrepareSplitStackNavigatorChildren from './usePrepareSplitStackNavigatorChildren';
+import usePreserveSplitNavigatorState from './usePreserveSplitNavigatorState';
 
 function getStateToRender(state: StackNavigationState<ParamListBase>, isSmallScreenWidth: boolean): StackNavigationState<ParamListBase> {
     const sidebarScreenRoute = state.routes.at(0);
@@ -56,6 +57,8 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
         parentRoute: route,
     });
 
+    // We need to copy the state to the params so that the state is preserved when the root navigator unmount this route for performance reasons.
+    usePreserveSplitNavigatorState(route, state);
     useHandleScreenResize(navigation);
 
     const stateToRender = useMemo(() => getStateToRender(state, shouldUseNarrowLayout), [state, shouldUseNarrowLayout]);
