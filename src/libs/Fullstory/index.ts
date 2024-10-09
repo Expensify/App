@@ -87,6 +87,7 @@ const FS = {
     /**
      * Init function, created so we're consistent with the native file
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     init: (_value: OnyxEntry<UserMetadata>) => {},
 };
 
