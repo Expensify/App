@@ -301,4 +301,4 @@ function Expensify() {
 
 Expensify.displayName = 'Expensify';
 
-Expensify();
+export default Expensify;
