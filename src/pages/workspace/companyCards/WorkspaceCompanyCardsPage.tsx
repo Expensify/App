@@ -15,102 +15,11 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
-
-const mockedCards = {
-    id1: {
-        cardID: 885646,
-        accountID: 11309072,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id2: {
-        accountID: 885646,
-        bank: 'cdfbmo',
-        cardID: 885642,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id18: {
-        accountID: 885646,
-        cardID: 885643,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id27: {
-        cardID: 885644,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id16: {
-        cardID: 885645,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id25: {
-        cardID: 885646,
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id14: {
-        cardID: 885647,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id23: {
-        cardID: 885648,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id12: {
-        cardID: 885649,
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id21: {
-        cardID: 885640,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-} as unknown as WorkspaceCardsList;
 
 type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -136,10 +45,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isPending = selectedCompanyCard?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
     const isLoading = !cardFeeds || cardFeeds.isLoading;
-
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const cardsList = mockedCards ?? {};
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
     return (
         <AccessOrNotFoundWrapper

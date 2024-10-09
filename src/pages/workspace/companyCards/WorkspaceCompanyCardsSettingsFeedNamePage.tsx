@@ -37,10 +37,9 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`)
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
+    const feedName = lastSelectedFeed ? cardFeeds?.companyCardNicknames?.[lastSelectedFeed] : '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
@@ -57,6 +56,9 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     );
 
     const submit = ({name}: WorkspaceCompanyCardFeedName) => {
+        if (!lastSelectedFeed) {
+            return;
+        }
         Policy.setWorkspaceCompanyCardFeedName(policyID, workspaceAccountID, lastSelectedFeed, name);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
     };
