@@ -206,10 +206,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
-
-        Member.removeMembers(accountIDsToRemove, route.params.policyID);
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            Member.removeMembers(accountIDsToRemove, route.params.policyID);
+        });
     };
 
     /**
@@ -477,7 +478,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle'),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
                 onSelected: askForConfirmationToRemove,
@@ -637,7 +638,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
                     <ConfirmModal
                         danger
-                        title={translate('workspace.people.removeMembersTitle')}
+                        title={translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length})}
                         isVisible={removeMembersConfirmModalVisible}
                         onConfirm={removeUsers}
                         onCancel={() => setRemoveMembersConfirmModalVisible(false)}
