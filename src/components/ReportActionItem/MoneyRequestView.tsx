@@ -198,14 +198,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
-
-    const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
-    const unit = DistanceRequestUtils.getDistanceUnit(transaction, mileageRate);
-    const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
-
+    const {unit, rate, currency} = DistanceRequestUtils.getRateForExistingTransaction({transaction, policy});
     const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
