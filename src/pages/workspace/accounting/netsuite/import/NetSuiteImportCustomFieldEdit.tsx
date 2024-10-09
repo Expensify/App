@@ -46,7 +46,7 @@ function NetSuiteImportCustomFieldEdit({
         params: {importCustomField, valueIndex, fieldName},
     },
 }: NetSuiteImportCustomFieldViewProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

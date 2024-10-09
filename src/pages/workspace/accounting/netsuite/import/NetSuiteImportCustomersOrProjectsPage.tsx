@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 type ImportField = 'jobs' | 'customers';
 
 function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

@@ -43,7 +43,7 @@ function NetSuiteImportCustomFieldView({
         params: {importCustomField, valueIndex},
     },
 }: NetSuiteImportCustomFieldViewProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);

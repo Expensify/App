@@ -22,7 +22,7 @@ const staticContentSteps = Array<ComponentType<SubStepWithPolicy>>(4).fill(NetSu
 const tokenInputSteps: Array<ComponentType<SubStepWithPolicy>> = [...staticContentSteps, NetSuiteTokenInputForm];
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 

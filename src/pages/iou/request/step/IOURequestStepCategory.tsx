@@ -170,7 +170,7 @@ function IOURequestStepCategory({
                                 onPress={() =>
                                     Navigation.navigate(
                                         ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                            policy?.id ?? '-1',
+                                            policy?.id,
                                             ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID, backTo, reportActionID),
                                         ),
                                     )
@@ -187,7 +187,7 @@ function IOURequestStepCategory({
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
                     <CategoryPicker
                         selectedCategory={transactionCategory}
-                        policyID={report?.policyID ?? policy?.id ?? '-1'}
+                        policyID={report?.policyID ?? policy?.id}
                         onSubmit={updateCategory}
                     />
                 </>

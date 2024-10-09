@@ -21,7 +21,7 @@ type QBOSectionType = {
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections: QBOSectionType[] = [

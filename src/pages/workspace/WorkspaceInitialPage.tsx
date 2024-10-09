@@ -128,7 +128,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
@@ -355,7 +355,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '-1',
+            id: policy.id,
         };
     }, [policy]);
 

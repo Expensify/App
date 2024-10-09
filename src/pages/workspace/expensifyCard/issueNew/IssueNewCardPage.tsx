@@ -23,7 +23,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
 
     const {currentStep} = issueNewCard ?? {};
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const backTo = route?.params?.backTo;
 
     useEffect(() => {

@@ -24,7 +24,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {config} = policy?.connections?.xero ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(

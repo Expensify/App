@@ -44,7 +44,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policyID: string = policy?.id ?? '-1';
+    const policyID: string = policy?.id;
     const sageIntacctConfig = policy?.connections?.intacct?.config;
 
     const mapingItems = useMemo(

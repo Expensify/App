@@ -101,7 +101,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     disabled={isToggleDisabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     errors={policy?.errorFields?.requiresCategory ?? undefined}
-                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
+                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id, 'requiresCategory')}
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>

@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 function SageIntacctExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
 

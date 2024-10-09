@@ -23,7 +23,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(

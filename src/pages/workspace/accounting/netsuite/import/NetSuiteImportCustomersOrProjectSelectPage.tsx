@@ -20,7 +20,7 @@ type ImportListItem = SelectorType & {
 };
 
 function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnectionsProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

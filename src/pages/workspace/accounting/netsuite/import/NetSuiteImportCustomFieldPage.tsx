@@ -67,7 +67,7 @@ function NetSuiteImportCustomFieldPage({
         params: {importCustomField},
     },
 }: NetSuiteImportCustomFieldPageProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

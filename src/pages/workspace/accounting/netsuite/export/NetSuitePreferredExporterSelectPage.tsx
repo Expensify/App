@@ -30,7 +30,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
             return [

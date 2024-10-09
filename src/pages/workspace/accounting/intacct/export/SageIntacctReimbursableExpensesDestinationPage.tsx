@@ -23,7 +23,7 @@ type MenuListItem = ListItem & {
 function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {config} = policy?.connections?.intacct ?? {};
 
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({

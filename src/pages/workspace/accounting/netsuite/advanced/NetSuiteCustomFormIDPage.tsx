@@ -28,7 +28,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const route = useRoute();
     const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;

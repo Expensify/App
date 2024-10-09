@@ -36,7 +36,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy?.id ?? '-1',
+            id: policy?.id,
         };
     }, [policy]);
 

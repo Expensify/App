@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function SageIntacctDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig, pendingFields} = policy?.connections?.intacct?.config ?? {};

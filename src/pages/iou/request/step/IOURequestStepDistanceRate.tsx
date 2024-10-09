@@ -101,7 +101,7 @@ function IOURequestStepDistanceRate({
         }
 
         if (currentRateID !== customUnitRateID) {
-            IOU.setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy?.id ?? '-1', !isEditing);
+            IOU.setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy?.id, !isEditing);
 
             if (isEditing) {
                 IOU.updateMoneyRequestDistanceRate(transaction?.transactionID, reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);

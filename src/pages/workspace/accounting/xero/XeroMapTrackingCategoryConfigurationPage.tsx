@@ -29,7 +29,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
     const categoryName = decodeURIComponent(params?.categoryName ?? '');
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};
     const {mappings} = policy?.connections?.xero?.config ?? {};

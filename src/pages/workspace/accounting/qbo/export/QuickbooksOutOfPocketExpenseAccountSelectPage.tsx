@@ -76,7 +76,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
         }));
     }, [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.reimbursableExpensesAccount?.id, bankAccounts, journalEntryAccounts, accountPayable]);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {

@@ -23,7 +23,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {canUseNetSuiteUSATax} = usePermissions();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options?.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);

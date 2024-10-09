@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL).map((approvalType) => ({

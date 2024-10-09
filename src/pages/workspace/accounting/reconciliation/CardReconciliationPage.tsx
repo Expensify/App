@@ -39,7 +39,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {connection} = route.params;
     const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;

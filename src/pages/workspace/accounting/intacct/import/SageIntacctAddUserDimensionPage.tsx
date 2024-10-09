@@ -23,7 +23,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const {inputCallbackRef} = useAutoFocusInput();
 

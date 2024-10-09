@@ -282,7 +282,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy?.name ?? '', CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
     );
 
-    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy?.id ?? '-1', policy?.name ?? '', accountIDs);
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy?.id, policy?.name ?? '', accountIDs);
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};

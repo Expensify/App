@@ -41,7 +41,7 @@ function NetSuiteImportMappingPage({
         params: {importField},
     },
 }: NetSuiteImportMappingPageProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

@@ -18,7 +18,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const entityID = config?.entity ?? '';
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const sections = [
         {
