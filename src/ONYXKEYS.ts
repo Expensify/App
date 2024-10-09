@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type Platform from '@libs/getPlatform/types';
+import type Platform from './libs/getPlatform/types';
 import type CONST from './CONST';
 import type {OnboardingPurposeType} from './CONST';
 import type * as FormTypes from './types/form';

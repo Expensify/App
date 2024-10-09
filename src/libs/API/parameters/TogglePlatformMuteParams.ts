@@ -1,4 +1,4 @@
-import Platform from '@libs/getPlatform/types';
+import type Platform from '@libs/getPlatform/types';
 
 type TogglePlatformMuteParams = {
     authToken: string;
