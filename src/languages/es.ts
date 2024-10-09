@@ -2380,6 +2380,16 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
+            qbdSetup: 'Configuración de QuickBooks Desktop',
+            requiredSetupDevice: {
+                title: 'No se puede conectar desde este dispositivo',
+                body1: 'Deberás configurar esta conexión desde la computadora que hospeda tu archivo de empresa de QuickBooks Desktop.',
+                body2: 'Una vez que estés conectado, podrás sincronizar y exportar desde cualquier lugar.',
+            },
+            setupPage: {
+                title: 'Abre este enlace para conectar',
+                body: 'Para completar la configuración, abre el siguiente enlace en la computadora donde se está ejecutando QuickBooks Desktop.',
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3405,10 +3415,16 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
+            removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+                one: `¿Estás seguro de que deseas eliminar ${memberName}`,
+                other: '¿Estás seguro de que deseas eliminar a estos miembros?',
+            }),
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobación por el propietario del espacio de trabajo, ${ownerName}`,
-            removeMembersTitle: 'Eliminar miembros',
+            removeMembersTitle: () => ({
+                one: 'Eliminar miembro',
+                other: 'Eliminar miembros',
+            }),
             removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
@@ -3434,6 +3450,7 @@ const translations = {
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
@@ -4099,7 +4116,10 @@ const translations = {
         memberNotFound: 'Miembro no encontrado.',
         useInviteButton: 'Para invitar a un nuevo miembro al chat, por favor, utiliza el botón invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a esta sala, pide a un miembro de la sala que te añada. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
-        removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+            one: `¿Estás seguro de que quieres eliminar ${memberName} de la sala de chat?`,
+            other: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        }),
         error: {
             genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
         },

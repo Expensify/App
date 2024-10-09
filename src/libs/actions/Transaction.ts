@@ -126,7 +126,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
         const clonedWaypoints = lodashClone(recentWaypoints);
-        clonedWaypoints.unshift(waypoint);
+        const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
     }
 }
@@ -246,13 +247,27 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
 }
 
 /**
+ * Sanitizes the waypoints by removing the pendingAction property.
+ *
+ * @param waypoints - The collection of waypoints to sanitize.
+ * @returns The sanitized collection of waypoints.
+ */
+function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
+    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
+        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
+        acc[key] = rest;
+        return acc;
+    }, {} as WaypointCollection);
+}
+
+/**
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
 function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft: boolean) {
     const parameters: GetRouteParams = {
         transactionID,
-        waypoints: JSON.stringify(waypoints),
+        waypoints: JSON.stringify(sanitizeRecentWaypoints(waypoints)),
     };
 
     API.read(isDraft ? READ_COMMANDS.GET_ROUTE_FOR_DRAFT : READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID, isDraft));
@@ -470,6 +485,10 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
+function getRecentWaypoints() {
+    return recentWaypoints;
+}
+
 export {
     addStop,
     createInitialWaypoints,
@@ -483,4 +502,6 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
+    getRecentWaypoints,
+    sanitizeRecentWaypoints,
 };
