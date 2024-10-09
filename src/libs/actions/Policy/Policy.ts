@@ -4549,8 +4549,41 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
+    const policy = getPolicy(policyID);
+    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? -1, policyID);
 
-    API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
+                value: {
+                    [optimisticCardAssignedReportAction.reportActionID]: optimisticCardAssignedReportAction,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
+                value: {[optimisticCardAssignedReportAction.reportActionID]: {pendingAction: null}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
+                value: {
+                    [optimisticCardAssignedReportAction.reportActionID]: {
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
 function unassignWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
