@@ -306,10 +306,20 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
 }
 
 /**
- * Get the selected rate for an existing transaction, from the policy or P2P default rate.
- * Use the distanceUnit stored on the transaction to prevent policy changes modifying existing transactions. If it's not present fallback to the unit from the rate.
+ * Get the selected rate for a transaction, from the policy or P2P default rate.
+ * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
  */
-function getRateForExistingTransaction({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}): MileageRate {
+function getRate({
+    transaction,
+    policy,
+    policyDraft,
+    useTransactionDistanceUnit = true,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    policyDraft?: OnyxEntry<Policy>;
+    useTransactionDistanceUnit?: boolean;
+}): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
@@ -318,7 +328,7 @@ function getRateForExistingTransaction({transaction, policy, policyDraft}: {tran
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
-    const unit = getDistanceUnit(transaction, mileageRate);
+    const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
         unit,
@@ -330,8 +340,7 @@ function getRateForExistingTransaction({transaction, policy, policyDraft}: {tran
  * Useful for updating the transaction distance unit when the distance or rate changes.
  */
 function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
-    const mileageRate = getRateForExistingTransaction({transaction, policy, policyDraft});
-    return getDistanceUnit(undefined, mileageRate);
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
 }
 
 export default {
@@ -347,7 +356,7 @@ export default {
     getTaxableAmount,
     getDistanceUnit,
     getUpdatedDistanceUnit,
-    getRateForExistingTransaction,
+    getRate,
 };
 
 export type {MileageRate};

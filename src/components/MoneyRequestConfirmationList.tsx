@@ -239,7 +239,7 @@ function MoneyRequestConfirmationList({
         IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
-    const rate = DistanceRequestUtils.getRateForExistingTransaction({transaction, policy, policyDraft});
+    const rate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const prevRate = usePrevious(rate);
     const unit = rate.unit;
     const currency = rate.currency ?? CONST.CURRENCY.USD;
