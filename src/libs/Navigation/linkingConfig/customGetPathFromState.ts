@@ -3,18 +3,21 @@ import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 
-function getTopmostSplitNavigator(state: State<RootStackParamList> | undefined) {
-    return state?.routes.findLast((route) => route.name.endsWith('SplitNavigator'));
-}
-
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
-    // For the Home and Settings pages we should remove policyID from the params, because on small screens it's displayed twice in the URL
+    // For the Home page we should remove policyID from the params, because on small screens it's displayed twice in the URL
     const stateWithoutPolicyID = removePolicyIDParamFromState(state as State<RootStackParamList>);
     const path = getPathFromState(stateWithoutPolicyID, options);
-    const topmostSplitNavigator = getTopmostSplitNavigator(state as State<RootStackParamList>);
-    const policyIDFromState = topmostSplitNavigator?.params?.policyID;
-    const shouldAddPolicyID = !!topmostSplitNavigator && topmostSplitNavigator?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-    return `${policyIDFromState && shouldAddPolicyID ? `/w/${policyIDFromState}` : ''}${path}`;
+    const topmostRoute = state.routes.at(-1);
+
+    const shouldAddPolicyID = !!topmostRoute && topmostRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+
+    if (!shouldAddPolicyID) {
+        return path;
+    }
+
+    const policyID = topmostRoute.params && `policyID` in topmostRoute.params ? (topmostRoute.params.policyID as string) : undefined;
+
+    return `${policyID ? `/w/${policyID}` : ''}${path}`;
 };
 
 export default customGetPathFromState;
