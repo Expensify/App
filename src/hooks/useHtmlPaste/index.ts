@@ -9,19 +9,26 @@ const insertByCommand = (text: string) => {
 };
 
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
-    const currentText = target.innerText;
+    const currentText = target.textContent ?? '';
 
-    const availableLength = maxLength - currentText.length;
+    let availableLength = maxLength - currentText.length;
     if (availableLength <= 0) {
         return;
     }
 
-    const text = insertedText.slice(0, availableLength);
+    let text = insertedText;
 
     const selection = window.getSelection();
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
+        const selectedText = range.toString();
+        availableLength -= selectedText.length;
+        if (availableLength <= 0) {
+            return;
+        }
+        text = text.slice(0, availableLength);
         range.deleteContents();
+
         const node = document.createTextNode(text);
         range.insertNode(node);
 
@@ -53,9 +60,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 } else {
                     const htmlInput = textInputRef.current as unknown as HTMLInputElement;
                     const availableLength = maxLength - (htmlInput.value?.length ?? 0);
-                    htmlInput.setRangeText(text.slice(0, availableLength));
-                    // Trigger the onChange event, which sync the pasted value with the text input state
-                    textInputHTMLElement?.dispatchEvent(new Event('input', {bubbles: true}));
+                    insertByCommand(text.slice(0, availableLength));
                 }
 
                 // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
