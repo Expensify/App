@@ -172,9 +172,8 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
 }
 
 function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
-    const KEY_TO_FILTER = 'cardList';
-    const filteredList = Object.fromEntries(Object.entries(cardsList ?? {}).filter(([key]) => key !== KEY_TO_FILTER));
-    return Object.values(filteredList).sort((cardA: Card, cardB: Card) => {
+    const {cardList, ...cards} = cardsList ?? {};
+    return Object.values(cards).sort((cardA: Card, cardB: Card) => {
         const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
         const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
 

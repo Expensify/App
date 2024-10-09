@@ -24,6 +24,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const currentStep = assignCard?.currentStep;
 
     const feed = route.params?.feed;
+    const policyID = policy?.id ?? '-1';
 
     useEffect(() => {
         CompanyCards.setAssignCardStepAndData({data: {bankName: feed}});
@@ -33,11 +34,16 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return <AssigneeStep policy={policy} />;
         case CONST.COMPANY_CARD.STEP.CARD:
-            return <CardSelectionStep feed={feed} />;
+            return (
+                <CardSelectionStep
+                    feed={feed}
+                    policyID={policyID}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
             return <TransactionStartDateStep />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
-            return <ConfirmationStep policyID={policy?.id ?? '-1'} />;
+            return <ConfirmationStep policyID={policyID} />;
         default:
             return <AssigneeStep policy={policy} />;
     }

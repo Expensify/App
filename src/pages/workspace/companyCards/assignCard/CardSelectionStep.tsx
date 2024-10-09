@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -21,37 +22,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
-type MockedCard = {
-    key: string;
-    encryptedCardNumber: string;
-};
-
-const mockedCardList = [
-    {
-        key: '1',
-        encryptedCardNumber: '123412XXXXXX1234',
-    },
-    {
-        key: '2',
-        encryptedCardNumber: '123412XXXXXX1235',
-    },
-    {
-        key: '3',
-        encryptedCardNumber: '123412XXXXXX1236',
-    },
-];
-
-const mockedCardListEmpty: MockedCard[] = [];
-
 type CardSelectionStepProps = {
+    /** Selected feed */
     feed: CompanyCardFeed;
+
+    /** Current policy id */
+    policyID: string;
 };
 
-function CardSelectionStep({feed}: CardSelectionStepProps) {
+function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
 
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
@@ -80,21 +66,24 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
             setShouldShowError(true);
             return;
         }
+
+        const cardName =
+            Object.entries(list?.cardList ?? {})
+                .find(([cardNumber, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
+                ?.at(0) ?? '';
+
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected},
+            data: {encryptedCardNumber: cardSelected, cardName},
             isEditing: false,
         });
     };
 
-    // TODO: for now mocking cards
-    const mockedCards = !Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME).some((value) => value === feed) ? mockedCardListEmpty : mockedCardList;
-
-    const cardListOptions = mockedCards.map((item) => ({
-        keyForList: item?.encryptedCardNumber,
-        value: item?.encryptedCardNumber,
-        text: item?.encryptedCardNumber,
-        isSelected: cardSelected === item?.encryptedCardNumber,
+    const cardListOptions = Object.entries(list?.cardList ?? {}).map(([cardNumber, encryptedCardNumber]) => ({
+        keyForList: encryptedCardNumber,
+        value: encryptedCardNumber,
+        text: cardNumber,
+        isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}

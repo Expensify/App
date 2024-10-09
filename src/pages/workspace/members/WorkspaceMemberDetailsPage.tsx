@@ -88,7 +88,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (!expensifyCardsList) {
             return [];
         }
-        return Object.values(expensifyCardsList).filter((expensifyCard) => expensifyCard.accountID === accountID);
+        const {cardList, ...expensifyCards} = expensifyCardsList;
+        return Object.values(expensifyCards).filter((expensifyCard) => expensifyCard.accountID === accountID);
     }, [expensifyCardsList, accountID]);
 
     const confirmModalPrompt = useMemo(() => {
