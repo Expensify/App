@@ -1246,10 +1246,10 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Configuration of import settings from QuickBooks Desktop to the app */
     mappings: {
-        /** How to handle QuickBooks Desktop classes */
+        /** How QuickBooks Desktop classes displayed as */
         classes: IntegrationEntityMap;
 
-        /** How to handle QuickBooks Desktop customers */
+        /** How QuickBooks Desktop customers displayed as */
         customers: IntegrationEntityMap;
     };
 
