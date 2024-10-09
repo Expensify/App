@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
+    GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
@@ -185,6 +186,19 @@ function openPolicyCategoriesPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
+function getPolicyCategories(policyID: string) {
+    if (!policyID || policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
+        Log.warn('GetPolicyCategories invalid params', {policyID});
+        return;
+    }
+
+    const params: GetPolicyCategoriesParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
 function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
@@ -1333,6 +1347,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
 }
 
 export {
+    getPolicyCategories,
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,
