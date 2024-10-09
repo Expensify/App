@@ -190,8 +190,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
-    const canActionTask = Task.canActionTask(report, session?.accountID ?? -1);
+    const canModifyTask = Task.canModifyTask(report, session?.accountID);
+    const canActionTask = Task.canActionTask(report, session?.accountID);
     const shouldShowTaskDeleteButton =
         isTaskReport &&
         !isCanceledTaskReport &&

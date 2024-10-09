@@ -210,7 +210,7 @@ IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 const IOURequestStepParticipantsWithOnyx = withOnyx<IOURequestStepParticipantsProps, IOURequestStepParticipantsOnyxProps>({
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
+            const transactionID = route.params.transactionID;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

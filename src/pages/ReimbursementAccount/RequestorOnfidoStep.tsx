@@ -39,7 +39,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
     const {translate} = useLocalize();
 
     const submitOnfidoData = (onfidoData: OnfidoData) => {
-        BankAccounts.verifyIdentityForBankAccount(reimbursementAccount.achData?.bankAccountID ?? -1, {
+        BankAccounts.verifyIdentityForBankAccount(reimbursementAccount.achData?.bankAccountID, {
             ...onfidoData,
             applicantID: onfidoApplicantID,
         });

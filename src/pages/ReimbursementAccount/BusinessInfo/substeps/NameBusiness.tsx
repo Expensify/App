@@ -31,7 +31,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
     const styles = useThemeStyles();
 
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? -1;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
     const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && reimbursementAccount?.achData?.state !== 'SETUP');
 

@@ -42,7 +42,7 @@ describe('ReportActionItemSingle', () => {
             const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
-            const faceAccountId = fakeReportAction.actorAccountID ?? -1;
+            const faceAccountId = fakeReportAction.actorAccountID;
             const fakePersonalDetails: PersonalDetailsList = {
                 [faceAccountId]: {
                     accountID: faceAccountId,

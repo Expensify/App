@@ -181,13 +181,13 @@ function TaskAssigneeSelectorModal() {
                 if (option.accountID !== report.managerID) {
                     const assigneeChatReport = TaskActions.setAssigneeValue(
                         option?.login ?? '',
-                        option?.accountID ?? -1,
+                        option?.accountID,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
-                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
+                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID, login: option?.login ?? ''}),
                     );
                     // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    TaskActions.editTaskAssignee(report, session?.accountID, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.dismissModal(report.reportID);
@@ -196,10 +196,10 @@ function TaskAssigneeSelectorModal() {
             } else if (option.accountID) {
                 TaskActions.setAssigneeValue(
                     option?.login ?? '',
-                    option.accountID ?? -1,
+                    option.accountID,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
-                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
+                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID, login: option?.login ?? undefined}),
                 );
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));

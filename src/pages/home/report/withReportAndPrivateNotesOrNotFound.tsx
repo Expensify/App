@@ -34,7 +34,7 @@ export default function (pageTitle: TranslationPaths) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const {route, report, session} = props;
-            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
             const isPrivateNotesFetchTriggered = report.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);

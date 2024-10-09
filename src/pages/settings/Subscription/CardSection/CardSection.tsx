@@ -87,7 +87,7 @@ function CardSection() {
     }, [authenticationLink, privateStripeCustomerID?.status]);
 
     const handleAuthenticatePayment = () => {
-        PaymentMethods.verifySetupIntent(session?.accountID ?? -1, false);
+        PaymentMethods.verifySetupIntent(session?.accountID, false);
     };
 
     const handleBillingBannerClose = () => {

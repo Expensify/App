@@ -48,7 +48,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID;
     },
 });
 
@@ -1170,7 +1170,7 @@ function clearTaskErrors(reportID: string) {
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-            [report.parentReportActionID ?? -1]: null,
+            [report.parentReportActionID]: null,
         });
 
         Report.navigateToConciergeChatAndDeleteReport(reportID);

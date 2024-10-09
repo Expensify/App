@@ -70,7 +70,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     return withOnyx<TProps & RefAttributes<TRef>, WithFullTransactionOrNotFoundOnyxProps>({
         transaction: {
             key: ({route}) => {
-                const transactionID = route.params.transactionID ?? -1;
+                const transactionID = route.params.transactionID;
                 const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
                 if (IOUUtils.shouldUseTransactionDraft(userAction)) {

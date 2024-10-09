@@ -5,7 +5,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 function useCurrentUserPersonalDetails() {
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const accountID = session?.accountID ?? -1;
+    const accountID = session?.accountID;
     const accountPersonalDetails = personalDetails?.[accountID];
     const currentUserPersonalDetails: PersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
 

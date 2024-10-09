@@ -85,7 +85,7 @@ function ProfilePage({route}: ProfilePageProps) {
         selector: (account) => account?.guideCalendarLink,
     });
 
-    const accountID = Number(route.params?.accountID ?? -1);
+    const accountID = Number(route.params?.accountID);
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
         const reportID = isCurrentUser
@@ -248,7 +248,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                     </Text>
                                     <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details?.accountID ?? -1}>
+                                        <UserDetailsTooltip accountID={details?.accountID}>
                                             <Text
                                                 numberOfLines={1}
                                                 style={styles.w100}

@@ -89,7 +89,7 @@ function ReportActionItemSingle({
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -203,8 +203,8 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? -1) ||
-            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID) ||
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID)),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -230,8 +230,8 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? -1)}
-                delegateAccountID={Number(action?.delegateAccountID ?? -1)}
+                accountID={Number(actorAccountID)}
+                delegateAccountID={Number(action?.delegateAccountID)}
                 icon={icon}
             >
                 <View>
@@ -256,7 +256,7 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${0}`}
-                            accountID={actorAccountID ?? -1}
+                            accountID={actorAccountID}
                             fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
@@ -289,7 +289,7 @@ function ReportActionItemSingle({
                             style={[styles.flex1]}
                             // eslint-disable-next-line react/no-array-index-key
                             key={`person-${action?.reportActionID}-${index}`}
-                            accountID={actorAccountID ?? -1}
+                            accountID={actorAccountID}
                             fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine

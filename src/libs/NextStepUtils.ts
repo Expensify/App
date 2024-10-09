@@ -23,7 +23,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID;
         currentUserEmail = value?.email ?? '';
     },
 });

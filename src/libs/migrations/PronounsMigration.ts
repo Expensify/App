@@ -11,7 +11,7 @@ function getCurrentUserAccountIDFromOnyx(): Promise<number> {
             key: ONYXKEYS.SESSION,
             callback: (val) => {
                 Onyx.disconnect(connection);
-                return resolve(val?.accountID ?? -1);
+                return resolve(val?.accountID);
             },
         });
     });

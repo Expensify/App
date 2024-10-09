@@ -105,7 +105,7 @@ function tryFocusModeUpdate() {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
+            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID, report)) {
                 return;
             }
 

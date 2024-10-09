@@ -19,7 +19,7 @@ type UnlinkLoginPageOnyxProps = {
 type UnlinkLoginPageProps = UnlinkLoginPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
 
 function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
-    const accountID = route.params.accountID ?? -1;
+    const accountID = route.params.accountID;
     const validateCode = route.params.validateCode ?? '';
     const prevIsLoading = usePrevious(!!account?.isLoading);
 

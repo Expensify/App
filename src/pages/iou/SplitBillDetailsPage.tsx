@@ -56,7 +56,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     } else {
         participants = participantAccountIDs.map((accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
     }
-    const payeePersonalDetails = personalDetails?.[reportAction?.actorAccountID ?? -1];
+    const payeePersonalDetails = personalDetails?.[reportAction?.actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
@@ -76,7 +76,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? -1, session?.email ?? '');
+        IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID, session?.email ?? '');
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email]);
 
     return (

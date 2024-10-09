@@ -82,7 +82,7 @@ function NewTaskPage({task, reports, personalDetails, route}: NewTaskPageProps) 
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (task?.assignee) {
-            const displayDetails = TaskActions.getAssignee(task?.assigneeAccountID ?? -1, personalDetails);
+            const displayDetails = TaskActions.getAssignee(task?.assigneeAccountID, personalDetails);
             setAssignee(displayDetails);
         }
 

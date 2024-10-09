@@ -22,7 +22,7 @@ function WorkspaceRestrictedActionPage({
     const policy = usePolicy(policyID);
 
     // Workspace Owner
-    if (PolicyUtils.isPolicyOwner(policy, session?.accountID ?? -1)) {
+    if (PolicyUtils.isPolicyOwner(policy, session?.accountID)) {
         return <WorkspaceOwnerRestrictedAction />;
     }
 

@@ -60,7 +60,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         >
             <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
             <MenuItem
-                avatarID={personalDetails?.accountID ?? -1}
+                avatarID={personalDetails?.accountID}
                 iconType={CONST.ICON_TYPE_AVATAR}
                 icon={avatarIcon}
                 title={displayName}

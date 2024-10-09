@@ -55,7 +55,7 @@ let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID;
         currentEmail = value?.email ?? '';
     },
 });

@@ -85,7 +85,7 @@ function AvatarWithDisplayName({
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
-        actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
+        actorAccountID.current = parentReportAction?.actorAccountID;
     }, [parentReportActions, report]);
 
     const goToDetailsPage = useCallback(() => {

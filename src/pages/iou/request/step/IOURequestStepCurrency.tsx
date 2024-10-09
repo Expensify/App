@@ -93,7 +93,7 @@ IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
 const IOURequestStepCurrencyWithOnyx = withOnyx<IOURequestStepCurrencyProps, IOURequestStepCurrencyOnyxProps>({
     draftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params?.transactionID ?? -1;
+            const transactionID = route?.params?.transactionID;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },

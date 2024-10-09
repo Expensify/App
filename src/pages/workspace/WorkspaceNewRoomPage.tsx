@@ -89,7 +89,7 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        const participants = [session?.accountID ?? -1];
+        const participants = [session?.accountID];
         const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,

@@ -169,7 +169,7 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
     const isFocused = useIsFocused();
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {

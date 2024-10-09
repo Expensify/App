@@ -102,7 +102,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 pendingAction={action.pendingAction}
                 actionName={action.actionName}
                 source={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.source : ''}
-                accountID={action.actorAccountID ?? -1}
+                accountID={action.actorAccountID}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}

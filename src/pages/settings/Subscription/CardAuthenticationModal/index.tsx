@@ -43,7 +43,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 if (policyID) {
                     PolicyActions.verifySetupIntentAndRequestPolicyOwnerChange(policyID);
                 } else {
-                    PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                    PaymentMethods.verifySetupIntent(session?.accountID, true);
                 }
                 onModalClose();
             }

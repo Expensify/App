@@ -10,7 +10,7 @@ function useSubscriptionPlan() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Filter workspaces in which user is the owner and the type is either corporate (control) or team (collect)
-    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, session?.accountID ?? -1), [policies, session?.accountID]);
+    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, session?.accountID), [policies, session?.accountID]);
 
     if (isEmptyObject(ownerPolicies)) {
         return null;

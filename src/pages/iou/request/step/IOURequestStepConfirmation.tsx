@@ -97,7 +97,7 @@ function IOURequestStepConfirmation({
 
         return {
             login: participant?.login ?? '',
-            accountID: participant?.accountID ?? -1,
+            accountID: participant?.accountID,
             avatar: Expensicons.FallbackAvatar,
             displayName: participant?.login ?? '',
             isOptimisticPersonalDetail: true,
@@ -362,7 +362,7 @@ function IOURequestStepConfirmation({
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
                 splitParticipants = selectedParticipants.filter((participant) =>
-                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? -1 : participant.accountID ?? -1),
+                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID : participant.accountID),
                 );
             }
             const trimmedComment = transaction?.comment?.comment?.trim() ?? '';

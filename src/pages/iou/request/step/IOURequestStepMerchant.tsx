@@ -148,7 +148,7 @@ export default withWritableReportOrNotFound(
         withOnyx<IOURequestStepMerchantProps, IOURequestStepMerchantOnyxProps>({
             splitDraftTransaction: {
                 key: ({route}) => {
-                    const transactionID = route.params.transactionID ?? -1;
+                    const transactionID = route.params.transactionID;
                     return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
                 },
             },

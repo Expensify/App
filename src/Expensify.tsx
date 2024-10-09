@@ -237,7 +237,7 @@ function Expensify({
         if (!isAuthenticated) {
             return;
         }
-        setCrashlyticsUserId(session?.accountID ?? -1);
+        setCrashlyticsUserId(session?.accountID);
     }, [isAuthenticated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
