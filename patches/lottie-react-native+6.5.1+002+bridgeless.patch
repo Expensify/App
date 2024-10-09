@@ -1,0 +1,41 @@
+diff --git a/node_modules/lottie-react-native/ios/Fabric/LottieAnimationViewComponentView.mm b/node_modules/lottie-react-native/ios/Fabric/LottieAnimationViewComponentView.mm
+index a4be628..d8f304e 100644
+--- a/node_modules/lottie-react-native/ios/Fabric/LottieAnimationViewComponentView.mm
++++ b/node_modules/lottie-react-native/ios/Fabric/LottieAnimationViewComponentView.mm
+@@ -40,6 +40,11 @@ - (instancetype) initWithFrame:(CGRect)frame
+ 
+ #pragma mark - RCTComponentViewProtocol
+ 
+++ (BOOL)shouldBeRecycled
++{
++    return NO;
++}
++
+ + (ComponentDescriptorProvider)componentDescriptorProvider
+ {
+     return concreteComponentDescriptorProvider<LottieAnimationViewComponentDescriptor>();
+diff --git a/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationFailureEvent.kt b/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationFailureEvent.kt
+index aa538d3..0185eaf 100644
+--- a/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationFailureEvent.kt
++++ b/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationFailureEvent.kt
+@@ -21,6 +21,6 @@ constructor(surfaceId: Int, viewId: Int, private val error: Throwable) :
+     }
+ 
+     companion object {
+-        const val EVENT_NAME = "topAnimationFailureEvent"
++        const val EVENT_NAME = "topAnimationFailure"
+     }
+ }
+\ No newline at end of file
+diff --git a/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationLoadedEvent.kt b/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationLoadedEvent.kt
+index f17cff9..4ebe3ba 100644
+--- a/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationLoadedEvent.kt
++++ b/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationLoadedEvent.kt
+@@ -16,6 +16,6 @@ class OnAnimationLoadedEvent constructor(surfaceId: Int, viewId: Int) :
+     }
+ 
+     companion object {
+-        const val EVENT_NAME = "topAnimationLoadedEvent"
++        const val EVENT_NAME = "topAnimationLoaded"
+     }
+ }

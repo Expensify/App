@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+index 2fa7d5d..10e1ba6 100644
+--- a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
++++ b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+@@ -17,7 +17,7 @@ import java.util.Queue;
+ import java.util.concurrent.ConcurrentLinkedQueue;
+ 
+ // Should extend NativeRNPerformanceManagerSpec when codegen for old architecture is solved
+-public class PerformanceModule extends ReactContextBaseJavaModule implements TurboModule, RNPerformance.MarkerListener {
++public class PerformanceModule extends NativeRNPerformanceManagerSpec implements RNPerformance.MarkerListener {
+     public static final String PERFORMANCE_MODULE = "RNPerformanceManager";
+     public static final String BRIDGE_SETUP_START = "bridgeSetupStart";
+ 
+@@ -118,6 +118,16 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+         return PERFORMANCE_MODULE;
+     }
+ 
++    @Override
++    public void addListener(String eventName) {
++        // needed for spec
++    }
++
++    @Override
++    public void removeListeners(double count) {
++        // needed for spec
++    }
++
+     private void emitNativeStartupTime() {
+         safelyEmitMark(new PerformanceMark("nativeLaunchStart", StartTimeProvider.getStartTime()));
+         safelyEmitMark(new PerformanceMark("nativeLaunchEnd", StartTimeProvider.getEndTime()));

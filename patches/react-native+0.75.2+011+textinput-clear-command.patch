@@ -1,3 +1,51 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
+index a77e5b4..6c4bbb2 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
+@@ -412,6 +412,13 @@ export type NativeProps = $ReadOnly<{|
+     $ReadOnly<{|target: Int32, text: string|}>,
+   >,
+ 
++  /**
++   * Invoked when the user performs the clear action.
++   */
++  onClear?: ?BubblingEventHandler<
++    $ReadOnly<{|target: Int32, eventCount: Int32, text: string|}>,
++  >,
++
+   /**
+    * Callback that is called when a key is pressed.
+    * This will be called with `{ nativeEvent: { key: keyValue } }`
+@@ -655,6 +662,9 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+     },
+   },
+   directEventTypes: {
++    topClear: {
++      registrationName: 'onClear',
++    },
+     topScroll: {
+       registrationName: 'onScroll',
+     },
+@@ -693,6 +703,7 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+     textTransform: true,
+     returnKeyType: true,
+     keyboardType: true,
++    onClear: true,
+     multiline: true,
+     color: {process: require('../../StyleSheet/processColor').default},
+     autoComplete: true,
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+index 0aa8965..0b14171 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+@@ -146,6 +146,7 @@ const RCTTextInputViewConfig = {
+     lineBreakStrategyIOS: true,
+     smartInsertDelete: true,
+     ...ConditionallyIgnoredEventHandlers({
++      onClear: true,
+       onChange: true,
+       onSelectionChange: true,
+       onContentSizeChange: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 index 0aa8965..3bfe22c 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
