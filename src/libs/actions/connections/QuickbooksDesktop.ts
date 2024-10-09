@@ -1,78 +1,13 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {ConnectPolicyToQuickBooksDesktopParams} from '@libs/API/parameters';
 import type UpdateQuickbooksDesktopGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksDesktopGenericTypeParams';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
-
-function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']>>(
-    policyID: string,
-    configUpdate: TConfigUpdate,
-    configCurrentData: TConfigUpdate,
-) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                        config: {
-                            ...configUpdate,
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                        config: {
-                            ...configCurrentData,
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(
-                                Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')]),
-                            ),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                        config: {
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-    return {
-        optimisticData,
-        failureData,
-        successData,
-    };
-}
 
 function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']>(
     policyID: string,
@@ -152,6 +87,13 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     };
 }
 
+function getQuickbooksDesktopCodatSetupLink(policyID: string) {
+    const params: ConnectPolicyToQuickBooksDesktopParams = {policyID};
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP, params);
+}
+
 function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connections['quickbooksDesktop']['config']['export']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -167,4 +109,4 @@ function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connecti
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
 }
 
-export {updateQuickbooksDesktopPreferredExporter, buildOnyxDataForMultipleQuickbooksConfigurations};
+export {updateQuickbooksDesktopPreferredExporter, getQuickbooksDesktopCodatSetupLink};
