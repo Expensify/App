@@ -36,7 +36,7 @@ function getNewDotURL(url: string): string {
     }
 
     if (pathname === 'policy') {
-        const workspaceID = params.policyID || '';
+        const workspaceID = params.policyID;
         const section = urlObj.hash.slice(1) || 'profile';
 
         return `workspace/${workspaceID}/${section}`;
