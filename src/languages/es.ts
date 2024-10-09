@@ -1959,6 +1959,8 @@ const translations = {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
+        attachmentNotFound: 'Adjunto no encontrado',
+        verifyAttachmentURL: 'Por favor verifique que la URL del archivo sea válida'
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

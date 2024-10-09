@@ -2,6 +2,7 @@ import React, {useContext, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -83,6 +84,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
+                    fallbackSource={Expensicons.Exclamation}
                 />
             </View>
 

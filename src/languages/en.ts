@@ -1940,6 +1940,8 @@ const translations = {
             afterLinkText: 'to view it.',
             formLabel: 'View PDF',
         },
+        attachmentNotFound: 'Attachment not found',
+        verifyAttachmentURL: 'Please verify that the file address is valid'
     },
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US, please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
