@@ -2488,7 +2488,6 @@ function getUpdateMoneyRequestParams(
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
-    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     const allReports = ReportConnection.getAllReports();
@@ -2725,6 +2724,8 @@ function getUpdateMoneyRequestParams(
         }
     }
 
+    const clearedPendingFields = Object.fromEntries(Object.keys(updatedTransaction?.pendingFields ?? transactionChanges).map((key) => [key, null]));
+
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -2813,7 +2814,6 @@ function getUpdateTrackExpenseParams(
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
-    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     const allReports = ReportConnection.getAllReports();
@@ -2938,6 +2938,8 @@ function getUpdateTrackExpenseParams(
             },
         });
     }
+
+    const clearedPendingFields = Object.fromEntries(Object.keys(updatedTransaction?.pendingFields ?? transactionChanges).map((key) => [key, null]));
 
     // Clear out the error fields and loading states on success
     successData.push({
