@@ -7,7 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
+import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getAdminEmployees} from '@libs/PolicyUtils';
@@ -56,7 +56,14 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== qbdConfig?.export?.exporter) {
-                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, qbdConfig?.export.exporter ?? '');
+                // TODO: [QBD] Should be updated to use the new QBD API
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBD,
+                    'export',
+                    {[CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER]: row.value},
+                    {[CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER]: qbdConfig?.export?.exporter},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
         },
