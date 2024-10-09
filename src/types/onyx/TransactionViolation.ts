@@ -77,6 +77,9 @@ type TransactionViolationData = {
 
     /** List of duplicate transactions */
     duplicates?: string[];
+
+    /** Type of the RTER violation */
+    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 };
 
 /** Model of a transaction violation */

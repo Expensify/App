@@ -21,6 +21,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
@@ -55,10 +56,6 @@ function IOURequestStepScan({
     transaction,
     currentUserPersonalDetails,
 }: Omit<IOURequestStepScanProps, 'user'>) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? '-1'}`);
-
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -81,6 +78,9 @@ function IOURequestStepScan({
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const policy = usePolicy(report?.policyID);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -212,7 +212,7 @@ function IOURequestStepScan({
                     return false;
                 }
 
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
                     return false;
                 }

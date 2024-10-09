@@ -23,6 +23,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -53,11 +54,6 @@ function IOURequestStepScan({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepScanProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? '-1'}`);
-    const [user] = useOnyx(ONYXKEYS.USER);
-
     const theme = useTheme();
     const styles = useThemeStyles();
     const device = useCameraDevice('back', {
@@ -69,6 +65,10 @@ function IOURequestStepScan({
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const policy = usePolicy(report?.policyID);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [user] = useOnyx(ONYXKEYS.USER);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
@@ -185,7 +185,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
             return false;
         }

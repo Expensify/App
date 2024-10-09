@@ -26,6 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
+import DomUtils from '@libs/DomUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
@@ -47,7 +48,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
-import RNMeasureContainer from './ReportActionCompose/measureContainer';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
@@ -74,10 +74,6 @@ type ReportActionItemMessageEditProps = {
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
 };
-
-// native ids
-const emojiButtonID = 'emojiButton';
-const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
@@ -403,7 +399,10 @@ function ReportActionItemMessageEdit(
     );
 
     const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
-        RNMeasureContainer(containerRef, callback);
+        if (!containerRef.current) {
+            return;
+        }
+        containerRef.current.measureInWindow(callback);
     }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
@@ -506,7 +505,6 @@ function ReportActionItemMessageEdit(
                                     forwardedRef.current = el;
                                 }
                             }}
-                            id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -534,8 +532,7 @@ function ReportActionItemMessageEdit(
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
+                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -565,10 +562,13 @@ function ReportActionItemMessageEdit(
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
                             onModalHide={() => {
+                                const activeElementId = DomUtils.getActiveElement()?.id;
+                                if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
+                                    return;
+                                }
                                 ReportActionComposeFocusManager.focus();
                             }}
                             onEmojiSelected={addEmojiToTextBox}
-                            id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
                             onPress={setUpComposeFocusManager}
                         />

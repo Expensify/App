@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import dateAdd from 'date-fns/add';
-import dateSubtract from 'date-fns/sub';
+import {add as dateAdd} from 'date-fns';
+import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -177,7 +177,7 @@ const CONST = {
     },
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
-    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -206,6 +206,9 @@ const CONST = {
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
+
+        // 10 megabytes in bytes, this is limit set on servers for receipt images, do not update without wider internal discussion
+        RECEIPT_MAX_SIZE: 10485760,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -476,10 +479,12 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
+        DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
+        CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         NEW_DOT_QBD: 'quickbooksDesktopOnNewDot',
     },
     BUTTON_STATES: {
@@ -1050,6 +1055,7 @@ const CONST = {
         },
     },
     COMPOSER: {
+        NATIVE_ID: 'composer',
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
@@ -2046,6 +2052,7 @@ const CONST = {
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
+        LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
@@ -2298,10 +2305,10 @@ const CONST = {
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
+                QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
-                QBD: 'quickbooksDesktop',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -4286,6 +4293,7 @@ const CONST = {
     },
 
     BACK_BUTTON_NATIVE_ID: 'backButton',
+    EMOJI_PICKER_BUTTON_NATIVE_ID: 'emojiPickerButton',
 
     /**
      * The maximum count of items per page for SelectionList.
@@ -4392,6 +4400,11 @@ const CONST = {
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
+    },
+    RTER_VIOLATION_TYPES: {
+        BROKEN_CARD_CONNECTION: 'brokenCardConnection',
+        BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
+        SEVEN_DAY_HOLD: 'sevenDayHold',
     },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
