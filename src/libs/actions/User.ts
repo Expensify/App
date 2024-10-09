@@ -1385,7 +1385,6 @@ export {
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
-    // setMuteAllSounds,
     togglePlatformMute,
     clearUserErrorMessage,
     joinScreenShare,

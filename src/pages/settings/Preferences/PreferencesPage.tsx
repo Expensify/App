@@ -29,7 +29,7 @@ function PreferencesPage() {
     if (Browser.isMobile()) {
         platform = CONST.PLATFORM.MOBILEWEB;
     }
-    const [mutedPlatforms] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const [mutedPlatforms = []] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms?.includes(platform);
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
@@ -89,7 +89,6 @@ function PreferencesPage() {
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
                                         isOn={isPlatformMuted ?? false}
-                                        // isOn={user?.isMutedAllSounds ?? false}
                                         onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
