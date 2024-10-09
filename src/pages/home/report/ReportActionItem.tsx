@@ -174,7 +174,7 @@ function ReportActionItem({
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [linkedTransactionRouteError] = useOnyx(
-        `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : -1}`,
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined}`,
         {selector: (transaction) => transaction?.errorFields?.route ?? null},
     );
     const theme = useTheme();

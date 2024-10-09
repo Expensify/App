@@ -69,7 +69,7 @@ function AvatarWithDisplayName({
     const StyleUtils = useStyleUtils();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : -1}`,
+        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
     );
     const title = ReportUtils.getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);

@@ -675,7 +675,7 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
  */
 function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
     return Object.keys(transactions)
-        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1))
+        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : undefined))
         .slice(0, size);
 }
 

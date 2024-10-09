@@ -76,7 +76,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const transaction =
         transactions?.[
             `${ONYXKEYS.COLLECTION.TRANSACTION}${
-                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID : -1
+                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined
             }`
         ] ?? undefined;
 

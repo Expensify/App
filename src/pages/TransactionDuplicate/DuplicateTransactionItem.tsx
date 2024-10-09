@@ -20,7 +20,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
-        const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : -1;
+        const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
         return IOUTransactionID === props.transaction?.transactionID;
     });
 

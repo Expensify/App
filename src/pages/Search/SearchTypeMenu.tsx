@@ -217,7 +217,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     );
 
     const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
-    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
+    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : undefined;
 
     if (shouldUseNarrowLayout) {
         const title = searchName ?? (isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates));

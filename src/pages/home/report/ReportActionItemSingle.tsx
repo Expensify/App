@@ -86,7 +86,7 @@ function ReportActionItemSingle({
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails[action?.delegateAccountID];
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] ?? {};
