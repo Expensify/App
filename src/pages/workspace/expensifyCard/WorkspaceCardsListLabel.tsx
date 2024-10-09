@@ -20,7 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {WorkspaceNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
@@ -40,7 +40,7 @@ type WorkspaceCardsListLabelProps = {
 };
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
-    const route = useRoute<RouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
+    const route = useRoute<RouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
     const policy = usePolicy(route.params.policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();

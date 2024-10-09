@@ -22,7 +22,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -44,7 +44,7 @@ type WorkspaceProfilePageOnyxProps = {
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();

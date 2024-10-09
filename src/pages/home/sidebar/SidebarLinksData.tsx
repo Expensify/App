@@ -67,6 +67,7 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading ?? false}
+                activeWorkspaceID={activeWorkspaceID}
                 optionListItems={orderedReportIDs}
             />
         </View>

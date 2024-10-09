@@ -2,7 +2,6 @@ import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
@@ -25,7 +24,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -56,7 +55,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -87,15 +85,6 @@ const loadSearchPage = withPrepareCentralPaneScreen(() => require<ReactComponent
 function shouldOpenOnAdminRoom() {
     const url = getCurrentUrl();
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
-
-// @TODO Adapt to the new structure.
-function getCentralPaneScreenListeners(screenName: CentralPaneName) {
-    if (screenName === SCREENS.REPORT) {
-        return {beforeRemove: beforeRemoveReportOpenedFromSearchRHP};
-    }
-
-    return {};
 }
 
 function initializePusher() {

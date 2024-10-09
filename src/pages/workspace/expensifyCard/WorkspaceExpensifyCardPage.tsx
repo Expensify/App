@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy/Policy';
@@ -16,7 +16,7 @@ import type SCREENS from '@src/SCREENS';
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
 
-type WorkspaceExpensifyCardPageProps = StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+type WorkspaceExpensifyCardPageProps = StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID ?? '-1';

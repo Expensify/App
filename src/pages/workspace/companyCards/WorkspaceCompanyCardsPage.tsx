@@ -7,7 +7,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -112,7 +112,7 @@ const mockedCards = {
     },
 } as unknown as WorkspaceCardsList;
 
-type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardPageProps = StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();

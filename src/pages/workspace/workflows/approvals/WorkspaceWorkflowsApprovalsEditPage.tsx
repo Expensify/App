@@ -13,7 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -27,7 +27,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
-type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
+type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
 
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();

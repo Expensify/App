@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Illustrations from '@src/components/Icon/Illustrations';
@@ -14,7 +14,7 @@ import type SCREENS from '@src/SCREENS';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 
-type PolicyRulesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
+type PolicyRulesPageProps = StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();

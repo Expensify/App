@@ -12,7 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -40,7 +40,7 @@ const expensifyCardFeatures: FeatureListItem[] = [
 ];
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
-    route: StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
+    route: StackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {

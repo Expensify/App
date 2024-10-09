@@ -1,7 +1,6 @@
-import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const WORKSPACE_TO_RHP: Partial<Record<WorkspaceScreenName, string[]>> = {
+const WORKSPACE_TO_RHP: Record<string, string[]> = {
     [SCREENS.WORKSPACE.PROFILE]: [SCREENS.WORKSPACE.NAME, SCREENS.WORKSPACE.ADDRESS, SCREENS.WORKSPACE.CURRENCY, SCREENS.WORKSPACE.DESCRIPTION, SCREENS.WORKSPACE.SHARE],
     [SCREENS.WORKSPACE.MEMBERS]: [
         SCREENS.WORKSPACE.INVITE,
