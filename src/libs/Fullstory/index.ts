@@ -29,17 +29,11 @@ const FS = {
      */
     onReady: () =>
         new Promise((resolve) => {
-            Environment.getEnvironment().then((envName: string) => {
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
-                    return;
-                }
-                // Initialised via HEAD snippet
-                if (!isInitialized()) {
-                    init({orgId: ''}, resolve);
-                } else {
-                    FullStory('observe', {type: 'start', callback: resolve});
-                }
-            });
+            if (!isInitialized()) {
+                init({orgId: ''}, resolve);
+            } else {
+                FullStory('observe', {type: 'start', callback: resolve});
+            }
         }),
 
     /**
@@ -83,17 +77,11 @@ const FS = {
      * If the metadata does not contain an email, the user identity is anonymized.
      * If the metadata contains an accountID, the user identity is defined with it.
      */
-    fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
-        if (!metadata?.accountID) {
-            // anonymize FullStory user identity metadata
-            FS.anonymize();
-        } else {
-            // define FullStory user identity
-            FullStory('setIdentity', {
-                uid: String(metadata.accountID),
-                properties: metadata,
-            });
-        }
+    fsIdentify: (metadata: UserMetadata) => {
+        FullStory('setIdentity', {
+            uid: String(metadata.accountID),
+            properties: metadata,
+        });
     },
 
     /**
