@@ -50,6 +50,13 @@ function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: st
     return approverRule;
 }
 
+function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: string) {
+    const expenseRule = expenseRules?.find((rule) =>
+        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
+    );
+    return expenseRule;
+}
+
 function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
     const categoryDefaultTaxRate = expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
 
@@ -61,4 +68,4 @@ function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: st
     return categoryDefaultTaxRate;
 }
 
-export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate};
+export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryExpenseRule, getCategoryDefaultTaxRate};
