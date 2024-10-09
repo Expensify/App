@@ -145,18 +145,16 @@ function Expensify() {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Initialize Fullstory lib
-        FS.init(userMetadata);
-
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
         return unsubscribeNetInfo;
-
-        // This would alerting because of userMetadata. We'll remove the linter rule since
-        // we don't really need to run this effect again if that value changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        // Initialize Fullstory lib
+        FS.init(userMetadata);
+    }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
