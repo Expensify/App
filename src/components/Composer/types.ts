@@ -13,9 +13,6 @@ type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeE
 };
 
 type ComposerProps = Omit<TextInputProps, 'onClear'> & {
-    /** identify id in the text input */
-    id?: string;
-
     /** Indicate whether input is multiline */
     multiline?: boolean;
 
