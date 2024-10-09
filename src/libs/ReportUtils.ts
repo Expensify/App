@@ -1029,7 +1029,7 @@ function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
 
 function isInvoiceRoomWithID(reportID?: string): boolean {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return isInvoiceRoom(report);
 }
 
@@ -1415,7 +1415,7 @@ function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?:
  */
 function isArchivedRoomWithID(reportID?: string) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return isArchivedRoom(report, getReportNameValuePairs(reportID));
 }
 
@@ -6464,7 +6464,7 @@ function chatIncludesChronos(report: OnyxInputOrEntry<Report>): boolean {
 
 function chatIncludesChronosWithID(reportID?: string): boolean {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return chatIncludesChronos(report);
 }
 

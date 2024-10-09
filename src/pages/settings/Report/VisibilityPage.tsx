@@ -25,7 +25,7 @@ type VisibilityProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettin
 function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<RouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const shouldGoBackToDetailsPage = useRef(false);
 
     const shouldDisableVisibility = ReportUtils.isArchivedRoom(report, reportNameValuePairs);

@@ -38,7 +38,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo, searchHash} = route.params;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold

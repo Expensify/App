@@ -17,7 +17,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
     const type = route.params.type;
     const accountID = route.params.accountID;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource

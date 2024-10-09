@@ -43,7 +43,7 @@ function IOURequestStartPage({
     const policy = usePolicy(report?.policyID);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const tabTitles = {
