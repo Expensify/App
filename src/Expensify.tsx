@@ -98,6 +98,7 @@ function Expensify({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -149,8 +150,7 @@ function Expensify({
         ActiveClientManager.init();
 
         // Initialize Fullstory lib
-        const [session] = useOnyx(ONYXKEYS.USER_METADATA);
-        FS.init(session);
+        FS.init(userMetadata);
 
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();

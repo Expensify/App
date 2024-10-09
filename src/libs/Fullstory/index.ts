@@ -87,7 +87,7 @@ const FS = {
     /**
      * Init function, created so we're consistent with the native file
      */
-    init: (value: OnyxEntry<UserMetadata>) => {},
+    init: (_value: OnyxEntry<UserMetadata>) => {},
 };
 
 export default FS;
