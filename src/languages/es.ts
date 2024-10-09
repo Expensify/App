@@ -662,7 +662,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: ' Fue creado por.',
         beginningOfChatHistoryInvoiceRoomPartOne: `Este chat es para facturas entre `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Usa el botón + para enviar una factura.`,
-        beginningOfChatHistory: 'Este chat es con',
+        beginningOfChatHistory: 'Este chat es con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Aquí es donde ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' enviará los gastos al espacio de trabajo ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: '. Solo usa el botón +.',
