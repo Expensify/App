@@ -38,7 +38,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.qbo.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.getRoute(policyID)),
-            title: qbdConfig?.exportDate ? translate(`workspace.qbo.exportDate.values.${qbdConfig?.exportDate}.label`) : undefined,
+            title: qbdConfig?.exportDate ? translate(`workspace.qbd.exportDate.values.${qbdConfig?.export.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
         },
         {

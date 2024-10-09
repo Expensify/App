@@ -1269,13 +1269,13 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
 
-    /** Configuration of the exportDate  */
-    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
-
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
         exporter: string;
+
+        /** Configuration of the exportDate  */
+        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
     };
 
     /** Collections of form field errors */

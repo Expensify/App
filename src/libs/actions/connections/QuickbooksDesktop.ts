@@ -8,10 +8,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
 
-function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksDesktop']['config']>>(
+function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']['export']>(
     policyID: string,
-    configUpdate: TConfigUpdate,
-    configCurrentData: TConfigUpdate,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
+    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -21,9 +22,15 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
-                            ...configUpdate,
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                            export: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
                         },
                     },
                 },
@@ -39,11 +46,15 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
-                            ...configCurrentData,
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(
-                                Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')]),
-                            ),
+                            export: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
@@ -59,8 +70,15 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
-                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                            export: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
                         },
                     },
                 },
@@ -74,6 +92,7 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']>(
     policyID: string,
     settingName: TSettingName,
@@ -152,19 +171,20 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     };
 }
 
-function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['exportDate']>(
+function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE),
     };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE, parameters, {optimisticData, failureData, successData});
 }
 
-export {updateQuickbooksDesktopExportDate, buildOnyxDataForMultipleQuickbooksConfigurations};
+// eslint-disable-next-line import/prefer-default-export
+export {updateQuickbooksDesktopExportDate};

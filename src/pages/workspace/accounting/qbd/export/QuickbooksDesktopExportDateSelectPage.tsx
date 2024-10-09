@@ -24,17 +24,17 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const qbdConfig = policy?.connections?.quickbooksOnline?.config; // TODO: should be updated to use the new connections object
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
-        text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
-        alternateText: translate(`workspace.qbo.exportDate.values.${dateType}.description`),
+        text: translate(`workspace.qbd.exportDate.values.${dateType}.label`),
+        alternateText: translate(`workspace.qbd.exportDate.values.${dateType}.description`),
         keyForList: dateType,
-        isSelected: qbdConfig?.exportDate === dateType,
+        isSelected: qbdConfig?.export.exportDate === dateType,
     }));
 
     const {canUseNewDotQBD} = usePermissions();
-    const exportDate = useMemo(() => qbdConfig?.exportDate, [qbdConfig]);
+    const exportDate = useMemo(() => qbdConfig?.export.exportDate, [qbdConfig]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {
@@ -54,13 +54,13 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             displayName={QuickbooksDesktopExportDateSelectPage.displayName}
             sections={[{data}]}
             listItem={RadioListItem}
-            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
+            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbd.exportDate.description')}</Text>}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
             onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            title="workspace.qbo.exportDate.label"
+            title="workspace.qbd.exportDate.label"
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
