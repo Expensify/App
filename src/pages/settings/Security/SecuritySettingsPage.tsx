@@ -33,6 +33,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -304,10 +305,12 @@ function SecuritySettingsPage() {
                                     <MenuItem
                                         title={translate('delegate.removeCopilot')}
                                         icon={Expensicons.Trashcan}
-                                        onPress={() => {
-                                            setShouldShowDelegatePopoverMenu(false);
-                                            setShouldShowRemoveDelegateModal(true);
-                                        }}
+                                        onPress={() =>
+                                            Modal.close(() => {
+                                                setShouldShowDelegatePopoverMenu(false);
+                                                setShouldShowRemoveDelegateModal(true);
+                                            })
+                                        }
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                     />
                                 </View>
