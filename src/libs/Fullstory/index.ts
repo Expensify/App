@@ -56,6 +56,11 @@ const FS = {
      * Initializes the FullStory metadata with the provided metadata information.
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
+        // On the first subscribe for UserMetadata, this function will be called. We need
+        // to confirm that we actually have any value here before proceeding.
+        if (!value?.accountID) {
+            return;
+        }
         try {
             Environment.getEnvironment().then((envName: string) => {
                 if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
@@ -63,11 +68,9 @@ const FS = {
                 }
                 FS.onReady().then(() => {
                     FS.consent(true);
-                    if (value) {
-                        const localMetadata = value;
-                        localMetadata.environment = envName;
-                        FS.fsIdentify(localMetadata);
-                    }
+                    const localMetadata = value;
+                    localMetadata.environment = envName;
+                    FS.fsIdentify(localMetadata);
                 });
             });
         } catch (e) {
