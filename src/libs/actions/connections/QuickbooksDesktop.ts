@@ -104,7 +104,7 @@ function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Conn
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED),
-        enabled: settingValue, // TODO-QBD: This should be removed once the API is updated
+        enabled: settingValue, // TODO: [QBD] This should be removed once the API is updated
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED, parameters, onyxData);
 }
