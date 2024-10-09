@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
