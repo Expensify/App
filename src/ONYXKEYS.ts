@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type Platform from '@libs/getPlatform/types';
 import type CONST from './CONST';
 import type {OnboardingPurposeType} from './CONST';
 import type * as FormTypes from './types/form';
@@ -899,6 +900,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
+    [ONYXKEYS.NVP_MUTED_PLATFORMS]: Platform[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
 

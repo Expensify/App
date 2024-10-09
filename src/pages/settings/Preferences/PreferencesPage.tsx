@@ -13,27 +13,26 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getPlatform from '@libs/getPlatform';
-import * as Browser from '@libs/Browser';
 
 function PreferencesPage() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-    
+
     let platform = getPlatform();
     if (Browser.isMobile()) {
         platform = CONST.PLATFORM.MOBILEWEB;
     }
     const [mutedPlatforms] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
-    const isPlatformMuted = mutedPlatforms.includes(platform);
+    const isPlatformMuted = mutedPlatforms?.includes(platform);
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
-
 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();

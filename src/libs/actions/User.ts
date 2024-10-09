@@ -12,6 +12,7 @@ import type {
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
+    TogglePlatformMuteParams,
     UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
@@ -23,6 +24,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -984,15 +986,9 @@ function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
-// function setMuteAllSounds(isMutedAllSounds: boolean) {
-//     Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds});
-// }
-
-function togglePlatformMute(platform, mutedPlatforms) {
+function togglePlatformMute(platform: Platform, mutedPlatforms: Platform[]) {
     const isPlatformMuted = mutedPlatforms?.includes(platform);
-    const newMutedPlatforms = isPlatformMuted
-        ? mutedPlatforms.filter((mutedPlatform) => mutedPlatform !== platform)
-        : [...mutedPlatforms, platform];
+    const newMutedPlatforms = isPlatformMuted ? mutedPlatforms.filter((mutedPlatform) => mutedPlatform !== platform) : [...mutedPlatforms, platform];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1009,14 +1005,12 @@ function togglePlatformMute(platform, mutedPlatforms) {
         },
     ];
 
-    const parameters: GetTogglePlatformMuteParams = {authToken, platform};
+    const parameters: TogglePlatformMuteParams = {authToken, platform};
 
     API.write(WRITE_COMMANDS.TOGGLE_PLATFORM_MUTE, parameters, {
         optimisticData,
         failureData,
     });
-    
-    // Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds: !isMutedAllSounds});
 }
 
 /**
