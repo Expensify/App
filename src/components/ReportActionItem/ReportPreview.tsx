@@ -128,7 +128,7 @@ function ReportPreview({
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : -1}`,
     );
 
-    const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
+    const managerID = iouReport?.managerID ?? action.childManagerAccountID;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;

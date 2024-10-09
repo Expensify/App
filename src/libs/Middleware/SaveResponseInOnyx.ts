@@ -25,13 +25,13 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
 
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number(response?.lastUpdateID ?? 0),
-            previousUpdateID: Number(response?.previousUpdateID ?? 0),
+            lastUpdateID: Number(response?.lastUpdateID),
+            previousUpdateID: Number(response?.previousUpdateID),
             request,
             response: response ?? {},
         };
 
-        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID ?? 0))) {
+        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID))) {
             return OnyxUpdates.apply(responseToApply);
         }
 

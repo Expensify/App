@@ -1058,7 +1058,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
         reportID: originalTransaction?.reportID,
-        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        receiptID: originalTransaction?.receipt?.receiptID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID,

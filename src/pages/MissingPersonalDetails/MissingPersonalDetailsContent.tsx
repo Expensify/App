@@ -47,7 +47,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, cardList, draftV
         if (!values) {
             return;
         }
-        PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(values, firstUnissuedCard?.cardID ?? 0);
+        PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(values, firstUnissuedCard?.cardID);
         FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
     }, [firstUnissuedCard?.cardID, values]);

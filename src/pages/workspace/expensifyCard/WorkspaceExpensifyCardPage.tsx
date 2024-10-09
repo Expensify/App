@@ -35,7 +35,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     useFocusEffect(fetchExpensifyCards);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && !cardsList));
 
     return (

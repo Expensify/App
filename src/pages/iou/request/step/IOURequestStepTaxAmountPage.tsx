@@ -179,7 +179,7 @@ IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPageProps, IOURequestStepTaxAmountPageOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
+            const transactionID = route?.params.transactionID;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },

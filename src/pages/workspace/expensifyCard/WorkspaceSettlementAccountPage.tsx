@@ -43,7 +43,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const connectionName = reconciliationConnection ?? '';
     const connectionParam = AccountingUtils.getRouteParamForConnection(connectionName as ConnectionName);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
 
     const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});

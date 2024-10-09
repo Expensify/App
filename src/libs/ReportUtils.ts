@@ -1664,7 +1664,7 @@ function isOneTransactionThread(reportID: string, parentReportID: string, thread
  */
 function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
     const participants = report?.participants ?? {};
-    const isCurrentUserParticipant = participants[currentUserAccountID ?? 0] ? 1 : 0;
+    const isCurrentUserParticipant = participants[currentUserAccountID] ? 1 : 0;
     const participantAmount = Object.keys(participants).length - isCurrentUserParticipant;
     if (participantAmount !== 1) {
         return false;
@@ -3167,7 +3167,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
-    const moneyRequestReportID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID ?? 0;
+    const moneyRequestReportID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID;
     const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
 
     if (!moneyRequestReportID || !moneyRequestReport) {
@@ -3214,7 +3214,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
-    const moneyRequestReportID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID ?? 0;
+    const moneyRequestReportID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID;
 
     const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
     if (!moneyRequestReportID || !moneyRequestReport) {
@@ -7348,7 +7348,7 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
  * Check to see if the current user has access to view the report.
  */
 function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
-    return (isReportParticipant(currentUserAccountID ?? 0, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
@@ -7372,7 +7372,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
-        hasParticipantInArray(report, [currentUserAccountID ?? 0]) &&
+        hasParticipantInArray(report, [currentUserAccountID]) &&
         !isAuditor(report)
     );
 }

@@ -36,7 +36,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const policyID = policy?.id;

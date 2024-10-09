@@ -29,7 +29,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID;
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
     const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
 
     const validate = useCallback(

@@ -371,7 +371,7 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getCustomUnit(policy);
-    const customUnitID = distanceUnit?.customUnitID ?? 0;
+    const customUnitID = distanceUnit?.customUnitID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
@@ -1014,7 +1014,7 @@ function getWorkspaceAccountID(policyID: string) {
     if (!policy) {
         return 0;
     }
-    return policy.workspaceAccountID ?? 0;
+    return policy.workspaceAccountID;
 }
 
 function getTagApproverRule(policyID: string, tagName: string) {

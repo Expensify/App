@@ -340,7 +340,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
     },
     draftTransaction: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },
