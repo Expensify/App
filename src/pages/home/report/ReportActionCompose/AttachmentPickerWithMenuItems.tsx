@@ -86,6 +86,8 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** The personal details of everyone in the report */
     reportParticipantIDs?: number[];
+
+    shouldDisableAttachmentItem?: boolean;
 };
 
 /**
@@ -110,6 +112,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
+    shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
     const isFocused = useIsFocused();
     const theme = useTheme();
@@ -236,6 +239,7 @@ function AttachmentPickerWithMenuItems({
                             triggerAttachmentPicker();
                         },
                         shouldCallAfterModalHide: true,
+                        disabled: shouldDisableAttachmentItem,
                     },
                 ];
                 return (
