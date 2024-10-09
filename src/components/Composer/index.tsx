@@ -378,6 +378,7 @@ function Composer(
     return (
         <>
             <RNMarkdownTextInput
+                id={CONST.COMPOSER.NATIVE_ID}
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}

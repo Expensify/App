@@ -573,7 +573,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         })
         .join(' ');
 
-    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
+    welcomeMessage.messageText = displayNamesWithTooltips.length ? `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}` : '';
     return welcomeMessage;
 }
 

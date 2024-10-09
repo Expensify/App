@@ -65,7 +65,6 @@ import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import getIsSmallScreenWidth from './getIsSmallScreenWidth';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -1358,12 +1357,6 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
-    }
-
-    // if the user hasn't completed the onboarding flow, whether the user should be in the concierge chat or system chat
-    // should be consistent with what chat the user will land after onboarding flow
-    if (!getIsSmallScreenWidth() && !Array.isArray(onboarding) && !onboarding?.hasCompletedGuidedSetupFlow) {
-        return reportsValues.find(isChatUsedForOnboarding);
     }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -3819,15 +3812,27 @@ function getReportName(
         ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
     ) {
+        const {harvesting} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (harvesting) {
+            return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
+        }
         return getIOUSubmittedMessage(parentReportAction);
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (automaticAction) {
+            return Parser.htmlToText(getReportAutomaticallyForwardedMessage(parentReportAction, reportID));
+        }
         return getIOUForwardedMessage(parentReportAction, report);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+        if (automaticAction) {
+            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+        }
         return getIOUApprovedMessage(parentReportAction);
     }
 
@@ -4573,7 +4578,11 @@ function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
     return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction) {
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
+    return Localize.translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
@@ -4581,7 +4590,26 @@ function getIOUApprovedMessage(reportAction: ReportAction) {
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+    const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
+    let formattedAmount;
+
+    // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
+    if (originalMessage?.amount) {
+        formattedAmount = getFormattedAmount(reportAction);
+    } else {
+        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+    }
+
+    return Localize.translateLocal('iou.automaticallyForwardedAmount', {amount: formattedAmount});
+}
+
+/**
+ * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
+ * so we retrieve the amount from the report instead
+ */
+function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -6905,7 +6933,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isInvoiceRoom(report)) {
+    if (isInvoiceRoom(report) || isInvoiceReport(report)) {
         return true;
     }
 
@@ -7232,7 +7260,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
     const amount = TransactionUtils.getAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, TransactionUtils.getCurrency(transaction)) ?? '';
-    const isRequestSettled = isSettled(originalMessage?.IOUReportID);
+    const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved(iouReport);
     if (isRequestSettled) {
         return Localize.translateLocal('iou.payerSettled', {
@@ -8172,7 +8200,9 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getReportAutomaticallyApprovedMessage,
     getIOUApprovedMessage,
+    getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,

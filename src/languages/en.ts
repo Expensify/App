@@ -916,7 +916,11 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `paid ${amount}. Add a bank account to receive your payment.`,
+        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
+            `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
+        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
+            `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
@@ -2355,6 +2359,16 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configure how Expensify data exports to QuickBooks Desktop.',
+            qbdSetup: 'QuickBooks Desktop setup',
+            requiredSetupDevice: {
+                title: "Can't connect from this device",
+                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
+                body2: "Once you're connected, you'll be able to sync and export from anywhere.",
+            },
+            setupPage: {
+                title: 'Open this link to connect',
+                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -3361,10 +3375,16 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove these members?',
+            removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+                one: `Are you sure you want to remove ${memberName}?`,
+                other: 'Are you sure you want to remove these members?',
+            }),
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
-            removeMembersTitle: 'Remove members',
+            removeMembersTitle: () => ({
+                one: 'Remove member',
+                other: 'Remove members',
+            }),
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -3426,6 +3446,7 @@ const translations = {
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
@@ -3666,6 +3687,8 @@ const translations = {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
+            invoiceBalance: 'Invoice balance',
+            invoiceBalanceSubtitle: 'Here’s your current balance from collecting payments on invoices.',
             bankAccountsSubtitle: 'Add a bank account to receive invoice payments.',
         },
         invite: {
@@ -4049,7 +4072,10 @@ const translations = {
         memberNotFound: 'Member not found.',
         useInviteButton: 'To invite a new member to the chat, please use the invite button above.',
         notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
-        removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+            one: `Are you sure you want to remove ${memberName} from the room?`,
+            other: 'Are you sure you want to remove the selected members from the room?',
+        }),
         error: {
             genericAdd: 'There was a problem adding this room member.',
         },
@@ -4442,6 +4468,8 @@ const translations = {
             title: 'Map pending',
             subtitle: 'The map will be generated when you go back online',
             onlineSubtitle: 'One moment while we set up the map',
+            errorTitle: 'Map error',
+            errorSubtitle: 'There was an error loading the map. Please try again.',
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location.',

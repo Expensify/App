@@ -1668,6 +1668,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         alignItems: 'center',
         justifyContent: 'center',
     }),
+
+    getTaskPreviewIconWrapper: (avatarSize?: AvatarSizeName) => ({
+        height: avatarSize ? getAvatarSize(avatarSize) : variables.fontSizeNormalHeight,
+        ...styles.justifyContentCenter,
+    }),
+
+    getTaskPreviewTitleStyle: (iconHeight: number, isTaskCompleted: boolean): StyleProp<TextStyle> => [
+        styles.flex1,
+        isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
+        {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
+    ],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

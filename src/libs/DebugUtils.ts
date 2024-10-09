@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import {isMatch} from 'date-fns';
-import isValid from 'date-fns/isValid';
+import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
