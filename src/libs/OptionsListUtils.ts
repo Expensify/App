@@ -2540,12 +2540,9 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
-
-        const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
-
         return {
             recentReports: recentReports ?? [],
-            personalDetails: filteredPersonalDetails ?? [],
+            personalDetails: personalDetails ?? [],
             userToInvite: null,
             currentUserOption,
             categoryOptions: [],
@@ -2557,6 +2554,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     let {recentReports, personalDetails} = matchResults;
 
     if (sortByReportTypeInSearch) {
+        personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
         recentReports = recentReports.concat(personalDetails);
         personalDetails = [];
         recentReports = orderOptions(recentReports, searchValue);
