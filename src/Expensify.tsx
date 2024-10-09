@@ -152,6 +152,10 @@ function Expensify() {
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
         return unsubscribeNetInfo;
+
+        // This would alerting because of userMetadata. We'll remove the linter rule since
+        // we don't really need to run this effect again if that value changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Log the platform and config to debug .env issues
