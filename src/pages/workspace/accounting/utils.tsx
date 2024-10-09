@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
@@ -244,6 +245,24 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return {
+                title: translate('workspace.accounting.qbd'),
+                icon: Expensicons.QBDSquare,
+                setupConnectionFlow: (
+                    <ConnectToQuickbooksDesktopFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onCardReconciliationPagePress: () => {},
+                onAdvancedPagePress: () => {},
+                subscribedImportSettings: [],
+                subscribedExportSettings: [],
+                subscribedAdvancedSettings: [],
             };
         default:
             return undefined;
