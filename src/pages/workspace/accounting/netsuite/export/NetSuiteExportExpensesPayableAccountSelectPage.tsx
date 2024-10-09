@@ -40,9 +40,9 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
         ({value}: SelectorType) => {
             if (currentPayableAccountID !== value) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID ?? '');
+                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID);
                 } else {
-                    Connections.updateNetSuitePayableAcct(policyID, value, currentPayableAccountID ?? '');
+                    Connections.updateNetSuitePayableAcct(policyID, value, currentPayableAccountID);
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));

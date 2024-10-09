@@ -58,7 +58,7 @@ function Manual({onNext}: ManualProps) {
         [translate],
     );
 
-    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

@@ -93,7 +93,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
-    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID);
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;

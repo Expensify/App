@@ -161,7 +161,7 @@ function ReportActionItem({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const blockedFromConcierge = useBlockedFromConcierge();
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, action) || '-1', [reportID, action]);
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
@@ -382,7 +382,7 @@ function ReportActionItem({
     const contextValue = useMemo(
         () => ({
             anchor: popoverAnchorRef.current,
-            report: {...report, reportID: report?.reportID ?? ''},
+            report: {...report, reportID: report?.reportID},
             reportNameValuePairs,
             action,
             transactionThreadReport,
@@ -524,7 +524,7 @@ function ReportActionItem({
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? report?.chatReportID ?? '' : reportID}
+                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? report?.chatReportID : reportID}
                     requestReportID={iouReportID}
                     reportID={reportID}
                     action={action}
@@ -920,7 +920,7 @@ function ReportActionItem({
 
     const iouReportID =
         ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUReportID
-            ? (ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ?? '').toString()
+            ? (ReportActionsUtils.getOriginalMessage(action)?.IOUReportID).toString()
             : '-1';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;

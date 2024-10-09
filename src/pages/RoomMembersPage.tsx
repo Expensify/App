@@ -58,7 +58,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const backTo = route.params.backTo;
 

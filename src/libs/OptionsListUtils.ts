@@ -2032,7 +2032,7 @@ function getOptions(
             const shouldShowInvoiceRoom =
                 includeInvoiceRooms &&
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
-                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID, policies) &&
                 !reportOption.private_isArchived &&
                 PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 

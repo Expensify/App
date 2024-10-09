@@ -144,7 +144,7 @@ function BaseReportActionContextMenu({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
     const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
-    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
 
     const transactionThreadReportID = useMemo(

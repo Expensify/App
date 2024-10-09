@@ -313,8 +313,8 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
-    const isSubmitter = currentTransactions.every((transaction) => isCurrentUserSubmitter(transaction.reportID ?? ''));
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID));
+    const isSubmitter = currentTransactions.every((transaction) => isCurrentUserSubmitter(transaction.reportID));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
         if (isSubmitter) {
             return buildOptimisticUnHoldReportAction();
@@ -329,7 +329,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID]: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -377,7 +377,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID]: null,
         },
     }));
 
@@ -389,7 +389,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: {
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID]: {
                 pendingAction: null,
             },
         },

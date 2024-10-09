@@ -95,7 +95,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                     formID={ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM}
                     onSubmit={(data) => {
                         Keyboard.dismiss();
-                        onValueSelected?.(data[rest.inputID ?? ''] ?? '');
+                        onValueSelected?.(data[rest.inputID] ?? '');
                     }}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}

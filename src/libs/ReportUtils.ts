@@ -1528,7 +1528,7 @@ function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): bool
  * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
  */
 function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const transactions = reportsTransactions[iouReportID] ?? [];
 
     // Early return false in case not having any transaction
     if (!transactions || transactions.length === 0) {
@@ -1622,7 +1622,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
         return false;
     }
 
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const transactions = reportsTransactions[iouReportID] ?? [];
     if (!transactions || transactions.length === 0) {
         return false;
     }
@@ -2718,7 +2718,7 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
  *
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const transactions = reportsTransactions[iouReportID] ?? [];
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
@@ -3221,18 +3221,18 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
         return;
     }
 
-    const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID ?? '';
+    const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '', searchHash);
+        IOU.unholdRequest(transactionID, reportAction.childReportID, searchHash);
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
         Navigation.navigate(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute, searchHash),
+            ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, backTo || activeRoute, searchHash),
         );
     }
 };
@@ -3241,7 +3241,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
  * Gets all transactions on an IOU report with a receipt
  */
 function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const transactions = reportsTransactions[iouReportID] ?? [];
     return transactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
 }
 
@@ -3746,7 +3746,7 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
         return getReimbursementQueuedActionMessage(reportAction, getReportOrDraftReport(reportID), false);
     }
 
-    return parseReportActionHtmlToText(reportAction, reportID ?? '', childReportID);
+    return parseReportActionHtmlToText(reportAction, reportID, childReportID);
 }
 
 /**
@@ -3854,7 +3854,7 @@ function getReportName(
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-        const reportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID ?? '').replace(/(\n+|\r\n|\n|\r)/gm, ' ');
+        const reportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -6203,7 +6203,7 @@ function hasReportViolations(reportID: string) {
 function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
     const accountIDs = Object.entries(report?.participants ?? {}).map(([accountID]) => Number(accountID));
     const adminAccounts = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs).filter((login) => !PolicyUtils.isExpensifyTeam(login));
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '');
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID);
     if ((lastVisibleAction ? ReportActionsUtils.isCreatedAction(lastVisibleAction) : report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED) && adminAccounts.length <= 1) {
         return false;
     }
@@ -6362,7 +6362,7 @@ function reasonForReportToBeInOptionList({
     if (
         !isEmptyObject(parentReportAction) &&
         ReportActionsUtils.isPendingRemove(parentReportAction) &&
-        ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID ?? '')
+        ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID)
     ) {
         return null;
     }
@@ -6529,7 +6529,7 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
     const newMarkerIndex = lodashFindLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created ?? '') > (report?.lastReadTime ?? ''));
 
     return newMarkerIndex !== -1 && 'reportActionID' in (sortedAndFilteredReportActions?.at(newMarkerIndex) ?? {})
-        ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID ?? ''
+        ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID
         : '';
 }
 
@@ -7445,7 +7445,7 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
  * Get all held transactions of a iouReport
  */
 function getAllHeldTransactions(iouReportID?: string): Transaction[] {
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const transactions = reportsTransactions[iouReportID] ?? [];
     return transactions.filter((transaction) => TransactionUtils.isOnHold(transaction));
 }
 
@@ -7453,7 +7453,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  * Check if Report has any held expenses
  */
 function hasHeldExpenses(iouReportID?: string): boolean {
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const transactions = reportsTransactions[iouReportID] ?? [];
     return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
 }
 
@@ -7461,7 +7461,7 @@ function hasHeldExpenses(iouReportID?: string): boolean {
  * Check if all expenses in the Report are on hold
  */
 function hasOnlyHeldExpenses(iouReportID: string): boolean {
-    const reportTransactions = reportsTransactions[iouReportID ?? ''] ?? [];
+    const reportTransactions = reportsTransactions[iouReportID] ?? [];
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
 
@@ -7495,7 +7495,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
  * Return held and full amount formatted with used currency
  */
 function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
-    const reportTransactions = reportsTransactions[iouReport?.reportID ?? ''] ?? [];
+    const reportTransactions = reportsTransactions[iouReport?.reportID] ?? [];
     const hasPendingTransaction = reportTransactions.some((transaction) => !!transaction.pendingAction);
 
     // if the report is an expense report, the total amount should be negated
@@ -7736,7 +7736,7 @@ function getTripTransactions(tripRoomReportID: string | undefined, reportFieldTo
     const tripTransactionReportIDs = Object.values(ReportConnection.getAllReports() ?? {})
         .filter((report) => report && report?.[reportFieldToCompare] === tripRoomReportID)
         .map((report) => report?.reportID);
-    return tripTransactionReportIDs.flatMap((reportID) => reportsTransactions[reportID ?? ''] ?? []);
+    return tripTransactionReportIDs.flatMap((reportID) => reportsTransactions[reportID] ?? []);
 }
 
 function getTripIDFromTransactionParentReport(transactionParentReport: OnyxEntry<Report> | undefined | null): string | undefined {

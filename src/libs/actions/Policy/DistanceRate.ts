@@ -177,7 +177,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID]: {
                                 ...customUnitRate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
@@ -196,7 +196,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -214,7 +214,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID]: {
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },

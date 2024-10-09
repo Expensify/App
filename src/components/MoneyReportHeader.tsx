@@ -108,7 +108,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID ?? '');
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport?.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});

@@ -56,13 +56,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {translate} = useLocalize();
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
+    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID);
     const reportID = report?.reportID;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID ?? '');
+        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID);
     }, [reportID, transaction?.transactionID]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
@@ -129,7 +129,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     shouldShowPinButton={false}
                     report={{
                         ...report,
-                        reportID: reportID ?? '',
+                        reportID: reportID,
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
@@ -151,7 +151,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0, styles.ml2]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     )}
@@ -173,7 +173,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>

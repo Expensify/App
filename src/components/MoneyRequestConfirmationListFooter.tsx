@@ -552,7 +552,7 @@ function MoneyRequestConfirmationListFooter({
             <View style={styles.moneyRequestImage}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID))}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
@@ -565,7 +565,7 @@ function MoneyRequestConfirmationListFooter({
                     </PressableWithoutFocus>
                 ) : (
                     <PressableWithoutFocus
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID))}
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}

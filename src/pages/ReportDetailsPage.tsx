@@ -121,7 +121,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
@@ -415,7 +415,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 icon: Expensicons.Upload,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration, backTo));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID, connectedIntegration, backTo));
                 },
             });
         }
@@ -526,7 +526,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID ?? '-1'))}
                     onImageRemoved={() => {
                         // Calling this without a file will remove the avatar
-                        Report.updateGroupChatAvatar(report.reportID ?? '');
+                        Report.updateGroupChatAvatar(report.reportID);
                     }}
                     onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '-1', file)}
                     editIcon={Expensicons.Camera}
@@ -551,7 +551,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
     const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
+        ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
         : '';
 
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(moneyRequestAction);
@@ -624,7 +624,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                             accessibilityLabel={chatRoomSubtitle ?? ''}
                             accessible
                             onPress={() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
                             }}
                         >
                             {chatRoomSubtitleText}
@@ -732,7 +732,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         }
 
         if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
             navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }

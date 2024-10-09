@@ -166,7 +166,7 @@ function ReportActionsView({
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
+        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID, report.reportID);
         const moneyRequestActions = allReportActions.filter((action) => {
             const originalMessage = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) : undefined;
             return (

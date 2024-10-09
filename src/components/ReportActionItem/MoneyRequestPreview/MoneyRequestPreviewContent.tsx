@@ -150,7 +150,7 @@ function MoneyRequestPreviewContent({
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
     /*
@@ -290,7 +290,7 @@ function MoneyRequestPreviewContent({
     const navigateToReviewFields = () => {
         const backTo = route.params.backTo;
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? ''});
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID});
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
         } else if ('category' in comparisonResult.change) {

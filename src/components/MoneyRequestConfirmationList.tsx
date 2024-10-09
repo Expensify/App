@@ -241,7 +241,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
+        const defaultRate = defaultMileageRate?.customUnitRateID;
         const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
         const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
         IOU.setCustomUnitRateID(transactionID, rateID);
@@ -396,7 +396,7 @@ function MoneyRequestConfirmationList({
         let taxCode: string;
         if (isDistanceRequest) {
             const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
-            taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
+            taxCode = customUnitRate?.attributes?.taxRateExternalID;
             taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
         } else {
             taxableAmount = transaction.amount ?? 0;
@@ -405,7 +405,7 @@ function MoneyRequestConfirmationList({
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
         const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
     }, [
         policy,
         shouldShowTax,

@@ -33,7 +33,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnits = policy?.customUnits ?? {};
-    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
+    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID;
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 

@@ -22,7 +22,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const attachment = useMemo(() => {
         if (ReportUtils.isGroupChat(report) && !ReportUtils.isThread(report)) {
             return {
-                source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID ?? ''),
+                source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID),
                 headerTitle: ReportUtils.getReportName(report),
                 originalFileName: report?.avatarFileName ?? '',
                 isWorkspaceAvatar: false,
@@ -33,7 +33,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             source: UserUtils.getFullSizeAvatar(ReportUtils.getWorkspaceIcon(report).source, 0),
             headerTitle: ReportUtils.getPolicyName(report, false, policy),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
-            originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
+            originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
     }, [report, policy]);

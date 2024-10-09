@@ -129,7 +129,7 @@ function dismissError(item: PaymentMethodItem) {
 
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
-    const paymentID = isBankAccount ? item.accountData?.bankAccountID ?? '' : item.accountData?.fundID ?? '';
+    const paymentID = isBankAccount ? item.accountData?.bankAccountID : item.accountData?.fundID;
 
     if (!paymentID) {
         Log.info('Unable to clear payment method error: ', undefined, item);

@@ -100,7 +100,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
-    const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
+    const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
@@ -123,7 +123,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || -1}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
     });
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [workspaceTooltip] = useOnyx(ONYXKEYS.NVP_WORKSPACE_TOOLTIP);
@@ -170,7 +170,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         (): OnyxEntry<OnyxTypes.Report> =>
             reportOnyx && {
                 lastReadTime: reportOnyx.lastReadTime,
-                reportID: reportOnyx.reportID ?? '',
+                reportID: reportOnyx.reportID,
                 policyID: reportOnyx.policyID,
                 lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
                 statusNum: reportOnyx.statusNum,
@@ -258,7 +258,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID ?? '', reportActions ?? [], isOffline);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
     const combinedReportActions = ReportActionsUtils.getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action));
@@ -305,7 +305,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !ReportUtils.isOneTransactionThread(linkedAction?.childReportID ?? '-1', reportID ?? '', linkedAction)) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !ReportUtils.isOneTransactionThread(linkedAction?.childReportID ?? '-1', reportID, linkedAction)) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
@@ -451,7 +451,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, []);
 
     const chatWithAccountManager = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? ''));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
     // Clear notifications for the current report when it's opened and re-focused
@@ -461,7 +461,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        clearReportNotifications(reportID ?? '');
+        clearReportNotifications(reportID);
     }, [reportID, isTopMostReportId]);
 
     useEffect(clearNotifications, [clearNotifications]);
@@ -480,7 +480,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 return;
             }
 
-            Report.unsubscribeFromLeavingRoomReportChannel(reportID ?? '');
+            Report.unsubscribeFromLeavingRoomReportChannel(reportID);
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
@@ -520,7 +520,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         ) {
             return;
         }
-        Report.openReport(reportID ?? '');
+        Report.openReport(reportID);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
@@ -684,7 +684,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        Report.readNewestAction(report?.reportID ?? '');
+        Report.readNewestAction(report?.reportID);
     }, [report]);
     const mostRecentReportAction = reportActions.at(0);
     const isMostRecentReportIOU = mostRecentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -716,7 +716,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                     navigation={navigation}
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                    testID={`report-screen-${reportID ?? ''}`}
+                    testID={`report-screen-${reportID}`}
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}

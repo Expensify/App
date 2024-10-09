@@ -1042,7 +1042,7 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID ?? '', '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         Navigation.dismissModalWithReport(report);
     } else {
@@ -1065,7 +1065,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     const report = chat ?? newChat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID ?? '', '', [], newChat, '0', false, participantAccountIDs);
+    openReport(report?.reportID, '', [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModalWithReport(report);
 }
 

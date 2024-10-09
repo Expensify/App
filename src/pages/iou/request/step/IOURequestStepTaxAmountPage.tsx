@@ -122,7 +122,7 @@ function IOURequestStepTaxAmountPage({
                 navigateBack();
                 return;
             }
-            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
             navigateBack();
             return;
         }

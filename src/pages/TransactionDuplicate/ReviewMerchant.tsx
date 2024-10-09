@@ -15,13 +15,13 @@ import ReviewFields from './ReviewFields';
 function ReviewMerchant() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
         'merchant',
-        route.params.threadReportID ?? '',
+        route.params.threadReportID,
         route.params.backTo,
     );
     const options = useMemo(

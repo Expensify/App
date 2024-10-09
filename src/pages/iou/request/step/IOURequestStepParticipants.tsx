@@ -97,7 +97,7 @@ function IOURequestStepParticipants({
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
-            const firstParticipantReportID = val.at(0)?.reportID ?? '';
+            const firstParticipantReportID = val.at(0)?.reportID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID, !canUseP2PDistanceRequests);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;

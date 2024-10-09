@@ -1546,7 +1546,7 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
  */
 function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportActions = getAllReportActions(report?.reportID ?? '');
+    const reportActions = getAllReportActions(report?.reportID);
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : -1;
         return IOUTransactionID === transactionID;
@@ -1591,7 +1591,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     const {label, markedManually} = originalMessage;
     const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
     const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
-    const reportID = reportAction?.reportID ?? '';
+    const reportID = reportAction?.reportID;
     const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
     const base62ReportID = getBase62ReportID(Number(reportID));
 

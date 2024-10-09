@@ -75,11 +75,11 @@ function PolicyDistanceRatesPage({
     const dismissError = useCallback(
         (item: RateForList) => {
             if (customUnitRates[item.value].errors) {
-                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
+                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID, item.value);
                 return;
             }
 
-            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
+            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID, item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
@@ -104,11 +104,11 @@ function PolicyDistanceRatesPage({
             Object.values(customUnitRates)
                 .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
                 .map((value) => ({
-                    value: value.customUnitRateID ?? '',
+                    value: value.customUnitRateID,
                     text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
-                    keyForList: value.customUnitRateID ?? '',
+                    keyForList: value.customUnitRateID,
                     isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
@@ -171,7 +171,7 @@ function PolicyDistanceRatesPage({
         DistanceRate.deletePolicyDistanceRates(
             policyID,
             customUnit,
-            selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
+            selectedDistanceRates.map((rate) => rate.customUnitRateID),
         );
         setSelectedDistanceRates([]);
         setIsDeleteModalVisible(false);

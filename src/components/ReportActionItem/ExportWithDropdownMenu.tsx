@@ -68,7 +68,7 @@ function ExportWithDropdownMenu({
                 ...optionTemplate,
             },
         ];
-        const exportMethod = exportMethods?.[report?.policyID ?? ''] ?? null;
+        const exportMethod = exportMethods?.[report?.policyID] ?? null;
         if (exportMethod) {
             options.sort((method) => (method.value === exportMethod ? -1 : 0));
         }

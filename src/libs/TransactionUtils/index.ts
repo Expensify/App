@@ -852,7 +852,7 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
         const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
-        return customUnitRate?.attributes?.taxRateExternalID ?? '';
+        return customUnitRate?.attributes?.taxRateExternalID;
     }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -1035,7 +1035,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
 function getTransactionID(threadReportID: string): string {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
     const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
     return IOUTransactionID;
@@ -1057,11 +1057,11 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
-        reportID: originalTransaction?.reportID ?? '',
+        reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? 0,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
-        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionID: reviewDuplicates?.transactionID,
         transactionIDList: removeSettledAndApprovedTransactions(reviewDuplicates?.duplicates ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,

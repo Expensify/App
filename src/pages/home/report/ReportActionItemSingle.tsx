@@ -84,7 +84,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const policy = usePolicy(report?.policyID);
-    const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
+    const delegatePersonalDetails = personalDetails[action?.delegateAccountID];
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
@@ -190,7 +190,7 @@ function ReportActionItemSingle({
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
-            showWorkspaceDetails(reportID ?? '');
+            showWorkspaceDetails(reportID);
         } else {
             // Show participants page IOU report preview
             if (iouReportID && displayAllActors) {

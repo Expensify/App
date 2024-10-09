@@ -446,7 +446,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 CONST.IOU.ACTION.EDIT,
                                 iouType,
                                 orderWeight,
-                                transaction?.transactionID ?? '',
+                                transaction?.transactionID,
                                 report?.reportID ?? '-1',
                                 Navigation.getReportRHPActiveRoute(),
                             ),
