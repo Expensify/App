@@ -29,25 +29,25 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const sections: QBDSectionType[] = [
         {
             description: translate('workspace.accounting.accounts'),
-            action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49703
+            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49703
             title: translate('workspace.accounting.importAsCategory'),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.qbd.classes'),
-            action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49704
+            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49704
             title: translate(`workspace.accounting.importTypes.${mappings?.classes ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
         },
         {
             description: translate('workspace.qbd.customers'),
-            action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49705
+            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49705
             title: translate(`workspace.accounting.importTypes.${mappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
         },
         {
             description: translate('workspace.qbd.items'),
-            action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49706
+            action: () => {}, // TODO: [QBD] will be implemented in https://github.com/Expensify/App/issues/49706
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
         },
     ];
@@ -62,7 +62,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
-            shouldBeBlocked={!canUseNewDotQBD}
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
