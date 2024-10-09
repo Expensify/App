@@ -102,6 +102,7 @@ function Composer(
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
@@ -231,10 +232,18 @@ function Composer(
             }
             setPrevScroll(textInput.current.scrollTop);
         }, 100);
+        const debouncedSetPrevHeight = lodashDebounce(() => {
+            if (!textInput.current) {
+                return;
+            }
+            setPrevHeight(textInput.current.clientHeight);
+        }, 100);
 
         textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
+        textInput.current.addEventListener('resize', debouncedSetPrevHeight);
         return () => {
             textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
+            textInput.current?.removeEventListener('resize', debouncedSetPrevHeight);
         };
     }, []);
 
@@ -262,11 +271,11 @@ function Composer(
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined) {
+        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        textInput.current.scrollTop = prevScroll;
+        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
