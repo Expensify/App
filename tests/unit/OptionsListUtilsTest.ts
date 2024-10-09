@@ -404,7 +404,7 @@ describe('OptionsListUtils', () => {
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+        const results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
         // All 2 personalDetails (including those that have reports) should be returned
         // Filtering of personalDetails that have reports is done in filterOptions
@@ -439,10 +439,6 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
         expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
         expect(results.personalDetails.at(8)?.text).toBe('Thor');
-        // expect(results.personalDetails.at(0)?.text).toBe('Black Widow');
-        // expect(results.personalDetails.at(1)?.text).toBe('Invisible Woman');
-        // expect(results.personalDetails.at(2)?.text).toBe('Spider-Man');
-        // expect(results.personalDetails.at(3)?.text).toBe('The Incredible Hulk');
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
@@ -525,7 +521,7 @@ describe('OptionsListUtils', () => {
 
     it('getFilteredOptions() for group Chat', () => {
         // When we call getFilteredOptions() with no search value
-        const results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+        let results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
 
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
