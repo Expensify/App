@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -111,6 +112,7 @@ function Composer(
 
     return (
         <RNMarkdownTextInput
+            id={CONST.COMPOSER.NATIVE_ID}
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
