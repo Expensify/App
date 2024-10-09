@@ -1764,7 +1764,7 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
 
-    const shouldShowAddMissingDetailsButton = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
+    const shouldShowAddMissingDetailsButton = !isAssigneeCurrentUser || (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return Localize.translateLocal('workspace.expensifyCard.issuedCard', {assignee});
