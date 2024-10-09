@@ -31,6 +31,9 @@ type SearchRouterInputProps = {
     /** Whether the input is disabled */
     disabled?: boolean;
 
+    /** Whether the input should be focused */
+    autoFocus?: boolean;
+
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -52,6 +55,7 @@ function SearchRouterInput({
     routerListRef,
     isFullWidth,
     disabled = false,
+    autoFocus = true,
     wrapperStyle,
     wrapperFocusedStyle,
     rightComponent,
@@ -74,7 +78,7 @@ function SearchRouterInput({
                 <TextInput
                     value={value}
                     onChangeText={onChangeText}
-                    autoFocus
+                    autoFocus={autoFocus}
                     loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                     role={CONST.ROLE.PRESENTATION}
                     placeholder={translate('search.searchPlaceholder')}
