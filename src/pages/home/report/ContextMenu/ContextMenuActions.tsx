@@ -443,13 +443,31 @@ const ContextMenuActions: ContextMenuAction[] = [
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
                 ) {
-                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
+                    const {harvesting} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    let displayMessage = '';
+                    if (harvesting) {
+                        displayMessage = ReportUtils.getReportAutomaticallySubmittedMessage(reportAction);
+                    } else {
+                        displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
+                    }
                     Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+                    const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    let displayMessage = '';
+                    if (automaticAction) {
+                        displayMessage = ReportUtils.getReportAutomaticallyApprovedMessage(reportAction);
+                    } else {
+                        displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
+                    }
                     Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+                    const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    let displayMessage = '';
+                    if (automaticAction) {
+                        displayMessage = ReportUtils.getReportAutomaticallyForwardedMessage(reportAction, reportID);
+                    } else {
+                        displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
+                    }
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
                     const displayMessage = ReportUtils.getRejectedReportMessage();
