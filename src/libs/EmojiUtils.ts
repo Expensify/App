@@ -462,7 +462,7 @@ const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number =>
  */
 const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
     if (emoji.types && typeof preferredSkinTone === 'number') {
-        const emojiCodeWithSkinTone = emoji.types.at(preferredSkinTone);
+        const emojiCodeWithSkinTone = preferredSkinTone >= 0 ? emoji.types.at(preferredSkinTone) : undefined;
 
         // Note: it can happen that preferredSkinTone has a outdated format,
         // so it makes sense to check if we actually got a valid emoji code back
