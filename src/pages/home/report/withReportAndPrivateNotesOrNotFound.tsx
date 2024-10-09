@@ -14,7 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {WithReportOrNotFoundOnyxProps, WithReportOrNotFoundProps} from './withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
 type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
@@ -26,8 +26,8 @@ type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps & With
 
 export default function (pageTitle: TranslationPaths) {
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
-        WrappedComponent: ComponentType<TProps & WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundOnyxProps & RefAttributes<TRef>>,
-    ): React.ComponentType<Omit<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & React.RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> => {
+        WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+    ): React.ComponentType<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & RefAttributes<TRef>> => {
         // eslint-disable-next-line rulesdir/no-negated-variables
         function WithReportAndPrivateNotesOrNotFound(props: Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
             const {translate} = useLocalize();

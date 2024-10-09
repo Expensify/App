@@ -10,7 +10,7 @@ type LocaleCode = ValueOf<typeof localeCodes>;
 
 const GetUserLanguage = (): LocaleCode => {
     const userLanguage = navigator.language || navigator.userLanguage;
-    const languageCode = userLanguage.split('-')[0] as LanguageCode;
+    const languageCode = userLanguage.split('-').at(0) as LanguageCode;
     return localeCodes[languageCode] || 'en_US';
 };
 

@@ -112,6 +112,7 @@ const SCREENS = {
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
 
         EXIT_SURVEY: {
@@ -175,6 +176,8 @@ const SCREENS = {
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        EXPENSIFY_CARD: 'ExpensifyCard',
+        DOMAIN_CARD: 'DomainCard',
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
@@ -243,6 +246,16 @@ const SCREENS = {
         SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
     },
+    EXPENSIFY_CARD: {
+        EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
+        EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
+        EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
+        EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
+    },
+    DOMAIN_CARD: {
+        DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
+        DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
+    },
 
     SETTINGS_TAGS_ROOT: 'Settings_Tags',
 
@@ -302,6 +315,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',

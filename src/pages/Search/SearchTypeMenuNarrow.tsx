@@ -48,7 +48,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {hash} = queryJSON;
+    const {hash, policyID} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -72,7 +72,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 text: item.title,
                 onSelected: singleExecution(() => {
                     SearchActions.clearAllFilters();
-                    Navigation.navigate(item.route);
+                    Navigation.navigate(item.getRoute(policyID));
                 }),
                 isSelected,
                 icon: item.icon,
@@ -81,6 +81,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 shouldShowRightIcon: isSelected,
                 success: isSelected,
                 containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                shouldCallAfterModalHide: true,
             };
         });
 
@@ -95,14 +96,28 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 containerStyle: undefined,
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: false,
+                shouldCallAfterModalHide: true,
             });
         }
 
         return items;
-    }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu, currentSavedSearch]);
+    }, [typeMenuItems, title, activeItemIndex, singleExecution, theme, policyID, closeMenu, currentSavedSearch]);
 
-    const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
-    const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
+    const {menuIcon, menuTitle} = useMemo(() => {
+        if (title) {
+            return {
+                menuIcon: Expensicons.Filters,
+                menuTitle: title,
+            };
+        }
+
+        const item = activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex) : undefined;
+        return {
+            menuIcon: item?.icon ?? Expensicons.Receipt,
+            menuTitle: item?.text,
+        };
+    }, [activeItemIndex, popoverMenuItems, title]);
+
     const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
 
     const savedSearchItems = savedSearchesMenuItems.map((item) => ({
@@ -124,6 +139,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             />
         ),
         isSelected: currentSavedSearch?.hash === item.hash,
+        shouldCallAfterModalHide: true,
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     }));
@@ -139,10 +155,10 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         allMenuItems.push(...savedSearchItems);
     }
     return (
-        <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
+        <View style={[styles.pb3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
             <PressableWithFeedback
                 accessible
-                accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
+                accessibilityLabel={activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex)?.text ?? '' : ''}
                 ref={buttonRef}
                 wrapperStyle={styles.flex1}
                 onPress={openMenu}
@@ -157,7 +173,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1, styles.fontSizeLabel]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.label]}
                             >
                                 {menuTitle}
                             </Text>
