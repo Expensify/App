@@ -3374,10 +3374,16 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove these members?',
+            removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+                one: `Are you sure you want to remove ${memberName}?`,
+                other: 'Are you sure you want to remove these members?',
+            }),
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
-            removeMembersTitle: 'Remove members',
+            removeMembersTitle: () => ({
+                one: 'Remove member',
+                other: 'Remove members',
+            }),
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -4065,7 +4071,10 @@ const translations = {
         memberNotFound: 'Member not found.',
         useInviteButton: 'To invite a new member to the chat, please use the invite button above.',
         notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
-        removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+            one: `Are you sure you want to remove ${memberName} from the room?`,
+            other: 'Are you sure you want to remove the selected members from the room?',
+        }),
         error: {
             genericAdd: 'There was a problem adding this room member.',
         },

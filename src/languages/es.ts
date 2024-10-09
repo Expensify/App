@@ -3415,10 +3415,16 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
+            removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+                one: `¿Estás seguro de que deseas eliminar ${memberName}`,
+                other: '¿Estás seguro de que deseas eliminar a estos miembros?',
+            }),
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobación por el propietario del espacio de trabajo, ${ownerName}`,
-            removeMembersTitle: 'Eliminar miembros',
+            removeMembersTitle: () => ({
+                one: 'Eliminar miembro',
+                other: 'Eliminar miembros',
+            }),
             removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
@@ -4110,7 +4116,10 @@ const translations = {
         memberNotFound: 'Miembro no encontrado.',
         useInviteButton: 'Para invitar a un nuevo miembro al chat, por favor, utiliza el botón invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a esta sala, pide a un miembro de la sala que te añada. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
-        removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+            one: `¿Estás seguro de que quieres eliminar ${memberName} de la sala de chat?`,
+            other: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        }),
         error: {
             genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
         },
