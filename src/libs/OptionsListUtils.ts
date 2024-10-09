@@ -275,11 +275,11 @@ Onyx.connect({
     },
 });
 
-let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+let allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (val) => (allPolicyCategories = val),
+    callback: (val) => (allPolicies = val),
 });
 
 const lastReportActions: ReportActions = {};
@@ -717,10 +717,20 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         } else {
             lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
         }
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-        lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-        lastMessageTextFromReport = ReportUtils.getIOUForwardedMessage(lastReportAction, report);
+    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
+        if (automaticAction) {
+            lastMessageTextFromReport = ReportUtils.getReportAutomaticallyApprovedMessage(lastReportAction);
+        } else {
+            lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
+        }
+    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+        const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
+        if (automaticAction) {
+            lastMessageTextFromReport = ReportUtils.getReportAutomaticallyForwardedMessage(lastReportAction, reportID);
+        } else {
+            lastMessageTextFromReport = ReportUtils.getIOUForwardedMessage(lastReportAction, report);
+        }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = ReportUtils.getRejectedReportMessage();
     } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
@@ -2050,8 +2060,8 @@ function getOptions(
             reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
-                const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
-                if (getEnabledCategoriesCount(policyCategories) !== 0) {
+                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
+                if (reportPolicy?.areCategoriesEnabled) {
                     recentReportOptions.push(reportOption);
                 }
             } else {

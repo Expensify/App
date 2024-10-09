@@ -37,7 +37,6 @@ Onyx.connect({
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-
     messages?.forEach((part, index) => {
         const isEmail = Str.isValidEmail(part.text);
         let tagType = part.type ?? 'span';
@@ -94,6 +93,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
+    const hasValidAccount = !!policy?.achAccount?.accountNumber;
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -272,10 +272,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: ' to ',
                     },
                     {
-                        text: 'pay',
+                        text: hasValidAccount ? 'pay' : 'finish setting up',
                     },
                     {
-                        text: ' %expenses.',
+                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
                     },
                 ],
             };
