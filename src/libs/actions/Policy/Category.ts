@@ -1346,10 +1346,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
 }
 
-function getPolicyCategories(policyID: string) {
-    return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-}
-
 export {
     getPolicyCategories,
     openPolicyCategoriesPage,
@@ -1374,5 +1370,4 @@ export {
     setPolicyCategoryTax,
     importPolicyCategories,
     downloadCategoriesCSV,
-    getPolicyCategories,
 };
