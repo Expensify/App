@@ -231,19 +231,12 @@ function Composer(
                 return;
             }
             setPrevScroll(textInput.current.scrollTop);
-        }, 100);
-        const debouncedSetPrevHeight = lodashDebounce(() => {
-            if (!textInput.current) {
-                return;
-            }
             setPrevHeight(textInput.current.clientHeight);
         }, 100);
 
         textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
-        textInput.current.addEventListener('resize', debouncedSetPrevHeight);
         return () => {
             textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
-            textInput.current?.removeEventListener('resize', debouncedSetPrevHeight);
         };
     }, []);
 
