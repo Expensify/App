@@ -15,15 +15,8 @@ const FS = {
      * Initializes FullStory
      */
     init: () => {
-        Environment.getEnvironment().then((envName: string) => {
-            // We only want to start fullstory if the app is running in production
-            if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
-                return;
-            }
-            FullStory.restart();
-            const [session] = useOnyx(ONYXKEYS.USER_METADATA);
-            FS.fsIdentify(session);
-        });
+        const [session] = useOnyx(ONYXKEYS.USER_METADATA);
+        FS.consentAndIdentify(session);
     },
 
     /**
@@ -40,10 +33,23 @@ const FS = {
      * Initializes the FullStory metadata with the provided metadata information.
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
+        // On the first subscribe for UserMetadta, this function will be called. We need
+        // to confirm that we actually have any value here before proceeding.
+        if (!value?.accountID) {
+            return;
+        }
         try {
-            // We only use FullStory in production environment
-            FullStory.consent(true);
-            FS.fsIdentify(value);
+            // We only use FullStory in production environment. We need to check this here
+            // after the init function since this function is also called on updates for
+            // UserMetadata onyx key.
+            Environment.getEnvironment().then((envName: string) => {
+                if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
+                    return;
+                }
+                FullStory.restart();
+                FullStory.consent(true);
+                FS.fsIdentify(value, envName);
+            });
         } catch (e) {
             // error handler
         }
@@ -51,21 +57,11 @@ const FS = {
 
     /**
      * Sets the FullStory user identity based on the provided metadata information.
-     * If the metadata is null or the email is 'undefined', the user identity is anonymized.
-     * If the metadata contains an accountID, the user identity is defined with it.
      */
-    fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
-        if (!metadata?.accountID) {
-            // anonymize FullStory user identity metadata
-            FullStory.anonymize();
-        } else {
-            Environment.getEnvironment().then((envName: string) => {
-                // define FullStory user identity
-                const localMetadata = metadata;
-                localMetadata.environment = envName;
-                FullStory.identify(String(localMetadata.accountID), localMetadata);
-            });
-        }
+    fsIdentify: (metadata: UserMetadata, envName: string) => {
+        const localMetadata = metadata;
+        localMetadata.environment = envName;
+        FullStory.identify(String(localMetadata.accountID), localMetadata);
     },
 };
 
