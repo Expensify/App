@@ -249,7 +249,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     );
 
     const shouldDuplicateButtonBeSuccess = useMemo(
-        () => isDuplicate && !(shouldShowSettlementButton || shouldShowExportIntegrationButton || shouldShowSubmitButton || hasAllPendingRTERViolations),
+        () => isDuplicate && !shouldShowSettlementButton && !shouldShowExportIntegrationButton && !shouldShowSubmitButton && !hasAllPendingRTERViolations,
         [isDuplicate, shouldShowSettlementButton, shouldShowExportIntegrationButton, shouldShowSubmitButton, hasAllPendingRTERViolations],
     );
 
