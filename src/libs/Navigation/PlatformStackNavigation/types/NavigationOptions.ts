@@ -15,10 +15,7 @@ type GeneralPlatformStackNavigationOptions = {
 
     keyboardHandlingEnabled?: boolean;
     animation?: 'slide_from_left' | 'slide_from_right' | 'modal' | 'none';
-    header?: unknown;
-    statusBar?: unknown;
     presentation?: 'card' | 'modal' | 'transparentModal';
-    gesture?: unknown;
 };
 
 // Combines common and general platform-specific options for PlatformStackNavigation.
