@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
+import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
@@ -276,7 +276,6 @@ registerPaginationConfig({
     pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
     sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
     getItemID: (reportAction) => reportAction.reportActionID,
-    isLastItem: (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
 });
 
 function clearGroupChat() {
@@ -2516,7 +2515,7 @@ function clearIOUError(reportID: string) {
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
-    const createdAt = timezoneFormat(utcToZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
+    const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

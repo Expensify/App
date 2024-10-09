@@ -718,9 +718,19 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
         }
     } else if (ReportActionUtils.isUnapprovedOrApprovedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getIOUUnapprovedOrApprovedMessage(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-        lastMessageTextFromReport = ReportUtils.getIOUForwardedMessage(lastReportAction, report);
+        const wasAutoApproved = ReportActionUtils.isApprovedAction(lastReportAction) && ReportActionUtils.getOriginalMessage(lastReportAction)?.automaticAction;
+        if (wasAutoApproved) {
+            lastMessageTextFromReport = ReportUtils.getReportAutomaticallyApprovedMessage(lastReportAction);
+        } else {
+            lastMessageTextFromReport = ReportUtils.getIOUUnapprovedOrApprovedMessage(lastReportAction);
+        }
+    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+        const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
+        if (automaticAction) {
+            lastMessageTextFromReport = ReportUtils.getReportAutomaticallyForwardedMessage(lastReportAction, reportID);
+        } else {
+            lastMessageTextFromReport = ReportUtils.getIOUForwardedMessage(lastReportAction, report);
+        }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         lastMessageTextFromReport = ReportUtils.getRejectedReportMessage();
     } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {

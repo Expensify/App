@@ -647,9 +647,27 @@ function ReportActionItem({
                 children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(action)} />;
             }
         } else if (ReportActionsUtils.isUnapprovedOrApprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedOrApprovedMessage(action)} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
+            const wasAutoApproved = ReportActionsUtils.isApprovedAction(action) && ReportActionsUtils.getOriginalMessage(action)?.automaticAction;
+            if (wasAutoApproved) {
+                children = (
+                    <ReportActionItemBasicMessage message="">
+                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallyApprovedMessage(action)}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedOrApprovedMessage(action)} />;
+            }
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+            const wasAutoForwarded = ReportActionsUtils.getOriginalMessage(action)?.automaticAction ?? false;
+            if (wasAutoForwarded) {
+                children = (
+                    <ReportActionItemBasicMessage message="">
+                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallyForwardedMessage(action, reportID)}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
+            }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
             children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
