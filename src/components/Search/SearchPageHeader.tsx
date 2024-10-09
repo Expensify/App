@@ -128,6 +128,9 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -324,7 +327,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     }
 
     const onPress = () => {
-        const filterFormValues = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
+        const filterFormValues = SearchUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);

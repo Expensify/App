@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -23,6 +24,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
 
@@ -50,6 +52,9 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const {translate} = useLocalize();
     const {hash, policyID} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -57,7 +62,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
     const onPress = () => {
-        const values = SearchUtils.buildFilterFormValuesFromQuery(queryJSON);
+        const values = SearchUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };

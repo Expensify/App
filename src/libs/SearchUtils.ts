@@ -22,6 +22,7 @@ import {translateLocal} from './Localize';
 import {validateAmount} from './MoneyRequestUtils';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import {getTagNamesFromTagsLists} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
@@ -657,7 +658,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 /**
  * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
  */
-function buildFilterFormValuesFromQuery(queryJSON: SearchQueryJSON) {
+function buildFilterFormValuesFromQuery(
+    queryJSON: SearchQueryJSON,
+    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
+    currencyList: OnyxTypes.CurrencyList,
+) {
     const filters = getFilters(queryJSON);
     const filterKeys = Object.keys(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -666,17 +672,38 @@ function buildFilterFormValuesFromQuery(queryJSON: SearchQueryJSON) {
             filtersForm[filterKey] = filters[filterKey]?.[0]?.value.toString();
         }
         if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN
         ) {
             filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString());
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
+            filtersForm[filterKey] = filters[filterKey]?.filter((currency) => Object.keys(currencyList).includes(currency.value.toString())).map((currency) => currency.value.toString());
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+            filtersForm[filterKey] = filters[filterKey]
+                ?.map((tag) => tag.value.toString())
+                .filter((name) =>
+                    Object.values(policyTags ?? {})
+                        .map((tagList = {}) => getTagNamesFromTagsLists(tagList))
+                        .flat()
+                        .includes(name),
+                );
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
+            filtersForm[filterKey] =
+                filters[filterKey]
+                    ?.map((category) => category.value.toString())
+                    .filter((name) =>
+                        Object.values(policyCategories ?? {})
+                            .map((xd) => Object.values(xd ?? {}).map((category) => category.name))
+                            .flat()
+                            .includes(name),
+                    ) ?? [];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filters[filterKey]
