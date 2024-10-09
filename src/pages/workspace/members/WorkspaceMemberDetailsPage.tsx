@@ -294,7 +294,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onRoleChange={changeRole}
                                         onClose={() => setIsRoleSelectionModalVisible(false)}
                                     />
-                                    {(policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && (
+                                    {(!!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled) && (
                                         <>
                                             <View style={[styles.ph5, styles.pv3]}>
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
