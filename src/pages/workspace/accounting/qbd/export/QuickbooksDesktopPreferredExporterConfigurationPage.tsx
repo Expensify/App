@@ -25,7 +25,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const qbdConfig = policy?.connections?.quickbooksOnline?.config; // TODO: should be updated to use the new connections object
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {canUseNewDotQBD} = usePermissions();
@@ -56,7 +56,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== qbdConfig?.export?.exporter) {
-                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, {exporter: row.value}, {exporter: qbdConfig?.export.exporter ?? ''});
+                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, qbdConfig?.export.exporter ?? '');
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
         },
@@ -88,11 +88,11 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
             shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO} // TODO: should be updated to use the new connection
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT], qbdConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_CONFIG.EXPORT)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER], qbdConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT)}
+            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
         />
     );
 }

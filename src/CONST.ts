@@ -1470,7 +1470,7 @@ const CONST = {
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
     QUICKBOOKS_DESKTOP_CONFIG: {
-        EXPORT: 'export',
+        EXPORTER: 'exporter',
     },
 
     QUICKBOOKS_CONFIG: {

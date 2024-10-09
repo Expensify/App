@@ -8,12 +8,13 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {DeepPartial} from './index';
 
 function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksDesktop']['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: Partial<Connections['quickbooksDesktop']['config'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config'][TSettingName]>,
+    settingValue: DeepPartial<Connections['quickbooksDesktop']['config'][TSettingName]>,
+    oldSettingValue?: DeepPartial<Connections['quickbooksDesktop']['config'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -94,17 +95,17 @@ function getQuickbooksDesktopCodatSetupLink(policyID: string) {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP, params);
 }
 
-function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connections['quickbooksDesktop']['config']['export']>(
+function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exporter']>(
     policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT, settingValue, oldSettingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, 'export', {exporter: settingValue}, {exporter: oldSettingValue});
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
-        settingValue: settingValue.exporter,
-        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT),
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
 }
