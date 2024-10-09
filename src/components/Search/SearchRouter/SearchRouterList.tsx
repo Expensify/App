@@ -159,7 +159,8 @@ function SearchRouterList(
             // Handle selection of "Recent chat"
             closeAndClearRouter();
             if ('reportID' in item && item?.reportID) {
-                Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                // @TODO: Previously Navigation.closeAndNavigate was used here, remember to verify if it works correctly
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
                 Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
             }

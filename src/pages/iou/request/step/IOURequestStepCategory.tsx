@@ -146,7 +146,8 @@ function IOURequestStepCategory({
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
+            // @TODO: Previously Navigation.closeAndNavigate was used here, remember to verify if it works correctly
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
             return;
         }
 
