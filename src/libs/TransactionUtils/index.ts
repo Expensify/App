@@ -291,7 +291,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = Math.round(updatedTransaction?.comment?.customUnit?.quantity ?? 0 * conversionFactor * 100) / 100;
+            const distance = Math.round((updatedTransaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor * 100) / 100;
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
     }
