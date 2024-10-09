@@ -35,7 +35,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const reportID = report?.reportID ?? '-1';
+    const reportID = report?.reportID;
     const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
     const IOUTransactionID = originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : '-1';
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
@@ -130,7 +130,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
                             action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                             onToggleBillable={(billable) => {
-                                IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {billable});
+                                IOU.setDraftSplitTransaction(transaction?.transactionID, {billable});
                             }}
                             isConfirmed={isConfirmed}
                         />

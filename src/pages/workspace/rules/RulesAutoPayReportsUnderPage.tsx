@@ -25,7 +25,7 @@ import INPUT_IDS from '@src/types/form/RulesAutoPayReportsUnderModalForm';
 type RulesAutoPayReportsUnderPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER>;
 
 function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();

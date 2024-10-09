@@ -269,11 +269,11 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
-                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
+                Report.getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
 
                 // Get newer actions based on the newest reportAction for the transaction thread report
                 const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '-1', newestActionTransactionThreadReport?.reportActionID ?? '-1');
+                Report.getNewerActions(newestActionTransactionThreadReport?.reportID, newestActionTransactionThreadReport?.reportActionID);
             } else {
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }
@@ -359,11 +359,11 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get older actions based on the oldest reportAction for the current report
                 const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '-1', oldestActionCurrentReport?.reportActionID ?? '-1');
+                Report.getOlderActions(oldestActionCurrentReport?.reportID, oldestActionCurrentReport?.reportActionID);
 
                 // Get older actions based on the oldest reportAction for the transaction thread report
                 const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '-1', oldestActionTransactionThreadReport?.reportActionID ?? '-1');
+                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID, oldestActionTransactionThreadReport?.reportActionID);
             } else {
                 // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
                 Report.getOlderActions(reportID, oldestReportAction.reportActionID);
@@ -401,7 +401,7 @@ function ReportActionsView({
             didLoadNewerChats.current = true;
 
             if ((reportActionID && indexOfLinkedAction > -1) || !reportActionID) {
-                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID ?? '-1'});
+                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
         [

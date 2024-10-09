@@ -88,7 +88,7 @@ function AddPlaidBankAccount({
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
     const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
-    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '-1';
+    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID;
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>();

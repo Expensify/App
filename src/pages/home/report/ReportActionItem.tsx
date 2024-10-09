@@ -394,7 +394,7 @@ function ReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
@@ -541,7 +541,7 @@ function ReportActionItem({
             children = (
                 <TripRoomPreview
                     action={action}
-                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.linkedReportID ?? '-1'}
+                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.linkedReportID}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -555,7 +555,7 @@ function ReportActionItem({
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
-                    policyID={report?.policyID ?? '-1'}
+                    policyID={report?.policyID}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
@@ -579,7 +579,7 @@ function ReportActionItem({
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                        policyID={report?.policyID ?? '-1'}
+                        policyID={report?.policyID}
                     />
                 </ShowContextMenuContext.Provider>
             );
@@ -588,7 +588,7 @@ function ReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
             const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
-            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID, action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}

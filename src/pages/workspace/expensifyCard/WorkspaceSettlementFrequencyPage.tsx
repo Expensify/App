@@ -24,7 +24,7 @@ type WorkspaceSettlementFrequencyPageProps = StackScreenProps<SettingsNavigatorP
 function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params?.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);

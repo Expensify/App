@@ -45,7 +45,7 @@ function Plaid({onNext}: PlaidProps) {
         onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];

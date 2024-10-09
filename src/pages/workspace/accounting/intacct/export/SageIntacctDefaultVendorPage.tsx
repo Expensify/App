@@ -28,7 +28,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};

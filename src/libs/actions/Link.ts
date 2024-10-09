@@ -164,7 +164,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID ?? '-1');
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(reportRoute);
         return;
     }

@@ -43,7 +43,7 @@ function IOURequestStepCategory({
     },
     transaction,
 }: IOURequestStepCategoryProps) {
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? '-1'}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
@@ -89,7 +89,7 @@ function IOURequestStepCategory({
             return;
         }
 
-        Category.getPolicyCategories(report?.policyID ?? '-1');
+        Category.getPolicyCategories(report?.policyID);
     };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
@@ -128,7 +128,7 @@ function IOURequestStepCategory({
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
+            Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID));
             return;
         }
 
@@ -171,7 +171,7 @@ function IOURequestStepCategory({
                                     Navigation.navigate(
                                         ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
                                             policy?.id ?? '-1',
-                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID, backTo, reportActionID),
                                         ),
                                     )
                                 }

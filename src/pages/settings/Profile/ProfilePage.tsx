@@ -49,7 +49,7 @@ function ProfilePage() {
     };
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
+    const accountID = currentUserPersonalDetails?.accountID;
 
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';

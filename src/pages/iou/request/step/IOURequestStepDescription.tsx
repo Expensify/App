@@ -127,16 +127,16 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {comment: newComment});
+            IOU.setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
         const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
+        IOU.setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '-1', reportID, newComment, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -224,7 +224,7 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
         }) => {
             let reportID = '-1';
             if (action === CONST.IOU.ACTION.EDIT) {
-                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '-1' : report?.parentReportID ?? '-1';
+                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
             }
             return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
         },

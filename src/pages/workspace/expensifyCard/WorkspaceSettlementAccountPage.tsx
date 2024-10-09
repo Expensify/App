@@ -32,7 +32,7 @@ type WorkspaceSettlementAccountPageProps = StackScreenProps<SettingsNavigatorPar
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params?.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);

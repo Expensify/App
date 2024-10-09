@@ -85,7 +85,7 @@ function IOURequestStepTag({
             return;
         }
         if (isEditing) {
-            IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '-1', updatedTag, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories);
             navigateBack();
             return;
         }
@@ -120,7 +120,7 @@ function IOURequestStepTag({
                                     Navigation.navigate(
                                         ROUTES.SETTINGS_TAGS_ROOT.getRoute(
                                             policy?.id ?? '-1',
-                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID, backTo, reportActionID),
                                         ),
                                     )
                                 }
@@ -135,7 +135,7 @@ function IOURequestStepTag({
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
-                        policyID={report?.policyID ?? '-1'}
+                        policyID={report?.policyID}
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}

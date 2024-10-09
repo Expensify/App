@@ -40,7 +40,7 @@ WorkspaceAvatar.displayName = 'WorkspaceAvatar';
 
 export default withOnyx<WorkspaceAvatarProps, WorkspaceAvatarOnyxProps>({
     policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
     },
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,

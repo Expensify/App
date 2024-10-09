@@ -90,7 +90,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const reportKey = useMemo(() => {
         const reportID = isCurrentUser
             ? ReportUtils.findSelfDMReportID()
-            : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
+            : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
 
         if (SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;

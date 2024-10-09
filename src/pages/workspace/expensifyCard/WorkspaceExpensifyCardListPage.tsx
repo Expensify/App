@@ -93,7 +93,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                 >
                     <WorkspaceCardListRow
                         lastFourPAN={item.lastFourPAN ?? ''}
-                        cardholder={personalDetails?.[item.accountID ?? '-1']}
+                        cardholder={personalDetails?.[item.accountID]}
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
                         currency={policyCurrency}

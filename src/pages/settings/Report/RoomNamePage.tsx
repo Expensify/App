@@ -42,7 +42,7 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const reportID = report?.reportID ?? '-1';
+    const reportID = report?.reportID;
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo));
@@ -66,7 +66,7 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID ?? '-1')) {
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID)) {
                 // The room name can't be set to one that already exists on the policy
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {

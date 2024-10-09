@@ -54,7 +54,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                         }}
                     >
                         <WorkspaceCompanyCardsListRow
-                            cardholder={personalDetails?.[item.accountID ?? '-1']}
+                            cardholder={personalDetails?.[item.accountID]}
                             cardNumber={item?.cardNumber ?? ''}
                             name={item.nameValuePairs?.cardTitle ?? ''}
                         />

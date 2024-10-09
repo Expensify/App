@@ -86,7 +86,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (!lastAccessedReportID) {
                 return;
             }
-            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
+            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
             Navigation.navigate(lastAccessedReportRoute);
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],

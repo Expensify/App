@@ -55,7 +55,7 @@ function ChatListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID ?? '-1'}), [item.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID}), [item.reportID]);
 
     return (
         <BaseListItem

@@ -49,7 +49,7 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
     const submit = useCallback(
         (submitData: unknown) => {
             const data = submitData as ReimbursementAccountForm;

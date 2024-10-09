@@ -143,12 +143,12 @@ function BaseReportActionContextMenu({
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
-    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
+    const childReport = ReportUtils.getReport(reportAction?.childReportID);
     const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
-    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
+    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', paginatedReportActions ?? [], isOffline),
+        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID, paginatedReportActions ?? [], isOffline),
         [childReport?.reportID, paginatedReportActions, isOffline],
     );
 
@@ -169,8 +169,8 @@ function BaseReportActionContextMenu({
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
-    const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`);
+    const parentReport = ReportUtils.getReport(childReport?.parentReportID);
 
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);

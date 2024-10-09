@@ -123,7 +123,7 @@ function WorkspacePageWithSections({
     threeDotsAnchorPosition,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params?.policyID;
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [user] = useOnyx(ONYXKEYS.USER);

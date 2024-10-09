@@ -51,8 +51,8 @@ function DebugReportPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`);
-    const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID ?? '-1'] : undefined;
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
+    const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID] : undefined;
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {

@@ -106,7 +106,7 @@ function getOrderedReportIDs(
             return;
         }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
         const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
         const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
@@ -190,13 +190,13 @@ function getOrderedReportIDs(
         };
 
         const isPinned = report?.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
         const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
-        } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
+        } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
         } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
             archivedReports.push(miniReport);
@@ -229,7 +229,7 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
 
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID);
 
     return LHNReports;
 }
@@ -245,7 +245,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
             ReportUtils.shouldDisplayTransactionThreadViolations(
                 oneTransactionThreadReport,
                 transactionViolations,
-                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID],
             )
         ) {
             return true;
@@ -355,7 +355,7 @@ function getOptionData({
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
-    result.parentReportID = report.parentReportID ?? '-1';
+    result.parentReportID = report.parentReportID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = ReportUtils.getReportNotificationPreference(report);
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);

@@ -136,7 +136,7 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '-1';
+    const policyIDParam = route.params?.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

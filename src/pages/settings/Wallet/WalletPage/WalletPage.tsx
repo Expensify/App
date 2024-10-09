@@ -173,7 +173,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
-                methodID: methodID ?? '-1',
+                methodID: methodID,
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();

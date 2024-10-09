@@ -19,7 +19,7 @@ import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEm
 type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();

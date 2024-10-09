@@ -87,8 +87,8 @@ function IOURequestStepTaxRatePage({
         if (isEditing) {
             const newTaxCode = taxes.code;
             IOU.updateMoneyRequestTaxRate({
-                transactionID: currentTransaction?.transactionID ?? '-1',
-                optimisticReportActionID: report?.reportID ?? '-1',
+                transactionID: currentTransaction?.transactionID,
+                optimisticReportActionID: report?.reportID,
                 taxCode: newTaxCode,
                 taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
                 policy,

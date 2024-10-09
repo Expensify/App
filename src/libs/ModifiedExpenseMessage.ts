@@ -137,7 +137,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
+    const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID;
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];

@@ -620,7 +620,7 @@ function MoneyRequestConfirmationListFooter({
                     isLabelHoverable={false}
                     interactive={!isReadOnly && canUpdateSenderWorkspace}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={styles.moneyRequestMenuItem}
                     labelStyle={styles.mt2}

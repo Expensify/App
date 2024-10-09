@@ -155,10 +155,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             onPress={() => {
                                 const activeRoute = Navigation.getReportRHPActiveRoute();
                                 if (ReportUtils.canEditReportDescription(report, policy)) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, activeRoute));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1', activeRoute));
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, activeRoute));
                             }}
                             style={styles.renderHTML}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}

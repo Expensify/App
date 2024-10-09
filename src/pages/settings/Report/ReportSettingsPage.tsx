@@ -25,7 +25,7 @@ type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<Repo
 
 function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
     const backTo = route.params.backTo;
-    const reportID = report?.reportID ?? '-1';
+    const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);

@@ -104,9 +104,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID, policies), [report?.policyID, policies]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
@@ -220,7 +220,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             return;
         }
 
-        Report.getReportPrivateNote(report?.reportID ?? '-1');
+        Report.getReportPrivateNote(report?.reportID);
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
@@ -274,10 +274,10 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
-    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
 
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
@@ -320,9 +320,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1', backTo));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, backTo));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', backTo));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, backTo));
                     }
                 },
             });
@@ -334,7 +334,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID ?? '-1'));
+                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID));
                 },
             });
         }
@@ -347,7 +347,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID, backTo));
                 },
             });
         }
@@ -523,18 +523,18 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID ?? '-1'))}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => {
                         // Calling this without a file will remove the avatar
                         Report.updateGroupChatAvatar(report.reportID);
                     }}
-                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '-1', file)}
+                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID, file)}
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar ?? undefined}
                     errors={report.errorFields?.avatar ?? null}
                     errorRowStyles={styles.mt6}
-                    onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '-1')}
+                    onErrorClose={() => Report.clearAvatarErrors(report.reportID)}
                     shouldUseStyleUtilityForAnchorPosition
                     style={[styles.w100, styles.mb3]}
                 />
@@ -574,7 +574,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 PromotedActions.hold({
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
                     reportAction: moneyRequestAction,
-                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
+                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID,
                     isDelegateAccessRestricted,
                     setIsNoDelegateAccessMenuVisible,
                     currentSearchHash,
@@ -672,7 +672,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
     }, [report, policy?.fieldList]);
-    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
+    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
 
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerApproverOrReportOwner(report, policy);
@@ -707,7 +707,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1', backTo))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID, titleField.fieldID, backTo))}
                     furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>

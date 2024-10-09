@@ -52,7 +52,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const dropdownButtonRef = useRef(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {selectionMode} = useMobileSelectionMode();

@@ -19,9 +19,9 @@ import type SCREENS from '@src/SCREENS';
 type TransactionReceiptProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
 function TransactionReceipt({route}: TransactionReceiptProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`);
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '-1'}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`);
     const receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
 
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
@@ -29,7 +29,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = route.params.readonly ?? false;
 
-    const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
     const isTrackExpenseAction = ReportActionUtils.isTrackExpenseAction(parentReportAction);
@@ -52,7 +52,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             Navigation.dismissModal();
         } else {
             Navigation.dismissModal(
-                ReportUtils.isOneTransactionThread(report?.reportID ?? '-1', report?.parentReportID ?? '-1', parentReportAction) ? report?.parentReportID : report?.reportID,
+                ReportUtils.isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction) ? report?.parentReportID : report?.reportID,
             );
         }
     };
@@ -61,7 +61,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
+    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID) !== transaction?.reportID;
 
     return (
         <AttachmentModal

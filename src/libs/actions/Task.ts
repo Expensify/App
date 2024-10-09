@@ -117,7 +117,7 @@ function createTaskAndNavigate(
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
-    const assigneeChatReportID = assigneeChatReport?.reportID ?? '-1';
+    const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
     let assigneeChatReportOnyxData;
 
@@ -328,7 +328,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
  * Complete a task
  */
 function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+    const taskReportID = taskReport?.reportID;
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -414,7 +414,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
  * Reopen a closed task
  */
 function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+    const taskReportID = taskReport?.reportID;
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
     const parentReport = getParentReport(taskReport);
@@ -681,8 +681,8 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
             currentUserAccountID,
             assigneeAccountID,
             report.reportID,
-            assigneeChatReportID ?? '-1',
-            report.parentReportID ?? '-1',
+            assigneeChatReportID,
+            report.parentReportID,
             reportName ?? '',
             assigneeChatReport,
         );
@@ -792,7 +792,7 @@ function setAssigneeValue(
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareToReportID && !skipShareDestination) {
-            setShareDestinationValue(selfDMReportID ?? '-1');
+            setShareDestinationValue(selfDMReportID);
         }
     } else {
         // Check for the chatReport by participants IDs
@@ -816,7 +816,7 @@ function setAssigneeValue(
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareToReportID && !skipShareDestination) {
-            setShareDestinationValue(report?.reportID ?? '-1');
+            setShareDestinationValue(report?.reportID);
         }
     }
 
@@ -945,13 +945,13 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         return;
     }
     const message = `deleted task: ${report.reportName}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '-1', CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1');
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID);
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction?.message,
@@ -969,7 +969,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         linkMetadata: [],
     };
     const optimisticReportActions = {
-        [parentReportAction?.reportActionID ?? '-1']: optimisticReportAction,
+        [parentReportAction?.reportActionID]: optimisticReportAction,
     };
     const hasOutstandingChildTask = getOutstandingChildTask(report);
 
@@ -988,8 +988,8 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '-1', optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '-1', optimisticReportActions as OnyxTypes.ReportActions)?.created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID, optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID, optimisticReportActions as OnyxTypes.ReportActions)?.created,
                 hasOutstandingChildTask,
             },
         },
@@ -1011,7 +1011,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
         const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
-            parentReport?.reportID ?? '-1',
+            parentReport?.reportID,
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -1037,7 +1037,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                [parentReportAction?.reportActionID ?? '-1']: {
+                [parentReportAction?.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -1071,7 +1071,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                [parentReportAction?.reportActionID ?? '-1']: {
+                [parentReportAction?.reportActionID]: {
                     pendingAction: null,
                 },
             },

@@ -30,7 +30,7 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option): OptionData {
-    return {...option, isSelected: true, reportID: option.reportID ?? '-1'};
+    return {...option, isSelected: true, reportID: option.reportID};
 }
 
 type SearchFiltersParticipantsSelectorProps = {

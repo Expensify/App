@@ -29,7 +29,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const {translate} = useLocalize();
     const {canUseWorkspaceRules} = usePermissions();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);

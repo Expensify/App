@@ -24,7 +24,7 @@ import INPUT_IDS from '@src/types/form/RulesRandomReportAuditModalForm';
 type RulesRandomReportAuditPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
 
 function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();

@@ -81,7 +81,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
     }
     const policy = PolicyUtils.getPolicy(activePolicyID);
     if (isEmptyObject(policy?.address)) {
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID, Navigation.getActiveRoute()));
         return;
     }
     if (!travelSettings?.hasAcceptedTerms) {

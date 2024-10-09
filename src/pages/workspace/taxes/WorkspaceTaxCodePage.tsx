@@ -26,7 +26,7 @@ type WorkspaceTaxCodePageProps = StackScreenProps<SettingsNavigatorParamList, ty
 function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const currentTaxCode = route.params.taxID;
 
     const policy = usePolicy(policyID);

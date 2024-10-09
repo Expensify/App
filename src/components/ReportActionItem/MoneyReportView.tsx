@@ -135,7 +135,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                                 Navigation.navigate(
                                                     ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(
                                                         report.reportID,
-                                                        report.policyID ?? '-1',
+                                                        report.policyID,
                                                         reportField.fieldID,
                                                         Navigation.getReportRHPActiveRoute(),
                                                     ),

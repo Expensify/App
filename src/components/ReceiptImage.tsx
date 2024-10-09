@@ -114,7 +114,7 @@ function ReceiptImage({
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? '-1'}
+                    transactionID={transactionID}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}

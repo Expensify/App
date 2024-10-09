@@ -24,7 +24,7 @@ type ProfileAvatarProps = ProfileAvatarOnyxProps & StackScreenProps<AuthScreensP
 function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadingApp = true}: ProfileAvatarProps) {
     const personalDetail = personalDetails?.[route.params.accountID];
     const avatarURL = personalDetail?.avatar ?? '';
-    const accountID = Number(route.params.accountID ?? '-1');
+    const accountID = Number(route.params.accountID);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail);
 

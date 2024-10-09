@@ -15,7 +15,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             ReportUtils.isUnread(report) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportID ?? '-1',
+                currentReportId: currentReportID,
                 betas: [],
                 policies: {},
                 doesReportHaveViolations: false,

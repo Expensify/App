@@ -251,7 +251,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID));
         },
         [report.reportID],
     );

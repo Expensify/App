@@ -331,7 +331,7 @@ function SuggestionMention(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
             Object.values(reportBatch ?? {}).forEach((report) => {
-                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID ?? '-1')) {
+                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID)) {
                     return;
                 }
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {

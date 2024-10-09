@@ -39,10 +39,10 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
-            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
+            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
         [reimbursementAccount, onfidoApplicantID, policyID],

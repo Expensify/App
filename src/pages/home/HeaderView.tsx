@@ -249,7 +249,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                         <PressableWithoutFeedback
                                             onPress={() => {
                                                 if (ReportUtils.canEditPolicyDescription(policy)) {
-                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
+                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID));
                                                     return;
                                                 }
                                                 Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));

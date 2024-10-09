@@ -54,12 +54,12 @@ function Confirmation() {
 
     const mergeDuplicates = useCallback(() => {
         IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID));
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal(reportAction?.childReportID ?? '-1');
+        Navigation.dismissModal(reportAction?.childReportID);
     }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(

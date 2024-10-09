@@ -116,26 +116,26 @@ function ReportActionItemParentAction({
                 >
                     <ThreadDivider
                         ancestor={ancestor}
-                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])}
+                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
                     />
                     {ReportActionsUtils.isTripPreview(ancestor?.reportAction) ? (
                         <OfflineWithFeedback pendingAction={ancestor.reportAction.pendingAction}>
                             <TripDetailsView
-                                tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID ?? '-1'}
+                                tripRoomReportID={ReportActionsUtils.getOriginalMessage(ancestor.reportAction)?.linkedReportID}
                                 shouldShowHorizontalRule={false}
                             />
                         </OfflineWithFeedback>
                     ) : (
                         <ReportActionItem
                             onPress={
-                                ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID ?? '-1'])
+                                ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
                                     ? () => {
-                                          const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
+                                          const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID);
                                           // Pop the thread report screen before navigating to the chat report.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
                                           if (isVisibleAction && !isOffline) {
                                               // Pop the chat report screen before navigating to the linked report action.
-                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
+                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
                                           }
                                       }
                                     : undefined

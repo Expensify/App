@@ -41,7 +41,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
     const submitOnfidoData = (onfidoData: OnfidoData) => {
         BankAccounts.verifyIdentityForBankAccount(reimbursementAccount.achData?.bankAccountID ?? -1, {
             ...onfidoData,
-            applicantID: onfidoApplicantID ?? '-1',
+            applicantID: onfidoApplicantID,
         });
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     };

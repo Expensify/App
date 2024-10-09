@@ -74,10 +74,10 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         TaskActions.setDetailsValue(values.taskTitle, values.taskDescription);
 
         if (skipConfirmation) {
-            TaskActions.setShareDestinationValue(task?.parentReportID ?? '-1');
+            TaskActions.setShareDestinationValue(task?.parentReportID);
             playSound(SOUNDS.DONE);
             TaskActions.createTaskAndNavigate(
-                task?.parentReportID ?? '-1',
+                task?.parentReportID,
                 values.taskTitle,
                 values.taskDescription ?? '',
                 task?.assignee ?? '',

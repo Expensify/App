@@ -132,7 +132,7 @@ function NewTaskPage({task, reports, personalDetails, route}: NewTaskPageProps) 
 
         playSound(SOUNDS.DONE);
         TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '-1',
+            parentReport?.reportID,
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',

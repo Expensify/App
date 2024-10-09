@@ -40,7 +40,7 @@ function NamePage({
 
     const [name, setName] = useState(() => Parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
 
     const submit = () => {
         const taxName = name.trim();

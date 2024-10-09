@@ -31,7 +31,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const styles = useThemeStyles();
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route?.params?.policyID;
 
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 

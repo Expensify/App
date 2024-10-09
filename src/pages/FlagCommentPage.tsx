@@ -110,7 +110,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         }
 
         if (reportAction && ReportUtils.canFlagReportAction(reportAction, reportID)) {
-            Report.flagComment(reportID ?? '-1', reportAction, severity);
+            Report.flagComment(reportID, reportAction, severity);
         }
 
         Navigation.dismissModal();

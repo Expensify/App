@@ -173,10 +173,10 @@ function IOURequestStepDistance({
             // If the user cancels out of the modal without without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
             if (transactionWasSaved.current) {
-                TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '-1');
+                TransactionEdit.removeBackupTransaction(transaction?.transactionID);
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', IOUUtils.shouldUseTransactionDraft(action));
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID, IOUUtils.shouldUseTransactionDraft(action));
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -416,8 +416,8 @@ function IOURequestStepDistance({
                 return;
             }
             IOU.updateMoneyRequestDistance({
-                transactionID: transaction?.transactionID ?? '-1',
-                transactionThreadReportID: report?.reportID ?? '-1',
+                transactionID: transaction?.transactionID,
+                transactionThreadReportID: report?.reportID,
                 waypoints,
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,

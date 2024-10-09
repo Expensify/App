@@ -26,7 +26,7 @@ import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 type RulesCustomNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
 
 function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();

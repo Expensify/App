@@ -244,7 +244,7 @@ function FloatingActionButtonAndPopover(
         };
 
         const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
-        const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
+        const quickActionReportID = isValidReport ? quickActionReport?.reportID : ReportUtils.generateReportID();
 
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:

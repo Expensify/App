@@ -25,7 +25,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     const styles = useThemeStyles();
 
     const openPolicyExpenseReport = useCallback(() => {
-        const reportID = ReportUtils.findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
+        const reportID = ReportUtils.findPolicyExpenseChatByPolicyID(policyID)?.reportID;
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policyID]);

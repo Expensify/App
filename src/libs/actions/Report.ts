@@ -1047,7 +1047,7 @@ function navigateToAndOpenReport(
         Navigation.dismissModalWithReport(report);
     } else {
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'), actionType);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID), actionType);
     }
 }
 
@@ -1382,7 +1382,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? '-1'), CONST.NAVIGATION.TYPE.UP);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.UP);
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1403,7 +1403,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             return;
         }
 
-        saveReportDraftComment(report.preexistingReportID ?? '-1', draftReportComment, callback);
+        saveReportDraftComment(report.preexistingReportID, draftReportComment, callback);
 
         return;
     }
@@ -1808,7 +1808,7 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
 function toggleSubscribeToChildReport(childReportID = '-1', parentReportAction: Partial<ReportAction> = {}, parentReportID = '-1', prevNotificationPreference?: NotificationPreference) {
     if (childReportID !== '-1') {
         openReport(childReportID);
-        const parentReportActionID = parentReportAction?.reportActionID ?? '-1';
+        const parentReportActionID = parentReportAction?.reportActionID;
         if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
         } else {
@@ -2731,7 +2731,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
-        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
+        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
         Navigation.goBack(lastAccessedReportRoute);
     } else {
         const isChatThread = ReportUtils.isChatThread(currentReport);
@@ -3374,10 +3374,10 @@ function completeOnboarding(
         const taskDescription =
             typeof task.description === 'function'
                 ? task.description({
-                      adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
-                      workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID ?? '-1')}`,
-                      workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID ?? '-1')}`,
+                      adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`,
+                      workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
+                      workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
+                      workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
@@ -3419,7 +3419,7 @@ function completeOnboarding(
         type: 'task',
         task: task.type,
         taskReportID: currentTask.reportID,
-        parentReportID: currentTask.parentReportID ?? '-1',
+        parentReportID: currentTask.parentReportID,
         parentReportActionID: taskReportAction.reportAction.reportActionID,
         assigneeChatReportID: '',
         createdTaskReportActionID: taskCreatedAction.reportActionID,
@@ -3753,7 +3753,7 @@ function searchForReports(searchInput: string, policyID?: string) {
         },
     ];
 
-    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID: policyID ?? '-1'};
+    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID: policyID};
     const searchForReportsParams: SearchForReportsParams = {searchInput, canCancel: true};
 
     // We want to cancel all pending SearchForReports API calls before making another one

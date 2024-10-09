@@ -13,8 +13,8 @@ import type SCREENS from '@src/SCREENS';
 type ReportAvatarProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function ReportAvatar({route}: ReportAvatarProps) {
-    const reportIDFromRoute = route.params?.reportID ?? '-1';
-    const policyIDFromRoute = route.params?.policyID ?? '-1';
+    const reportIDFromRoute = route.params?.reportID;
+    const policyIDFromRoute = route.params?.policyID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
@@ -44,7 +44,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             defaultOpen
             source={attachment.source}
             onModalClose={() => {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
             }}
             isWorkspaceAvatar={attachment.isWorkspaceAvatar}
             maybeIcon

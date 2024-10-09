@@ -18,7 +18,7 @@ function SearchFiltersCategoryPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => ({name: category, value: category}));
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.policyID;
     const [allPolicyIDCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 

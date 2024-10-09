@@ -34,8 +34,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         [bankAccounts, translate],
     );
 
-    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '-1');
-    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '-1');
+    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
+    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID);
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 

@@ -131,12 +131,12 @@ function ReportIDsContextProvider({
             derivedCurrentReportID !== '-1' &&
             orderedReportIDs.indexOf(derivedCurrentReportID) === -1
         ) {
-            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? '-1', policyMemberAccountIDs};
+            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID, policyMemberAccountIDs};
         }
 
         return {
             orderedReportIDs,
-            currentReportID: derivedCurrentReportID ?? '-1',
+            currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout]);

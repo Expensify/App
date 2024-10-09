@@ -116,10 +116,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item: reportID}: RenderItemProps): ReactElement => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID ?? '-1'}`];
+            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
-            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? '-1'];
+            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID];
 
             let invoiceReceiverPolicyID = '-1';
             if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
@@ -135,7 +135,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
             const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)
-                ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? '-1'
+                ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID
                 : '-1';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
@@ -146,7 +146,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             let lastReportActionTransactionID = '';
 
             if (ReportActionsUtils.isMoneyRequestAction(lastReportAction)) {
-                lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage(lastReportAction)?.IOUTransactionID ?? '-1';
+                lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage(lastReportAction)?.IOUTransactionID;
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 

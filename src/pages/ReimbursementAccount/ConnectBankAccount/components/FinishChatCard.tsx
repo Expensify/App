@@ -25,7 +25,7 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
 

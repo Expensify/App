@@ -123,7 +123,7 @@ function IOURequestStepAmount({
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);

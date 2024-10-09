@@ -19,7 +19,7 @@ function SearchFiltersTagPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => ({name: tag, value: tag}));
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.policyID;
     const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 

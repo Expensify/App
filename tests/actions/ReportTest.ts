@@ -95,7 +95,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {}).at(0);
-                reportActionID = resultAction?.reportActionID ?? '-1';
+                reportActionID = resultAction?.reportActionID;
 
                 expect(resultAction?.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -603,7 +603,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 reportAction = Object.values(reportActions).at(0);
-                reportActionID = reportAction?.reportActionID ?? '-1';
+                reportActionID = reportAction?.reportActionID;
 
                 if (reportAction) {
                     // Add a reaction to the comment

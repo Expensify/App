@@ -25,7 +25,7 @@ type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof
 function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyId = route.params.policyID ?? '-1';
+    const policyId = route.params.policyID;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const categoryName = route.params.categoryName;

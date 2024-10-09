@@ -298,7 +298,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = parentReportActions?.[parentReportActionID ?? '-1'];
+    const parentReportAction = parentReportActions?.[parentReportActionID];
     const shouldAutoFocus =
         !modal?.isVisible &&
         Modal.areAllModalsHidden() &&

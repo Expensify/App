@@ -52,7 +52,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
                 return (
                     <>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}

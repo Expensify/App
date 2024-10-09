@@ -244,7 +244,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 if (isOptionInList) {
                     newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
                 } else {
-                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
                 }
 
                 selectionListRef?.current?.clearInputAfterSelect?.();

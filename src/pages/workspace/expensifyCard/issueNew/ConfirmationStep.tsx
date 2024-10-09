@@ -47,7 +47,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const submit = () => {
         Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
-        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
+        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
         Card.clearIssueNewCardFlow();
     };
 
