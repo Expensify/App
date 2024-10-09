@@ -3,7 +3,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {getPolicyCategories} from '@libs/actions/Policy/Category';
+import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import type {TransactionMergeParams} from '@libs/API/parameters';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -1034,9 +1034,9 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
-                const policyCategories = getPolicyCategories(report?.policyID ?? '-1');
+                const policyCategories = getPolicyCategoriesData(report?.policyID ?? '-1');
                 const availableCategories = Object.values(policyCategories)
-                    .filter((category) => differentValues.includes(category.name))
+                    .filter((category) => differentValues.includes(category.name) && firstTransaction?.category !== category.name)
                     .map((e) => e.name);
 
                 if (
