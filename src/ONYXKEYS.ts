@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
-import type Platform from './libs/getPlatform/types';
 import type CONST from './CONST';
 import type {OnboardingPurposeType} from './CONST';
+import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type Onboarding from './types/onyx/Onboarding';
