@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Localize from './Localize';
@@ -37,12 +38,16 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
     }
 }
 
-function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
-    const taskReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`] ?? {};
+function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = ''): string {
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
     // an optimistic report is created with the only property – reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
-    return Object.hasOwn(taskReport, 'reportID') && 'reportName' in taskReport && typeof taskReport.reportName === 'string' ? taskReport.reportName : fallbackTitle;
+    return taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
+}
+
+function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
+    const taskReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    return getTaskTitleFromReport(taskReport, fallbackTitle);
 }
 
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
@@ -51,4 +56,4 @@ function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
     return taskTitle ? Localize.translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 
-export {isActiveTaskEditRoute, getTaskReportActionMessage, getTaskTitle, getTaskCreatedMessage};
+export {isActiveTaskEditRoute, getTaskReportActionMessage, getTaskTitle, getTaskTitleFromReport, getTaskCreatedMessage};
