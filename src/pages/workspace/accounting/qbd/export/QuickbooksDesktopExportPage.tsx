@@ -52,7 +52,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
             ],
         },
-        // TOD: This is not supported in QBD.
+        // TODO: This is not supported in QBD.
         // {
         //     description: translate('workspace.qbd.exportInvoices'),
         //     onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
