@@ -525,7 +525,7 @@ describe('OptionsListUtils', () => {
 
     it('getFilteredOptions() for group Chat', () => {
         // When we call getFilteredOptions() with no search value
-        let results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+        const results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
 
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
@@ -578,7 +578,7 @@ describe('OptionsListUtils', () => {
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails, [], '', [], [CONST.EMAIL.CONCIERGE]);
 
-        // We should expect all the personalDetails to show (minus 
+        // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
@@ -598,7 +598,7 @@ describe('OptionsListUtils', () => {
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_RECEIPTS.reports, OPTIONS_WITH_RECEIPTS.personalDetails, [], '', [], [CONST.EMAIL.RECEIPTS]);
 
-        // We should expect all the personalDetails to show (minus 
+        // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);

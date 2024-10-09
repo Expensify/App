@@ -2487,14 +2487,17 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         preferPolicyExpenseChat = false,
         preferRecentExpenseReports = false,
     } = config ?? {};
+    function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.OptionData[], personalDetails: ReportUtils.OptionData[]) {
+        const excludedLogins = new Set(recentReports.map((report) => report.login));
+        return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+    }
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
-        const excludedLogins = new Set(recentReports.map((report) => report.login));
-        const filteredPersonalDetails = options.personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+        const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
         return {
             ...options,
             recentReports,
-            personalDetails: filteredPersonalDetails,
+            personalDetails,
         };
     }
 
@@ -2538,8 +2541,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
 
-        const excludedLogins = new Set(recentReports.map((report) => report.login));
-        const filteredPersonalDetails = personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
+        const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
         return {
             recentReports: recentReports ?? [],
@@ -2574,13 +2576,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
         recentReports.splice(maxRecentReportsToShow);
     }
-
-    const excludedLogins = new Set(recentReports.map((report) => report.login));
-    const filteredPersonalDetails = personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
-    personalDetails = filteredPersonalDetails;
+    const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
 
     return {
-        personalDetails,
+        personalDetails: filteredPersonalDetails,
         recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
