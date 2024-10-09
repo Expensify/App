@@ -6,6 +6,7 @@ import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPage
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -86,6 +87,7 @@ type AccessOrNotFoundWrapperProps = {
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean; isMoneyRequest: boolean};
 
 function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps, isMoneyRequest}: PageNotFoundFallbackProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <NotFoundPage
             shouldForceFullScreen={shouldShowFullScreenFallback}
@@ -98,6 +100,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
+            shouldShowBackButton={!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined}
         />
     );
 }
