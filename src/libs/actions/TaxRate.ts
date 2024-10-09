@@ -275,7 +275,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
 
 type TaxRateDeleteMap = Record<
     string,
-    | (Pick<TaxRate, 'pendingAction'> & {
+    | (Pick<TaxRate, 'pendingAction' | 'isDisabled'> & {
           errors: OnyxCommon.Errors | null;
       })
     | null
@@ -306,7 +306,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                         pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
                         foreignTaxDefault: isForeignTaxRemoved ? firstTaxID : foreignTaxDefault,
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
-                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
+                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, isDisabled: true};
                             return acc;
                         }, {}),
                     },
@@ -339,6 +339,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             acc[taxID] = {
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
+                                isDisabled: !!policyTaxRates?.[taxID]?.isDisabled,
                             };
                             return acc;
                         }, {}),
