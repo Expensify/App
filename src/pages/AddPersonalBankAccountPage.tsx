@@ -1,21 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function AddPersonalBankAccountPage() {
@@ -23,29 +22,9 @@ function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const validateLoginError = ErrorUtils.getLatestErrorField(loginList?.[account?.primaryLogin ?? ''], 'validateLogin');
-
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            User.validateSecondaryLogin(loginList, account?.primaryLogin ?? '', validateCode);
-        },
-        [loginList, account],
-    );
-
-    useEffect(() => {
-        if (!isUserValidated && !isValidateCodeActionModalVisible) {
-            setIsValidateCodeActionModalVisible(true);
-        }
-        if (isUserValidated && isValidateCodeActionModalVisible) {
-            setIsValidateCodeActionModalVisible(false);
-        }
-    }, [isUserValidated, isValidateCodeActionModalVisible]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -66,7 +45,7 @@ function AddPersonalBankAccountPage() {
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack();
+                Navigation.navigate(ROUTES.SETTINGS_WALLET);
             }
         },
         [personalBankAccount],
@@ -81,12 +60,12 @@ function AddPersonalBankAccountPage() {
             shouldShowOfflineIndicator={false}
             testID={AddPersonalBankAccountPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={exitFlow}
-            />
-            {isUserValidated &&
-                (shouldShowSuccess ? (
+            <FullPageNotFoundView shouldShow={!isUserValidated}>
+                <HeaderWithBackButton
+                    title={translate('bankAccount.addBankAccount')}
+                    onBackButtonPress={exitFlow}
+                />
+                {shouldShowSuccess ? (
                     <ConfirmationPage
                         heading={translate('addPersonalBankAccountPage.successTitle')}
                         description={translate('addPersonalBankAccountPage.successMessage')}
@@ -111,24 +90,13 @@ function AddPersonalBankAccountPage() {
                             text={translate('walletPage.chooseAccountBody')}
                             plaidData={plaidData}
                             isDisplayedInWalletFlow
-                            onExitPlaid={() => Navigation.goBack()}
+                            onExitPlaid={() => Navigation.navigate(ROUTES.SETTINGS_WALLET)}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             selectedPlaidAccountID={selectedPlaidAccountId}
                         />
                     </FormProvider>
-                ))}
-            <ValidateCodeActionModal
-                handleSubmitForm={handleSubmitForm}
-                clearError={() => User.clearContactMethodErrors(account?.primaryLogin ?? '', 'validateLogin')}
-                onClose={() => {
-                    setIsValidateCodeActionModalVisible(false);
-                }}
-                onModalHide={() => Navigation.dismissModal()}
-                validateError={validateLoginError}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
-            />
+                )}
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

@@ -128,47 +128,60 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      value: buildReportComments(messageCount, initialID),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+        const comments = buildReportComments(messageCount, initialID);
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              value: comments,
+                          },
+                      ]
+                    : [],
+            hasOlderActions: !comments['1'],
+            hasNewerActions: !!reportID,
+        };
+    });
 }
 
 function mockGetOlderActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      // The API also returns the action that was requested with the reportActionID.
-                      value: buildReportComments(messageCount + 1, reportActionID),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) => {
+        // The API also returns the action that was requested with the reportActionID.
+        const comments = buildReportComments(messageCount + 1, reportActionID);
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              value: comments,
+                          },
+                      ]
+                    : [],
+            hasOlderActions: comments['1'] != null,
+        };
+    });
 }
 
 function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      // The API also returns the action that was requested with the reportActionID.
-                      value: buildReportComments(messageCount + 1, reportActionID, true),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
+        onyxData:
+            reportID === REPORT_ID
+                ? [
+                      {
+                          onyxMethod: 'merge',
+                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                          // The API also returns the action that was requested with the reportActionID.
+                          value: buildReportComments(messageCount + 1, reportActionID, true),
+                      },
+                  ]
+                : [],
+        hasNewerActions: messageCount > 0,
+    }));
 }
 
 /**
@@ -237,10 +250,6 @@ async function signInAndGetApp(): Promise<void> {
                 actorAccountID: USER_A_ACCOUNT_ID,
             },
         });
-
-        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
-
-        await Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, '1');
 
         // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
         AppActions.setSidebarLoaded();
