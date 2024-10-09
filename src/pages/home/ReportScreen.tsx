@@ -667,7 +667,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
         Navigation.setParams({reportActionID: ''});
-    }, [prevIsLinkedActionDeleted, isLinkedActionDeleted]);
+    }, [isLinkedActionBecomesDeleted]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
