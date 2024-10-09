@@ -614,6 +614,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.debug',
+        icon: Expensicons.Bug,
+        shouldShow: (type, isProduction) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
+        onPress: (closePopover, {reportID}) => {
+            Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
+            hideContextMenu(false, ReportActionComposeFocusManager.focus);
+        },
+        getDescription: () => {},
+    },
+    {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,

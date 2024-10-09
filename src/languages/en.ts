@@ -648,6 +648,7 @@ const translations = {
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
         copyOnyxData: 'Copy Onyx data',
+        debug: 'Debug',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
