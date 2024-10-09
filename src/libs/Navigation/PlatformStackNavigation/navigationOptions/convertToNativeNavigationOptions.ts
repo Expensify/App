@@ -7,13 +7,13 @@ import buildPlatformSpecificNavigationOptions from './buildPlatformSpecificNavig
 function convertToNativeNavigationOptions(
     screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions> | undefined,
 ): ScreenOptionsOrCallback<NativeStackNavigationOptions> | undefined {
-    if (screenOptions === undefined) {
+    if (!screenOptions) {
         return undefined;
     }
 
     if (isRouteBasedScreenOptions(screenOptions)) {
-        return (p: PlatformStackScreenProps<ParamListBase, string>) => {
-            const routeBasedScreenOptions = screenOptions(p);
+        return (props: PlatformStackScreenProps<ParamListBase, string>) => {
+            const routeBasedScreenOptions = screenOptions(props);
             return {...buildPlatformSpecificNavigationOptions(routeBasedScreenOptions), ...routeBasedScreenOptions.native};
         };
     }

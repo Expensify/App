@@ -5,14 +5,14 @@ import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigatio
 import buildPlatformSpecificNavigationOptions from './buildPlatformSpecificNavigationOptions';
 
 function convertToWebNavigationOptions(screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions> | undefined): ScreenOptionsOrCallback<StackNavigationOptions> | undefined {
-    if (screenOptions === undefined) {
+    if (!screenOptions) {
         return undefined;
     }
 
     if (isRouteBasedScreenOptions(screenOptions)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (p: PlatformStackScreenProps<ParamListBase, string>) => {
-            const routeBasedScreenOptions = screenOptions(p);
+        return (props: PlatformStackScreenProps<ParamListBase, string>) => {
+            const routeBasedScreenOptions = screenOptions(props);
             return {...buildPlatformSpecificNavigationOptions(routeBasedScreenOptions), ...routeBasedScreenOptions.web};
         };
     }

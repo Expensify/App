@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -80,9 +80,9 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     }, [activeWorkspaceID, transactionViolations]);
 
     useEffect(() => {
-        const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
+        const navigationState = navigation.getState();
         const routes = navigationState?.routes;
-        const currentRoute = routes?.[navigationState?.index ?? 0];
+        const currentRoute = routes?.at(navigationState?.index ?? 0);
         // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
         // To prevent this, the value of the bottomTabRoute?.name is checked here
         if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && !isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
@@ -114,7 +114,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             return;
         }
         interceptAnonymousUser(() => {
-            const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+            const rootState = navigationRef.getRootState();
             const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
 
             if (lastSearchRoute) {
