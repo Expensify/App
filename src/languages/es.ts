@@ -2380,6 +2380,16 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
+            qbdSetup: 'Configuración de QuickBooks Desktop',
+            requiredSetupDevice: {
+                title: 'No se puede conectar desde este dispositivo',
+                body1: 'Deberás configurar esta conexión desde la computadora que hospeda tu archivo de empresa de QuickBooks Desktop.',
+                body2: 'Una vez que estés conectado, podrás sincronizar y exportar desde cualquier lugar.',
+            },
+            setupPage: {
+                title: 'Abre este enlace para conectar',
+                body: 'Para completar la configuración, abre el siguiente enlace en la computadora donde se está ejecutando QuickBooks Desktop.',
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3434,6 +3444,7 @@ const translations = {
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
