@@ -43,10 +43,11 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     useFocusEffect(fetchCompanyCards);
 
     useEffect(() => {
-        if (!isLoading) {
-            Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+        if (isLoading) {
+            return;
         }
-    }, [selectedFeed, isLoading]);
+        Policy.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID]);
 
     const companyCards = cardFeeds?.settings?.companyCards ?? {};
     const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;

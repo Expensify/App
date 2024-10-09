@@ -74,7 +74,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
         const cardName =
             Object.entries(filteredCardList)
-                .find(([cardNumber, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
+                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
                 ?.at(0) ?? '';
 
         CompanyCards.setAssignCardStepAndData({

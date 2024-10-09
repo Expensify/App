@@ -29,7 +29,6 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const cardList = cardsList?.cardList ?? {};
 
     const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
 
@@ -56,7 +55,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={CardUtils.getCompanyCardNumber(cardList, item.lastFourPAN)}
+                            cardNumber={CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN)}
                             name={item.nameValuePairs?.cardTitle ?? ''}
                         />
                     </PressableWithFeedback>
