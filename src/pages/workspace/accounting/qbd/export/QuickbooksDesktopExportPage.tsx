@@ -28,6 +28,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qbdConfig?.export?.nonReimbursable],
     );
+
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
@@ -45,9 +46,13 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
             title: qbdConfig?.export.reimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.reimbursable}`) : undefined,
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
+            subscribedSettings: [
+                CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
+                CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT,
+                CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
+            ],
         },
-        // TODO: This is not supported in QBD.
+        // TOD: This is not supported in QBD.
         // {
         //     description: translate('workspace.qbd.exportInvoices'),
         //     onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
@@ -68,7 +73,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.qbd.exportExpensifyCard'),
-            title: translate('workspace.qbd.accounts.credit_card'),
+            title: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
             shouldShowRightIcon: false,
             interactive: false,
         },
