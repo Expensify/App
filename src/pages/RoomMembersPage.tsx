@@ -282,7 +282,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             },
         ];
         return options;
-    }, [translate, setRemoveMembersConfirmModalVisible]);
+    }, [translate, selectedMembers.length]);
 
     const headerButtons = useMemo(() => {
         return (
