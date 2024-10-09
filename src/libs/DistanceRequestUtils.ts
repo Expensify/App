@@ -11,6 +11,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -304,6 +305,22 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
+function getRateForExistingTransaction({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}): MileageRate {
+    let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
+    if (isEmptyObject(mileageRates) && policyDraft) {
+        mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
+    }
+    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const defaultMileageRate = getDefaultMileageRate(policy);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+    const unit = getDistanceUnit(transaction, mileageRate);
+    return {
+        ...mileageRate,
+        unit,
+    };
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -316,6 +333,7 @@ export default {
     convertToDistanceInMeters,
     getTaxableAmount,
     getDistanceUnit,
+    getRateForExistingTransaction,
 };
 
 export type {MileageRate};

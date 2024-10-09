@@ -66,9 +66,6 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** The draft policy of the report */
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Unit and rate used for if the expense is a distance expense */
-    mileageRates: OnyxEntry<Record<string, MileageRate>>;
-
     /** Mileage rate default for the policy */
     defaultMileageRate: OnyxEntry<MileageRate>;
 
@@ -181,7 +178,6 @@ function MoneyRequestConfirmationList({
     iouAmount,
     policyCategories: policyCategoriesReal,
     policyCategoriesDraft,
-    mileageRates: mileageRatesReal,
     isDistanceRequest = false,
     policy: policyReal,
     policyDraft,
@@ -216,10 +212,6 @@ function MoneyRequestConfirmationList({
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
-    const [mileageRatesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID || '-1'}`, {
-        selector: (selectedPolicy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(selectedPolicy),
-    });
-    const mileageRates = isEmptyObject(mileageRatesReal) ? mileageRatesDraft : mileageRatesReal;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -247,12 +239,10 @@ function MoneyRequestConfirmationList({
         IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
-    const unit = DistanceRequestUtils.getDistanceUnit(transaction, mileageRate);
-    const {rate} = mileageRate ?? {};
+    const rate = DistanceRequestUtils.getRateForExistingTransaction({transaction, policy, policyDraft});
     const prevRate = usePrevious(rate);
-    const currency = mileageRate?.currency ?? policyCurrency;
+    const unit = rate.unit;
+    const currency = rate.currency ?? CONST.CURRENCY.USD;
 
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -985,10 +975,6 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     defaultMileageRate: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         selector: DistanceRequestUtils.getDefaultMileageRate,
-    },
-    mileageRates: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy),
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
