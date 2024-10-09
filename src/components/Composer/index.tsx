@@ -231,7 +231,6 @@ function Composer(
                 return;
             }
             setPrevScroll(textInput.current.scrollTop);
-            setPrevHeight(textInput.current.clientHeight);
         }, 100);
 
         textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
@@ -395,6 +394,7 @@ function Composer(
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
                 onContentSizeChange={(e) => {
+                    setPrevHeight(e.nativeEvent.contentSize.height);
                     setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
                     updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
                 }}
