@@ -67,7 +67,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
         },
-        [qbdConfig?.export, policyID],
+        [qbdConfig?.export.exporter, policyID],
     );
 
     const headerContent = useMemo(
@@ -94,7 +94,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: remove it once the QBD beta is done
+            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
