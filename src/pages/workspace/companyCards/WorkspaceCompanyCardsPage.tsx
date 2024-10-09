@@ -85,7 +85,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
-                    {isFeedAdded && !isPending && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
                         <WorkspaceCompanyCardsList
