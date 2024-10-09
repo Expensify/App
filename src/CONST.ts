@@ -2785,6 +2785,9 @@ const CONST = {
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 10000,
 
+    // Use the same value as MAX_COMMENT_LENGTH to ensure the entire comment is parsed. Note that applying markup is very resource-consuming.
+    MAX_MARKUP_LENGTH: 10000,
+
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
     // Character Limits
