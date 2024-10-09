@@ -422,7 +422,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -430,7 +430,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -438,7 +438,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },

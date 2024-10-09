@@ -93,7 +93,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     if (!parentReportActions || !parentReportActionID) {
         return;
     }
-    return parentReportActions[parentReportActionID ?? '0'];
+    return parentReportActions[parentReportActionID];
 }
 
 function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {

@@ -5172,7 +5172,7 @@ function updateReportPreview(
         originalMessage: {
             ...(originalMessage ?? {}),
             whisperedTo: hasReceipt ? originalMessage?.whisperedTo : [],
-            linkedReportID: originalMessage?.linkedReportID ?? '0',
+            linkedReportID: originalMessage?.linkedReportID,
         },
     };
 }
