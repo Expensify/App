@@ -306,8 +306,8 @@ const ROUTES = {
         getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number, isAuthTokenRequired?: boolean) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
-            const authParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authParam}` as const;
+            const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
