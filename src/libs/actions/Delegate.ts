@@ -10,8 +10,10 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
+import type Response from '@src/types/onyx/Response';
 import {confirmReadyToOpenApp, openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
+import updateSessionUser from './Session/updateSessionUser';
 
 let delegatedAccess: DelegatedAccess;
 Onyx.connect({
@@ -21,7 +23,18 @@ Onyx.connect({
     },
 });
 
-const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [ONYXKEYS.NVP_TRY_FOCUS_MODE, ONYXKEYS.PREFERRED_THEME, ONYXKEYS.NVP_PREFERRED_LOCALE, ONYXKEYS.SESSION, ONYXKEYS.IS_LOADING_APP];
+const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.CREDENTIALS,
+
+    // We need to preserve the sidebar loaded state since we never unrender the sidebar when connecting as a delegate
+    // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+];
 
 function connect(email: string) {
     if (!delegatedAccess?.delegators) {
@@ -379,6 +392,10 @@ function clearAddDelegateErrors(email: string, fieldName: string) {
     });
 }
 
+function isConnectedAsDelegate() {
+    return !!delegatedAccess?.delegate;
+}
+
 function removePendingDelegate(email: string) {
     if (!delegatedAccess?.delegates) {
         return;
@@ -529,6 +546,19 @@ function clearDelegateRolePendingAction(email: string) {
     Onyx.update(optimisticData);
 }
 
+function restoreDelegateSession(authenticateResponse: Response) {
+    Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() => {
+        updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
+        updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
+
+        NetworkStore.setAuthToken(authenticateResponse.authToken ?? null);
+        NetworkStore.setIsAuthenticating(false);
+
+        confirmReadyToOpenApp();
+        openApp();
+    });
+}
+
 export {
     connect,
     disconnect,
@@ -537,8 +567,9 @@ export {
     requestValidationCode,
     clearAddDelegateErrors,
     removePendingDelegate,
-    removeDelegate,
-    updateDelegateRole,
+    restoreDelegateSession,
+    isConnectedAsDelegate,
     updateDelegateRoleOptimistically,
     clearDelegateRolePendingAction,
+    updateDelegateRole,
 };

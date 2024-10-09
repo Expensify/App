@@ -193,6 +193,15 @@ function ReportActionItemSingle({
     );
 
     const getAvatar = () => {
+        if (shouldShowSubscriptAvatar) {
+            return (
+                <SubscriptAvatar
+                    mainAvatar={icon}
+                    secondaryAvatar={secondaryAvatar}
+                    noMargin
+                />
+            );
+        }
         if (displayAllActors) {
             return (
                 <MultipleAvatars
@@ -200,15 +209,6 @@ function ReportActionItemSingle({
                     isInReportAction
                     shouldShowTooltip
                     secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
-                />
-            );
-        }
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    mainAvatar={icon}
-                    secondaryAvatar={secondaryAvatar}
-                    noMargin
                 />
             );
         }
