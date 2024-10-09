@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
 import '@shopify/flash-list/jestSetup';
-import type * as RNAppLogs from 'react-native-app-logs';
 import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
@@ -36,7 +35,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
-    if (params[0].startsWith('Timing:')) {
+    if (params.at(0)?.startsWith('Timing:')) {
         return;
     }
 
@@ -75,8 +74,6 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
-
-jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),

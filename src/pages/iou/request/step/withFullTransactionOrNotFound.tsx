@@ -66,7 +66,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     }
 
     WithFullTransactionOrNotFound.displayName = `withFullTransactionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-
+    // eslint-disable-next-line deprecation/deprecation
     return withOnyx<TProps & RefAttributes<TRef>, WithFullTransactionOrNotFoundOnyxProps>({
         transaction: {
             key: ({route}) => {
