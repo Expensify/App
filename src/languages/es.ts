@@ -2392,7 +2392,7 @@ const translations = {
             },
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
             classes: 'Clases',
-            items: 'Items',
+            items: 'Artículos',
             customers: 'Clientes/proyectos',
         },
         qbo: {
