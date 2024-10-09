@@ -284,10 +284,11 @@ function ReportActionItemSingle({
             }
             return (
                 <View>
-                    {personArray.map((fragment) => (
+                    {personArray.map((fragment, index) => (
                         <ReportActionItemFragment
                             style={[styles.flex1]}
-                            key={`person-${action?.reportActionID}-${actorAccountID}`}
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`person-${action?.reportActionID}-${index}`}
                             accountID={actorAccountID ?? -1}
                             fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
