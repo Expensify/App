@@ -569,7 +569,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.isMoneyRequestAction(newIOUAction) ? ReportActionsUtils.getOriginalMessage(newIOUAction)?.IOUTransactionID : '0').toBe(
+                                    expect(ReportActionsUtils.isMoneyRequestAction(newIOUAction) ? ReportActionsUtils.getOriginalMessage(newIOUAction)?.IOUTransactionID : undefined).toBe(
                                         newTransaction?.transactionID,
                                     );
 
