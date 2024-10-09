@@ -396,7 +396,10 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    prompt={translate('workspace.people.removeMembersPrompt', {
+                        count: selectedMembers.length,
+                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                    })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     onModalHide={() => {

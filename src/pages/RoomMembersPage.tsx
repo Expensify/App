@@ -3,8 +3,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -41,23 +40,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomMembersPageOnyxProps = {
-    session: OnyxEntry<Session>;
-};
+type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
-type RoomMembersPageProps = WithReportOrNotFoundProps &
-    WithCurrentUserPersonalDetailsProps &
-    RoomMembersPageOnyxProps &
-    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
-
-function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
+function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const route = useRoute<RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
@@ -374,7 +367,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('roomMembersPage.removeMembersPrompt')}
+                    prompt={translate('roomMembersPage.removeMembersPrompt', {
+                        count: selectedMembers.length,
+                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                    })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                 />
@@ -411,4 +407,4 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
 RoomMembersPage.displayName = 'RoomMembersPage';
 
-export default withReportOrNotFound()(withCurrentUserPersonalDetails(withOnyx<RoomMembersPageProps, RoomMembersPageOnyxProps>({session: {key: ONYXKEYS.SESSION}})(RoomMembersPage)));
+export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));

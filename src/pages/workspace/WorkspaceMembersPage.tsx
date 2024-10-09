@@ -93,6 +93,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
     const {selectionMode} = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
@@ -102,13 +103,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
         if (!approverAccountID) {
-            return translate('workspace.people.removeMembersPrompt');
+            return translate('workspace.people.removeMembersPrompt', {
+                count: selectedEmployees.length,
+                memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? '',
+            });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
             memberName: getDisplayNameForParticipant(approverAccountID),
             ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
         });
-    }, [selectedEmployees, policy, translate]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
