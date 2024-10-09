@@ -52,11 +52,13 @@ import * as Session from './Session';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
+let authToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? -1;
         currentEmail = value?.email ?? '';
+        authToken = value?.authToken ?? '';
     },
 });
 
@@ -982,8 +984,39 @@ function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
-function setMuteAllSounds(isMutedAllSounds: boolean) {
-    Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds});
+// function setMuteAllSounds(isMutedAllSounds: boolean) {
+//     Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds});
+// }
+
+function togglePlatformMute(platform, mutedPlatforms) {
+    const isPlatformMuted = mutedPlatforms?.includes(platform);
+    const newMutedPlatforms = isPlatformMuted
+        ? mutedPlatforms.filter((mutedPlatform) => mutedPlatform !== platform)
+        : [...mutedPlatforms, platform];
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_MUTED_PLATFORMS,
+            value: newMutedPlatforms,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_MUTED_PLATFORMS,
+            value: mutedPlatforms,
+        },
+    ];
+
+    const parameters: GetTogglePlatformMuteParams = {authToken, platform};
+
+    API.write(WRITE_COMMANDS.TOGGLE_PLATFORM_MUTE, parameters, {
+        optimisticData,
+        failureData,
+    });
+    
+    // Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds: !isMutedAllSounds});
 }
 
 /**
@@ -1358,7 +1391,8 @@ export {
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
-    setMuteAllSounds,
+    // setMuteAllSounds,
+    togglePlatformMute,
     clearUserErrorMessage,
     joinScreenShare,
     clearScreenShareRequest,

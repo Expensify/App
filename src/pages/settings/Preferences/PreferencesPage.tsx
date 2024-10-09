@@ -19,11 +19,21 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import getPlatform from '@libs/getPlatform';
+import * as Browser from '@libs/Browser';
 
 function PreferencesPage() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    
+    let platform = getPlatform();
+    if (Browser.isMobile()) {
+        platform = CONST.PLATFORM.MOBILEWEB;
+    }
+    const [mutedPlatforms] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms.includes(platform);
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+
 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -79,8 +89,9 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
-                                        isOn={user?.isMutedAllSounds ?? false}
-                                        onToggle={User.setMuteAllSounds}
+                                        isOn={isPlatformMuted ?? false}
+                                        // isOn={user?.isMutedAllSounds ?? false}
+                                        onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>

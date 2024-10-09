@@ -118,6 +118,9 @@ const ONYXKEYS = {
     /** This NVP contains data associated with HybridApp */
     NVP_TRYNEWDOT: 'nvp_tryNewDot',
 
+    /** Contains the platforms for which the user muted the sounds */
+    NVP_MUTED_PLATFORMS: 'nvp_mutedPlatforms',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 

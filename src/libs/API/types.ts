@@ -75,6 +75,7 @@ const WRITE_COMMANDS = {
     VALIDATE_SECONDARY_LOGIN: 'ValidateSecondaryLogin',
     UPDATE_PREFERRED_EMOJI_SKIN_TONE: 'UpdatePreferredEmojiSkinTone',
     UPDATE_CHAT_PRIORITY_MODE: 'UpdateChatPriorityMode',
+    TOGGLE_PLATFORM_MUTE: 'TogglePlatformMute',
     SET_CONTACT_METHOD_AS_DEFAULT: 'SetContactMethodAsDefault',
     UPDATE_THEME: 'UpdateTheme',
     UPDATE_STATUS: 'UpdateStatus',
