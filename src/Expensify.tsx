@@ -55,7 +55,7 @@ Onyx.registerLogger(({level, message}) => {
     }
 });
 
-type ExpensifyOnyxProps = {
+type ExpensifyProps = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;
 
@@ -77,18 +77,7 @@ type ExpensifyOnyxProps = {
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
-
-type ExpensifyProps = ExpensifyOnyxProps;
-
-function Expensify({
-    isCheckingPublicRoom = true,
-    updateAvailable,
-    isSidebarLoaded = false,
-    screenShareRequest,
-    updateRequired = false,
-    focusModeNotification = false,
-    lastVisitedPath,
-}: ExpensifyProps) {
+function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
@@ -100,6 +89,13 @@ function Expensify({
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE);
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED);
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
+    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useEffect(() => {
         if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
@@ -305,30 +301,4 @@ function Expensify({
 
 Expensify.displayName = 'Expensify';
 
-export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
-    isCheckingPublicRoom: {
-        key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
-        initWithStoredValues: false,
-    },
-    updateAvailable: {
-        key: ONYXKEYS.UPDATE_AVAILABLE,
-        initWithStoredValues: false,
-    },
-    updateRequired: {
-        key: ONYXKEYS.UPDATE_REQUIRED,
-        initWithStoredValues: false,
-    },
-    isSidebarLoaded: {
-        key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    },
-    screenShareRequest: {
-        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-    },
-    focusModeNotification: {
-        key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
-        initWithStoredValues: false,
-    },
-    lastVisitedPath: {
-        key: ONYXKEYS.LAST_VISITED_PATH,
-    },
-})(Expensify);
+Expensify();
