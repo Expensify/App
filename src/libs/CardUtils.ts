@@ -184,6 +184,14 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
+function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string): string {
+    if (!lastFourPAN) {
+        return '';
+    }
+
+    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? '';
+}
+
 function getCardFeedIcon(cardFeed: string): IconAsset {
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
         return Illustrations.MasterCardCompanyCards;
@@ -221,11 +229,10 @@ function getCardDetailsImage(cardFeed: string): IconAsset {
 function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<WorkspaceCardsList>, accountID?: number) {
     const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
     const cards: WorkspaceCardsList = {};
-    const mockedCardsList = allCardsList ?? {};
-    Object.keys(mockedCardsList)
+    Object.keys(allCardsList ?? {})
         .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceId}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
         .forEach((key) => {
-            const feedCards = mockedCardsList?.[key];
+            const feedCards = allCardsList?.[key];
             if (feedCards && Object.keys(feedCards).length > 0) {
                 Object.keys(feedCards).forEach((feedCardKey) => {
                     if (feedCards?.[feedCardKey].accountID !== accountID) {
@@ -258,6 +265,7 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
+    getCompanyCardNumber,
     getCardFeedIcon,
     getCardFeedName,
     getCardDetailsImage,

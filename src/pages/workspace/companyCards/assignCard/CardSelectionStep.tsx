@@ -41,6 +41,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    const filteredCardList = Object.fromEntries(
+        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
+    );
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -68,7 +73,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         }
 
         const cardName =
-            Object.entries(list?.cardList ?? {})
+            Object.entries(filteredCardList)
                 .find(([cardNumber, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
                 ?.at(0) ?? '';
 
@@ -79,7 +84,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         });
     };
 
-    const cardListOptions = Object.entries(list?.cardList ?? {}).map(([cardNumber, encryptedCardNumber]) => ({
+    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
         text: cardNumber,

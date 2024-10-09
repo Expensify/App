@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
@@ -79,9 +80,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = Object.entries(cardFeeds?.settings?.companyCardNicknames ?? {}).map(([key, value]) => ({
+    const companyCardFeeds: CardFeedListItem[] = Object.keys(cardFeeds?.settings?.companyCards ?? {}).map((key) => ({
         value: key,
-        text: value,
+        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${key as CompanyCardFeed}`),
         keyForList: key,
         isSelected: selectedFeed === key,
         leftElement: (
