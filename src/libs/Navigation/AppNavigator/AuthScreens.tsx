@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -55,6 +56,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import SIDEBAR_TO_SPLIT from '../linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -230,6 +232,26 @@ function AuthScreens() {
         isInitialRender.current = false;
     }
 
+    // Animation is disabled when navigating to the sidebar screen
+    const getSplitNavigatorOptions = (route: RouteProp<AuthScreensParamList>) => {
+        if (!isSmallScreenWidth || !route?.params) {
+            return screenOptions.fullScreen;
+        }
+
+        const screenName = 'screen' in route.params ? route.params.screen : undefined;
+
+        if (!screenName) {
+            return screenOptions.fullScreen;
+        }
+
+        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName);
+
+        return {
+            ...screenOptions.fullScreen,
+            animationEnabled,
+        };
+    };
+
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -394,12 +416,12 @@ function AuthScreens() {
                     {/* This have to be the first navigator in auth screens. */}
                     <RootStack.Screen
                         name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                        options={screenOptions.fullScreen}
+                        options={({route}) => getSplitNavigatorOptions(route)}
                         getComponent={loadReportSplitNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                        options={screenOptions.fullScreen}
+                        options={({route}) => getSplitNavigatorOptions(route)}
                         getComponent={loadSettingsSplitNavigator}
                     />
                     <RootStack.Screen
@@ -410,7 +432,7 @@ function AuthScreens() {
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                        options={screenOptions.fullScreen}
+                        options={({route}) => getSplitNavigatorOptions(route)}
                         getComponent={loadWorkspaceSplitNavigator}
                     />
                     <RootStack.Screen
