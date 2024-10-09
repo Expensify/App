@@ -1244,14 +1244,14 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         enabled: boolean;
     };
 
-    /** Whether Quickbooks Desktop classes should be imported */
-    syncClasses: IntegrationEntityMap;
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How to handle QuickBooks Desktop classes */
+        classes: IntegrationEntityMap;
 
-    /** Whether Quickbooks Desktop customers should be imported */
-    syncCustomers: IntegrationEntityMap;
-
-    /** Whether Quickbooks Desktop items should be imported */
-    syncItems: IntegrationEntityMap;
+        /** How to handle QuickBooks Desktop customers */
+        customers: IntegrationEntityMap;
+    };
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;

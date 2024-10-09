@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 type QBDSectionType = {
     description: string;
     action: () => void;
-    title: string;
+    title?: string;
     subscribedSettings: [string];
 };
 
@@ -23,7 +23,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {syncClasses, syncCustomers, syncItems, pendingFields, errorFields} = policy?.connections?.quickbooksDesktop?.config ?? {};
+    const {mappings, pendingFields, errorFields} = policy?.connections?.quickbooksDesktop?.config ?? {};
     const {canUseNewDotQBD} = usePermissions();
 
     const sections: QBDSectionType[] = [
@@ -36,19 +36,18 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
         {
             description: translate('workspace.qbd.classes'),
             action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49704
-            title: translate(`workspace.accounting.importTypes.${syncClasses ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
+            title: translate(`workspace.accounting.importTypes.${mappings?.classes ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
         },
         {
             description: translate('workspace.qbd.customers'),
             action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49705
-            title: translate(`workspace.accounting.importTypes.${syncCustomers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
+            title: translate(`workspace.accounting.importTypes.${mappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
         },
         {
             description: translate('workspace.qbd.items'),
             action: () => {}, // TODO: will be implemented in https://github.com/Expensify/App/issues/49706
-            title: translate(`workspace.accounting.importTypes.${syncItems ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
         },
     ];
