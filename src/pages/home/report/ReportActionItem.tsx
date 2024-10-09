@@ -520,7 +520,7 @@ function ReportActionItem({
                 ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString() ?? '-1' : '-1';
+            const iouReportID = ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString() ?? '-1' : undefined;
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
@@ -573,7 +573,7 @@ function ReportActionItem({
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         style={displayAsGroup ? [] : [styles.mt1]}
-                        taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '-1' : '-1'}
+                        taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '-1' : undefined}
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}
@@ -870,7 +870,7 @@ function ReportActionItem({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
             ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
-            : '-1';
+            : undefined;
 
         return (
             <ReportActionItemContentCreated
@@ -921,7 +921,7 @@ function ReportActionItem({
     const iouReportID =
         ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUReportID
             ? (ReportActionsUtils.getOriginalMessage(action)?.IOUReportID).toString()
-            : '-1';
+            : undefined;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper

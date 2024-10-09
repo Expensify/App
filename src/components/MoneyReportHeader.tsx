@@ -184,7 +184,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (requestParentReportAction) {
             const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
                 ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-                : '-1';
+                : undefined;
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
                 navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, true);
             } else {
@@ -201,7 +201,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
             ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID
-            : '-1';
+            : undefined;
         const reportID = transactionThreadReport?.reportID;
 
         TransactionActions.markAsCash(iouTransactionID, reportID);

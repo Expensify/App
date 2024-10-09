@@ -2196,8 +2196,8 @@ function getMoneyRequestInformation(
         chatReport,
         transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '-1',
-        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : '-1',
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : undefined,
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
         reportPreviewAction,
         transactionThreadReportID: optimisticTransactionThread?.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
@@ -2315,7 +2315,7 @@ function getTrackExpenseInformation(
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
-        shouldUseMoneyReport && iouReport ? iouReport.reportID : '-1',
+        shouldUseMoneyReport && iouReport ? iouReport.reportID : undefined,
         comment,
         created,
         '',
@@ -2409,7 +2409,7 @@ function getTrackExpenseInformation(
         transaction: optimisticTransaction,
         iouAction,
         createdChatReportActionID: '-1',
-        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : '-1',
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
         reportPreviewAction: reportPreviewAction ?? undefined,
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
@@ -5584,7 +5584,7 @@ function updateMoneyRequestAmountAndCurrency({
 function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     // STEP 1: Get all collections we're updating
     const allReports = ReportConnection.getAllReports();
-    const iouReportID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID : '-1';
+    const iouReportID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -6422,7 +6422,7 @@ function getSendMoneyParams(
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : '-1',
+            createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : undefined,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,

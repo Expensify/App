@@ -200,7 +200,7 @@ AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : undefined}`,
         canEvict: false,
     },
     personalDetails: {

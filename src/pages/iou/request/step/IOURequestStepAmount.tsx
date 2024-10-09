@@ -354,7 +354,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : undefined}`,
     },
 })(IOURequestStepAmount);
 
