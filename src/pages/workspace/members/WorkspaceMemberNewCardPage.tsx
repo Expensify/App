@@ -79,7 +79,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
+    const companyCardFeeds: CardFeedListItem[] = Object.entries(cardFeeds?.settings?.companyCardNicknames ?? {}).map(([key, value]) => ({
         value: key,
         text: value,
         keyForList: key,

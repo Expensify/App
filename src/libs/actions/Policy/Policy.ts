@@ -4454,8 +4454,10 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
-                    companyCardNicknames: {
-                        [bankName]: userDefinedName,
+                    settings: {
+                        companyCardNicknames: {
+                            [bankName]: userDefinedName,
+                        },
                     },
                 },
             },
@@ -4480,8 +4482,10 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
-                    companyCards: {
-                        [bankName]: {liabilityType},
+                    settings: {
+                        companyCards: {
+                            [bankName]: {liabilityType},
+                        },
                     },
                 },
             },
@@ -4507,11 +4511,13 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
-                    companyCards: {
-                        [bankName]: null,
-                    },
-                    companyCardNicknames: {
-                        [bankName]: null,
+                    settings: {
+                        companyCards: {
+                            [bankName]: null,
+                        },
+                        companyCardNicknames: {
+                            [bankName]: null,
+                        },
                     },
                 },
             },

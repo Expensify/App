@@ -33,7 +33,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const feedName = cardFeeds?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${selectedFeed}`);
+    const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? translate(`workspace.companyCards.addNewCard.cardProviders.${selectedFeed}`);
 
     return (
         <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
@@ -58,7 +58,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     success
-                    isDisabled={cardFeeds?.companyCards?.[selectedFeed].pending ?? false}
+                    isDisabled={cardFeeds?.settings?.companyCards?.[selectedFeed].pending ?? false}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                     icon={Expensicons.Plus}
                     text={translate('workspace.companyCards.assignCard')}

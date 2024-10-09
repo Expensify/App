@@ -49,7 +49,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         }
     }, [selectedFeed, isLoading]);
 
-    const companyCards = cardFeeds?.companyCards ?? {};
+    const companyCards = cardFeeds?.settings?.companyCards ?? {};
     const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
     const isNoFeed = !selectedCompanyCard;
     const isPending = selectedCompanyCard?.pending;

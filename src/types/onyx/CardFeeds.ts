@@ -30,11 +30,14 @@ type CardFeedData = {
 
 /** Card feeds model */
 type CardFeeds = {
-    /** Company cards feeds */
-    companyCards: Record<string, CardFeedData>;
+    /** Feed settings */
+    settings: {
+        /** User-friendly feed nicknames */
+        companyCardNicknames: Record<string, string>;
 
-    /** User-friendly feed nicknames */
-    companyCardNicknames: Record<string, string>;
+        /** Company cards feeds */
+        companyCards: Record<string, CardFeedData>;
+    };
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;

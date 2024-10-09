@@ -238,7 +238,7 @@ function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<
 }
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed {
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0) as CompanyCardFeed;
+    const defaultFeed = Object.keys(cardFeeds?.settings?.companyCards ?? {}).at(0) as CompanyCardFeed;
     return lastSelectedFeed ?? defaultFeed;
 }
 
