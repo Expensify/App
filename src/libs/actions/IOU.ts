@@ -2477,7 +2477,7 @@ function getUpdateMoneyRequestParams(
     transactionID: string,
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
@@ -2498,9 +2498,7 @@ function getUpdateMoneyRequestParams(
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    let updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction> = transaction
-        ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport)
-        : null;
+    let updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : undefined;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
@@ -2527,11 +2525,7 @@ function getUpdateMoneyRequestParams(
         };
 
         // Update the distanceUnit
-        const distanceRates = DistanceRequestUtils.getMileageRates(policy, true);
-        const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        const mileageRate =
-            customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID ? DistanceRequestUtils.getRateForP2P(updatedTransaction?.currency ?? 'USD') : distanceRates[customUnitRateID] ?? {};
-        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', mileageRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy}));
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -5584,7 +5578,7 @@ function updateMoneyRequestAmountAndCurrency({
     if (ReportUtils.isTrackExpenseReport(transactionThreadReport) && ReportUtils.isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy ?? null);
     } else {
-        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy ?? null, policyTagList ?? null, policyCategories ?? null, true);
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null, true);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);

@@ -163,10 +163,7 @@ function buildOptimisticTransaction(
         const policy = PolicyUtils.getPolicy(policyID);
 
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
-        const distanceRates = DistanceRequestUtils.getMileageRates(policy, true);
-        const customUnitRateID = existingTransaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        const mileageRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[customUnitRateID] ?? {};
-        lodashSet(commentJSON, 'customUnit.distanceUnit', mileageRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
     }
 
     return {
