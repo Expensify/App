@@ -465,7 +465,7 @@ class GithubUtils {
                 repo: CONST.APP_REPO,
                 workflow_id: workflow,
             })
-            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+            .then((response) => response.data.workflow_runs.at(0)?.id);
     }
 
     /**

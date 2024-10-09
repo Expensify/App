@@ -272,7 +272,7 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${1}`}
-                            accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
+                            accountID={parseInt(`${secondaryAvatar?.id}`, 10)}
                             fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
