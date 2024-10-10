@@ -105,9 +105,8 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
-
-    // The no filter is just a modifier for other filters, e.g. categories and tags so it does't have its own page
     no: {
+        getTitle: getFilterInDisplayTitle,
         description: 'common.no' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_NO,
     },
@@ -145,6 +144,10 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 }
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.NO) {
+        return '';
+    }
+
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
