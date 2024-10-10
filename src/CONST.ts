@@ -729,6 +729,8 @@ const CONST = {
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
+        'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
@@ -2519,6 +2521,7 @@ const CONST = {
     COMPANY_CARDS: {
         STEP: {
             SELECT_BANK: 'SelectBank',
+            SELECT_FEED_TYPE: 'SelectFeedType',
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
             CARD_NAME: 'CardName',
@@ -2528,6 +2531,10 @@ const CONST = {
             AMEX: 'amex',
             VISA: 'visa',
             MASTERCARD: 'mastercard',
+        },
+        FEED_TYPE: {
+            CUSTOM: 'customFeed',
+            DIRECT: 'directFeed',
         },
         BANKS: {
             AMEX: 'American Express',
