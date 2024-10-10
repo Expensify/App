@@ -50,7 +50,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             item !== CONST.IOU.TYPE.INVOICE,
     );
     const additionalText = filteredOptions
-        .map((item, index) => `${index === filteredOptions.length - 1 ? `${translate('common.or')} ` : ''}${translate(`reportActionsView.iouTypes.${item}`)}`)
+        .map((item, index) => `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(`reportActionsView.iouTypes.${item}`)}`)
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
@@ -190,7 +190,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <Text>{welcomeMessage.phrase1}</Text>
                     </Text>
                 )}
-                {isDefault && (
+                {isDefault && displayNamesWithTooltips.length > 0 && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
                         {displayNamesWithTooltips.map(({displayName, accountID}, index) => (
