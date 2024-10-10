@@ -64,7 +64,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
             PaymentMethods.continueSetup(onSuccessFallbackRoute);
             return;
         }
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
     };
 
     const handleBackButtonPress = () => {
@@ -75,7 +75,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         if (screenIndex === 0) {
             BankAccounts.clearPersonalBankAccount();
             Wallet.updateCurrentStep(null);
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
             return;
         }
         prevScreen();
