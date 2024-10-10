@@ -986,9 +986,10 @@ function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
-function togglePlatformMute(platform: Platform, mutedPlatforms: Platform[]) {
-    const isPlatformMuted = mutedPlatforms?.includes(platform);
-    const newMutedPlatforms = isPlatformMuted ? mutedPlatforms.filter((mutedPlatform) => mutedPlatform !== platform) : [...mutedPlatforms, platform];
+function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
+    const newMutedPlatforms = mutedPlatforms?.[platform]
+        ? {...mutedPlatforms, [platform]: undefined} // Remove platform if it's muted
+        : {...mutedPlatforms, [platform]: true}; // Add platform if it's not muted
 
     const optimisticData: OnyxUpdate[] = [
         {

@@ -25,12 +25,9 @@ import ROUTES from '@src/ROUTES';
 function PreferencesPage() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    let platform = getPlatform();
-    if (Browser.isMobile()) {
-        platform = CONST.PLATFORM.MOBILEWEB;
-    }
-    const [mutedPlatforms = []] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
-    const isPlatformMuted = mutedPlatforms?.includes(platform);
+    const platform = Browser.isMobile() ? CONST.PLATFORM.MOBILEWEB : getPlatform();
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
