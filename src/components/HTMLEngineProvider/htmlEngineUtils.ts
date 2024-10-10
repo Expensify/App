@@ -59,4 +59,12 @@ function isChildOfH1(tnode: TNode): boolean {
     return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'h1');
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1};
+/**
+ * Check if the parent node has deleted style.
+ */
+function isDeletedNode(tnode: TNode): boolean {
+    const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
+    return 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
+}
+
+export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1, isDeletedNode};
