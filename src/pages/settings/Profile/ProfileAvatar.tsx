@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
@@ -42,9 +41,7 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack();
-                });
+                Navigation.goBack();
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}

@@ -256,18 +256,6 @@ function AuthScreens() {
             return;
         }
 
-        let signupQualifier;
-        if (currentUrl.includes(CONST.QUALIFIER_PARAM)) {
-            signupQualifier = new URL(currentUrl).searchParams.get(CONST.QUALIFIER_PARAM);
-
-            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL) {
-                Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
-            }
-            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB) {
-                Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-            }
-        }
-
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();

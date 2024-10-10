@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
@@ -19,10 +19,16 @@ type SuggestionsValue = {
     shouldShowSuggestionMenu: boolean;
 };
 
-type SuggestionEmojiProps = SuggestionProps & {
-    /** Function to clear the input */
-    resetKeyboardInput?: () => void;
+type SuggestionEmojiOnyxProps = {
+    /** Preferred skin tone */
+    preferredSkinTone: number;
 };
+
+type SuggestionEmojiProps = SuggestionProps &
+    SuggestionEmojiOnyxProps & {
+        /** Function to clear the input */
+        resetKeyboardInput?: () => void;
+    };
 
 /**
  * Check if this piece of string looks like an emoji
@@ -231,4 +237,9 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default forwardRef(SuggestionEmoji);
+export default withOnyx<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, SuggestionEmojiOnyxProps>({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        selector: EmojiUtils.getPreferredSkinToneIndex,
+    },
+})(forwardRef(SuggestionEmoji));
