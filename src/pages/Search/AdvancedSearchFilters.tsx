@@ -105,11 +105,6 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
-    no: {
-        getTitle: getFilterInDisplayTitle,
-        description: 'common.no' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_NO,
-    },
 };
 
 const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>> = {
@@ -144,10 +139,6 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 }
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.NO) {
-        return '';
-    }
-
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
@@ -181,14 +172,6 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         }
         // Will never happen
         return;
-    }
-
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.NO]) {
-        return translate('search.filters.noCategory');
-    }
-
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.NO]) {
-        return translate('search.filters.noTag');
     }
 
     if (
@@ -252,6 +235,7 @@ function AdvancedSearchFilters() {
 
     const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery()), [queryString]);
+
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
         Navigation.dismissModal();

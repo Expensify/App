@@ -25,7 +25,7 @@ function SearchFiltersTagPage() {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
-        const items = [{name: translate('search.filters.noTag'), value: CONST.SEARCH.FILTER_NO.TAG as string}];
+        const items = [{name: translate('search.filters.noTag'), value: CONST.SEARCH.VALUE_NONE as string}];
         if (!singlePolicyTagsList) {
             const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
@@ -42,12 +42,7 @@ function SearchFiltersTagPage() {
         return items;
     }, [allPoliciesTagsLists, singlePolicyTagsList, translate]);
 
-    const updateTagFilter = useCallback((values: string[]) => {
-        if (values.at(0) === CONST.SEARCH.FILTER_NO.TAG) {
-            SearchActions.updateAdvancedFilters({no: [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]});
-        }
-        SearchActions.updateAdvancedFilters({tag: values});
-    }, []);
+    const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
 
     return (
         <ScreenWrapper

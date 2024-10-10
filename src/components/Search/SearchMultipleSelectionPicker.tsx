@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
-    value: string;
+    value: string | string[];
 };
 
 type SearchMultipleSelectionPickerProps = {
@@ -30,8 +30,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
     const sortOptions = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
-        const filterNoValues = Object.values(CONST.SEARCH.FILTER_NO) as string[];
-        if (filterNoValues.includes(a.value) || filterNoValues.includes(b.value)) {
+        // Always show `No category` and `No tag` as the first option
+        if (a.value === CONST.SEARCH.VALUE_NONE || b.value === CONST.SEARCH.VALUE_NONE) {
             return 1;
         }
         return localeCompare(a.name, b.name);

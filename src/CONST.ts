@@ -5609,12 +5609,8 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
-            NO: 'no',
         },
-        FILTER_NO: {
-            CATEGORY: 'no:category',
-            TAG: 'no:tag',
-        },
+        VALUE_NONE: 'none',
     },
 
     REFERRER: {
