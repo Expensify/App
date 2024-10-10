@@ -426,6 +426,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
+                                shouldDisableSendButton={hasExceededMaxCommentLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -445,6 +446,7 @@ function ReportActionCompose({
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
+                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {

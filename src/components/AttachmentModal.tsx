@@ -132,6 +132,8 @@ type AttachmentModalProps = {
     fallbackSource?: AvatarSource;
 
     canEditReceipt?: boolean;
+
+    shouldDisableSendButton?: boolean;
 };
 
 function AttachmentModal({
@@ -158,6 +160,7 @@ function AttachmentModal({
     shouldShowNotFoundPage = false,
     type = undefined,
     accountID = undefined,
+    shouldDisableSendButton = false,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -589,7 +592,7 @@ function AttachmentModal({
                                         textStyles={[styles.buttonConfirmText]}
                                         text={translate('common.send')}
                                         onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled}
+                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
                                         pressOnEnter
                                     />
                                 </Animated.View>
