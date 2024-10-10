@@ -2059,7 +2059,7 @@ function getOptions(
             }
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
-            reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption, shouldBoldHiddenChat);
+            reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption, shouldBoldHiddenChat || topmostReportId === reportOption.reportID);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
                 const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
