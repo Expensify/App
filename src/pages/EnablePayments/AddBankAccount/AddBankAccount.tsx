@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,26 +15,15 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalBankAccountForm} from '@src/types/form';
-import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 import SetupMethod from './SetupMethod';
 import Confirmation from './substeps/ConfirmationStep';
 import Plaid from './substeps/PlaidStep';
 
-type AddPersonalBankAccountPageWithOnyxProps = {
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-
-    /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
-
-    /** The draft values of the bank account being setup */
-    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
-};
-
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
-
-function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraft}: AddPersonalBankAccountPageWithOnyxProps) {
+function AddBankAccount() {
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -118,15 +106,4 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
 AddBankAccount.displayName = 'AddBankAccountPage';
 
-export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-})(AddBankAccount);
+export default AddBankAccount;
