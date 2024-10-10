@@ -455,10 +455,10 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            // if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
-            //     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
-            //     return;
-            // }
+            if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
+                return;
+            }
 
             if (isIOUSplit) {
                 addParticipantToSelection(option);
