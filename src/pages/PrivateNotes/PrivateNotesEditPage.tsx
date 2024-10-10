@@ -148,7 +148,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
                         inputID={INPUT_IDS.PRIVATE_NOTES}
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}
-                        autoCompleteType="off"
+                        autoComplete="off"
                         maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
