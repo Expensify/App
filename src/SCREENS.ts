@@ -315,6 +315,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',
             QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
             QUICKBOOKS_DESKTOP_SETUP_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Modal',
             QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accouting_Quickbooks_Desktop_Setup_Required_Device_Modal',

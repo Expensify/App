@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickBooksDesktop from '@libs/actions/connections/QuickBooksDesktop';
+import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import LoadingPage from '@pages/LoadingPage';
@@ -30,7 +30,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     useEffect(() => {
         const fetchSetupLink = () => {
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            QuickBooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
+            QuickbooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
                 setCodatSetupLink(String(response?.setupUrl ?? ''));
                 setIsLoading(false);
             });
