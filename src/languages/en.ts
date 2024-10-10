@@ -1026,6 +1026,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
@@ -2316,6 +2317,7 @@ const translations = {
             }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
+            deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
@@ -2380,6 +2382,10 @@ const translations = {
                 title: 'Open this link to connect',
                 body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
             },
+            importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
+            classes: 'Classes',
+            items: 'Items',
+            customers: 'Customers/projects',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
