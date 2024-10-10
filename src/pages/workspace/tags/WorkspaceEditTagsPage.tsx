@@ -18,6 +18,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
@@ -53,7 +54,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
                 Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
-            Navigation.goBack(backTo);
+            Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID));
         },
         [policyTags, route.params.orderWeight, route.params.policyID, taglistName, backTo],
     );
@@ -69,7 +70,12 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 shouldEnableMaxHeight
                 testID={WorkspaceEditTagsPage.displayName}
             >
-                <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
+                <HeaderWithBackButton
+                    title={translate(`workspace.tags.customTagName`)}
+                    onBackButtonPress={() =>
+                        Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID))
+                    }
+                />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}

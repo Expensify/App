@@ -20,6 +20,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
@@ -58,7 +59,7 @@ function CreateTagPage({route}: CreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
-            Navigation.goBack(backTo);
+            Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID) : undefined);
         },
         [route.params.policyID, backTo],
     );

@@ -65,11 +65,11 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const navigateToEditTag = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name));
+        Navigation.navigate(
+            backTo
+                ? ROUTES.SETTINGS_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
+        );
     };
 
     const navigateToEditGlCode = () => {
@@ -79,19 +79,19 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             );
             return;
         }
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name));
+        Navigation.navigate(
+            backTo
+                ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
+        );
     };
 
     const navigateToEditTagApprover = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name));
+        Navigation.navigate(
+            backTo
+                ? ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
+        );
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
