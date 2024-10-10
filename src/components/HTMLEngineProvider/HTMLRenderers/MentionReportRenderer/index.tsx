@@ -57,7 +57,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
-    const {currentReportID: currentReportIDContext} = useContext(MentionReportContext);
+    const {currentReportID: currentReportIDContext, exactlyMatch} = useContext(MentionReportContext);
 
     const currentReportID = useCurrentReportID();
     const currentReportIDValue = currentReportIDContext || currentReportID?.currentReportID;
@@ -86,7 +86,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     style={
-                        isGroupPolicyReport
+                        isGroupPolicyReport && (!exactlyMatch || navigationRoute)
                             ? [styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isCurrentRoomMention), {color: StyleUtils.getMentionTextColor(isCurrentRoomMention)}]
                             : []
                     }
