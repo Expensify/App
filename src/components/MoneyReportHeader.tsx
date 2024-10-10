@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -127,9 +128,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSubmitButton = !!moneyRequestReport && isDraft && reimbursableSpend !== 0 && !hasAllPendingRTERViolations;
-
+    const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    const shouldShowSubmitButton =
+        !!moneyRequestReport &&
+        isDraft &&
+        reimbursableSpend !== 0 &&
+        !hasAllPendingRTERViolations &&
+        (moneyRequestReport?.ownerAccountID === currentUserAccountID || isAdmin || moneyRequestReport?.managerID === currentUserAccountID);
+
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !hasAllPendingRTERViolations && !shouldShowExportIntegrationButton;

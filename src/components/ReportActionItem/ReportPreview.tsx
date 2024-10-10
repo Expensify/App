@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -179,7 +180,14 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0 && !showRTERViolationMessage;
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowSubmitButton =
+        isOpenExpenseReport &&
+        reimbursableSpend !== 0 &&
+        !showRTERViolationMessage &&
+        (iouReport?.ownerAccountID === currentUserAccountID || isAdmin || iouReport?.managerID === currentUserAccountID);
+
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
@@ -409,7 +417,6 @@ function ReportPreview({
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     useEffect(() => {
