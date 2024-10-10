@@ -1026,6 +1026,7 @@ const translations = {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
     },
     notificationPreferencesPage: {
@@ -2304,6 +2305,7 @@ const translations = {
             }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
+            deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
@@ -2358,6 +2360,20 @@ const translations = {
         },
         qbd: {
             exportDescription: 'Configure how Expensify data exports to QuickBooks Desktop.',
+            qbdSetup: 'QuickBooks Desktop setup',
+            requiredSetupDevice: {
+                title: "Can't connect from this device",
+                body1: "You'll need to setup this connection from the computer that hosts your QuickBooks Desktop company file.",
+                body2: "Once you're connected, you'll be able to sync and export from anywhere.",
+            },
+            setupPage: {
+                title: 'Open this link to connect',
+                body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
+            },
+            importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
+            classes: 'Classes',
+            items: 'Items',
+            customers: 'Customers/projects',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -3364,10 +3380,16 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove these members?',
+            removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+                one: `Are you sure you want to remove ${memberName}?`,
+                other: 'Are you sure you want to remove these members?',
+            }),
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
-            removeMembersTitle: 'Remove members',
+            removeMembersTitle: () => ({
+                one: 'Remove member',
+                other: 'Remove members',
+            }),
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -3429,6 +3451,7 @@ const translations = {
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
+            qbd: 'Quickbooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
@@ -4054,7 +4077,10 @@ const translations = {
         memberNotFound: 'Member not found.',
         useInviteButton: 'To invite a new member to the chat, please use the invite button above.',
         notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
-        removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+            one: `Are you sure you want to remove ${memberName} from the room?`,
+            other: 'Are you sure you want to remove the selected members from the room?',
+        }),
         error: {
             genericAdd: 'There was a problem adding this room member.',
         },

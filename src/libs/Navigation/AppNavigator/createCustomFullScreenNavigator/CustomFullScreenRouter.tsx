@@ -32,7 +32,7 @@ function adaptStateIfNecessary(state: StackState) {
     // - WORKSPACE.INITIAL to cover left pane.
     // - WORKSPACE.PROFILE (first workspace settings screen) to cover central pane.
     if (!isNarrowLayout) {
-        if (state.routes.length === 1 && state.routes[0].name === SCREENS.WORKSPACE.INITIAL) {
+        if (state.routes.length === 1 && state.routes.at(0)?.name === SCREENS.WORKSPACE.INITIAL) {
             // @ts-expect-error Updating read only property
             // noinspection JSConstantReassignment
             state.stale = true; // eslint-disable-line
