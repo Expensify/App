@@ -9,6 +9,7 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
+import Text from '@components/Text';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -222,13 +223,19 @@ function AttachmentView({
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
             return (
-                <Icon
-                    src={fallbackSource}
-                    height={variables.defaultAvatarPreviewSize}
-                    width={variables.defaultAvatarPreviewSize}
-                    additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
-                    fill={theme.border}
-                />
+                <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={fallbackSource}
+                        height={variables.defaultAvatarPreviewSize}
+                        width={variables.defaultAvatarPreviewSize}
+                        additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
+                        fill={theme.border}
+                    />
+                    <View>
+                        <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
+                        <Text>{translate('attachmentView.verifyAttachmentURL')}</Text>
+                    </View>
+                </View>
             );
         }
         let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
