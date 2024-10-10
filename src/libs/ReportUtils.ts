@@ -3181,6 +3181,13 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
+    if (isInvoiceReport(moneyRequestReport)) {
+        return {
+            canHoldRequest: false,
+            canUnholdRequest: false,
+        };
+    }
+
     const isRequestSettled = isSettled(moneyRequestReport?.reportID);
     const isApproved = isReportApproved(moneyRequestReport);
     const transactionID = moneyRequestReport ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
