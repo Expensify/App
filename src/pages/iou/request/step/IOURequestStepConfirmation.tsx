@@ -346,6 +346,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 transaction.splitShares,
                 iouType,
+                transaction,
             );
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],

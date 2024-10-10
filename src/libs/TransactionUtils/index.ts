@@ -1,5 +1,6 @@
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -139,6 +140,7 @@ function buildOptimisticTransaction(
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
+    existingTransaction: OnyxEntry<Transaction> | undefined = undefined,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -150,6 +152,18 @@ function buildOptimisticTransaction(
     }
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
+    }
+
+    const isDistanceTransaction = (pendingFields?.waypoints ?? '') !== '';
+    if (isDistanceTransaction) {
+        // Get the policy of this transaction from the report.policyID
+        const allReports = ReportConnection.getAllReports();
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+        const policyID = report?.policyID ?? '';
+        const policy = PolicyUtils.getPolicy(policyID);
+
+        // Set the distance unit, which comes from the policy distance unit or the P2P rate data
+        lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
     }
 
     return {
@@ -261,15 +275,26 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.comment = {
-            ...(updatedTransaction?.comment ?? {}),
-            customUnit: {
-                ...updatedTransaction?.comment?.customUnit,
-                customUnitRateID: transactionChanges.customUnitRateID,
-                defaultP2PRate: null,
-            },
-        };
+        lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID);
+        lodashSet(updatedTransaction, 'comment.customUnit.defaultP2PRate', null);
         shouldStopSmartscan = true;
+
+        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const allReports = ReportConnection.getAllReports();
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
+        const policyID = report?.policyID ?? '';
+        const policy = PolicyUtils.getPolicy(policyID);
+
+        // Get the new distance unit from the rate's unit
+        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction, policy});
+
+        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
+        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+            const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+            const distance = Math.round((updatedTransaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor * 100) / 100;
+            lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+            lodashSet(updatedTransaction, 'pendingFields.waypoints', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {

@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -71,7 +70,10 @@ function IOURequestStepDistanceRate({
     };
 
     const sections = Object.values(rates).map((rate) => {
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+        // If the rate is currently used by the transaction, display the rate with the transaction's distance unit. Otherwise, display the rate's unit.
+        // Using the transaction's distance unit prevents the case where changing the policy distance unit, and therefore all rate units, effects the units of existing transactions.
+        const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, rate.currency, translate, toLocaleDigit);
 
         return {
             text: rate.name ?? rateForDisplay,
@@ -83,8 +85,6 @@ function IOURequestStepDistanceRate({
         };
     });
 
-    const unit = (Object.values(rates).at(0)?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
-
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
@@ -93,6 +93,7 @@ function IOURequestStepDistanceRate({
         if (shouldShowTax) {
             const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
+            const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
             taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
@@ -118,7 +119,7 @@ function IOURequestStepDistanceRate({
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
                 sections={[{data: sections}]}

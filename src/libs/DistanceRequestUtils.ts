@@ -1,10 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -12,6 +11,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -223,9 +223,9 @@ function getDistanceMerchant(
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
  * @param currency
- * @returns The rate and unit in RateAndUnit object.
+ * @returns The rate and unit in MileageRate object.
  */
-function getRateForP2P(currency: string): RateAndUnit {
+function getRateForP2P(currency: string): MileageRate {
     const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
     return {
         ...CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate],
@@ -301,6 +301,48 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     return amount * taxClaimablePercentage;
 }
 
+function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>) {
+    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+}
+
+/**
+ * Get the selected rate for a transaction, from the policy or P2P default rate.
+ * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
+ */
+function getRate({
+    transaction,
+    policy,
+    policyDraft,
+    useTransactionDistanceUnit = true,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    policyDraft?: OnyxEntry<Policy>;
+    useTransactionDistanceUnit?: boolean;
+}): MileageRate {
+    let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
+    if (isEmptyObject(mileageRates) && policyDraft) {
+        mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
+    }
+    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const defaultMileageRate = getDefaultMileageRate(policy);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+    const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
+    return {
+        ...mileageRate,
+        unit,
+    };
+}
+
+/**
+ * Get the updated distance unit from the selected rate instead of the distanceUnit stored on the transaction.
+ * Useful for updating the transaction distance unit when the distance or rate changes.
+ */
+function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -312,6 +354,9 @@ export default {
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
+    getDistanceUnit,
+    getUpdatedDistanceUnit,
+    getRate,
 };
 
 export type {MileageRate};
