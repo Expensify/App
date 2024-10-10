@@ -177,14 +177,6 @@ function ReportActionsList({
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report?.reportID ?? '', mainReportActions ?? [], isOffline);
     const [threadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
-    const getLastReadTime = useCallback(() => {
-        return threadReport?.lastReadTime ?? report.lastReadTime;
-    }, [report, threadReport]);
-
-    const getLastVisibleActionCreated = useCallback(() => {
-        return threadReport?.lastVisibleActionCreated ?? report.lastVisibleActionCreated;
-    }, [report, threadReport]);
-
     const getReportId = useCallback(() => {
         return threadReport?.reportID ?? report.reportID;
     }, [report, threadReport]);
@@ -224,9 +216,9 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(getLastReadTime() ?? '');
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
-        setUnreadMarkerTime(getLastReadTime() ?? '');
+        setUnreadMarkerTime(report.lastReadTime ?? '');
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -260,11 +252,11 @@ function ReportActionsList({
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
     useEffect(() => {
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${getReportId()}`, (newLastReadTime: string) => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
             userActiveSince.current = DateUtils.getDBTime();
         });
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${getReportId()}`, (newLastReadTime: string) => {
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
         });
 
@@ -297,7 +289,7 @@ function ReportActionsList({
 
     const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === getLastVisibleActionCreated();
+    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -413,7 +405,7 @@ function ReportActionsList({
         if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
-                Report.readNewestAction(getReportId());
+                Report.readNewestAction(report.reportID);
             }
             setIsFloatingMessageCounterVisible(false);
         }
@@ -433,7 +425,7 @@ function ReportActionsList({
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
-        Report.readNewestAction(getReportId());
+        Report.readNewestAction(report.reportID);
     };
 
     /**
@@ -493,7 +485,7 @@ function ReportActionsList({
 
         // In case the user read new messages (after being inactive) with other device we should
         // show marker based on report.lastReadTime
-        const newMessageTimeReference = lastMessageTime.current && getLastReadTime() && lastMessageTime.current > getLastReadTime() ? userActiveSince.current : getLastReadTime();
+        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
         const isArchivedReport = ReportUtils.isArchivedRoom(report);
