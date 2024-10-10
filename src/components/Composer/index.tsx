@@ -103,6 +103,7 @@ function Composer(
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
@@ -263,11 +264,11 @@ function Composer(
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined) {
+        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        textInput.current.scrollTop = prevScroll;
+        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
@@ -395,6 +396,7 @@ function Composer(
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
                 onContentSizeChange={(e) => {
+                    setPrevHeight(e.nativeEvent.contentSize.height);
                     setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
                     updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
                 }}
