@@ -270,6 +270,7 @@ export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIn
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
 export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
+export type {default as ExportReportCSVParams} from './ExportReportCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
