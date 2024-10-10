@@ -1205,6 +1205,58 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/**
+ * Data imported from QuickBooks Desktop.
+ */
+type QBDConnectionData = {
+    /** Collection of cash accounts */
+    cashAccounts: Account[];
+
+    /** Collection of credit cards */
+    creditCardAccounts: Account[];
+
+    /** Collection of journal entry accounts  */
+    journalEntryAccounts: Account[];
+
+    /** Collection of payable accounts */
+    payableAccounts: Account[];
+
+    /** Collection of bank accounts */
+    bankAccounts: Account[];
+
+    /** Collections of vendors */
+    vendors: Vendor[];
+};
+
+/**
+ * User configuration for the QuickBooks Desktop accounting integration.
+ */
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** API provider */
+    apiProvider: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+    autoSync: {
+        /** TODO: Will be handled in another issue */
+        jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
+
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
+    };
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -1219,7 +1271,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 /** Available integration connections */
 type Connections = {
-    /** QuickBooks integration connection */
+    /** QuickBooks Online integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
@@ -1230,6 +1282,9 @@ type Connections = {
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+
+    /** QuickBooks Desktop integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1252,6 +1307,9 @@ type MccGroup = {
 
     /** ID of the Merchant Category Code */
     groupID: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of verified reimbursement bank account linked to policy */
@@ -1359,25 +1417,25 @@ type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
 
     /** Record of public policy details, indexed by policy ID */
-    policyDetailsForNonMembers: Record<
-        string,
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
-            /** Name of the policy */
-            name: string;
+    policyDetailsForNonMembers: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>;
+};
 
-            /** Policy owner account ID */
-            ownerAccountID: number;
+/** Details of public policy */
+type PolicyDetailsForNonMembers = {
+    /** Name of the policy */
+    name: string;
 
-            /** Policy owner e-mail */
-            ownerEmail: string;
+    /** Policy owner account ID */
+    ownerAccountID: number;
 
-            /** Policy type */
-            type: ValueOf<typeof CONST.POLICY.TYPE>;
+    /** Policy owner e-mail */
+    ownerEmail: string;
 
-            /** Policy avatar */
-            avatar?: string;
-        }>
-    >;
+    /** Policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Policy avatar */
+    avatar?: string;
 };
 
 /** Data informing when a given rule should be applied */
@@ -1731,6 +1789,7 @@ export type {
     CompanyAddress,
     IntegrationEntityMap,
     PolicyFeatureName,
+    PolicyDetailsForNonMembers,
     PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,

@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
 import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
@@ -21,6 +21,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
@@ -45,18 +46,15 @@ import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
-import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
+import type IOURequestStepScanProps from './types';
 
 function IOURequestStepScan({
     report,
-    policy,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
-    personalDetails,
     currentUserPersonalDetails,
-    skipConfirmation,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -80,6 +78,9 @@ function IOURequestStepScan({
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const policy = usePolicy(report?.policyID);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -140,8 +141,8 @@ function IOURequestStepScan({
                 navigator.mediaDevices.enumerateDevices().then((devices) => {
                     let lastBackDeviceId = '';
                     for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices[i];
-                        if (device.kind === 'videoinput') {
+                        const device = devices.at(i);
+                        if (device?.kind === 'videoinput') {
                             lastBackDeviceId = device.deviceId;
                             break;
                         }
@@ -211,7 +212,7 @@ function IOURequestStepScan({
                     return false;
                 }
 
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
                     return false;
                 }
@@ -266,7 +267,9 @@ function IOURequestStepScan({
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+            // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
                 navigateToParticipantPage();
                 return;
             }
@@ -302,6 +305,10 @@ function IOURequestStepScan({
                 }
                 getCurrentPosition(
                     (successData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
                             IOU.trackExpense(
                                 report,
@@ -311,7 +318,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -336,7 +343,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -355,6 +362,10 @@ function IOURequestStepScan({
                         }
                     },
                     (errorData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
@@ -366,7 +377,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -379,7 +390,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -732,20 +743,7 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanWithOnyx = withOnyx<Omit<IOURequestStepScanProps, 'user'>, Omit<IOURequestStepOnyxProps, 'user'>>({
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-})(IOURequestStepScan);
+const IOURequestStepScanWithOnyx = IOURequestStepScan;
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables

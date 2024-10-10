@@ -1,15 +1,17 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -22,13 +24,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
-import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
+import type {BaseOnboardingWorkProps} from './types';
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
+    const {isOffline} = useNetwork();
+    const isVsbOnboarding = Array.isArray(onboardingValues) ? false : onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -66,14 +73,15 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             shouldEnableKeyboardAvoidingView
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWork"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!isVsbOnboarding}
                 progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 50 : 75}
                 onBackButtonPress={OnboardingFlow.goBack}
             />
@@ -107,17 +115,11 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     />
                 </View>
             </FormProvider>
+            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
-    onboardingPurposeSelected: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    onboardingPolicyID: {
-        key: ONYXKEYS.ONBOARDING_POLICY_ID,
-    },
-})(BaseOnboardingWork);
+export default BaseOnboardingWork;

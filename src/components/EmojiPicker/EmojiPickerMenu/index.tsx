@@ -175,13 +175,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 indexToSelect = 0;
             }
 
-            const item = filteredEmojis[indexToSelect];
-            if (!item) {
+            const item = filteredEmojis.at(indexToSelect);
+            if (indexToSelect === -1 || !item) {
                 return;
             }
             if ('types' in item || 'name' in item) {
-                const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
-                onEmojiSelected(emoji, item);
+                const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
+                onEmojiSelected(emoji ?? '', item);
             }
         },
         {shouldPreventDefault: true, shouldStopPropagation: true},
@@ -266,7 +266,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types[preferredSkinTone] : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? types.at(preferredSkinTone) : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
             const shouldEmojiBeHighlighted =
@@ -289,7 +289,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         }
                         setIsUsingKeyboardMovement(false);
                     }}
-                    emoji={emojiCode}
+                    emoji={emojiCode ?? ''}
                     onFocus={() => setFocusedIndex(index)}
                     isFocused={isEmojiFocused}
                     isHighlighted={shouldFirstEmojiBeHighlighted || shouldEmojiBeHighlighted}

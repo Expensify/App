@@ -3,6 +3,7 @@ import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -215,7 +216,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             if (option?.login) {
                 login = option.login;
             } else if (selectedOptions.length === 1) {
-                login = selectedOptions[0].login ?? '';
+                login = selectedOptions.at(0)?.login ?? '';
             }
             if (!login) {
                 Log.warn('Tried to create chat with empty login');
@@ -348,7 +349,12 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
                 />
-                {isSmallScreenWidth && <OfflineIndicator />}
+                {isSmallScreenWidth && (
+                    <>
+                        <OfflineIndicator />
+                        <ImportedStateIndicator />
+                    </>
+                )}
             </KeyboardAvoidingView>
         </ScreenWrapper>
     );

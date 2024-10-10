@@ -33,8 +33,8 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
         .manualActivation(true)
         .onTouchesMove((evt) => {
             if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled) {
-                const translateX = Math.abs(evt.allTouches[0].absoluteX - offsetX.value);
-                const translateY = Math.abs(evt.allTouches[0].absoluteY - offsetY.value);
+                const translateX = Math.abs((evt.allTouches.at(0)?.absoluteX ?? 0) - offsetX.value);
+                const translateY = Math.abs((evt.allTouches.at(0)?.absoluteY ?? 0) - offsetY.value);
                 const allowEnablingScroll = !isPanGestureActive.value || isScrollEnabled.value;
 
                 // if the value of X is greater than Y and the pdf is not zoomed in,
@@ -49,8 +49,8 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
             }
 
             isPanGestureActive.value = true;
-            offsetX.value = evt.allTouches[0].absoluteX;
-            offsetY.value = evt.allTouches[0].absoluteY;
+            offsetX.value = evt.allTouches.at(0)?.absoluteX ?? 0;
+            offsetY.value = evt.allTouches.at(0)?.absoluteY ?? 0;
         })
         .onTouchesUp(() => {
             isPanGestureActive.value = false;
