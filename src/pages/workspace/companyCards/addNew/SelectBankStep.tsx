@@ -29,9 +29,8 @@ function SelectBankStep() {
         if (!bankSelected) {
             setIsError(true);
         } else {
-            // TODO: https://github.com/Expensify/App/issues/50447 - update the navigation when new screen exists
             CompanyCards.setAddNewCompanyCardStepAndData({
-                step: bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER ? CONST.COMPANY_CARDS.STEP.CARD_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                 },
