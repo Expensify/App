@@ -16,6 +16,7 @@ import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -64,6 +65,9 @@ function IOURequestStepScan({
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
+    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
+    const [fileResize, setFileResize] = useState<null | FileObject>(null);
+    const [fileSource, setFileSource] = useState('');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -462,7 +466,14 @@ function IOURequestStepScan({
                     updateScanAndNavigate(file, source);
                     return;
                 }
-                navigateToConfirmationStep(file, source);
+                if (shouldSkipConfirmation) {
+                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                    setFileResize(file);
+                    setFileSource(source);
+                    setStartLocationPermissionFlow(!!gpsRequired);
+                } else {
+                    navigateToConfirmationStep(file, source);
+                }
             });
         });
     };
@@ -497,8 +508,15 @@ function IOURequestStepScan({
             return;
         }
 
-        navigateToConfirmationStep(file, source);
-    }, [isEditing, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
+        if (shouldSkipConfirmation) {
+            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+            setFileResize(file);
+            setFileSource(source);
+            setStartLocationPermissionFlow(!!gpsRequired);
+        } else {
+            navigateToConfirmationStep(file, source);
+        }
+    }, [transactionID, isEditing, shouldSkipConfirmation, requestCameraPermission, updateScanAndNavigate, transaction?.amount, iouType, navigateToConfirmationStep]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -734,6 +752,14 @@ function IOURequestStepScan({
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
+                        {startLocationPermissionFlow && fileResize && (
+                            <LocationPermissionModal
+                                startPermissionFlow={startLocationPermissionFlow}
+                                resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                                onGrant={() => navigateToConfirmationStep(fileResize, fileSource)}
+                                onDeny={() => navigateToConfirmationStep(fileResize, fileSource)}
+                            />
+                        )}
                     </View>
                 </>
             )}

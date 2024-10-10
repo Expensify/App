@@ -18,6 +18,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -64,6 +65,9 @@ function IOURequestStepScan({
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
+    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
+    const [fileResize, setFileResize] = useState<null | FileObject>(null);
+    const [fileSource, setFileSource] = useState('');
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -429,8 +433,14 @@ function IOURequestStepScan({
                 updateScanAndNavigate(file, file?.uri ?? '');
                 return;
             }
-
-            navigateToConfirmationStep(file, file.uri ?? '');
+            if (shouldSkipConfirmation) {
+                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                setFileResize(file);
+                setFileSource(file?.uri ?? '');
+                setStartLocationPermissionFlow(!!gpsRequired);
+            } else {
+                navigateToConfirmationStep(file, file?.uri ?? '');
+            }
         });
     };
 
@@ -612,6 +622,14 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
+            {startLocationPermissionFlow && fileResize && (
+                <LocationPermissionModal
+                    startPermissionFlow={startLocationPermissionFlow}
+                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                    onGrant={() => navigateToConfirmationStep(fileResize, fileSource)}
+                    onDeny={() => navigateToConfirmationStep(fileResize, fileSource)}
+                />
+            )}
         </StepScreenWrapper>
     );
 }
