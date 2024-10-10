@@ -12,7 +12,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
