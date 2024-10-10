@@ -373,6 +373,8 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
     );
 }
 
+export type {DeepPartial};
+
 export {
     removePolicyConnection,
     updatePolicyConnectionConfig,

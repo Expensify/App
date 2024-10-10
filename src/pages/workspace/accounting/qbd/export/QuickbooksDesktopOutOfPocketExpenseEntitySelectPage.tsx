@@ -6,7 +6,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -67,20 +67,15 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
             if (row.value !== reimbursable) {
-                Connections.updateManyPolicyConnectionConfigs(
+                QuickbooksDesktop.updateManyExportConnectionConfigs(
                     policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBD,
                     {
-                        export: {
-                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: row.value,
-                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: row.accounts.at(0)?.id ?? '',
-                        },
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: row.value,
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: row.accounts.at(0)?.id ?? '',
                     },
                     {
-                        export: {
-                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: reimbursable,
-                            [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: qbdConfig?.export?.reimbursableAccount,
-                        },
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: reimbursable,
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: qbdConfig?.export?.reimbursableAccount,
                     },
                 );
             }
