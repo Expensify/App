@@ -80,7 +80,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
  */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
+    const selectedTags = TransactionUtils.getTagArrayFromName(transaction?.tag ?? '');
     let newTransactionViolations = [...transactionViolations];
 
     newTransactionViolations = newTransactionViolations.filter(
