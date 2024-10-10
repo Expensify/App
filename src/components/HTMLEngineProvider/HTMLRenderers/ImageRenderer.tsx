@@ -14,9 +14,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
-import ONYXKEYS from "@src/ONYXKEYS";
 
 type ImageRendererWithOnyxProps = {
     /** Current user */
