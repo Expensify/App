@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -74,6 +75,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
     const requestType = TransactionUtils.getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -231,6 +233,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const participant = selectedParticipants.at(0);
+            if (!participant) {
+                return;
+            }
+
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -239,7 +246,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
+                participant,
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -265,6 +272,10 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
+            const participant = selectedParticipants.at(0);
+            if (!participant) {
+                return;
+            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -273,7 +284,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
+                participant,
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -538,7 +549,7 @@ function IOURequestStepConfirmation({
         (paymentMethod: PaymentMethodType | undefined) => {
             const currency = transaction?.currency;
             const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
-            const participant = participants?.[0];
+            const participant = participants?.at(0);
 
             if (!participant || !transaction?.amount || !currency) {
                 return;
@@ -571,9 +582,17 @@ function IOURequestStepConfirmation({
 
     const onConfirm = (listOfParticipants: Participant[]) => {
         setSelectedParticipantList(listOfParticipants);
+
         if (gpsRequired) {
-            setStartLocationPermissionFlow(true);
-            return;
+            const shouldStartLocationPermissionFlow =
+                !lastLocationPermissionPrompt ||
+                (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
+                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
+
+            if (shouldStartLocationPermissionFlow) {
+                setStartLocationPermissionFlow(true);
+                return;
+            }
         }
 
         createTransaction(listOfParticipants);
@@ -608,7 +627,10 @@ function IOURequestStepConfirmation({
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                             onGrant={() => createTransaction(selectedParticipantList, true)}
-                            onDeny={() => createTransaction(selectedParticipantList, false)}
+                            onDeny={() => {
+                                IOU.updateLastLocationPermissionPrompt();
+                                createTransaction(selectedParticipantList, false);
+                            }}
                         />
                     )}
                     <MoneyRequestConfirmationList

@@ -45,11 +45,11 @@ const test = (config: NativeConfig) => {
         const subscription = DeviceEventEmitter.addListener('onViewableItemsChanged', (res: ViewableItemResponse) => {
             console.debug('[E2E] Viewable items retrieved, verifying correct message…', res);
 
-            if (!!res && res?.[0]?.item?.reportActionID === linkedReportActionID) {
+            if (!!res && res?.at(0)?.item?.reportActionID === linkedReportActionID) {
                 appearMessageResolve();
                 subscription.remove();
             } else {
-                console.debug(`[E2E] Provided message id '${res?.[0]?.item?.reportActionID}' doesn't match to an expected '${linkedReportActionID}'. Waiting for a next one…`);
+                console.debug(`[E2E] Provided message id '${res?.at(0)?.item?.reportActionID}' doesn't match to an expected '${linkedReportActionID}'. Waiting for a next one…`);
             }
         });
 

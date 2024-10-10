@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
@@ -245,6 +246,24 @@ function getAccountingIntegrationData(
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return {
+                title: translate('workspace.accounting.qbd'),
+                icon: Expensicons.QBDSquare,
+                setupConnectionFlow: (
+                    <ConnectToQuickbooksDesktopFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onCardReconciliationPagePress: () => {},
+                onAdvancedPagePress: () => {},
+                subscribedImportSettings: [],
+                subscribedExportSettings: [],
+                subscribedAdvancedSettings: [],
+            };
         default:
             return undefined;
     }
@@ -274,16 +293,6 @@ function getSynchronizationErrorMessage(
     }
 
     const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
-    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (
-            !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
-        ) {
-            return syncError;
-        }
-        return;
-    }
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {

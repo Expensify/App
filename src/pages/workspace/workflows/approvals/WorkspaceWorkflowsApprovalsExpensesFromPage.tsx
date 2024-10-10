@@ -146,13 +146,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
     }, [approvalWorkflow, route.params.backTo, route.params.policyID, selectedMembers]);
 
-    const goBack = useCallback(() => {
-        if (isInitialCreationFlow) {
-            Workflow.clearApprovalWorkflow();
-        }
-        Navigation.goBack();
-    }, [isInitialCreationFlow]);
-
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
 
@@ -176,7 +169,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
 
     const listEmptyContent = useMemo(
         () => (
@@ -211,7 +204,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsExpensesFromPage.title')}
-                        onBackButtonPress={goBack}
+                        onBackButtonPress={() => Navigation.goBack()}
                     />
 
                     {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !shouldShowListEmptyContent && (

@@ -100,11 +100,11 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
 
     if (CONST.REGEX.DISTANCE_MERCHANT.test(newMerchant) && CONST.REGEX.DISTANCE_MERCHANT.test(oldMerchant)) {
         const oldValues = oldMerchant.split('@');
-        const oldDistance = oldValues[0]?.trim() || '';
-        const oldRate = oldValues[1]?.trim() || '';
+        const oldDistance = oldValues.at(0)?.trim() ?? '';
+        const oldRate = oldValues.at(1)?.trim() ?? '';
         const newValues = newMerchant.split('@');
-        const newDistance = newValues[0]?.trim() || '';
-        const newRate = newValues[1]?.trim() || '';
+        const newDistance = newValues.at(0)?.trim() ?? '';
+        const newRate = newValues.at(1)?.trim() ?? '';
 
         if (oldDistance === newDistance && oldRate !== newRate) {
             changedField = 'rate';
@@ -235,8 +235,8 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         sortedTagKeys.forEach((policyTagKey, index) => {
             const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
-            const newTag = splittedTag[index] ?? '';
-            const oldTag = splittedOldTag[index] ?? '';
+            const newTag = splittedTag.at(index) ?? '';
+            const oldTag = splittedOldTag.at(index) ?? '';
 
             if (newTag !== oldTag) {
                 buildMessageFragmentForValue(

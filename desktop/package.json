@@ -6,7 +6,7 @@
   "dependencies": {
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.4.8",
-    "electron-updater": "^6.3.4",
+    "electron-updater": "^6.3.6",
     "mime-types": "^2.1.35",
     "node-machine-id": "^1.1.12"
   },
