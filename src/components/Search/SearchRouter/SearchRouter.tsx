@@ -150,8 +150,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
-        onRouterClose();
-        clearUserQuery();
+        closeAndClearRouter();
     });
 
     const modalWidth = isSmallScreenWidth ? styles.w100 : {width: variables.popoverWidth};
