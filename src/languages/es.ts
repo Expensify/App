@@ -640,7 +640,6 @@ const translations = {
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
         copyOnyxData: 'Copiar datos de Onyx',
-        debug: 'Depurar',
         flagAsOffensive: 'Marcar como ofensivo',
         menu: 'Menú',
     },
