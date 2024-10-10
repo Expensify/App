@@ -113,14 +113,4 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 }
 
 ImageRenderer.displayName = 'ImageRenderer';
-
-export default withOnyx<ImageRendererProps, ImageRendererWithOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(
-    memo(
-        ImageRenderer,
-        (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
-    ),
-);
+export default ImageRenderer
