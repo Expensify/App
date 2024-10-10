@@ -33,6 +33,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -52,6 +53,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -195,6 +197,7 @@ function ReportActionItem({
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
+    const {canUseP2PDistanceRequests} = usePermissions();
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -418,14 +421,18 @@ function ReportActionItem({
         if (ReportActionsUtils.isActionableTrackExpense(action)) {
             const transactionID = ReportActionsUtils.getOriginalMessage(action)?.transactionID;
             return [
-                {
-                    text: 'actionableMentionTrackExpense.submit',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
-                    onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
-                    },
-                    isMediumSized: true,
-                },
+                ...(!TransactionUtils.isDistanceRequest(TransactionUtils.getTransaction(transactionID ?? '-1')) || canUseP2PDistanceRequests
+                    ? [
+                          {
+                              text: 'actionableMentionTrackExpense.submit',
+                              key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
+                              onPress: () => {
+                                  ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                              },
+                              isMediumSized: true,
+                          } as ActionableItem,
+                      ]
+                    : []),
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
@@ -498,7 +505,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, reportID]);
+    }, [action, isActionableWhisper, reportID, canUseP2PDistanceRequests]);
 
     /**
      * Get the content of ReportActionItem
