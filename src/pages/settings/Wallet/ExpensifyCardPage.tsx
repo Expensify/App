@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -79,7 +80,7 @@ function ExpensifyCardPage({
     privatePersonalDetails,
     loginList,
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', backTo},
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -100,7 +101,7 @@ function ExpensifyCardPage({
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     useEffect(() => {
-        setIsNotFound(!cardsToShow);
+        setIsNotFound(isEmpty(cardsToShow));
     }, [cardList, cardsToShow]);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);
@@ -162,7 +163,7 @@ function ExpensifyCardPage({
     };
 
     if (isNotFound) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET)} />;
     }
 
     return (
