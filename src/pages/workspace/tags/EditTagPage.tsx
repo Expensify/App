@@ -66,7 +66,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
             );
         },
-        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight],
+        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight, backTo],
     );
 
     return (
