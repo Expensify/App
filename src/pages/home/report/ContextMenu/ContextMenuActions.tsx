@@ -421,7 +421,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
-                    Clipboard.setString(displayMessage);
+                    if (displayMessage === Parser.htmlToText(displayMessage)) {
+                        Clipboard.setString(displayMessage);
+                    } else {
+                        setClipboardMessage(displayMessage);
+                    }
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
@@ -444,31 +448,25 @@ const ContextMenuActions: ContextMenuAction[] = [
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
                 ) {
                     const {harvesting} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
-                    let displayMessage = '';
                     if (harvesting) {
-                        displayMessage = ReportUtils.getReportAutomaticallySubmittedMessage(reportAction);
+                        setClipboardMessage(ReportUtils.getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
-                        displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
+                        Clipboard.setString(ReportUtils.getIOUSubmittedMessage(reportAction));
                     }
-                    Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
-                    let displayMessage = '';
                     if (automaticAction) {
-                        displayMessage = ReportUtils.getReportAutomaticallyApprovedMessage(reportAction);
+                        setClipboardMessage(ReportUtils.getReportAutomaticallyApprovedMessage(reportAction));
                     } else {
-                        displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
+                        Clipboard.setString(ReportUtils.getIOUApprovedMessage(reportAction));
                     }
-                    Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
-                    let displayMessage = '';
                     if (automaticAction) {
-                        displayMessage = ReportUtils.getReportAutomaticallyForwardedMessage(reportAction, reportID);
+                        setClipboardMessage(ReportUtils.getReportAutomaticallyForwardedMessage(reportAction, reportID));
                     } else {
-                        displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
+                        Clipboard.setString(ReportUtils.getIOUForwardedMessage(reportAction, reportID));
                     }
-                    Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
                     const displayMessage = ReportUtils.getRejectedReportMessage();
                     Clipboard.setString(displayMessage);

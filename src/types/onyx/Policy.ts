@@ -439,13 +439,6 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
-/**
- * Reimbursable account types exported from QuickBooks Online
- *
- * TODO: QBD remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
- */
-type QBDReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE>;
-
 /** Xero bill status values
  *
  * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
@@ -1233,9 +1226,6 @@ type QBDConnectionData = {
 
     /** Collections of vendors */
     vendors: Vendor[];
-
-    /** Collection of export destination accounts */
-    accountPayable: Account[];
 };
 
 /**
@@ -1254,25 +1244,13 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         enabled: boolean;
     };
 
-    /** Whether a check to be printed */
-    markChecksToBePrinted: boolean;
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
 
-    /** Whether Quickbooks Desktop locations should be imported */
-    syncLocations: IntegrationEntityMap;
-
-    /** Defines how reimbursable expenses are exported */
-    reimbursableExpensesExportDestination: QBDReimbursableExportAccountType;
-
-    /** Whether the taxes should be synchronized */
-    syncTax: boolean;
-
-    /** Account that receives the reimbursable expenses */
-    reimbursableExpensesAccount?: Account;
-
-    /** Configuration of the export */
-    export: {
-        /** E-mail of the exporter */
-        exporter: string;
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
 
         /** Configuration of the exportDate  */
         exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
