@@ -5265,6 +5265,7 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+
         progressBarWrapper: {
             height: 2,
             width: '100%',
@@ -5272,10 +5273,18 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 5,
             overflow: 'hidden',
         },
+
         progressBar: {
             height: '100%',
             backgroundColor: theme.success,
             width: '100%',
+        },
+
+        qbdSetupLinkBox: {
+            backgroundColor: theme.hoverComponentBG,
+            borderRadius: variables.componentBorderRadiusMedium,
+            borderColor: theme.border,
+            padding: 16,
         },
     } satisfies Styles);
 

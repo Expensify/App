@@ -51,25 +51,19 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
 function MoneyRequestPreviewContent({
-    iouReport,
     isBillSplit,
-    session,
     action,
-    personalDetails,
-    chatReport,
-    transaction,
     contextMenuAnchor,
     chatReportID,
     reportID,
     onPreviewPressed,
     containerStyles,
-    walletTerms,
     checkIfContextMenuActive = () => {},
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
-    transactionViolations,
     shouldDisplayContextMenu = true,
+    iouReportID,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -78,6 +72,16 @@ function MoneyRequestPreviewContent({
     const {windowWidth} = useWindowDimensions();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
+
+    const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
+    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : '-1';
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
