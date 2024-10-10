@@ -123,6 +123,7 @@ const useRootNavigatorOptions = () => {
         centralPaneNavigator: {
             ...commonScreenOptions,
             ...hideKeyboardOnSwipe,
+            headerShown: false,
             title: CONFIG.SITE_TITLE,
             animation: isSmallScreenWidth ? undefined : Animations.NONE,
             web: {
