@@ -24,7 +24,7 @@ function SearchFiltersCategoryPage() {
     const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
-        const items = [{name: 'No category', value: 'no:category'}];
+        const items = [{name: translate('search.filters.noCategory'), value: CONST.SEARCH.FILTER_NO.CATEGORY as string}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
@@ -33,7 +33,7 @@ function SearchFiltersCategoryPage() {
             items.push(...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})));
         }
         return items;
-    }, [allPolicyIDCategories, singlePolicyCategories]);
+    }, [allPolicyIDCategories, singlePolicyCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => {
         if (values.at(0) === CONST.SEARCH.FILTER_NO.CATEGORY) {
