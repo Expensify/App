@@ -96,7 +96,7 @@ function stringToNumeric(
             const charCode = input.charCodeAt(i);
             occurrenceToIndex[offset.value] = index;
             outArray[offset.value++] = SPECIAL_CHAR_CODE;
-            const asBase64Numeric = convertToBase26(charCode);
+            const asBase26Numeric = convertToBase26(charCode);
             // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let j = 0; j < asBase64Numeric.length; j++) {
                 occurrenceToIndex[offset.value] = index;
