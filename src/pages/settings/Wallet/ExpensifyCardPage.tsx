@@ -146,6 +146,17 @@ function ExpensifyCardPage({
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
     };
 
+    const sendValidateCode = () => {
+        const primaryLogin = account?.primaryLogin ?? '';
+        const loginData = loginList?.[primaryLogin];
+
+        if (loginData?.validateCodeSent) {
+            return
+        }
+
+        requestValidateCodeAction()
+    }
+
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
@@ -299,7 +310,7 @@ function ExpensifyCardPage({
                     <ValidateCodeActionModal
                         handleSubmitForm={handleRevealDetails}
                         clearError={() => {}}
-                        sendValidateCode={requestValidateCodeAction}
+                        sendValidateCode={sendValidateCode}
                         onClose={() => setIsValidateCodeActionModalVisible(false)}
                         isVisible={isValidateCodeActionModalVisible}
                         title={translate('cardPage.validateCardTitle')}

@@ -106,6 +106,14 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
+    const sendValidateCode = () => {
+        if (loginData?.validateCodeSent) {
+            return;
+        }
+
+        User.requestValidateCodeAction()
+    }
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => loginInputRef.current?.focus()}
@@ -160,7 +168,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 }}
                 isVisible={isValidateCodeActionModalVisible}
                 title={contactMethod}
-                sendValidateCode={() => User.requestValidateCodeAction()}
+                sendValidateCode={sendValidateCode}
                 description={translate('contacts.enterMagicCode', {contactMethod})}
             />
         </ScreenWrapper>
