@@ -124,10 +124,11 @@ function WorkspacePageWithSections({
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '-1';
-    useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
@@ -150,19 +151,18 @@ function WorkspacePageWithSections({
         }, [policyID, shouldSkipVBBACall]),
     );
 
+    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
+    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
         }
 
-        // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
-        return (
-            (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) ||
-            (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy))
-        );
+        // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
+        return (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !prevShouldShowPolicy);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policy, shouldShowNonAdmin]);
+    }, [policy, shouldShowNonAdmin, shouldShowPolicy, prevShouldShowPolicy]);
 
     return (
         <ScreenWrapper
@@ -176,7 +176,7 @@ function WorkspacePageWithSections({
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.resetToHome}
                 shouldShow={shouldShow}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
             >
                 <HeaderWithBackButton
