@@ -26,7 +26,6 @@ import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
-import TestToolsModal from './TestToolsModal';
 import withNavigationFallback from './withNavigationFallback';
 
 type ScreenWrapperChildrenProps = {
@@ -273,7 +272,6 @@ function ScreenWrapper(
                                         enabled={shouldEnablePickerAvoiding}
                                     >
                                         <HeaderGap styles={headerGapStyles} />
-                                        <TestToolsModal />
                                         {isDevelopment && <CustomDevMenu />}
                                         <ScreenWrapperStatusContext.Provider value={contextValue}>
                                             {

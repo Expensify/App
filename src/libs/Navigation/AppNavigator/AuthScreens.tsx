@@ -9,6 +9,7 @@ import {useSession} from '@components/OnyxProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
@@ -368,9 +369,7 @@ function AuthScreens() {
 
         const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
             debugShortcutConfig.shortcutKey,
-            () => {
-                toggleTestToolsModal();
-            },
+            () => Modal.close(toggleTestToolsModal),
             debugShortcutConfig.descriptionKey,
             debugShortcutConfig.modifiers,
             true,
@@ -568,6 +567,7 @@ function AuthScreens() {
                         );
                     })}
                 </RootStack.Navigator>
+                <TestToolsModal />
                 <SearchRouterModal />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
