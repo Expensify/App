@@ -118,42 +118,48 @@ jobs:
             } >> "$envFile"
           fi
 
-      - name: Build Android app
+      - name: Build Android app (retryable)
+        uses: nick-fields/retry@v3
         id: build
-        run: |
-          lane=''
-          case '${{ inputs.type }}' in
-            'release')
-              lane='build';;
-            'adhoc')
-              lane='build_adhoc';;
-            'e2e')
-              lane='build_e2e';;
-            'e2eDelta')
-              lane='build_e2eDelta';;
-          esac
-          bundle exec fastlane android "$lane"
-
-          # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
-          # shellcheck disable=SC1090
-          source "$GITHUB_ENV"
-
-          SHOULD_UPLOAD_SOURCEMAPS='false'
-          if [ -f ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map ]; then
-            SHOULD_UPLOAD_SOURCEMAPS='true'
-          fi
-
-          {
-            # aabPath and apkPath are environment varibles set within the Fastfile
-            echo "AAB_PATH=$aabPath"
-            echo "AAB_FILE_NAME=$(basename "$aabPath")"
-            echo "APK_PATH=$apkPath"
-            echo "APK_FILE_NAME=$(basename "$apkPath")"
-            echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
-          } >> "$GITHUB_OUTPUT"
         env:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+        with:
+          retry_on: error
+          retry_wait_seconds: 60
+          timeout_minutes: 60
+          max_attempts: 3
+          command: |
+            lane=''
+            case '${{ inputs.type }}' in
+              'release')
+                lane='build';;
+              'adhoc')
+                lane='build_adhoc';;
+              'e2e')
+                lane='build_e2e';;
+              'e2eDelta')
+                lane='build_e2eDelta';;
+            esac
+            bundle exec fastlane android "$lane"
+
+            # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
+            # shellcheck disable=SC1090
+            source "$GITHUB_ENV"
+
+            SHOULD_UPLOAD_SOURCEMAPS='false'
+            if [ -f ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map ]; then
+              SHOULD_UPLOAD_SOURCEMAPS='true'
+            fi
+
+            {
+              # aabPath and apkPath are environment varibles set within the Fastfile
+              echo "AAB_PATH=$aabPath"
+              echo "AAB_FILE_NAME=$(basename "$aabPath")"
+              echo "APK_PATH=$apkPath"
+              echo "APK_FILE_NAME=$(basename "$apkPath")"
+              echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
+            } >> "$GITHUB_OUTPUT"    
 
       - name: Upload Android AAB artifact
         if: ${{ steps.build.outputs.AAB_PATH != '' }}
