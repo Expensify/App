@@ -502,6 +502,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
+        isOffline,
+        transactionIDList,
         leaveChat,
         canUnapproveRequest,
         isDebugModeEnabled,
