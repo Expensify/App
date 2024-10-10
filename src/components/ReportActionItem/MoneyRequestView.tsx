@@ -56,6 +56,8 @@ type MoneyRequestViewProps = {
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
+    isFromReviewDuplicates?: boolean;
+
     /** Updated transaction to show in duplicate transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
@@ -75,7 +77,7 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
     return originalMessage?.IOUTransactionID ?? -1;
 };
 
-function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction}: MoneyRequestViewProps) {
+function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates}: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
@@ -508,6 +510,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     transaction={updatedTransaction ?? transaction}
                                     enablePreviewModal
                                     readonly={readonly || !canEditReceipt}
+                                    isFromReviewDuplicates={isFromReviewDuplicates}
                                 />
                             </View>
                         )}

@@ -1487,6 +1487,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             reportID: string;
             transactionID: string;
             readonly?: boolean;
+            isFromReviewDuplicates?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };
