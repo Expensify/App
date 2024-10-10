@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
+import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
 type WorkspaceInvoicesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
@@ -36,6 +37,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         {policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
                         {policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
+                        {policyID && <WorkspaceInvoicingDetailsSection policyID={policyID} />}
                     </View>
                 )}
             </WorkspacePageWithSections>
