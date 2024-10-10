@@ -64,84 +64,84 @@ type SyncSelection = {
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
-        /** Report ID */
-        reportID: string;
+    /** Report ID */
+    reportID: string;
 
-        /** Callback to focus composer */
-        onFocus: () => void;
+    /** Callback to focus composer */
+    onFocus: () => void;
 
-        /** Callback to blur composer */
-        onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    /** Callback to blur composer */
+    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
-        /** Callback when layout of composer changes */
-        onLayout?: (event: LayoutChangeEvent) => void;
+    /** Callback when layout of composer changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 
-        /** Callback to update the value of the composer */
-        onValueChange: (value: string) => void;
+    /** Callback to update the value of the composer */
+    onValueChange: (value: string) => void;
 
-        /** Callback when the composer got cleared on the UI thread */
-        onCleared?: (text: string) => void;
+    /** Callback when the composer got cleared on the UI thread */
+    onCleared?: (text: string) => void;
 
-        /** Whether the composer is full size */
-        isComposerFullSize: boolean;
+    /** Whether the composer is full size */
+    isComposerFullSize: boolean;
 
-        /** Whether the menu is visible */
-        isMenuVisible: boolean;
+    /** Whether the menu is visible */
+    isMenuVisible: boolean;
 
-        /** The placeholder for the input */
-        inputPlaceholder: string;
+    /** The placeholder for the input */
+    inputPlaceholder: string;
 
-        /** Function to display a file in a modal */
-        displayFileInModal: (file: FileObject) => void;
+    /** Function to display a file in a modal */
+    displayFileInModal: (file: FileObject) => void;
 
-        /** Whether the user is blocked from concierge */
-        isBlockedFromConcierge: boolean;
+    /** Whether the user is blocked from concierge */
+    isBlockedFromConcierge: boolean;
 
-        /** Whether the input is disabled */
-        disabled: boolean;
+    /** Whether the input is disabled */
+    disabled: boolean;
 
-        /** Whether the full composer is available */
-        isFullComposerAvailable: boolean;
+    /** Whether the full composer is available */
+    isFullComposerAvailable: boolean;
 
-        /** Function to set whether the full composer is available */
-        setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
+    /** Function to set whether the full composer is available */
+    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
-        /** Function to set whether the comment is empty */
-        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
+    /** Function to set whether the comment is empty */
+    setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
-        /** Function to handle sending a message */
-        handleSendMessage: () => void;
+    /** Function to handle sending a message */
+    handleSendMessage: () => void;
 
-        /** Whether the compose input should show */
-        shouldShowComposeInput: OnyxEntry<boolean>;
+    /** Whether the compose input should show */
+    shouldShowComposeInput: OnyxEntry<boolean>;
 
-        /** Function to measure the parent container */
-        measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+    /** Function to measure the parent container */
+    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 
-        /** Whether the scroll is likely to trigger a layout */
-        isScrollLikelyLayoutTriggered: RefObject<boolean>;
+    /** Whether the scroll is likely to trigger a layout */
+    isScrollLikelyLayoutTriggered: RefObject<boolean>;
 
-        /** Function to raise the scroll is likely layout triggered */
-        raiseIsScrollLikelyLayoutTriggered: () => void;
+    /** Function to raise the scroll is likely layout triggered */
+    raiseIsScrollLikelyLayoutTriggered: () => void;
 
-        /** The ref to the suggestions */
-        suggestionsRef: React.RefObject<SuggestionsRef>;
+    /** The ref to the suggestions */
+    suggestionsRef: React.RefObject<SuggestionsRef>;
 
-        /** The ref to the next modal will open */
-        isNextModalWillOpenRef: MutableRefObject<boolean | null>;
+    /** The ref to the next modal will open */
+    isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
-        /** The last report action */
-        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
+    /** The last report action */
+    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
-        /** Whether to include chronos */
-        includeChronos?: boolean;
+    /** Whether to include chronos */
+    includeChronos?: boolean;
 
-        /** Whether report is from group policy */
-        isGroupPolicyReport: boolean;
+    /** Whether report is from group policy */
+    isGroupPolicyReport: boolean;
 
-        /** policy ID of the report */
-        policyID: string;
-    };
+    /** policy ID of the report */
+    policyID: string;
+};
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
@@ -250,7 +250,7 @@ function ComposerWithSuggestions(
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {
         selector: EmojiUtils.getPreferredSkinToneIndex,
-        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE
+        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
     });
 
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
