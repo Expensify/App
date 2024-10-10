@@ -3,6 +3,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import type {TransactionMergeParams} from '@libs/API/parameters';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -950,7 +951,7 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+function compareDuplicateTransactionFields(transactionID: string, reportID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
@@ -1011,6 +1012,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
+            const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
@@ -1025,6 +1027,27 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
                     keep[fieldName] = getMerchant(firstTransaction);
                 } else {
                     processChanges(fieldName, transactions, keys);
+                }
+            } else if (fieldName === 'taxCode') {
+                const policy = PolicyUtils.getPolicy(report?.policyID);
+                const differentValues = getDifferentValues(transactions, keys);
+                const validTaxes = differentValues?.filter((taxID) => PolicyUtils.getTaxByID(policy, (taxID as string) ?? '')?.name);
+
+                if (!areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) && validTaxes.length > 1) {
+                    change[fieldName] = validTaxes;
+                }
+            } else if (fieldName === 'category') {
+                const differentValues = getDifferentValues(transactions, keys);
+                const policyCategories = getPolicyCategoriesData(report?.policyID ?? '-1');
+                const availableCategories = Object.values(policyCategories)
+                    .filter((category) => differentValues.includes(category.name) && firstTransaction?.category !== category.name)
+                    .map((e) => e.name);
+
+                if (
+                    !areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|')) &&
+                    (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))
+                ) {
+                    change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
                 }
             } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
