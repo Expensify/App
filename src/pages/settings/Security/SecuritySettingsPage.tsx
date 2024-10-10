@@ -1,6 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -30,6 +31,12 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DelegateMagicCodeModal from './AddDelegate/DelegateMagicCodeModal';
+
+type Delegate = {
+    login?: string;
+    role?: ValueOf<typeof CONST.DELEGATE_ROLE>;
+};
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -40,6 +47,9 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    const [selectedDelegate, setSelectedDelegate] = useState<Delegate>({});
+
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
@@ -89,7 +99,8 @@ function SecuritySettingsPage() {
                             Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
                             return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(email, role));
+
+                        setSelectedDelegate({login: email, role});
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
@@ -217,6 +228,12 @@ function SecuritySettingsPage() {
                             )}
                         </View>
                     </ScrollView>
+                    {selectedDelegate.login && selectedDelegate.role && (
+                        <DelegateMagicCodeModal
+                            login={selectedDelegate?.login}
+                            role={selectedDelegate?.role}
+                        />
+                    )}
                 </>
             )}
         </ScreenWrapper>
