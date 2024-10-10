@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
@@ -23,35 +23,23 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDistanceRateOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Collection of categories attached to the policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    /** Collection of tags attached to the policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+type IOURequestStepDistanceRateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE> & {
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-type IOURequestStepDistanceRateProps = IOURequestStepDistanceRateOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
-    };
-
 function IOURequestStepDistanceRate({
-    policy: policyReal,
     report,
     reportDraft,
     route: {
         params: {action, reportID, backTo, transactionID},
     },
     transaction,
-    policyTags,
-    policyCategories,
 }: IOURequestStepDistanceRateProps) {
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`);
 
     const policy = policyReal ?? policyDraft;
 
@@ -64,6 +52,8 @@ function IOURequestStepDistanceRate({
 
     const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const navigateBack = () => {
@@ -71,7 +61,9 @@ function IOURequestStepDistanceRate({
     };
 
     const sections = Object.values(rates).map((rate) => {
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
+
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
 
         return {
             text: rate.name ?? rateForDisplay,
@@ -79,7 +71,7 @@ function IOURequestStepDistanceRate({
             keyForList: rate.customUnitRateID,
             value: rate.customUnitRateID,
             isDisabled: !rate.enabled,
-            isSelected: currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE,
+            isSelected,
         };
     });
 
@@ -118,7 +110,7 @@ function IOURequestStepDistanceRate({
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
                 sections={[{data: sections}]}
@@ -133,20 +125,8 @@ function IOURequestStepDistanceRate({
 
 IOURequestStepDistanceRate.displayName = 'IOURequestStepDistanceRate';
 
-const IOURequestStepDistanceRateWithOnyx = withOnyx<IOURequestStepDistanceRateProps, IOURequestStepDistanceRateOnyxProps>({
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-    },
-})(IOURequestStepDistanceRate);
-
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRateWithOnyx);
+const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceRateWithWritableReportOrNotFound);
 
