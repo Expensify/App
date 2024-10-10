@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -11,7 +12,11 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import {useSearchRouterContext} from './SearchRouterContext';
 
-function SearchButton() {
+type SearchButtonProps = {
+    style?: StyleProp<ViewStyle>;
+};
+
+function SearchButton({style}: SearchButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -20,7 +25,7 @@ function SearchButton() {
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('common.search')}
-            style={[styles.flexRow, styles.touchableButtonImage]}
+            style={[styles.flexRow, styles.touchableButtonImage, style]}
             onPress={Session.checkIfActionIsAllowed(() => {
                 Timing.start(CONST.TIMING.SEARCH_ROUTER_OPEN);
                 Performance.markStart(CONST.TIMING.SEARCH_ROUTER_OPEN);
