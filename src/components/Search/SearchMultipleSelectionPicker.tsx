@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type SearchMultipleSelectionPickerItem = {
@@ -28,6 +29,14 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
+    const sortOptions = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
+        const filterNoValues = Object.values(CONST.SEARCH.FILTER_NO) as string[];
+        if (filterNoValues.includes(a.value) || filterNoValues.includes(b.value)) {
+            return 1;
+        }
+        return localeCompare(a.name, b.name);
+    };
+
     useEffect(() => {
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
@@ -35,7 +44,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a.name, b.name))
+            .sort((a, b) => sortOptions(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -44,7 +53,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             }));
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a.name, b.name))
+            .sort((a, b) => sortOptions(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -52,16 +61,10 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 value: item.value,
             }));
         const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
-        console.log('over here', selectedItemsSection)
         return {
             sections: isEmpty
                 ? []
                 : [
-                      {
-                          title: undefined,
-                          data: [{text: 'No category', keyForList: 'No category', value: 'no:category', isSelected: false}],
-                          shouldShow: selectedItemsSection.length === 0,
-                      },
                       {
                           title: undefined,
                           data: selectedItemsSection,

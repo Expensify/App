@@ -24,12 +24,15 @@ function SearchFiltersCategoryPage() {
     const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
+        const items = [{name: 'No category', value: 'no:category'}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-            return Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName}));
+            items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
+        } else {
+            items.push(...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})));
         }
-        return Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name}));
+        return items;
     }, [allPolicyIDCategories, singlePolicyCategories]);
 
     const onSaveSelection = useCallback((values: string[]) => {
