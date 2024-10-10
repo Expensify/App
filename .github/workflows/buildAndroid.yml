@@ -20,11 +20,18 @@ on:
         description: The pull request number associated with this build, if relevant.
         type: string
         required: false
+      artifact-apk-name:
+        description: The name of the APK artifact to upload
+        type: string
+        required: false
+        default: ${{ inputs.artifact-prefix }}android-artifact-apk
     outputs:
       AAB_FILE_NAME:
         value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
       APK_FILE_NAME:
         value: ${{ jobs.build.outputs.APK_FILE_NAME }}
+      APK_ARTIFACT_NAME:
+        value: ${{ inputs.artifact-apk-name }}
 
   workflow_dispatch:
     inputs:
@@ -174,7 +181,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-prefix }}android-artifact-apk
+          name: ${{ inputs.artifact-apk-name }}
           path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload Android sourcemaps artifact
