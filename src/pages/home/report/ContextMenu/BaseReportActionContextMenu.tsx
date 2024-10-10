@@ -369,7 +369,7 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
     transaction: {
         key: ({reportActions, reportActionID}) => {
             const reportAction = reportActions?.[reportActionID];
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction))}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)}`;
         },
     },
 })(

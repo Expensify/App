@@ -6359,11 +6359,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chat threads where the parent message is pending removal
-    if (
-        !isEmptyObject(parentReportAction) &&
-        ReportActionsUtils.isPendingRemove(parentReportAction) &&
-        ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID)
-    ) {
+    if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isPendingRemove(parentReportAction) && ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID)) {
         return null;
     }
 
@@ -6528,9 +6524,7 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
 
     const newMarkerIndex = lodashFindLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created ?? '') > (report?.lastReadTime ?? ''));
 
-    return newMarkerIndex !== -1 && 'reportActionID' in (sortedAndFilteredReportActions?.at(newMarkerIndex) ?? {})
-        ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID
-        : '';
+    return newMarkerIndex !== -1 && 'reportActionID' in (sortedAndFilteredReportActions?.at(newMarkerIndex) ?? {}) ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID : '';
 }
 
 /**
@@ -7041,7 +7035,7 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
     const allReports = ReportConnection.getAllReports();
-    return Object.values(allReports ?? {}).filter((report) => isPolicyExpenseChat(report) && (report?.policyID) === policyID && accountIDs.includes(report?.ownerAccountID));
+    return Object.values(allReports ?? {}).filter((report) => isPolicyExpenseChat(report) && report?.policyID === policyID && accountIDs.includes(report?.ownerAccountID));
 }
 
 /**
@@ -7051,7 +7045,7 @@ function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEn
  */
 function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
     const allReports = ReportConnection.getAllReports();
-    return Object.values(allReports ?? {}).filter((report) => (report?.policyID) === policyID);
+    return Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
 }
 
 /**

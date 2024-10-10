@@ -76,14 +76,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             TaskActions.setShareDestinationValue(task?.parentReportID);
             playSound(SOUNDS.DONE);
-            TaskActions.createTaskAndNavigate(
-                task?.parentReportID,
-                values.taskTitle,
-                values.taskDescription ?? '',
-                task?.assignee ?? '',
-                task.assigneeAccountID,
-                task.assigneeChatReport,
-            );
+            TaskActions.createTaskAndNavigate(task?.parentReportID, values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }

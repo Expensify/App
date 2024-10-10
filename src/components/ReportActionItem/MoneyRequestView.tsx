@@ -321,13 +321,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getReportRHPActiveRoute(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getReportRHPActiveRoute()),
                         )
                     }
                 />
@@ -365,13 +359,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 titleStyle={styles.flex1}
                 onPress={() =>
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transaction?.transactionID,
-                            report?.reportID,
-                            Navigation.getReportRHPActiveRoute(),
-                        ),
+                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getReportRHPActiveRoute()),
                     )
                 }
             />
@@ -621,13 +609,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         titleStyle={styles.flex1}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction?.transactionID,
-                                    report?.reportID,
-                                    Navigation.getReportRHPActiveRoute(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getReportRHPActiveRoute()),
                             )
                         }
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

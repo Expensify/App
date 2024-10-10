@@ -93,7 +93,7 @@ function IOURequestStepConfirmation({
             return personalDetails?.[transaction?.splitPayerAccountIDs?.[0]];
         }
 
-        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0]));
+        const participant = transaction?.participants?.find((val) => val.accountID === transaction?.splitPayerAccountIDs?.[0]);
 
         return {
             login: participant?.login ?? '',

@@ -51,9 +51,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             Navigation.dismissModal();
         } else {
-            Navigation.dismissModal(
-                ReportUtils.isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction) ? report?.parentReportID : report?.reportID,
-            );
+            Navigation.dismissModal(ReportUtils.isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction) ? report?.parentReportID : report?.reportID);
         }
     };
 
@@ -61,7 +59,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID) !== transaction?.reportID;
+    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
     return (
         <AttachmentModal

@@ -40,7 +40,7 @@ function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
     }
 
     return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
-        if (Number(lastUpdateID) > (options.minUpdateID)) {
+        if (Number(lastUpdateID) > options.minUpdateID) {
             acc[Number(lastUpdateID)] = update;
         }
         return acc;

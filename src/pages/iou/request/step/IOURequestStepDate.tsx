@@ -72,7 +72,7 @@ function IOURequestStepDate({
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const currentCreated =
         isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getFormattedCreated(splitDraftTransaction) : TransactionUtils.getFormattedCreated(transaction);
-    const parentReportAction = reportActions?.[(isEditingSplitBill ? reportActionID : report?.parentReportActionID)];
+    const parentReportAction = reportActions?.[isEditingSplitBill ? reportActionID : report?.parentReportActionID];
     const canEditingSplitBill =
         isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);

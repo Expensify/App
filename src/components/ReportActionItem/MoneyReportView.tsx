@@ -133,12 +133,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             title={fieldValue}
                                             onPress={() =>
                                                 Navigation.navigate(
-                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(
-                                                        report.reportID,
-                                                        report.policyID,
-                                                        reportField.fieldID,
-                                                        Navigation.getReportRHPActiveRoute(),
-                                                    ),
+                                                    ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
                                                 )
                                             }
                                             shouldShowRightIcon

@@ -133,11 +133,7 @@ function ReportActionItemImage({
                 {({report, transactionThreadReport}) => (
                     <PressableWithoutFocus
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID, transaction?.transactionID, readonly),
-                            )
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID, transaction?.transactionID, readonly))}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
