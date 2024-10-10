@@ -118,7 +118,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && !!item.brickRoadIndicator && shouldDisplayRBR && (
+                    {(!item.isSelected || item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}
