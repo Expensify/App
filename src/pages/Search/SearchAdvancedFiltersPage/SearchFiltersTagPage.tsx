@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyTagLists} from '@src/types/onyx';
@@ -24,6 +25,7 @@ function SearchFiltersTagPage() {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
+        const items = [{name: translate('search.filters.noTag'), value: CONST.SEARCH.VALUE_NONE as string}];
         if (!singlePolicyTagsList) {
             const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
@@ -33,10 +35,12 @@ function SearchFiltersTagPage() {
                 })
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
-            return Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName}));
+            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName})));
+        } else {
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagsList).map((name) => ({name, value: name})));
         }
-        return getTagNamesFromTagsLists(singlePolicyTagsList).map((name) => ({name, value: name}));
-    }, [allPoliciesTagsLists, singlePolicyTagsList]);
+        return items;
+    }, [allPoliciesTagsLists, singlePolicyTagsList, translate]);
 
     const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
 

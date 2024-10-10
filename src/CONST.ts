@@ -5623,6 +5623,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
         },
+        VALUE_NONE: 'none',
     },
 
     REFERRER: {
