@@ -29,7 +29,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
-    const sortOptionsWithNoneValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
+    const sortOptionsWithEmptyValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
         // Always show `No category` and `No tag` as the first option
         if (a.value === CONST.SEARCH.EMPTY_VALUE) {
             return -1;
@@ -47,7 +47,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithNoneValue(a, b))
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -56,7 +56,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             }));
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithNoneValue(a, b))
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
