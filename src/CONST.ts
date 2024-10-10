@@ -211,6 +211,9 @@ const CONST = {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
+        // 10 megabytes in bytes, this is limit set on servers for receipt images, do not update without wider internal discussion
+        RECEIPT_MAX_SIZE: 10485760,
+
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
 
@@ -480,6 +483,7 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         COMPANY_CARD_FEEDS: 'companyCardFeeds',
+        DIRECT_FEEDS: 'directFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
@@ -2305,10 +2309,10 @@ const CONST = {
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
+                QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
-                QBD: 'quickbooksDesktop',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -4401,6 +4405,11 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
     },
+    RTER_VIOLATION_TYPES: {
+        BROKEN_CARD_CONNECTION: 'brokenCardConnection',
+        BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
+        SEVEN_DAY_HOLD: 'sevenDayHold',
+    },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     REPORT_VIOLATIONS: {
@@ -4479,7 +4488,6 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
-    QUALIFIER_PARAM: 'signupQualifier',
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
