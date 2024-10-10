@@ -147,6 +147,7 @@ function MoneyRequestParticipantsSelector({
             iouType === CONST.IOU.TYPE.INVOICE,
             action,
             isPaidGroupPolicy,
+            true,
         );
 
         return optionList;
