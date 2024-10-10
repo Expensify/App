@@ -125,7 +125,7 @@ jobs:
         uses: actions/download-artifact@v4
         id: downloadBaselineAPK
         with:
-          name: baseline-${{ needs.prep.outputs.BASELINE_VERSION }}-android-artifact-apk
+          name: ${{ needs.buildBaseline.outputs.APK_ARTIFACT_NAME }}
           path: zip
           # Set github-token only if the baseline was built in this workflow run:
           github-token: ${{ needs.prep.outputs.BASELINE_ARTIFACT_WORKFLOW_ID && github.token }}
@@ -139,7 +139,7 @@ jobs:
         uses: actions/download-artifact@v4
         id: downloadDeltaAPK
         with:
-          name: delta-${{ needs.prep.outputs.DELTA_REF }}-android-artifact-apk
+          name: ${{ needs.buildDelta.outputs.APK_ARTIFACT_NAME }}
           path: zip
 
       - name: Rename delta APK
