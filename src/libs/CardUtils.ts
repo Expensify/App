@@ -2,6 +2,7 @@ import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -221,6 +222,10 @@ function getCardDetailsImage(cardFeed: string): IconAsset {
 
     if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)) {
         return Illustrations.VisaCompanyCardDetail;
+    }
+
+    if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
+        return ExpensifyCardImage;
     }
 
     return Illustrations.AmexCardCompanyCardDetail;
