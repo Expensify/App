@@ -225,10 +225,10 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
  */
 function base64ToFile(base64: string, filename: string): File {
     // Decode the base64 string
-    const byteString = atob(base64.split(',')[1]);
+    const byteString = atob(base64.split(',').at(1) ?? '');
 
     // Get the mime type from the base64 string
-    const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+    const mimeString = base64.split(',').at(0)?.split(':').at(1)?.split(';').at(0);
 
     // Convert byte string to Uint8Array
     const arrayBuffer = new ArrayBuffer(byteString.length);
@@ -255,8 +255,15 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
     }
     return new Promise((resolve, reject) => {
         ImageSize.getSize(file.uri ?? '')
-            .then(() => resolve())
-            .catch(() => reject(new Error('Error reading file: The file is corrupted')));
+            .then((size) => {
+                if (size.height <= 0 || size.width <= 0) {
+                    return reject(new Error('Error reading file: The file is corrupted'));
+                }
+                resolve();
+            })
+            .catch(() => {
+                return reject(new Error('Error reading file: The file is corrupted'));
+            });
     });
 }
 
@@ -318,7 +325,7 @@ const getImageDimensionsAfterResize = (file: FileObject) =>
     });
 
 const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
         return Promise.resolve(file);
     }
     return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));

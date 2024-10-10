@@ -14,7 +14,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -34,19 +36,31 @@ function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
+    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
+    const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+
     const mergeDuplicates = useCallback(() => {
         IOU.mergeDuplicates(transactionsMergeParams);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
     }, [reportAction?.childReportID, transactionsMergeParams]);
+
+    const resolveDuplicates = useCallback(() => {
+        IOU.resolveDuplicates(transactionsMergeParams);
+        Navigation.dismissModal(reportAction?.childReportID ?? '-1');
+    }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(
         () => ({
@@ -71,7 +85,7 @@ function Confirmation() {
         ReportUtils.isReportNotFound(report) ||
         (reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
 
-    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult)) {
+    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !transaction?.transactionID) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -83,7 +97,10 @@ function Confirmation() {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                        <HeaderWithBackButton
+                            title={translate('iou.reviewDuplicates')}
+                            onBackButtonPress={goBack}
+                        />
                         <ScrollView>
                             <View style={[styles.ph5, styles.pb8]}>
                                 <Text
@@ -109,7 +126,13 @@ function Confirmation() {
                             <Button
                                 text={translate('common.confirm')}
                                 success
-                                onPress={mergeDuplicates}
+                                onPress={() => {
+                                    if (!isReportOwner) {
+                                        resolveDuplicates();
+                                        return;
+                                    }
+                                    mergeDuplicates();
+                                }}
                                 large
                             />
                         </FixedFooter>

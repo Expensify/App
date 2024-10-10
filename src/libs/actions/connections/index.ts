@@ -287,17 +287,6 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 }
 
 function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
-    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (
-            !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
-        ) {
-            return true;
-        }
-        return false;
-    }
-
     const connection = policy?.connections?.[connectionName];
 
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
@@ -307,9 +296,6 @@ function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
 }
 
 function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return false;
-    }
     const connection = policy?.connections?.[connectionName];
     return connection?.lastSync?.isAuthenticationError === true;
 }

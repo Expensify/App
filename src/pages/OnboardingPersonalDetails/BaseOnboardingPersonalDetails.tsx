@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -10,12 +10,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
@@ -23,22 +28,22 @@ import * as Welcome from '@userActions/Welcome';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
-import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
+import type {BaseOnboardingPersonalDetailsProps} from './types';
 
-function BaseOnboardingPersonalDetails({
-    currentUserPersonalDetails,
-    shouldUseNativeStyles,
-    onboardingPurposeSelected,
-    onboardingAdminsChatReportID,
-    onboardingPolicyID,
-    route,
-}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const {isOffline} = useNetwork();
+    const {canUseDefaultRooms} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -71,13 +76,20 @@ function BaseOnboardingPersonalDetails({
 
             Navigation.dismissModal();
 
-            // Only navigate to concierge chat when central pane is visible
-            // Otherwise stay on the chats screen.
-            if (!shouldUseNarrowLayout && !route.params?.backTo) {
-                Report.navigateToConciergeChat();
+            // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
+            // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
+            // so we need to specifically navigate to the last accessed report.
+            if (!isSmallScreenWidth) {
+                return;
             }
+            const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
+            if (!lastAccessedReportID) {
+                return;
+            }
+            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
+            Navigation.navigate(lastAccessedReportRoute);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, shouldUseNarrowLayout, route.params?.backTo],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -113,83 +125,69 @@ function BaseOnboardingPersonalDetails({
         return errors;
     };
 
-    const PersonalDetailsFooterInstance = <OfflineIndicator />;
-
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingPersonalDetails"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    progressBarPercentage={75}
-                    onBackButtonPress={OnboardingFlow.goBack}
-                />
-                <FormProvider
-                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
-                    footerContent={shouldUseNarrowLayout && PersonalDetailsFooterInstance}
-                    validate={validate}
-                    onSubmit={completeEngagement}
-                    submitButtonText={translate('common.continue')}
-                    enabledWhenOffline
-                    submitFlexEnabled
-                    shouldValidateOnBlur={false}
-                    shouldValidateOnChange={shouldValidateOnChange}
-                    shouldTrimValues={false}
-                >
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.FIRST_NAME}
-                            name="fname"
-                            label={translate('common.firstName')}
-                            aria-label={translate('common.firstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserPersonalDetails?.firstName}
-                            shouldSaveDraft
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            spellCheck={false}
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LAST_NAME}
-                            name="lname"
-                            label={translate('common.lastName')}
-                            aria-label={translate('common.lastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserPersonalDetails?.lastName}
-                            shouldSaveDraft
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            spellCheck={false}
-                        />
-                    </View>
-                </FormProvider>
-            </View>
+            <HeaderWithBackButton
+                shouldShowBackButton
+                progressBarPercentage={75}
+                onBackButtonPress={OnboardingFlow.goBack}
+            />
+            <FormProvider
+                style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
+                validate={validate}
+                onSubmit={completeEngagement}
+                submitButtonText={translate('common.continue')}
+                enabledWhenOffline
+                submitFlexEnabled
+                shouldValidateOnBlur={false}
+                shouldValidateOnChange={shouldValidateOnChange}
+                shouldTrimValues={false}
+            >
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                </View>
+                <View style={styles.mb4}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={inputCallbackRef}
+                        inputID={INPUT_IDS.FIRST_NAME}
+                        name="fname"
+                        label={translate('common.firstName')}
+                        aria-label={translate('common.firstName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={currentUserPersonalDetails?.firstName}
+                        shouldSaveDraft
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
+                    />
+                </View>
+                <View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.LAST_NAME}
+                        name="lname"
+                        label={translate('common.lastName')}
+                        aria-label={translate('common.lastName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={currentUserPersonalDetails?.lastName}
+                        shouldSaveDraft
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
+                    />
+                </View>
+            </FormProvider>
+            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
 
 BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<BaseOnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps>({
-        onboardingPurposeSelected: {
-            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-        },
-        onboardingAdminsChatReportID: {
-            key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
-        },
-        onboardingPolicyID: {
-            key: ONYXKEYS.ONBOARDING_POLICY_ID,
-        },
-    })(BaseOnboardingPersonalDetails),
-);
+export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);

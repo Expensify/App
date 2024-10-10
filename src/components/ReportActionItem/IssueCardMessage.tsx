@@ -16,7 +16,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
-
     policyID: string | undefined;
 };
 
@@ -26,7 +25,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const assigneeAccountID = (action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const assigneeAccountID = (ReportActionsUtils.getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
 
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
@@ -42,15 +41,10 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     return (
         <>
-            <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true)}</muted-text>`} />
+            <RenderHTML html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage(action, true, policyID)}</muted-text>`} />
             {shouldShowAddMissingDetailsButton && (
                 <Button
-                    onPress={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(policyID));
-                    }}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addShippingDetails')}

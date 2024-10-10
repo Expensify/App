@@ -995,8 +995,8 @@ type NetSuiteConnection = {
     /** Date when the connection's last failed sync occurred */
     lastErrorSyncDate: string;
 
-    /** Where did the connection's last sync came from */
-    source: JobSourceValues;
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
 
     /** Config object used solely to store autosync settings */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -1205,6 +1205,58 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/**
+ * Data imported from QuickBooks Desktop.
+ */
+type QBDConnectionData = {
+    /** Collection of cash accounts */
+    cashAccounts: Account[];
+
+    /** Collection of credit cards */
+    creditCardAccounts: Account[];
+
+    /** Collection of journal entry accounts  */
+    journalEntryAccounts: Account[];
+
+    /** Collection of payable accounts */
+    payableAccounts: Account[];
+
+    /** Collection of bank accounts */
+    bankAccounts: Account[];
+
+    /** Collections of vendors */
+    vendors: Vendor[];
+};
+
+/**
+ * User configuration for the QuickBooks Desktop accounting integration.
+ */
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** API provider */
+    apiProvider: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+    autoSync: {
+        /** TODO: Will be handled in another issue */
+        jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
+
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
+    };
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -1219,7 +1271,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 /** Available integration connections */
 type Connections = {
-    /** QuickBooks integration connection */
+    /** QuickBooks Online integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
@@ -1230,10 +1282,23 @@ type Connections = {
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+
+    /** QuickBooks Desktop integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+};
+
+/** All integration connections, including unsupported ones */
+type AllConnections = Connections & {
+    /** Quickbooks Desktop integration connection */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    quickbooksDesktop: any;
 };
 
 /** Names of integration connections */
 type ConnectionName = keyof Connections;
+
+/** Names of all integration connections */
+type AllConnectionName = keyof AllConnections;
 
 /** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
 type MccGroup = {
@@ -1242,6 +1307,9 @@ type MccGroup = {
 
     /** ID of the Merchant Category Code */
     groupID: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of verified reimbursement bank account linked to policy */
@@ -1349,34 +1417,34 @@ type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
 
     /** Record of public policy details, indexed by policy ID */
-    policyDetailsForNonMembers: Record<
-        string,
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
-            /** Name of the policy */
-            name: string;
+    policyDetailsForNonMembers: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyDetailsForNonMembers>>;
+};
 
-            /** Policy owner account ID */
-            ownerAccountID: number;
+/** Details of public policy */
+type PolicyDetailsForNonMembers = {
+    /** Name of the policy */
+    name: string;
 
-            /** Policy owner e-mail */
-            ownerEmail: string;
+    /** Policy owner account ID */
+    ownerAccountID: number;
 
-            /** Policy type */
-            type: ValueOf<typeof CONST.POLICY.TYPE>;
+    /** Policy owner e-mail */
+    ownerEmail: string;
 
-            /** Policy avatar */
-            avatar?: string;
-        }>
-    >;
+    /** Policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Policy avatar */
+    avatar?: string;
 };
 
 /** Data informing when a given rule should be applied */
 type ApplyRulesWhen = {
     /** The condition for applying the rule to the workspace */
-    condition: 'matches';
+    condition: string;
 
     /** The target field to which the rule is applied */
-    field: 'category';
+    field: string;
 
     /** The value of the target field */
     value: string;
@@ -1411,9 +1479,6 @@ type ExpenseRule = {
     /** An id of the rule */
     id?: string;
 };
-
-/** The name of the category or tag */
-type CategoryOrTagName = string;
 
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -1686,18 +1751,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
-
-        /** Information about rules being updated */
-        pendingRulesUpdates?: Record<
-            CategoryOrTagName,
-            {
-                /** Indicates whether the approval rule is updated for the given category or tag */
-                approvalRule: OnyxCommon.PendingAction;
-
-                /** Indicates whether the expense rule is updated for the given category or tag */
-                expenseRule: OnyxCommon.PendingAction;
-            }
-        >;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -1736,6 +1789,7 @@ export type {
     CompanyAddress,
     IntegrationEntityMap,
     PolicyFeatureName,
+    PolicyDetailsForNonMembers,
     PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,
@@ -1743,6 +1797,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    AllConnectionName,
     Tenant,
     Account,
     QBONonReimbursableExportAccountType,
