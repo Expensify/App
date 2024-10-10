@@ -19,6 +19,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -47,6 +48,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -131,6 +133,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 testID={WorkspaceInviteMessagePage.displayName}
+                shouldEnableMaxHeight
+                style={{marginTop: viewportOffsetTop}}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.inviteMessage.inviteMessageTitle')}
