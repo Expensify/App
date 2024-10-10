@@ -646,8 +646,8 @@ function ReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(action)} />;
             }
-        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-            const wasAutoApproved = ReportActionsUtils.getOriginalMessage(action)?.automaticAction ?? false;
+        } else if (ReportActionsUtils.isUnapprovedOrApprovedAction(action)) {
+            const wasAutoApproved = ReportActionsUtils.isApprovedAction(action) && ReportActionsUtils.getOriginalMessage(action)?.automaticAction;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage message="">
@@ -655,7 +655,7 @@ function ReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedOrApprovedMessage(action)} />;
             }
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = ReportActionsUtils.getOriginalMessage(action)?.automaticAction ?? false;

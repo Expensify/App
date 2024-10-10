@@ -3835,12 +3835,14 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
-    if (ReportActionsUtils.isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-        const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
-        if (automaticAction) {
-            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+    if (ReportActionsUtils.isUnapprovedOrApprovedAction(parentReportAction)) {
+        if (ReportActionsUtils.isApprovedAction(parentReportAction)) {
+            const {automaticAction} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
+            if (automaticAction) {
+                return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+            }
         }
-        return getIOUApprovedMessage(parentReportAction);
+        return getIOUUnapprovedOrApprovedMessage(parentReportAction);
     }
 
     if (isChatThread(report)) {
@@ -4565,7 +4567,7 @@ function getFormattedAmount(reportAction: ReportAction) {
     if (
         !ReportActionsUtils.isSubmittedAction(reportAction) &&
         !ReportActionsUtils.isForwardedAction(reportAction) &&
-        !ReportActionsUtils.isApprovedAction(reportAction) &&
+        !ReportActionsUtils.isUnapprovedOrApprovedAction(reportAction) &&
         !ReportActionsUtils.isSubmittedAndClosedAction(reportAction)
     ) {
         return '';
@@ -4585,12 +4587,18 @@ function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.A
     return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return Localize.translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
+function getIOUUnapprovedOrApprovedMessage(reportAction: ReportAction) {
+    let translationKey: TranslationPaths;
+    if (ReportActionsUtils.isApprovedAction(reportAction)) {
+        translationKey = 'iou.approvedAmount';
+    } else {
+        translationKey = 'iou.unapprovedAmount';
+    }
+    return Localize.translateLocal(translationKey, {amount: getFormattedAmount(reportAction)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
+    return Localize.translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
 /**
@@ -8207,8 +8215,8 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getIOUUnapprovedOrApprovedMessage,
     getReportAutomaticallyApprovedMessage,
-    getIOUApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,

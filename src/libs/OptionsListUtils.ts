@@ -719,12 +719,12 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         } else {
             lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(lastReportAction);
         }
-    } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-        const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
-        if (automaticAction) {
+    } else if (ReportActionUtils.isUnapprovedOrApprovedAction(lastReportAction)) {
+        const wasAutoApproved = ReportActionUtils.isApprovedAction(lastReportAction) && ReportActionUtils.getOriginalMessage(lastReportAction)?.automaticAction;
+        if (wasAutoApproved) {
             lastMessageTextFromReport = ReportUtils.getReportAutomaticallyApprovedMessage(lastReportAction);
         } else {
-            lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(lastReportAction);
+            lastMessageTextFromReport = ReportUtils.getIOUUnapprovedOrApprovedMessage(lastReportAction);
         }
     } else if (ReportActionUtils.isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
