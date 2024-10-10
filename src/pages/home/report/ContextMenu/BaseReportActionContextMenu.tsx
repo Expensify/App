@@ -1,5 +1,5 @@
 import type {MutableRefObject, RefObject} from 'react';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {memo, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -117,7 +117,9 @@ function BaseReportActionContextMenu({
     const {isProduction} = useEnvironment();
     const threedotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        canEvict: false,
+    });
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
@@ -349,6 +351,6 @@ function BaseReportActionContextMenu({
     );
 }
 
-export default BaseReportActionContextMenu;
+export default memo(BaseReportActionContextMenu);
 
 export type {BaseReportActionContextMenuProps};
