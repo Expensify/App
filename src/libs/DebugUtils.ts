@@ -610,12 +610,13 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         includeSelfDM: true,
     });
 
+    if (ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)) {
+        return `debug.reasonVisibleInLHN.hasRBR`;
+    }
+
     // When there's no specific reason, we default to isFocused if the report is only showing because we're viewing it
     // Otherwise we return hasRBR if the report has errors other that failed receipt
     if (reason === null || reason === CONST.REPORT_IN_LHN_REASONS.DEFAULT) {
-        if (ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)) {
-            return `debug.reasonVisibleInLHN.hasRBR`;
-        }
         return 'debug.reasonVisibleInLHN.isFocused';
     }
 
