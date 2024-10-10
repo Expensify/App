@@ -1,4 +1,5 @@
 Subscription Management
+
 Under the subscriptions section of your account, you can manage your payment card details, view your current plan, add a billing card, and adjust your subscription size and renewal date.
 To view or manage your subscription in New Expensify:
 **Open the App**: Launch New Expensify on your device.
@@ -9,7 +10,7 @@ To view or manage your subscription in New Expensify:
 ## Add a Payment Card
 
 Look for the option to **Add Payment Card**. Enter your payment card details securely to ensure uninterrupted service.
-[PLACEHOLDER for design image- default]
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default.png){:width="100%"}
 ## Subscription Overview
 
 This is where you can view your current subscription plan and see details like the number of seats, billing information, and the next renewal date.
@@ -19,13 +20,13 @@ This is where you can view your current subscription plan and see details like t
 - **Auto-increase annual seats**: Here you can see how much you could save by automatically increasing seats to accommodate team members who exceed the current subscription size.
 
 **Note**: This will extend your annual subscription end date.
-[PLACEHOLDER for design image- your plan]
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details.png){:width="100%"}
 ## Early Cancellation Requests
 
 If you need to cancel your subscription early, you can find the **Request Early Cancellation** option in the same Subscriptions section. 
 
 **Note**: Not all customers are eligible to cancel their subscription early.
-[PLACEHOLDER for design image- billing]
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing.png){:width="100%"}
 ## Pricing Information
 
 For more details on pricing plans, visit Billing Page [coming soon!]
