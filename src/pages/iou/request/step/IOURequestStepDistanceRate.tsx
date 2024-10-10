@@ -51,7 +51,7 @@ function IOURequestStepDistanceRate({
     policyTags,
     policyCategories,
 }: IOURequestStepDistanceRateProps) {
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
 
     const policy = policyReal ?? policyDraft;
 
@@ -62,7 +62,7 @@ function IOURequestStepDistanceRate({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+    const currentRateID = TransactionUtils.getRateID(transaction);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 

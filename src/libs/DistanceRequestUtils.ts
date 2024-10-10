@@ -273,7 +273,7 @@ function getCustomUnitRateID(reportID: string, shouldUseDefault?: boolean) {
 
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
         const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id] ?? '-1';
+        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id];
         const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
         if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID && !shouldUseDefault) {
             customUnitRateID = lastSelectedDistanceRateID;

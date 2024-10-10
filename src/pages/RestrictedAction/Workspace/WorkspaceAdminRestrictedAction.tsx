@@ -25,7 +25,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     const styles = useThemeStyles();
 
     const openAdminsReport = useCallback(() => {
-        const reportID = `${PolicyUtils.getPolicy(policyID)?.chatReportIDAdmins}` ?? '-1';
+        const reportID = `${PolicyUtils.getPolicy(policyID)?.chatReportIDAdmins}`;
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policyID]);

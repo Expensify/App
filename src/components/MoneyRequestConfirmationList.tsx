@@ -234,7 +234,7 @@ function MoneyRequestConfirmationList({
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
     const transactionID = transaction?.transactionID;
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+    const customUnitRateID = TransactionUtils.getRateID(transaction);
 
     useEffect(() => {
         if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {

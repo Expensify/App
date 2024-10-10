@@ -198,7 +198,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
+    const rateID = TransactionUtils.getRateID(transaction);
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -625,7 +625,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     CONST.IOU.ACTION.EDIT,
                                     iouType,
                                     transaction?.transactionID,
-                                    report?.reportID ?? '-1',
+                                    report?.reportID,
                                     Navigation.getReportRHPActiveRoute(),
                                 ),
                             )

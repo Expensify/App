@@ -111,7 +111,7 @@ function BaseGetPhysicalCard({
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
+    const cardID = cardToBeIssued?.cardID.toString();
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {

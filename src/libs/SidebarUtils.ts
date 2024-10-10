@@ -145,7 +145,7 @@ function getOrderedReportIDs(
         if (
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportId ?? '-1',
+                currentReportId: currentReportId,
                 isInFocusMode,
                 betas,
                 policies: policies as OnyxCollection<Policy>,

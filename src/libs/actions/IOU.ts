@@ -3868,7 +3868,7 @@ function trackExpense(
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID,
-                createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
+                createdReportActionIDForThread: createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
                 customUnitRateID,
             };

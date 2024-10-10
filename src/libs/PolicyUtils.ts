@@ -169,7 +169,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
 }
 
 function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string | undefined) {
-    return policy?.role ?? policy?.employeeList?.[currentUserLogin ?? '-1']?.role;
+    return policy?.role ?? policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 /**
@@ -650,7 +650,7 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     }
 
     const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
-    return pendingFields[key ?? '-1'];
+    return pendingFields[key];
 }
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
