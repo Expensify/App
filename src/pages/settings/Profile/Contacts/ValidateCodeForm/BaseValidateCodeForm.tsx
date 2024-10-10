@@ -2,8 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -23,7 +22,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, PendingContactAction} from '@src/types/onyx';
+import type {LoginList, PendingContactAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
@@ -33,11 +32,6 @@ type ValidateCodeFormHandle = {
 
 type ValidateCodeFormError = {
     validateCode?: TranslationPaths;
-};
-
-type BaseValidateCodeFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
 };
 
 type ValidateCodeFormProps = {
@@ -63,10 +57,7 @@ type ValidateCodeFormProps = {
     pendingContact?: PendingContactAction;
 };
 
-type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
-
 function BaseValidateCodeForm({
-    account = {},
     contactMethod,
     hasMagicCodeBeenSent,
     loginList,
@@ -74,7 +65,7 @@ function BaseValidateCodeForm({
     innerRef = () => {},
     isValidatingAction = false,
     pendingContact,
-}: BaseValidateCodeFormProps) {
+}: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
@@ -82,12 +73,14 @@ function BaseValidateCodeForm({
     const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const loginData = loginList?.[pendingContact?.contactMethod ?? contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInitialCodeSent = useRef<boolean>(false);
     const validateCodeSentIsPressedRef = useRef(false);
     const [showDotIndicator, setShowDotIndicator] = useState(false);
 
@@ -168,6 +161,7 @@ function BaseValidateCodeForm({
         }
 
         inputValidateCodeRef.current?.clear();
+        isInitialCodeSent.current = true;
         validateCodeSentIsPressedRef.current = true;
     };
     /**
@@ -241,7 +235,7 @@ function BaseValidateCodeForm({
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {showDotIndicator && (
+                    {showDotIndicator && isInitialCodeSent.current && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
@@ -276,6 +270,4 @@ BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
-export default withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(BaseValidateCodeForm);
+export default BaseValidateCodeForm;
