@@ -51,6 +51,7 @@ import type {
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     UpdateCompanyCardNameParams,
+    UpdateInvoiceCompanyNameParams,
     UpdatePolicyAddressParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceDescriptionParams,
@@ -4738,6 +4739,71 @@ function clearAllPolicies() {
     Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
 }
 
+function updateInvoiceCompanyName(policyID: string, companyName: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    companyName,
+                    pendingFields: {
+                        companyName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    pendingFields: {
+                        companyName: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    companyName: policy?.invoice?.companyName,
+                    pendingFields: {
+                        companyName: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateInvoiceCompanyNameParams = {
+        authToken,
+        policyID,
+        companyName,
+    };
+
+    // TODO: Remove dev log
+    console.debug('[TEST] Updating invoice company name', parameters, {optimisticData, successData, failureData});
+
+    API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -4840,6 +4906,7 @@ export {
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
     verifySetupIntentAndRequestPolicyOwnerChange,
+    updateInvoiceCompanyName,
 };
 
 export type {NewCustomUnit};
