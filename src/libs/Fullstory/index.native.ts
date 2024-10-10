@@ -17,6 +17,8 @@ const FS = {
     init: () => {
         Environment.getEnvironment().then((envName: string) => {
             // We only want to start fullstory if the app is running in production
+            // Since we don't use it in other environments, it is also disabled in build.gradle to speed up Android build times
+            // See https://github.com/Expensify/App/pull/50206 for more information
             if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
                 return;
             }

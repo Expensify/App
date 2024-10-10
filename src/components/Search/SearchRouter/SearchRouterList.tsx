@@ -175,6 +175,7 @@ function SearchRouterList(
             containerStyle={[styles.mh100]}
             sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
             ref={ref}
+            showScrollIndicator={!isSmallScreenWidth}
         />
     );
 }
