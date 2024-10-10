@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,7 +25,7 @@ type DebugTabViewProps = {
     activeWorkspaceID?: string;
 };
 
-function getSettingsMessage(status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined): TranslationPaths | undefined {
+function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
             return 'debug.indicatorStatus.workspaceHasCustomUnitsErrors';
@@ -56,12 +56,12 @@ function getSettingsMessage(status: ValueOf<typeof CONST.INDICATOR_STATUS> | und
     }
 }
 
-function getSettingsRoute(status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined, idOfPolicyWithErrors = ''): Route | undefined {
+function getSettingsRoute(status: IndicatorStatus | undefined, policyIDWithErrors = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return ROUTES.WORKSPACE_INITIAL.getRoute(idOfPolicyWithErrors);
+            return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
-            return ROUTES.WORKSPACE_MEMBERS.getRoute(idOfPolicyWithErrors);
+            return ROUTES.WORKSPACE_MEMBERS.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return ROUTES.SETTINGS_CONTACT_METHODS.route;
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -69,15 +69,15 @@ function getSettingsRoute(status: ValueOf<typeof CONST.INDICATOR_STATUS> | undef
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
-            return ROUTES.WORKSPACE_INITIAL.getRoute(idOfPolicyWithErrors);
+            return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', idOfPolicyWithErrors);
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(idOfPolicyWithErrors);
+            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
@@ -92,7 +92,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {status, indicatorColor, idOfPolicyWithErrors} = useIndicatorStatus();
+    const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === SCREENS.HOME) {
@@ -133,13 +133,13 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
             }
         }
         if (selectedTab === SCREENS.SETTINGS.ROOT) {
-            const route = getSettingsRoute(status, idOfPolicyWithErrors);
+            const route = getSettingsRoute(status, policyIDWithErrors);
 
             if (route) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, status, idOfPolicyWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, status, policyIDWithErrors]);
 
     if (!([SCREENS.HOME, SCREENS.SETTINGS.ROOT] as string[]).includes(selectedTab) || !indicator) {
         return null;

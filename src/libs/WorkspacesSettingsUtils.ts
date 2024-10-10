@@ -120,7 +120,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
-function getChatTabBrickRoadReport(policyID?: string) {
+function getChatTabBrickRoadReport(policyID?: string): OnyxEntry<Report> {
     const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return undefined;
@@ -129,11 +129,26 @@ function getChatTabBrickRoadReport(policyID?: string) {
     // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
-    return policyReports.find((report) => {
+    let reportWithGBR: OnyxEntry<Report>;
+
+    const reportWithRBR = policyReports.find((report) => {
         const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        return [CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR].includes(brickRoad as NonNullable<BrickRoad>);
+        if (!reportWithGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            reportWithGBR = report;
+            return false;
+        }
+        return brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     });
+
+    if (reportWithRBR) {
+        return reportWithRBR;
+    }
+
+    if (reportWithGBR) {
+        return reportWithGBR;
+    }
+
+    return undefined;
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {

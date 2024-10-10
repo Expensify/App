@@ -9,13 +9,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useTheme from './useTheme';
 
-type IndicatorStatus = {
+type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
+
+type IndicatorStatusResult = {
     indicatorColor: string;
     status: ValueOf<typeof CONST.INDICATOR_STATUS> | undefined;
-    idOfPolicyWithErrors: string | undefined;
+    policyIDWithErrors: string | undefined;
 };
 
-function useIndicatorStatus(): IndicatorStatus {
+function useIndicatorStatus(): IndicatorStatusResult {
     const theme = useTheme();
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -45,7 +47,7 @@ function useIndicatorStatus(): IndicatorStatus {
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
     // we only care if a single error / info condition exists anywhere.
-    const errorChecking = {
+    const errorChecking: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: PaymentMethods.hasPaymentMethodError(bankAccountList, fundList),
         ...(Object.fromEntries(Object.entries(policyErrors).map(([error, policy]) => [error, !!policy])) as Record<keyof typeof policyErrors, boolean>),
@@ -56,7 +58,7 @@ function useIndicatorStatus(): IndicatorStatus {
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
     };
 
-    const infoChecking = {
+    const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && UserUtils.hasLoginListInfo(loginList),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: SubscriptionUtils.hasSubscriptionGreenDotInfo(),
     };
@@ -64,11 +66,13 @@ function useIndicatorStatus(): IndicatorStatus {
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];
     const [info] = Object.entries(infoChecking).find(([, value]) => value) ?? [];
 
-    const status = (error ?? info) as ValueOf<typeof CONST.INDICATOR_STATUS> | undefined;
-    const idOfPolicyWithErrors = Object.values(policyErrors).find(Boolean)?.id;
+    const status = (error ?? info) as IndicatorStatus | undefined;
+    const policyIDWithErrors = Object.values(policyErrors).find(Boolean)?.id;
     const indicatorColor = error ? theme.danger : theme.success;
 
-    return {indicatorColor, status, idOfPolicyWithErrors};
+    return {indicatorColor, status, policyIDWithErrors};
 }
 
 export default useIndicatorStatus;
+
+export type {IndicatorStatus};
