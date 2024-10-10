@@ -610,7 +610,10 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         includeSelfDM: true,
     });
 
-    if (ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)) {
+    if (
+        !([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) &&
+        ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)
+    ) {
         return `debug.reasonVisibleInLHN.hasRBR`;
     }
 

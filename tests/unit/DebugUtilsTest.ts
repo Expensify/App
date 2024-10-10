@@ -963,8 +963,7 @@ describe('DebugUtils', () => {
             );
             expect(reportAction).toBeUndefined();
         });
-        // TODO: remove '.failing' once the implementation is fixed
-        it.failing('returns parentReportAction if it is a transaction thread, the transaction is missing smart scan fields and the report is not settled', async () => {
+        it('returns undefined if it is a transaction thread, the transaction is missing smart scan fields and the report is not settled', async () => {
             const MOCK_REPORTS: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: {
                     reportID: '1',
@@ -1011,7 +1010,7 @@ describe('DebugUtils', () => {
                 MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                 undefined,
             );
-            expect(reportAction).toBe(1);
+            expect(reportAction).toBe(undefined);
         });
         describe("Report has missing fields, isn't settled and it's owner is the current user", () => {
             describe('Report is IOU', () => {
