@@ -27,7 +27,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const styles = useThemeStyles();
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const reimbursable = qbdConfig?.export.reimbursable;
-    const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const {bankAccounts, payableAccounts, journalEntryAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const hasErrors = !!qbdConfig?.errorFields?.reimbursable;
     const policyID = policy?.id ?? '-1';
     const {canUseNewDotQBD} = usePermissions();
@@ -56,10 +56,10 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: true,
-                accounts: accountPayable ?? [],
+                accounts: payableAccounts ?? [],
             },
         ],
-        [reimbursable, translate, bankAccounts, accountPayable, journalEntryAccounts],
+        [reimbursable, translate, bankAccounts, payableAccounts, journalEntryAccounts],
     );
 
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);

@@ -27,7 +27,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const {bankAccounts, journalEntryAccounts, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const reimbursable = qbdConfig?.export.reimbursable;
 
@@ -66,7 +66,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
                 accounts = journalEntryAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                accounts = accountPayable ?? [];
+                accounts = payableAccounts ?? [];
                 break;
             default:
                 accounts = [];
@@ -78,7 +78,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             keyForList: account.name,
             isSelected: account.id === qbdConfig?.export?.reimbursableAccount,
         }));
-    }, [reimbursable, bankAccounts, journalEntryAccounts, accountPayable, qbdConfig?.export?.reimbursableAccount]);
+    }, [reimbursable, bankAccounts, journalEntryAccounts, payableAccounts, qbdConfig?.export?.reimbursableAccount]);
 
     const policyID = policy?.id ?? '-1';
 

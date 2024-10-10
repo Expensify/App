@@ -38,7 +38,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const {bankAccounts, journalEntryAccounts, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const reimbursable = qbdConfig?.export.reimbursable;
     const {canUseNewDotQBD} = usePermissions();
     const [exportHintText, accountDescription, accountsList] = useMemo(() => {
@@ -59,14 +59,14 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 hintText = translate('workspace.qbd.exportVendorBillDescription');
                 description = translate('workspace.qbd.accountsPayable');
-                accounts = accountPayable ?? [];
+                accounts = payableAccounts ?? [];
                 break;
             default:
                 break;
         }
 
         return [hintText, description, accounts];
-    }, [reimbursable, translate, bankAccounts, journalEntryAccounts, accountPayable]);
+    }, [reimbursable, translate, bankAccounts, journalEntryAccounts, payableAccounts]);
 
     const sections: QBDSectionType[] = [
         {

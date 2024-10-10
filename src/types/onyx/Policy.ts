@@ -1236,9 +1236,6 @@ type QBDConnectionData = {
 
     /** Collections of vendors */
     vendors: Vendor[];
-
-    /** Collection of export destination accounts */
-    accountPayable: Account[];
 };
 
 /**
