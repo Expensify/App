@@ -1287,6 +1287,15 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         nonReimbursableBillDefaultVendor: string;
     };
 
+    /** Configuration of import settings from QuickBooks Desktop to the app */
+    mappings: {
+        /** How QuickBooks Desktop classes displayed as */
+        classes: IntegrationEntityMap;
+
+        /** How QuickBooks Desktop customers displayed as */
+        customers: IntegrationEntityMap;
+    };
+
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
