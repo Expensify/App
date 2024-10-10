@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
@@ -48,6 +49,7 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
+    const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
     const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, errors?: Errors, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
@@ -150,7 +152,9 @@ function AccountSwitcher() {
                                 numberOfLines={1}
                                 style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
-                                {currentUserPersonalDetails?.displayName}
+                                {processedTextArray.length !== 0
+                                    ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))
+                                    : currentUserPersonalDetails?.displayName}
                             </Text>
                             {canSwitchAccounts && (
                                 <View style={styles.justifyContentCenter}>
