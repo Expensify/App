@@ -252,8 +252,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 return;
             }
 
-            const itemIndex = item.index ?? -1;
-            const sectionIndex = item.sectionIndex ?? -1;
+            const itemIndex = item.index;
+            const sectionIndex = item.sectionIndex;
 
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
         },

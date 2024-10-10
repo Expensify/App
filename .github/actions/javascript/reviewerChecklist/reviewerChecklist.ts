@@ -5,7 +5,7 @@ import GitHubUtils from '@github/libs/GithubUtils';
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistContains = '# Reviewer Checklist';
-const issue: number = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number ?? -1;
+const issue: number = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number;
 const combinedComments: string[] = [];
 
 function getNumberOfItemsFromReviewerChecklist() {

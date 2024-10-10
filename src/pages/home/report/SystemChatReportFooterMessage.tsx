@@ -41,7 +41,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
                   (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
               );
 
-        return String(adminPolicy?.chatReportIDAdmins ?? -1);
+        return String(adminPolicy?.chatReportIDAdmins);
     }, [activePolicyID, policies, currentUserLogin]);
 
     const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);

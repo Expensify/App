@@ -1286,7 +1286,7 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
         const participantAccountIDs = Object.keys(report?.participants ?? {})
             .map(Number)
             .filter((accountID) => accountID !== currentUserAccountID);
-        return isOptimisticPersonalDetail(participantAccountIDs.at(0) ?? -1);
+        return isOptimisticPersonalDetail(participantAccountIDs.at(0));
     }
     return false;
 }
@@ -5293,7 +5293,7 @@ function buildOptimisticChatReport(
         // TODO: update to support workspace as an invoice receiver when workspace-to-workspace invoice room implemented
         optimisticChatReport.invoiceReceiver = {
             type: 'individual',
-            accountID: participantList.at(0) ?? -1,
+            accountID: participantList.at(0),
         };
     }
 

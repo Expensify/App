@@ -69,7 +69,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = mergedPRs.map((prNum) => {
-                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum);
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
@@ -88,7 +88,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
             // First, make sure we include all current deploy blockers
             const deployBlockers = openDeployBlockers.map((deployBlocker) => {
-                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number) ?? -1;
+                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number);
                 const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData?.deployBlockers[indexInCurrentChecklist].isResolved : false;
                 return {
                     number: deployBlocker.number,

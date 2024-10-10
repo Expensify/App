@@ -35,7 +35,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
-    const index = getIndex?.() ?? -1;
+    const index = getIndex?.();
     let descriptionKey = 'distance.waypointDescription.';
     let waypointIcon;
     if (index === 0) {

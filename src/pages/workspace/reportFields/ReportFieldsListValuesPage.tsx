@@ -128,7 +128,7 @@ function ReportFieldsListValuesPage({
         setSelectedValues({});
 
         const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-            const index = listValues?.indexOf(valueName) ?? -1;
+            const index = listValues?.indexOf(valueName);
 
             if (index !== -1) {
                 acc.push(index);
@@ -189,13 +189,13 @@ function ReportFieldsListValuesPage({
                 });
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
-                const index = listValues?.indexOf(valueName) ?? -1;
+                const index = listValues?.indexOf(valueName);
                 return !disabledListValues?.at(index);
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = listValues?.indexOf(valueName) ?? -1;
+                    const index = listValues?.indexOf(valueName);
                     if (!disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }
@@ -221,13 +221,13 @@ function ReportFieldsListValuesPage({
             }
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
-                const index = listValues?.indexOf(valueName) ?? -1;
+                const index = listValues?.indexOf(valueName);
                 return disabledListValues?.at(index);
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = listValues?.indexOf(valueName) ?? -1;
+                    const index = listValues?.indexOf(valueName);
                     if (disabledListValues?.at(index) && index !== -1) {
                         acc.push(index);
                     }

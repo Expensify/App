@@ -80,7 +80,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     };
                     return section;
                 })
-                .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
+                .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '')),
         [selectedOptions, personalData.accountID, translate],
     );
 

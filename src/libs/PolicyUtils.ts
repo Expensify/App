@@ -514,7 +514,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
+        return getAccountIDsByLogins([defaultApprover]).at(0);
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
@@ -522,7 +522,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
         return -1;
     }
 
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0);
 }
 
 function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
@@ -556,7 +556,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? '';
-    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1 : undefined;
+    return reimburserEmail ? getAccountIDsByLogins([reimburserEmail]).at(0) : undefined;
 }
 
 function getPersonalPolicy() {

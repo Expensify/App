@@ -150,7 +150,7 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
     logins.forEach((login, index) => {
-        const accountID = accountIDs.at(index) ?? -1;
+        const accountID = accountIDs.at(index);
         if (isEmptyObject(allPersonalDetails?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
@@ -169,7 +169,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
     const personalDetailsCleanup: PersonalDetailsList = {};
 
     newLogins.forEach((login, index) => {
-        const accountID = newAccountIDs.at(index) ?? -1;
+        const accountID = newAccountIDs.at(index);
         personalDetailsNew[accountID] = {
             login,
             accountID,

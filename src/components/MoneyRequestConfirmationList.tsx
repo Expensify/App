@@ -593,7 +593,7 @@ function MoneyRequestConfirmationList({
         if (!transaction?.splitShares) {
             return;
         }
-        return Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
+        return Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key)]?.isModified);
     }, [transaction?.splitShares]);
 
     const getSplitSectionHeader = useCallback(

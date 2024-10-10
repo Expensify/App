@@ -897,7 +897,7 @@ function openReport(
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
-            const accountID = participantAccountIDs.at(index) ?? -1;
+            const accountID = participantAccountIDs.at(index);
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {

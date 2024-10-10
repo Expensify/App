@@ -86,7 +86,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
             // tagListIndex can be 0 so we compare with undefined
             if (firstViolation?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
                 return currentViolations
-                    .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
+                    .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex))
                     .map((violation) => ({
                         ...violation,
                         data: {

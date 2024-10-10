@@ -68,7 +68,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID) ?? ''));
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
+        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.at(0);
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
