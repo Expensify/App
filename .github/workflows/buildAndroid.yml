@@ -20,18 +20,14 @@ on:
         description: The pull request number associated with this build, if relevant.
         type: string
         required: false
-      artifact-apk-name:
-        description: The name of the APK artifact to upload
-        type: string
-        required: false
-        default: ${{ inputs.artifact-prefix }}android-artifact-apk
+
     outputs:
       AAB_FILE_NAME:
         value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
       APK_FILE_NAME:
         value: ${{ jobs.build.outputs.APK_FILE_NAME }}
       APK_ARTIFACT_NAME:
-        value: ${{ inputs.artifact-apk-name }}
+        value: ${{ jobs.build.outputs.APK_ARTIFACT_NAME }}
 
   workflow_dispatch:
     inputs:
@@ -63,6 +59,7 @@ jobs:
     outputs:
       AAB_FILE_NAME: ${{ steps.build.outputs.AAB_FILE_NAME }}
       APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
+      APK_ARTIFACT_NAME: ${{ steps.build.outputs.APK_ARTIFACT_NAME }}
 
     steps:
       - name: Checkout
@@ -166,6 +163,7 @@ jobs:
               echo "APK_PATH=$apkPath"
               echo "APK_FILE_NAME=$(basename "$apkPath")"
               echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
+              echo "ARTIFACT_APK_NAME=${{ inputs.artifact-prefix }}android-artifact-apk" >> "$GITHUB_OUTPUT"
             } >> "$GITHUB_OUTPUT"    
 
       - name: Upload Android AAB artifact
@@ -181,7 +179,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-apk-name }}
+          name: ${{ steps.build.outputs.ARTIFACT_APK_NAME }}
           path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload Android sourcemaps artifact
