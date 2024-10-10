@@ -1,8 +1,8 @@
+/* eslint-disable rulesdir/prefer-at */
 import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import FastSearch from '@libs/FastSearch';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -24,18 +25,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import ChatFinderPageFooter from './ChatFinderPageFooter';
 
-type ChatFinderPageOnyxProps = {
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
+type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -51,7 +43,7 @@ const setPerformanceTimersEnd = () => {
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
-function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
+function ChatFinderPage({navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -60,6 +52,9 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     });
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500);
@@ -94,6 +89,50 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
+    /**
+     * Builds a suffix tree and returns a function to search in it.
+     */
+    const findInSearchTree = useMemo(() => {
+        const fastSearch = FastSearch.createFastSearch([
+            {
+                data: searchOptions.personalDetails,
+                toSearchableString: (option) => {
+                    const displayName = option.participantsList?.[0]?.displayName ?? '';
+                    return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
+                },
+            },
+            {
+                data: searchOptions.recentReports,
+                toSearchableString: (option) => {
+                    const searchStringForTree = [option.text ?? '', option.login ?? ''];
+
+                    if (option.isThread) {
+                        if (option.alternateText) {
+                            searchStringForTree.push(option.alternateText);
+                        }
+                    } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+                        if (option.subtitle) {
+                            searchStringForTree.push(option.subtitle);
+                        }
+                    }
+
+                    return searchStringForTree.join();
+                },
+            },
+        ]);
+
+        function search(searchInput: string) {
+            const [personalDetails, recentReports] = fastSearch.search(searchInput);
+
+            return {
+                personalDetails,
+                recentReports,
+            };
+        }
+
+        return search;
+    }, [searchOptions.personalDetails, searchOptions.recentReports]);
+
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
             return {
@@ -105,17 +144,26 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        const newOptions = findInSearchTree(debouncedSearchValue);
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
-        return {
+        const userToInvite = OptionsListUtils.pickUserToInvite({
+            canInviteUser: true,
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: newOptions.userToInvite,
+            searchValue: debouncedSearchValue,
+            optionsToExclude: [{login: CONST.EMAIL.NOTIFICATIONS}],
+        });
+
+        const recentReports = newOptions.recentReports.concat(newOptions.personalDetails);
+
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!userToInvite) > 0, false, debouncedSearchValue);
+        return {
+            recentReports: OptionsListUtils.orderOptions(recentReports, debouncedSearchValue, {preferChatroomsOverThreads: true}),
+            personalDetails: [],
+            userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions]);
+    }, [debouncedSearchValue, findInSearchTree]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
@@ -198,12 +246,4 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
 ChatFinderPage.displayName = 'ChatFinderPage';
 
-export default withOnyx<ChatFinderPageProps, ChatFinderPageOnyxProps>({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(ChatFinderPage);
+export default ChatFinderPage;
