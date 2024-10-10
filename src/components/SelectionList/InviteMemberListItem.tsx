@@ -36,7 +36,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
-    shouldHighlightSelectedItem
+    shouldHighlightSelectedItem,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
