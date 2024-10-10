@@ -54,13 +54,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const selectedOptions = useMemo<OptionData[]>(() => {
-        return selectedReportIDs
-            .filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])
-            .map((id) => {
-                const report = getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
-                const alternateText = OptionsListUtils.getAlternateText(report, {});
-                return {...report, alternateText};
-            });
+        return selectedReportIDs.map((id) => {
+            const report = getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
+            const alternateText = OptionsListUtils.getAlternateText(report, {});
+            return {...report, alternateText};
+        });
     }, [personalDetails, reports, selectedReportIDs]);
 
     const defaultOptions = useMemo(() => {
