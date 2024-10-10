@@ -25,7 +25,7 @@ function SearchFiltersTagPage() {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
-        const items = [{name: translate('search.filters.noTag'), value: CONST.SEARCH.VALUE_NONE as string}];
+        const items = [{name: translate('search.noTag'), value: CONST.SEARCH.VALUE_NONE as string}];
         if (!singlePolicyTagsList) {
             const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];

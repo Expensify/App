@@ -138,6 +138,15 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
+function sortOptions(a: string, b: string) {
+    console.log('over here', {a,b})
+    // Always show `No category` and `No tag` as the first option
+    if (a === CONST.SEARCH.VALUE_NONE || b === CONST.SEARCH.VALUE_NONE) {
+        return 1;
+    }
+    return localeCompare(a, b);
+}
+
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
@@ -174,12 +183,25 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return;
     }
 
-    if (
-        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
-        filters[fieldName]
-    ) {
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[fieldName]) {
         const filterArray = filters[fieldName] ?? [];
         return filterArray.sort(localeCompare).join(', ');
+    }
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
+        const filterArray = filters[fieldName] ?? [];
+        return filterArray
+            .sort(sortOptions)
+            .map((value) => (value === CONST.SEARCH.VALUE_NONE ? translate('search.noCategory') : value))
+            .join(', ');
+    }
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[fieldName]) {
+        const filterArray = filters[fieldName] ?? [];
+        return filterArray
+            .sort(sortOptions)
+            .map((value) => (value === CONST.SEARCH.VALUE_NONE ? translate('search.noTag') : value))
+            .join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {

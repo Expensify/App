@@ -24,7 +24,7 @@ function SearchFiltersCategoryPage() {
     const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
-        const items = [{name: translate('search.filters.noCategory'), value: CONST.SEARCH.VALUE_NONE as string}];
+        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.VALUE_NONE as string}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyIDCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
