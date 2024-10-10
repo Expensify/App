@@ -1226,6 +1226,9 @@ type QBDConnectionData = {
 
     /** Collections of vendors */
     vendors: Vendor[];
+
+    /** Collection of export destination accounts */
+    accountPayable: Account[];
 };
 
 /**
@@ -1243,6 +1246,15 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
         enabled: boolean;
     };
+
+    /** Configuration of the export */
+    export: {
+        /** E-mail of the exporter */
+        exporter: string;
+    };
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** State of integration connection */

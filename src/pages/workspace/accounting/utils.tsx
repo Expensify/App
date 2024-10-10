@@ -257,11 +257,12 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => {},
-                onExportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => {},
                 onAdvancedPagePress: () => {},
+                // TODO: [QBD] Make sure all values are passed to subscribedSettings
                 subscribedImportSettings: [],
-                subscribedExportSettings: [],
+                subscribedExportSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER],
                 subscribedAdvancedSettings: [],
             };
         default:
