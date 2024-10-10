@@ -332,3 +332,4 @@ export type {default as SetMissingPersonalDetailsAndShipExpensifyCardParams} fro
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
 export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectPolicyToQuickBooksDesktopParams';
 export type {default as UpdateInvoiceCompanyNameParams} from './UpdateInvoiceCompanyNameParams';
+export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoiceCompanyWebsiteParams';

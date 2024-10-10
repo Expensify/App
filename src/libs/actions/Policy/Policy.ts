@@ -52,6 +52,7 @@ import type {
     SetWorkspaceReimbursementParams,
     UpdateCompanyCardNameParams,
     UpdateInvoiceCompanyNameParams,
+    UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceDescriptionParams,
@@ -4804,6 +4805,71 @@ function updateInvoiceCompanyName(policyID: string, companyName: string) {
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME, parameters, {optimisticData, successData, failureData});
 }
 
+function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    companyWebsite,
+                    pendingFields: {
+                        companyWebsite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    pendingFields: {
+                        companyWebsite: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    companyWebsite: policy?.invoice?.companyWebsite,
+                    pendingFields: {
+                        companyWebsite: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateInvoiceCompanyWebsiteParams = {
+        authToken,
+        policyID,
+        companyWebsite,
+    };
+
+    // TODO: Remove dev log
+    console.debug('[TEST] Updating invoice company website', parameters, {optimisticData, successData, failureData});
+
+    API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -4907,6 +4973,7 @@ export {
     clearCompanyCardErrorField,
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
+    updateInvoiceCompanyWebsite,
 };
 
 export type {NewCustomUnit};
