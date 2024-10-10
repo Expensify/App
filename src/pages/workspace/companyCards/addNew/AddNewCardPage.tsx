@@ -1,5 +1,6 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
+import usePermissions from '@hooks/usePermissions';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,22 +12,38 @@ import SelectBankStep from './SelectBankStep';
 
 function AddNewCardPage() {
     const [addNewCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const {canUseDirectFeeds} = usePermissions();
 
     const {currentStep} = addNewCardFeed ?? {};
 
-    switch (currentStep) {
-        case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
-            return <SelectBankStep />;
-        case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-            return <CardTypeStep />;
-        case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-            return <CardInstructionsStep />;
-        case CONST.COMPANY_CARDS.STEP.CARD_NAME:
-            return <CardNameStep />;
-        case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            return <DetailsStep />;
-        default:
-            return <SelectBankStep />;
+    if (canUseDirectFeeds) {
+        switch (currentStep) {
+            case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
+                return <SelectBankStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
+                return <CardTypeStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
+                return <CardInstructionsStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_NAME:
+                return <CardNameStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
+                return <DetailsStep />;
+            default:
+                return <SelectBankStep />;
+        }
+    } else {
+        switch (currentStep) {
+            case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
+                return <CardTypeStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
+                return <CardInstructionsStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_NAME:
+                return <CardNameStep />;
+            case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
+                return <DetailsStep />;
+            default:
+                return <CardTypeStep />;
+        }
     }
 }
 
