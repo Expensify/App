@@ -48,7 +48,8 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: true,
-                accounts: journalEntryAccounts ?? [],
+                // Journal entry account include payable accounts, other current liabilities, and other current assets
+                accounts: [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])],
             },
             {
                 value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,

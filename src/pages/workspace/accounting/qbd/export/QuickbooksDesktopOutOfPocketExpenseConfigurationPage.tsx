@@ -54,7 +54,8 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 hintText = translate('workspace.qbd.exportJournalEntryDescription');
                 description = translate('workspace.qbd.account');
-                accounts = journalEntryAccounts ?? [];
+                // Journal entry account include payable accounts, other current liabilities, and other current assets
+                accounts = [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])];
                 break;
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 hintText = translate('workspace.qbd.exportVendorBillDescription');
