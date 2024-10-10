@@ -166,7 +166,7 @@ export default {
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
-    popoverWidth: 375,
+    popoverWidth: 512,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,

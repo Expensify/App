@@ -2,7 +2,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
-import * as Environment from './Environment/Environment';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -59,17 +58,6 @@ function canUseNewDotQBD(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 /**
- * New Search Router is under construction and for now should be displayed only in dev to allow developers to work on it.
- * We are not using BETA for this feature, as betas are heavier to cleanup,
- * and the development of new router is expected to take 2-3 weeks at most
- *
- * After everything is implemented this function can be removed, as we will always use SearchRouter in the App.
- */
-function canUseNewSearchRouter() {
-    return Environment.isDevelopment();
-}
-
-/**
  * Link previews are temporarily disabled.
  */
 function canUseLinkPreviews(): boolean {
@@ -88,7 +76,6 @@ export default {
     canUseNewDotCopilot,
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
-    canUseNewSearchRouter,
     canUseCategoryAndTagApprovers,
     canUseNewDotQBD,
 };

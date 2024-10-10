@@ -14,7 +14,6 @@ import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
 
-const loadChatFinder = () => require<ReactComponentModule>('../../../../pages/ChatFinderPage').default;
 const loadWorkspaceSwitcherPage = () => require<ReactComponentModule>('../../../../pages/WorkspaceSwitcherPage').default;
 
 const Stack = createStackNavigator<LeftModalNavigatorParamList>();
@@ -37,10 +36,6 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                     screenOptions={screenOptions}
                     id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                 >
-                    <Stack.Screen
-                        name={SCREENS.LEFT_MODAL.CHAT_FINDER}
-                        getComponent={loadChatFinder}
-                    />
                     <Stack.Screen
                         name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
                         getComponent={loadWorkspaceSwitcherPage}

@@ -1,28 +1,23 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
+import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
-import type {RootStackParamList} from '@libs/Navigation/types';
 import {createOptionList} from '@libs/OptionsListUtils';
-import ChatFinderPage from '@pages/ChatFinderPage';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import type {Beta, PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
-import createAddListenerMock from '../utils/createAddListenerMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -68,6 +63,9 @@ jest.mock('@react-navigation/native', () => {
             getCurrentRoute: () => jest.fn(),
             getState: () => jest.fn(),
         }),
+        useNavigationState: () => ({
+            routes: [],
+        }),
     };
 });
 
@@ -86,15 +84,6 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
 
     return WithNavigationFocus;
 });
-// mock of useDismissedReferralBanners
-jest.mock('../../src/hooks/useDismissedReferralBanners', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: jest.fn(() => ({
-        isDismissed: false,
-        setAsDismissed: () => {},
-    })),
-}));
 
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
@@ -134,48 +123,32 @@ afterEach(() => {
     Onyx.clear();
 });
 
-type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER> & {
-    betas?: OnyxEntry<Beta[]>;
-    reports?: OnyxCollection<Report>;
-    isSearchingForReports?: OnyxEntry<boolean>;
-};
+const mockOnClose = jest.fn();
 
-function ChatFinderPageWrapper(args: ChatFinderPageProps) {
+function SearchRouterWrapper() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider]}>
             <OptionListContextProvider>
-                <ChatFinderPage
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...args}
-                    navigation={args.navigation}
-                />
+                <SearchRouter onRouterClose={mockOnClose} />
             </OptionListContextProvider>
         </ComposeProviders>
     );
 }
 
-function ChatFinderPageWithCachedOptions(args: ChatFinderPageProps) {
+function SearchRouterWrapperWithCachedOptions() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, areOptionsInitialized: true}), [])}>
-                <ChatFinderPage
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...args}
-                    navigation={args.navigation}
-                />
+                <SearchRouter onRouterClose={mockOnClose} />
             </OptionsListContext.Provider>
         </ComposeProviders>
     );
 }
 
-test('[ChatFinderPage] should render list with cached options', async () => {
-    const {addListener} = createAddListenerMock();
-
+test('[SearchRouter] should render chat list with cached options', async () => {
     const scenario = async () => {
-        await screen.findByTestId('ChatFinderPage');
+        await screen.findByTestId('SearchRouter');
     };
-
-    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -186,31 +159,19 @@ test('[ChatFinderPage] should render list with cached options', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() =>
-            measurePerformance(
-                <ChatFinderPageWithCachedOptions
-                    route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
-                    navigation={navigation}
-                />,
-                {scenario},
-            ),
-        );
+        .then(() => measureRenders(<SearchRouterWrapperWithCachedOptions />, {scenario}));
 });
 
-test('[ChatFinderPage] should interact when text input changes', async () => {
-    const {addListener} = createAddListenerMock();
-
+test('[SearchRouter] should react to text input changes', async () => {
     const scenario = async () => {
-        await screen.findByTestId('ChatFinderPage');
+        await screen.findByTestId('SearchRouter');
 
-        const input = screen.getByTestId('selection-list-text-input');
+        const input = screen.getByTestId('search-router-text-input');
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
     };
 
-    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
-
     return waitForBatchedUpdates()
         .then(() =>
             Onyx.multiSet({
@@ -220,13 +181,5 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() =>
-            measurePerformance(
-                <ChatFinderPageWrapper
-                    route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
-                    navigation={navigation}
-                />,
-                {scenario},
-            ),
-        );
+        .then(() => measureRenders(<SearchRouterWrapper />, {scenario}));
 });

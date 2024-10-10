@@ -68,6 +68,7 @@ function SearchRouterInput({
         <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
             <View style={styles.flex1}>
                 <TextInput
+                    testID="search-router-text-input"
                     value={value}
                     onChangeText={onChangeText}
                     autoFocus

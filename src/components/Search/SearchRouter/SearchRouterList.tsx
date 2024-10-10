@@ -13,10 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -45,6 +48,11 @@ type SearchRouterListProps = {
 
     /** Callback to close and clear SearchRouter */
     closeAndClearRouter: () => void;
+};
+
+const setPerformanceTimersEnd = () => {
+    Timing.end(CONST.TIMING.SEARCH_ROUTER_OPEN);
+    Performance.markEnd(CONST.TIMING.SEARCH_ROUTER_OPEN);
 };
 
 function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
@@ -159,7 +167,7 @@ function SearchRouterList(
             // Handle selection of "Recent chat"
             closeAndClearRouter();
             if ('reportID' in item && item?.reportID) {
-                Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
                 Report.navigateToAndOpenReport(item?.login ? [item.login] : []);
             }
@@ -174,8 +182,10 @@ function SearchRouterList(
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
             sectionListStyle={[isSmallScreenWidth ? styles.ph5 : styles.ph2, styles.pb2]}
+            onLayout={setPerformanceTimersEnd}
             ref={ref}
             showScrollIndicator={!isSmallScreenWidth}
+            sectionTitleStyles={styles.mhn2}
         />
     );
 }
