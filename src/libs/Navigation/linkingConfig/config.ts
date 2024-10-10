@@ -298,6 +298,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 login: (login: string) => decodeURIComponent(login),
                             },
                         },
+                        [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
+                            path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
+                        },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
                             parse: {
@@ -306,6 +312,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
                             path: ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },
