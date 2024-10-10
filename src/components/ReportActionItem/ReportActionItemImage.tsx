@@ -55,6 +55,8 @@ type ReportActionItemImageProps = {
 
     /** Whether the receipt is not editable */
     readonly?: boolean;
+
+    isFromReviewDuplicates?: boolean;
 };
 
 /**
@@ -75,6 +77,7 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
+    isFromReviewDuplicates,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -135,7 +138,12 @@ function ReportActionItemImage({
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '-1', transaction?.transactionID ?? '-1', readonly),
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? '-1',
+                                    transaction?.transactionID ?? '-1',
+                                    readonly,
+                                    isFromReviewDuplicates,
+                                ),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
