@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
-import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
 
 class NumberError extends SyntaxError {
@@ -597,7 +596,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         return null;
     }
 
-    const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
@@ -611,7 +610,15 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPath
         includeSelfDM: true,
     });
 
-    // When there's no specific reason, we default to isFocused since the report is only showing because we're viewing it
+    if (
+        !([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) &&
+        ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations)
+    ) {
+        return `debug.reasonVisibleInLHN.hasRBR`;
+    }
+
+    // When there's no specific reason, we default to isFocused if the report is only showing because we're viewing it
+    // Otherwise we return hasRBR if the report has errors other that failed receipt
     if (reason === null || reason === CONST.REPORT_IN_LHN_REASONS.DEFAULT) {
         return 'debug.reasonVisibleInLHN.isFocused';
     }
@@ -645,7 +652,7 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
  * Gets the report action that is causing the RBR to show up in LHN
  */
 function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const {reportAction} = OptionsListUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     return reportAction;
 }

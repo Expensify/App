@@ -4957,6 +4957,7 @@ const translations = {
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',
+            hasRBR: 'Has RBR',
             pinnedByUser: 'Pinned by user',
             hasIOUViolations: 'Has IOU violations',
             hasAddWorkspaceRoomErrors: 'Has add workspace room errors',
