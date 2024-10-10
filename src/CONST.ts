@@ -2536,7 +2536,7 @@ const CONST = {
             BREX: 'Brex',
             CAPITAL_ONE: 'Capital One',
             CHASE: 'Chase',
-            CITI_BANK: 'CitiBank',
+            CITI_BANK: 'Citibank',
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
