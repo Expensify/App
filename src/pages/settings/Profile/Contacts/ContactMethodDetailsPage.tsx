@@ -135,14 +135,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
-
     const sendValidateCode = () => {
         if (loginData?.validateCodeSent) {
             return;
         }
 
         User.requestContactMethodValidateCode(contactMethod);
-    }
+    };
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {

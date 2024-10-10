@@ -46,12 +46,12 @@ function DelegateMagicCodeModal({login, role}: DelegateMagicCodeModalProps) {
     };
 
     const sendValidateCode = () => {
-        if(currentDelegate?.validateCodeSent) {
+        if (currentDelegate?.validateCodeSent) {
             return;
         }
 
-        User.requestValidateCodeAction()
-    }
+        User.requestValidateCodeAction();
+    };
 
     return (
         <ValidateCodeActionModal

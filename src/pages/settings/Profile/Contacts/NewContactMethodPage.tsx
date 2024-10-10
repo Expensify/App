@@ -111,8 +111,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             return;
         }
 
-        User.requestValidateCodeAction()
-    }
+        User.requestValidateCodeAction();
+    };
 
     return (
         <ScreenWrapper

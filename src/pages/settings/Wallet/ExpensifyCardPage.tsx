@@ -151,11 +151,11 @@ function ExpensifyCardPage({
         const loginData = loginList?.[primaryLogin];
 
         if (loginData?.validateCodeSent) {
-            return
+            return;
         }
 
-        requestValidateCodeAction()
-    }
+        requestValidateCodeAction();
+    };
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
