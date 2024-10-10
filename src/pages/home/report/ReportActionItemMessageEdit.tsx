@@ -164,6 +164,22 @@ function ReportActionItemMessageEdit(
         };
     }, []);
 
+    useEffect(
+        // Remove focus callback on unmount to avoid stale callbacks
+        () => {
+            if (textInputRef.current) {
+                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+            }
+            return () => {
+                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                    return;
+                }
+                ReportActionComposeFocusManager.clear(true);
+            };
+        },
+        [],
+    );
+
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
         () => isFocusedRef.current || EmojiPickerAction.isActive(action.reportActionID) || ReportActionContextMenu.isActiveReportAction(action.reportActionID),
@@ -184,14 +200,6 @@ function ReportActionItemMessageEdit(
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
         }, true);
     }, [focus]);
-
-    useEffect(
-        // Remove focus callback on unmount to avoid stale callbacks
-        () => () => {
-            ReportActionComposeFocusManager.clear(true);
-        },
-        [],
-    );
 
     useEffect(
         () => {
@@ -512,6 +520,9 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
+                                if (textInputRef.current) {
+                                    ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                                }
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
