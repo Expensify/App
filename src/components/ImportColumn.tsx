@@ -162,7 +162,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
     const colName = findColumnName(column.at(0) ?? '');
-    const defaultSelectedIndex = options.findIndex((item) => item.isSelected);
+    const defaultSelectedIndex = colName ? options.findIndex((item) => item.isSelected === true) : 0;
 
     useEffect(() => {
         if (defaultSelectedIndex === -1) {
