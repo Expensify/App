@@ -62,7 +62,7 @@ export default {
     fontSizeh2: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
-    fontSizeXXXLarge: 32,
+    fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,

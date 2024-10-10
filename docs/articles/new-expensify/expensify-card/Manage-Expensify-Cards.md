@@ -4,6 +4,10 @@ description: How to manage the Expensify Card
 ---
 <div id="new-expensify" markdown="1">
 
+{% include info.html %}
+You must be a Workspace Admin to manage this feature.
+{% include end-info.html %}
+
 Once your Expensify Cards have been issued, you can monitor them and check your card’s current balance, remaining limit, and earned cash back.
 
 1. Click your profile image or icon in the bottom left menu.
