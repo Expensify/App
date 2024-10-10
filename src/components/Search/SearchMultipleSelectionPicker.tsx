@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
-    value: string | string[];
+    value: string;
 };
 
 type SearchMultipleSelectionPickerProps = {
