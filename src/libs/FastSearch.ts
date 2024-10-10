@@ -19,7 +19,7 @@ type SearchableData<T> = {
 const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ' ']);
 
 /**
- * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for (sub-)strings in a list of strings.
+ * Creates a new "FastSearch" instance. "FastSearch" uses a suffix tree to search for substrings in a list of strings.
  * You can provide multiple datasets. The search results will be returned for each dataset.
  *
  * Note: Creating a FastSearch instance with a lot of data is computationally expensive. You should create an instance once and reuse it.
