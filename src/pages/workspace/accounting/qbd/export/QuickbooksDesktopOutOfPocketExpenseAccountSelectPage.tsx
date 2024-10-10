@@ -63,7 +63,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                // Journal entry account include payable accounts, other current liabilities, and other current assets
+                // Journal entry accounts include payable accounts, other current liabilities, and other current assets
                 accounts = [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])];
                 break;
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
