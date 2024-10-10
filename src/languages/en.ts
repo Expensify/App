@@ -2946,7 +2946,6 @@ const translations = {
             addCompanyCards: 'Add company cards',
             selectCardFeed: 'Select card feed',
             addCardFeed: 'Add card feed',
-
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
