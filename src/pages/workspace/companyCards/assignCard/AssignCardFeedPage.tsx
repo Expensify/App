@@ -5,6 +5,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import AssigneeStep from './AssigneeStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
@@ -13,7 +14,7 @@ import TransactionStartDateStep from './TransactionStartDateStep';
 type AssignCardFeedPageProps = {
     route: {
         params: {
-            feed: string;
+            feed: CompanyCardFeed;
         };
     };
 } & WithPolicyAndFullscreenLoadingProps;
@@ -23,20 +24,26 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const currentStep = assignCard?.currentStep;
 
     const feed = route.params?.feed;
+    const policyID = policy?.id ?? '-1';
 
     useEffect(() => {
-        CompanyCards.setAssignCardStepAndData({data: {feed}});
+        CompanyCards.setAssignCardStepAndData({data: {bankName: feed}});
     }, [feed]);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return <AssigneeStep policy={policy} />;
         case CONST.COMPANY_CARD.STEP.CARD:
-            return <CardSelectionStep feed={feed} />;
+            return (
+                <CardSelectionStep
+                    feed={feed}
+                    policyID={policyID}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
             return <TransactionStartDateStep />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
-            return <ConfirmationStep />;
+            return <ConfirmationStep policyID={policyID} />;
         default:
             return <AssigneeStep policy={policy} />;
     }

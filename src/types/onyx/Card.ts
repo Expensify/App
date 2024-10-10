@@ -157,7 +157,10 @@ type IssueNewCard = {
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card>;
+type WorkspaceCardsList = Record<string, Card> & {
+    /** List of cards to assign */
+    cardList?: Record<string, string>;
+};
 
 export default Card;
 export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};
