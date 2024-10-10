@@ -73,10 +73,13 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID?: string) {
+function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
     });
