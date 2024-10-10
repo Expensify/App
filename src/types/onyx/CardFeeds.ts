@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 /** Card feed data */
 type CardFeedData = {
@@ -23,6 +24,9 @@ type CardFeedData = {
 
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay: string;
+
+    /** Broken connection errors */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Card feeds model */
@@ -65,4 +69,4 @@ type AddNewCompanyCardFeed = {
 };
 
 export default CardFeeds;
-export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData};
+export type {AddNewCardFeedStep, AddNewCompanyCardFeed, AddNewCardFeedData, CardFeedData};

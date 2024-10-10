@@ -2518,6 +2518,7 @@ const CONST = {
         CARD_TITLE_INPUT_LIMIT: 255,
     },
     COMPANY_CARDS: {
+        CONNECTION_ERROR: 'connectionError',
         STEP: {
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',

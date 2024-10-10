@@ -4536,6 +4536,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                companyCards: {
+                    [bankName]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -4565,6 +4576,17 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                     },
                     errorFields: {
                         lastUpdated: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                companyCards: {
+                    [bankName]: {
+                        errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
                     },
                 },
             },
