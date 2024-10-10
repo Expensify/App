@@ -54,7 +54,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
