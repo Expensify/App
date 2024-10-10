@@ -10,6 +10,7 @@ import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import {getQBDReimbursableAccounts} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
@@ -27,7 +28,6 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const styles = useThemeStyles();
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const reimbursable = qbdConfig?.export.reimbursable;
-    const {bankAccounts, payableAccounts, journalEntryAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const hasErrors = !!qbdConfig?.errorFields?.reimbursable;
     const policyID = policy?.id ?? '-1';
     const {canUseNewDotQBD} = usePermissions();
@@ -40,7 +40,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isShown: true,
-                accounts: bankAccounts ?? [],
+                accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK),
             },
             {
                 value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
@@ -48,8 +48,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: true,
-                // Journal entry accounts include payable accounts, other current liabilities, and other current assets
-                accounts: [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])],
+                accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY),
             },
             {
                 value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
@@ -57,10 +56,10 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: true,
-                accounts: payableAccounts ?? [],
+                accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL),
             },
         ],
-        [reimbursable, translate, bankAccounts, payableAccounts, journalEntryAccounts],
+        [translate, reimbursable, policy?.connections?.quickbooksDesktop],
     );
 
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);

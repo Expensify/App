@@ -12,6 +12,7 @@ import * as Connections from '@libs/actions/connections/index';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import {getQBDReimbursableAccounts} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -27,16 +28,14 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {bankAccounts, journalEntryAccounts, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const reimbursable = qbdConfig?.export.reimbursable;
 
     const {canUseNewDotQBD} = usePermissions();
 
     const [title, description] = useMemo(() => {
         let titleText: TranslationPaths | undefined;
         let descriptionText: string | undefined;
-        switch (reimbursable) {
+        switch (qbdConfig?.export.reimbursable) {
             case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 titleText = 'workspace.qbd.bankAccount';
                 descriptionText = translate('workspace.qbd.bankAccountDescription');
@@ -54,32 +53,17 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
         }
 
         return [titleText, descriptionText];
-    }, [reimbursable, translate]);
+    }, [qbdConfig?.export.reimbursable, translate]);
 
     const data: CardListItem[] = useMemo(() => {
-        let accounts: Account[];
-        switch (reimbursable) {
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                accounts = bankAccounts ?? [];
-                break;
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                // Journal entry accounts include payable accounts, other current liabilities, and other current assets
-                accounts = [...(payableAccounts ?? []), ...(journalEntryAccounts ?? [])];
-                break;
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                accounts = payableAccounts ?? [];
-                break;
-            default:
-                accounts = [];
-        }
-
+        const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop);
         return accounts.map((account) => ({
             value: account,
             text: account.name,
             keyForList: account.name,
             isSelected: account.id === qbdConfig?.export?.reimbursableAccount,
         }));
-    }, [reimbursable, bankAccounts, journalEntryAccounts, payableAccounts, qbdConfig?.export?.reimbursableAccount]);
+    }, [policy?.connections?.quickbooksDesktop, qbdConfig?.export?.reimbursableAccount]);
 
     const policyID = policy?.id ?? '-1';
 
