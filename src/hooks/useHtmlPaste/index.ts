@@ -4,10 +4,6 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
 
-const insertByCommand = (text: string) => {
-    document.execCommand('insertText', false, text);
-};
-
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
     const currentText = target.textContent ?? '';
 
@@ -39,8 +35,6 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 
         // Dispatch input event to trigger Markdown Input to parse the new text
         target.dispatchEvent(new Event('input', {bubbles: true}));
-    } else {
-        insertByCommand(text);
     }
 };
 
@@ -60,7 +54,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 } else {
                     const htmlInput = textInputRef.current as unknown as HTMLInputElement;
                     const availableLength = maxLength - (htmlInput.value?.length ?? 0);
-                    insertByCommand(text.slice(0, availableLength));
+                    htmlInput.setRangeText(text.slice(0, availableLength));
                 }
 
                 // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
