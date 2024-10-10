@@ -1,5 +1,5 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {memo} from 'react';
+import {OnyxEntry, useOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
 
@@ -111,4 +112,21 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 }
 
 ImageRenderer.displayName = 'ImageRenderer';
-export default ImageRenderer;
+
+const ImageRendererMemorize = memo(
+    ImageRenderer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
+);
+
+function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
+    const [user] = useOnyx(ONYXKEYS.USER);
+    return (
+        <ImageRendererMemorize
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}
+
+export default ImageRendererWrapper;

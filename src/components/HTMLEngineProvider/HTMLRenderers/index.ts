@@ -3,7 +3,7 @@ import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
-import ImageRendererWrapper from './ImageRendererWrapper';
+import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
@@ -18,7 +18,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     // Standard HTML tag renderers
     a: AnchorRenderer,
     code: CodeRenderer,
-    img: ImageRendererWrapper,
+    img: ImageRenderer,
     video: VideoRenderer,
 
     // Custom tag renderers
