@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
@@ -288,6 +288,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const firstTaxID = Object.keys(policyTaxRates ?? {})
         .sort((a, b) => a.localeCompare(b))
         .at(0);
+    const customUnits = policy?.customUnits ?? {};
+    const customUnitID = Object.keys(customUnits).at(0) ?? '-1';
+    const ratesToUpdate = Object.values(customUnits?.[customUnitID]?.rates ?? {}).filter(
+        (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
+    );
 
     if (!policyTaxRates) {
         console.debug('Policy or tax rates not found');
@@ -295,6 +300,33 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     }
 
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
+
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+
+    ratesToUpdate.forEach((rate) => {
+        const rateID = rate.customUnitRateID ?? '';
+        optimisticRates[rateID] = {
+            attributes: {
+                taxRateExternalID: null,
+                taxClaimablePercentage: null,
+            },
+            pendingFields: {
+                taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        };
+        successRates[rateID] = {pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null}};
+        failureRates[rateID] = {
+            attributes: {...rate?.attributes},
+            pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
+            errorFields: {
+                taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        };
+    });
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -310,6 +342,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
+                    customUnits: customUnits && {
+                        [customUnitID]: {
+                            rates: optimisticRates,
+                        },
+                    },
                 },
             },
         ],
@@ -324,6 +361,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             acc[taxID] = null;
                             return acc;
                         }, {}),
+                    },
+                    customUnits: customUnits && {
+                        [customUnitID]: {
+                            rates: successRates,
+                        },
                     },
                 },
             },
@@ -343,6 +385,11 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             };
                             return acc;
                         }, {}),
+                    },
+                    customUnits: customUnits && {
+                        [customUnitID]: {
+                            rates: failureRates,
+                        },
                     },
                 },
             },
