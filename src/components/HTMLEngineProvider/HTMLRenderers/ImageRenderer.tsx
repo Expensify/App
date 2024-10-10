@@ -113,4 +113,4 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 }
 
 ImageRenderer.displayName = 'ImageRenderer';
-export default ImageRenderer
+export default ImageRenderer;

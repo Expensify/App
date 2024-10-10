@@ -3,13 +3,13 @@ import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
+import ImageRendererWrapper from './ImageRendererWrapper';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
 import VideoRenderer from './VideoRenderer';
-import ImageRendererWrapper from "./ImageRendererWrapper";
 
 /**
  * This collection defines our custom renderers. It is a mapping from HTML tag type to the corresponding component.
