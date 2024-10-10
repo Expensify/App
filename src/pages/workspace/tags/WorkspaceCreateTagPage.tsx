@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -30,7 +30,7 @@ type WorkspaceCreateTagPageOnyxProps = {
     policyTags: OnyxEntry<PolicyTagLists>;
 };
 
-type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
 
 function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const styles = useThemeStyles();
