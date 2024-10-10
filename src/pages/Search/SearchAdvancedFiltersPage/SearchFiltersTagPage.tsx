@@ -20,7 +20,7 @@ function SearchFiltersTagPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
-        if (tag === CONST.SEARCH.VALUE_NONE) {
+        if (tag === CONST.SEARCH.EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
         }
         return {name: tag, value: tag};
@@ -30,7 +30,7 @@ function SearchFiltersTagPage() {
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
-        const items = [{name: translate('search.noTag'), value: CONST.SEARCH.VALUE_NONE as string}];
+        const items = [{name: translate('search.noTag'), value: CONST.SEARCH.EMPTY_VALUE as string}];
         if (!singlePolicyTagsList) {
             const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];

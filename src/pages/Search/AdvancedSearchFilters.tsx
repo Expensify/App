@@ -140,10 +140,10 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 
 const sortOptionsWithNoneValue = (a, b) => {
     // Always show `No category` and `No tag` as the first option
-    if (a === CONST.SEARCH.VALUE_NONE) {
+    if (a === CONST.SEARCH.EMPTY_VALUE) {
         return -1;
     }
-    if (b === CONST.SEARCH.VALUE_NONE) {
+    if (b === CONST.SEARCH.EMPTY_VALUE) {
         return 1;
     }
     return localeCompare(a, b);
@@ -194,7 +194,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         const filterArray = filters[fieldName] ?? [];
         return filterArray
             .sort(sortOptionsWithNoneValue)
-            .map((value) => (value === CONST.SEARCH.VALUE_NONE ? translate('search.noCategory') : value))
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
             .join(', ');
     }
 
@@ -202,7 +202,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         const filterArray = filters[fieldName] ?? [];
         return filterArray
             .sort(sortOptionsWithNoneValue)
-            .map((value) => (value === CONST.SEARCH.VALUE_NONE ? translate('search.noTag') : value))
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
             .join(', ');
     }
 
