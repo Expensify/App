@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
+import type {ForwardedRef, MutableRefObject, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
@@ -14,7 +14,7 @@ import type {
 import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -63,19 +63,7 @@ type SyncSelection = {
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
-type ComposerWithSuggestionsOnyxProps = {
-    /** The modal state */
-    modal: OnyxEntry<OnyxTypes.Modal>;
-
-    /** The preferred skin tone of the user */
-    preferredSkinTone: number;
-
-    /** Whether the input is focused */
-    editFocused: OnyxEntry<boolean>;
-};
-
-type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
-    Partial<ChildrenProps> & {
+type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
         /** Report ID */
         reportID: string;
 
@@ -142,9 +130,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** The ref to the next modal will open */
         isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
-        /** Whether the edit is focused */
-        editFocused: boolean;
-
         /** The last report action */
         lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -204,10 +189,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
  */
 function ComposerWithSuggestions(
     {
-        // Onyx
-        modal,
-        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-
         // Props: Report
         reportID,
         includeChronos,
@@ -241,7 +222,6 @@ function ComposerWithSuggestions(
         // Refs
         suggestionsRef,
         isNextModalWillOpenRef,
-        editFocused,
 
         // For testing
         children,
@@ -266,6 +246,15 @@ function ComposerWithSuggestions(
         }
         return draftComment;
     });
+
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {
+        selector: EmojiUtils.getPreferredSkinToneIndex,
+        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE
+    });
+
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+
     const commentRef = useRef(value);
 
     const lastTextRef = useRef(value);
@@ -824,17 +813,6 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
-export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, ComposerWithSuggestionsOnyxProps>({
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-    },
-    editFocused: {
-        key: ONYXKEYS.INPUT_FOCUSED,
-    },
-})(memo(ComposerWithSuggestionsWithRef));
+export default memo(ComposerWithSuggestionsWithRef);
 
 export type {ComposerWithSuggestionsProps, ComposerRef};
