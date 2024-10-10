@@ -2,6 +2,7 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -34,7 +35,7 @@ const useRootNavigatorOptions = () => {
         rightModalNavigator: {
             ...commonScreenOptions,
             ...hideKeyboardOnSwipe,
-            animation: 'slide_from_right',
+            animation: Animations.SLIDE_FROM_RIGHT,
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
             web: {
@@ -66,7 +67,7 @@ const useRootNavigatorOptions = () => {
         },
         leftModalNavigator: {
             ...commonScreenOptions,
-            animation: 'slide_from_left',
+            animation: Animations.SLIDE_FROM_LEFT,
             animationTypeForReplace: 'pop',
             native: {
                 customAnimationOnGesture: true,
@@ -107,7 +108,7 @@ const useRootNavigatorOptions = () => {
         fullScreen: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
-            animation: isSmallScreenWidth ? 'slide_from_right' : 'none',
+            animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {
@@ -123,7 +124,7 @@ const useRootNavigatorOptions = () => {
             ...commonScreenOptions,
             ...hideKeyboardOnSwipe,
             title: CONFIG.SITE_TITLE,
-            animation: isSmallScreenWidth ? undefined : 'none',
+            animation: isSmallScreenWidth ? undefined : Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {

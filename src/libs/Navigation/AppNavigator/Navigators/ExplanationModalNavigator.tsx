@@ -5,6 +5,7 @@ import ExplanationModal from '@components/ExplanationModal';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {ExplanationModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 
 const Stack = createPlatformStackNavigator<ExplanationModalNavigatorParamList>();
 
@@ -12,7 +13,7 @@ function ExplanationModalNavigator() {
     return (
         <NoDropZone>
             <View>
-                <Stack.Navigator screenOptions={{headerShown: false, animation: 'slide_from_right'}}>
+                <Stack.Navigator screenOptions={{headerShown: false, animation: Animations.SLIDE_FROM_RIGHT}}>
                     <Stack.Screen
                         name={SCREENS.EXPLANATION_MODAL.ROOT}
                         component={ExplanationModal}

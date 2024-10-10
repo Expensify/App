@@ -1,6 +1,7 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import type {GestureDirection} from '@react-navigation/stack/lib/typescript/src/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 /**
@@ -21,7 +22,7 @@ const useModalNavigatorOptions = (gestureDirection: GestureDirection = 'horizont
 
     return {
         headerShown: false,
-        animation: 'slide_from_right',
+        animation: Animations.SLIDE_FROM_RIGHT,
         gestureDirection: universalGestureDirection,
         web: {
             cardStyle: themeStyles.navigationScreenCardStyle,
