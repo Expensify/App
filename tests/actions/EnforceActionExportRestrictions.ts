@@ -54,6 +54,11 @@ describe('Task', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Task.getParentReport).toBeUndefined();
     });
+
+    it('does not export getParentReportAction', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Task.getParentReportAction).toBeUndefined();
+    });
 });
 
 describe('OptionsListUtils', () => {
