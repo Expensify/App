@@ -22,10 +22,21 @@ import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPurposeProps} from './types';
+
+const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
+
+function getOnboardingChoices(customChoices: OnboardingPurposeType[]) {
+    if (customChoices.length === 0) {
+        return selectableOnboardingChoices;
+    }
+
+    return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
+}
 
 const menuIcons = {
     [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
@@ -51,8 +62,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
 
-    const onboardingChoices =
-        customChoices.length > 0 ? Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).filter((choice) => customChoices.includes(choice)) : Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
+    const onboardingChoices = getOnboardingChoices(customChoices);
 
     const menuItems: MenuItemProps[] = onboardingChoices.map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
