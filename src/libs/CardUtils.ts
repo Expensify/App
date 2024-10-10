@@ -242,6 +242,41 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
+const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
+    const banksWithFeedType = [
+        CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
+        CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
+        CONST.COMPANY_CARDS.BANKS.CHASE,
+        CONST.COMPANY_CARDS.BANKS.CITI_BANK,
+        CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
+    ];
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
+        // TODO https://github.com/Expensify/App/issues/50450
+        return;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
+        // TODO https://github.com/Expensify/App/issues/50451
+        return;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
+        // TODO Skip the step to submit
+        return;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+        return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
+    }
+
+    if (banksWithFeedType.includes(selectedBank)) {
+        return CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE;
+    }
+
+    return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
+};
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -261,4 +296,5 @@ export {
     getCardDetailsImage,
     getMemberCards,
     getBankCardDetailsImage,
+    getCorrectStepForSelectedBank,
 };
