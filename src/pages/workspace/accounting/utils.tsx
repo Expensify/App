@@ -257,11 +257,11 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
-                onExportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => {},
                 onAdvancedPagePress: () => {},
                 subscribedImportSettings: [],
-                subscribedExportSettings: [],
+                subscribedExportSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE],
                 subscribedAdvancedSettings: [],
             };
         default:
