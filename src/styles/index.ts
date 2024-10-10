@@ -5269,6 +5269,7 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+
         qbdSetupLinkBox: {
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusMedium,
