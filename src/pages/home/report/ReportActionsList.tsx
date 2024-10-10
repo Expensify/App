@@ -170,6 +170,24 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    // actions passed to the component are not those of the parent report if the chat is a thread
+    // that's why we need to get the mainReportActions so that we can get the reportId of the thread
+    // and use it to get the report from Onyx
+    const [mainReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID ?? -1}`);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report?.reportID ?? '', mainReportActions ?? [], isOffline);
+    const [threadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+
+    const getLastReadTime = useCallback(() => {
+        return threadReport?.lastReadTime ?? report.lastReadTime;
+    }, [report, threadReport]);
+
+    const getLastVisibleActionCreated = useCallback(() => {
+        return threadReport?.lastVisibleActionCreated ?? report.lastVisibleActionCreated;
+    }, [report, threadReport]);
+
+    const getReportId = useCallback(() => {
+        return threadReport?.reportID ?? report.reportID;
+    }, [report, threadReport]);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -206,9 +224,9 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(getLastReadTime() ?? '');
     useEffect(() => {
-        setUnreadMarkerTime(report.lastReadTime ?? '');
+        setUnreadMarkerTime(getLastReadTime() ?? '');
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -242,11 +260,11 @@ function ReportActionsList({
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
     useEffect(() => {
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${getReportId()}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
             userActiveSince.current = DateUtils.getDBTime();
         });
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${getReportId()}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
         });
 
@@ -279,7 +297,7 @@ function ReportActionsList({
 
     const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === getLastVisibleActionCreated();
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -317,7 +335,7 @@ function ReportActionsList({
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
-                Report.readNewestAction(report.reportID);
+                Report.readNewestAction(getReportId());
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -326,7 +344,7 @@ function ReportActionsList({
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, report.reportID, isVisible]);
+    }, [report.lastVisibleActionCreated, threadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -395,7 +413,7 @@ function ReportActionsList({
         if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
-                Report.readNewestAction(report.reportID);
+                Report.readNewestAction(getReportId());
             }
             setIsFloatingMessageCounterVisible(false);
         }
@@ -415,7 +433,7 @@ function ReportActionsList({
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
-        Report.readNewestAction(report.reportID);
+        Report.readNewestAction(getReportId());
     };
 
     /**
@@ -475,7 +493,7 @@ function ReportActionsList({
 
         // In case the user read new messages (after being inactive) with other device we should
         // show marker based on report.lastReadTime
-        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        const newMessageTimeReference = lastMessageTime.current && getLastReadTime() && lastMessageTime.current > getLastReadTime() ? userActiveSince.current : getLastReadTime();
         lastMessageTime.current = null;
 
         const isArchivedReport = ReportUtils.isArchivedRoom(report);
@@ -491,7 +509,7 @@ function ReportActionsList({
             return;
         }
 
-        Report.readNewestAction(report.reportID);
+        Report.readNewestAction(getReportId());
         userActiveSince.current = DateUtils.getDBTime();
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
