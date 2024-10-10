@@ -13,6 +13,8 @@ const defaultSearchContext = {
     clearSelectedTransactions: () => {},
     shouldShowStatusBarLoading: false,
     setShouldShowStatusBarLoading: () => {},
+    lastSearchType: undefined,
+    setLastSearchType: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -69,6 +71,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     );
 
     const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
+    const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
 
     const searchContext = useMemo<SearchContext>(
         () => ({
@@ -78,8 +81,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             clearSelectedTransactions,
             shouldShowStatusBarLoading,
             setShouldShowStatusBarLoading,
+            lastSearchType,
+            setLastSearchType,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading],
+        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading, lastSearchType, setLastSearchType],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;

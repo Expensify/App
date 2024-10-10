@@ -17,12 +17,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchStatus, TripSearchStatus} from './types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from './types';
 
 type SearchStatusBarProps = {
-    type: SearchDataTypes;
-    status: SearchStatus;
-    policyID: string | undefined;
+    queryJSON: SearchQueryJSON;
     onStatusChange?: () => void;
 };
 
@@ -154,13 +152,13 @@ function getOptions(type: SearchDataTypes) {
     }
 }
 
-function SearchStatusBar({type, status, policyID, onStatusChange}: SearchStatusBarProps) {
+function SearchStatusBar({queryJSON, onStatusChange}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const options = getOptions(type);
+    const options = getOptions(queryJSON.type);
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
@@ -179,10 +177,10 @@ function SearchStatusBar({type, status, policyID, onStatusChange}: SearchStatusB
             {options.map((item, index) => {
                 const onPress = singleExecution(() => {
                     onStatusChange?.();
-                    const query = SearchUtils.buildCannedSearchQuery({type: item.type, status: item.status, policyID});
+                    const query = SearchUtils.buildSearchQueryString({...queryJSON, status: item.status});
                     Navigation.setParams({q: query});
                 });
-                const isActive = status === item.status;
+                const isActive = queryJSON.status === item.status;
                 const isFirstItem = index === 0;
                 const isLastItem = index === options.length - 1;
 
