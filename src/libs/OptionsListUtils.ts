@@ -179,6 +179,7 @@ type GetOptionsConfig = {
     includeDomainEmail?: boolean;
     action?: IOUAction;
     shouldBoldTitleByDefault?: boolean;
+    shouldBoldHiddenChat?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1829,6 +1830,7 @@ function getOptions(
         includeDomainEmail = false,
         action,
         shouldBoldTitleByDefault = true,
+        shouldBoldHiddenChat = true,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -2057,7 +2059,7 @@ function getOptions(
             }
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
-            reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
+            reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption, shouldBoldHiddenChat);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
                 const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
@@ -2172,6 +2174,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeTasks: true,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
+        shouldBoldHiddenChat: false,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2607,8 +2610,13 @@ function getEmptyOptions(): Options {
     };
 }
 
-function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
-    return report.isUnread === true && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+function shouldUseBoldText(report: ReportUtils.OptionData, shouldBoldHiddenChat = true): boolean {
+    const notificationPreference = ReportUtils.getReportNotificationPreference(report);
+    return (
+        report.isUnread === true &&
+        notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE &&
+        (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN || shouldBoldHiddenChat)
+    );
 }
 
 export {
