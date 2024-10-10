@@ -4972,6 +4972,22 @@ const translations = {
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
         },
+        indicatorStatus: {
+            theresAReportAwaitingAction: "There's a report awaiting action",
+            theresAReportWithErrors: "There's a report with errors",
+            workspaceHasCustomUnitsErrors: 'Workspace has custom units errors',
+            workspaceHasEmployeeListErrors: 'Workspace has employee list errors',
+            theresAProblemWithAContactMethod: "There's a problem with a contact method",
+            contactMethodRequiresVerification: 'Contact method requires verification',
+            theresAProblemWithAPaymentMethod: "There's a problem with a payment method",
+            theresAProblemWithAWorkspace: "There's a problem with a workspace",
+            workspaceHasReimbursementAccountError: 'Workspace has reimbursement account error',
+            subscriptionHasErrors: 'Subscription has errors',
+            subscriptionRequiresAttention: 'Subscription requires attention',
+            theresWasAProblemDuringAWorkspaceConnectionSync: 'There was a problem during a workspace connection sync',
+            theresAProblemWithYourWallet: "There's a problem with your wallet",
+            theresAProblemWithYourWalletTerms: "There's a problem with your wallet terms",
+        },
     },
 };
 
