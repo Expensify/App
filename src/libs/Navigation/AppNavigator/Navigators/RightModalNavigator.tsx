@@ -104,6 +104,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.CategoriesModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SETTINGS_TAGS}
+                        component={ModalStackNavigators.TagsModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.EXPENSIFY_CARD}
                         component={ModalStackNavigators.ExpensifyCardModalStackNavigator}
                     />

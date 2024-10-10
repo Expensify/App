@@ -33,7 +33,7 @@ type TagSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof 
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
-    const {orderWeight, policyID, tagName} = route.params;
+    const {orderWeight, policyID, tagName, backTo} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
@@ -58,7 +58,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const deleteTagAndHideModal = () => {
         Tag.deletePolicyTags(policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
-        Navigation.goBack();
+        Navigation.goBack(backTo);
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
@@ -66,7 +66,11 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name));
+        Navigation.navigate(
+            backTo
+                ? ROUTES.SETTINGS_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
+        );
     };
 
     const navigateToEditGlCode = () => {
@@ -76,11 +80,19 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             );
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name));
+        Navigation.navigate(
+            backTo
+                ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
+        );
     };
 
     const navigateToEditTagApprover = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name));
+        Navigation.navigate(
+            backTo
+                ? ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name, backTo)
+                : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
+        );
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -105,6 +117,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
+                    onBackButtonPress={() => Navigation.goBack(backTo ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID))}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}
