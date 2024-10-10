@@ -138,7 +138,7 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
         .join(', ');
 }
 
-const sortOptionsWithNoneValue = (a, b) => {
+const sortOptionsWithNoneValue = (a: string, b: string) => {
     // Always show `No category` and `No tag` as the first option
     if (a === CONST.SEARCH.EMPTY_VALUE) {
         return -1;
