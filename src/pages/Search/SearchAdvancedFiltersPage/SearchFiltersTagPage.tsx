@@ -19,7 +19,12 @@ function SearchFiltersTagPage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => ({name: tag, value: tag}));
+    const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
+        if (tag === CONST.SEARCH.VALUE_NONE) {
+            return {name: translate('search.noTag'), value: tag};
+        }
+        return {name: tag, value: tag};
+    });
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
     const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
