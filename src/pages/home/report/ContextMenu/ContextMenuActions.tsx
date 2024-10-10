@@ -421,7 +421,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
-                    Clipboard.setString(displayMessage);
+                    if (displayMessage === Parser.htmlToText(displayMessage)) {
+                        Clipboard.setString(displayMessage);
+                    } else {
+                        setClipboardMessage(displayMessage);
+                    }
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
@@ -443,14 +447,26 @@ const ContextMenuActions: ContextMenuAction[] = [
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
                     ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
                 ) {
-                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
-                    Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
-                    Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
-                    Clipboard.setString(displayMessage);
+                    const {harvesting} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    if (harvesting) {
+                        setClipboardMessage(ReportUtils.getReportAutomaticallySubmittedMessage(reportAction));
+                    } else {
+                        Clipboard.setString(ReportUtils.getIOUSubmittedMessage(reportAction));
+                    }
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+                    const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    if (automaticAction) {
+                        setClipboardMessage(ReportUtils.getReportAutomaticallyApprovedMessage(reportAction));
+                    } else {
+                        Clipboard.setString(ReportUtils.getIOUApprovedMessage(reportAction));
+                    }
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
+                    const {automaticAction} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    if (automaticAction) {
+                        setClipboardMessage(ReportUtils.getReportAutomaticallyForwardedMessage(reportAction, reportID));
+                    } else {
+                        Clipboard.setString(ReportUtils.getIOUForwardedMessage(reportAction, reportID));
+                    }
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
                     const displayMessage = ReportUtils.getRejectedReportMessage();
                     Clipboard.setString(displayMessage);
@@ -480,7 +496,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
-                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true));
+                    const report = ReportUtils.getReport(reportID);
+                    setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true, report?.policyID));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(ReportActionsUtils.getRemovedConnectionMessage(reportAction));
                 } else if (content) {
