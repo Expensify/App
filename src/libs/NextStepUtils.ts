@@ -232,8 +232,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         }
 
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
-        // or when a report has been paid
         case CONST.REPORT.STATUS_NUM.CLOSED:
+            optimisticNextStep = noActionRequired;
+
+            break;
+
+        // Generates an optimistic nextStep once a report has been paid
         case CONST.REPORT.STATUS_NUM.REIMBURSED:
             optimisticNextStep = noActionRequired;
 
