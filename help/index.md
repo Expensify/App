@@ -2,7 +2,44 @@
 layout: product
 title: Expensify
 ---
-## Introduction
+## [Introduction] Travel and expense at the speed of chat
+Expensify is built on a very simple premise:
+
+* Automate what you can
+* Accelerate what you can't
+
+When implemented right, Expensify can realistically automate away 80% of the daily drudgery of managing expenses, booking travel, sending invoices, paying bills, and all the essential but boring financial processes that power the world's 300MM+ businesses.  But Expensify's main advantage is streamlining the 20% that requires human interaction to make it fast, easy, and... dare we say... fun?
+
+### Optimize your core financial flows with automation
+Expensify is synonymous with automation:
+
+* We launched the first ever expense management mobile app in 2008, and was the first expense management system to integrate receipt scanning.
+* Expensify invented "realtime expense reports" in 2015, which allowed every single step -- from snapping a photo of the receipt, complying with expense policy, approving, reimbursing, and paying out with next day reimbursement -- to be done entirely without any human intervention.
+* We have been integrating with every accounting package since before our competition was even born.  
+
+Expensify offers the most powerful financial automation in the market, bar none.  But despite that extreme commitment to automation, we know from experience that the biggest slowdown in any financial process is simply waiting around for people to act.  Half of that battle is getting anybody to notice your emailed request.  The other half is getting them to prioritize acting upon it.  Thanks to our automation, the actual request itself will only take seconds to complete.  But you can wait days or weeks for them to press that button.  We call that "email speed".
+
+### Accelerate your manual flows with chat
+
+
+
+But the real time drain comes from the 20% that _can't_ be automated.  
+
+No matter how good the automation is, waiting on others is the time drain.  Whether you're waiting for them to spontaneously sign into a service they otherwise have no reason to use, or see your request via email,  receive and act upon your emailed request is the biggest time drain.
+
+, and if you're sending your request via email, it'll be days or weeks before they even notice it.  We call any process 
+
+At some point, the biggest slowdown in the process is simply waiting for someone to notice your request, and then waiting even longer for them to prioritize it.  Even if the request itself is a single button press, you're 
+
+isn't anything we or you can do: faster servers or more automation don't help.  Rather, you're stuck waiting on someone else to do something only they can do.  
+
+Most of that is justwaiting for the other person to even notice your request.  And the rest is waiting for them to prioritize it.  And if your request was delivered via email, it can be days or weeks before they even see it -- and that long again before they decide to do it.  We call that "email speed", and 
+
+
+
+
+But the real challenge -- and Expensify's primary advantage -- is how well we can streamline the 20% that cannot be automated: catching the exceptions, fixing the mistakes, and finding fraud wherever it might arise.
+
 The Expensify Superapp packs the full power of 6 world-class business, finance, and collaboration products into a single app that works identically on desktop and mobile, efficiently with your colleagues, and seamlessly with your customers, vendors, family, and friends.
 
 ### [Main uses] When should I use Expensify?
