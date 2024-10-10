@@ -73,7 +73,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {canUseWorkspaceFeeds} = usePermissions();
+    const {canUseNewDotQBD} = usePermissions();
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
     const route = useRoute();
@@ -84,7 +84,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const {QBD: qbdConnectionName, ...allConnectionNamesWithoutQBD} = CONST.POLICY.CONNECTIONS.NAME;
+    const connectionNames = canUseNewDotQBD ? CONST.POLICY.CONNECTIONS.NAME : allConnectionNamesWithoutQBD;
+    const accountingIntegrations = Object.values(connectionNames);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
@@ -313,7 +315,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
-        if (!canUseWorkspaceFeeds || !policy?.areExpensifyCardsEnabled) {
+        if (!policy?.areExpensifyCardsEnabled) {
             configurationOptions.splice(2, 1);
         }
 
@@ -368,7 +370,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
-        canUseWorkspaceFeeds,
         styles.justifyContentCenter,
         connectionSyncProgress?.stageInProgress,
         datetimeToRelative,
