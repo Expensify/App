@@ -6,6 +6,7 @@ import Onyx, {useOnyx} from 'react-native-onyx';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
+import {useSession} from '@components/OnyxProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
@@ -16,7 +17,6 @@ import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Welcome from '@libs/actions/Welcome';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -25,6 +25,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import SIDEBAR_TO_SPLIT from '@libs/Navigation/linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -82,11 +83,6 @@ const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigato
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
-
-function shouldOpenOnAdminRoom() {
-    const url = getCurrentUrl();
-    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
 
 function initializePusher() {
     return Pusher.init({
@@ -196,9 +192,6 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 function AuthScreens() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -215,6 +208,10 @@ function AuthScreens() {
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
+    const session = useSession();
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -264,18 +261,6 @@ function AuthScreens() {
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
-        }
-
-        let signupQualifier;
-        if (currentUrl.includes(CONST.QUALIFIER_PARAM)) {
-            signupQualifier = new URL(currentUrl).searchParams.get(CONST.QUALIFIER_PARAM);
-
-            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL) {
-                Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
-            }
-            if (signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB) {
-                Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-            }
         }
 
         NetworkConnection.listenForReconnect();
@@ -570,7 +555,7 @@ function AuthScreens() {
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={screenOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {/* {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
@@ -601,4 +586,6 @@ function AuthScreens() {
 
 AuthScreens.displayName = 'AuthScreens';
 
-export default memo(AuthScreens, () => true);
+const AuthScreensMemoized = memo(AuthScreens, () => true);
+
+export default AuthScreensMemoized;

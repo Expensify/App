@@ -4,6 +4,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
@@ -14,11 +15,6 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 const loadReportScreen = () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default;
 
 const Stack = createSplitStackNavigator<ReportsSplitNavigatorParamList>();
-
-function shouldOpenOnAdminRoom() {
-    const url = getCurrentUrl();
-    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
 
 function ReportsSplitNavigator() {
     const {canUseDefaultRooms} = usePermissions();

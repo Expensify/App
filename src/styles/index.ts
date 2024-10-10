@@ -4164,11 +4164,6 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
-        taskCheckboxWrapper: {
-            height: variables.fontSizeNormalHeight,
-            ...flex.justifyContentCenter,
-        },
-
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
@@ -5282,6 +5277,12 @@ const styles = (theme: ThemeColors) =>
         accountSwitcherAnchorPosition: {
             top: 80,
             left: 12,
+        },
+        qbdSetupLinkBox: {
+            backgroundColor: theme.hoverComponentBG,
+            borderRadius: variables.componentBorderRadiusMedium,
+            borderColor: theme.border,
+            padding: 16,
         },
     } satisfies Styles);
 
