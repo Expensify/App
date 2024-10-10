@@ -13,5 +13,7 @@ const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     });
 };
 
-export {SOUNDS};
+function clearSoundAssetsCache() {}
+
+export {SOUNDS, clearSoundAssetsCache};
 export default withMinimalExecutionTime(playSound, 300);
